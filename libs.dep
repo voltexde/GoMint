@@ -1,0 +1,18 @@
+# SLF4J + LOG4J2 Binding
+http://central.maven.org/maven2/org/slf4j/slf4j-api/1.7.13/slf4j-api-1.7.13.jar
+http://central.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.5/log4j-api-2.5.jar
+http://central.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.5/log4j-core-2.5.jar
+http://central.maven.org/maven2/org/apache/logging/log4j/log4j-slf4j-impl/2.5/log4j-slf4j-impl-2.5.jar
+
+# Configuration Library
+http://repo.blackypaw.com/content/groups/public/com/blackypaw/simpleconfig/1.1.0/simpleconfig-1.1.0.jar
+
+# Guava
+http://central.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar
+
+# Koloboke 0.6.8
+http://central.maven.org/maven2/net/openhft/koloboke-api-jdk8/0.6.8/koloboke-api-jdk8-0.6.8.jar
+http://central.maven.org/maven2/net/openhft/koloboke-impl-jdk8/0.6.8/koloboke-impl-jdk8-0.6.8.jar
+
+# Javassist
+http://central.maven.org/maven2/org/javassist/javassist/3.20.0-GA/javassist-3.20.0-GA.jar
