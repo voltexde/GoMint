@@ -8,6 +8,13 @@
 package io.gomint.server.network;
 
 import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketEntityMetadata;
+import io.gomint.server.network.packet.PacketEntityMotion;
+import io.gomint.server.network.packet.PacketEntityMovement;
+import io.gomint.server.network.packet.PacketLogin;
+import io.gomint.server.network.packet.PacketPlayState;
+import io.gomint.server.network.packet.PacketPlayerMovement;
+import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.network.packet.PacketWorldTime;
 
 /**
@@ -17,14 +24,20 @@ import io.gomint.server.network.packet.PacketWorldTime;
 public final class Protocol {
 
 	// ========================================= PACKET IDS ========================================= //
-	public static final byte LOGIN_PACKET      = (byte) 0x8f;
-	public static final byte BATCH_PACKET      = (byte) 0x92;
-	public static final byte WORLD_TIME_PACKET = (byte) 0x94;
+	public static final byte PACKET_LOGIN           = (byte) 0x8F;
+	public static final byte PACKET_BATCH           = (byte) 0x92;
+	public static final byte PACKET_PLAY_STATE      = (byte) 0x90;
+	public static final byte PACKET_WORLD_TIME      = (byte) 0x94;
+	public static final byte PACKET_ENTITY_MOVEMENT = (byte) 0x9C;
+	public static final byte PACKET_PLAYER_MOVEMENT = (byte) 0x9D;
+	public static final byte PACKET_ENTITY_METADATA = (byte) 0xAD;
+	public static final byte PACKET_ENTITY_MOTION   = (byte) 0xAE;
+	public static final byte PACKET_WORLD_CHUNK     = (byte) 0xBF;
 
 	// ========================================= PACKET METHODS ========================================= //
 
 	/**
-	 * Creates an appropriate packet instance given the packet ID found inside the first byte of any
+	 * Creates a new packet instance given the packet ID found inside the first byte of any
 	 * packet's data.
 	 *
 	 * @param id The ID of the the packet to create
@@ -33,8 +46,29 @@ public final class Protocol {
 	 */
 	public static Packet createPacket( byte id ) {
 		switch ( id ) {
-			case WORLD_TIME_PACKET:
+			case PACKET_LOGIN:
+				return new PacketLogin();
+
+			case PACKET_PLAY_STATE:
+				return new PacketPlayState();
+
+			case PACKET_WORLD_TIME:
 				return new PacketWorldTime();
+
+			case PACKET_ENTITY_MOVEMENT:
+				return new PacketEntityMovement();
+
+			case PACKET_PLAYER_MOVEMENT:
+				return new PacketPlayerMovement();
+
+			case PACKET_ENTITY_METADATA:
+				return new PacketEntityMetadata();
+
+			case PACKET_ENTITY_MOTION:
+				return new PacketEntityMotion();
+
+			case PACKET_WORLD_CHUNK:
+				return new PacketWorldChunk();
 
 			default:
 				return null;
