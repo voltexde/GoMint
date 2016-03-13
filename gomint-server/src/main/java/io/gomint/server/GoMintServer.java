@@ -26,7 +26,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -39,66 +41,55 @@ public class GoMintServer implements GoMint {
 	private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
 
 	// Configuration
-	private ServerConfig serverConfig;
+	private ServerConfig        serverConfig;
 
 	// Networking
-	private NetworkManager networkManager;
+	private NetworkManager      networkManager;
 
 	// World Management
 	private WorldManager worldManager;
 
 	// Plugin Management
-	private PluginManager pluginManager;
+	private PluginManager       pluginManager;
 
 	// Task Scheduling
 	@Getter
-	private SyncTaskManager syncTaskManager;
-	private AtomicBoolean running = new AtomicBoolean( true );
+	private SyncTaskManager     syncTaskManager;
+	private AtomicBoolean       running = new AtomicBoolean( true );
 	@Getter
-	private long              currentTick;
+	private long                currentTick;
 	@Getter
-	private ExecutorService   executorService;
+	private ExecutorService     executorService;
 	@Getter
-	private PerformanceReport performanceReport;
+	private PerformanceReport   performanceReport;
 
+	/**
+	 * Starts the GoMint server
+	 * @param args which should have been given over from the static Bootstrap
+     */
 	public GoMintServer( String[] args ) {
 		this.performanceReport = new PerformanceReport();
 
 		// ------------------------------------ //
 		// Executor Initialization
 		// ------------------------------------ //
-		this.executorService = Executors.newCachedThreadPool();
+		this.executorService = new ThreadPoolExecutor( 0, 512, 60L, TimeUnit.SECONDS, new SynchronousQueue<>() );
 
 		// ------------------------------------ //
 		// Configuration Initialization
 		// ------------------------------------ //
-		this.serverConfig = new ServerConfig();
-
-		try {
-			this.serverConfig.initialize( new File( "server.cfg" ) );
-		} catch ( IOException e ) {
-			logger.error( "server.cfg is corrupted: ", e );
-			System.exit( -1 );
-		}
-
-		try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
-			this.serverConfig.write( fileWriter );
-		} catch ( IOException e ) {
-			logger.warn( "Could not save server.cfg: ", e );
-		}
+		this.loadConfig();
 
 		// ------------------------------------ //
-		// Scheduler Initialization
+		// Scheduler + PluginManager Initialization
 		// ------------------------------------ //
 		this.syncTaskManager = new SyncTaskManager( this );
+        this.networkManager = new NetworkManager();
+		this.pluginManager = new SimplePluginManager( this );
 
-		this.performanceReport.print();
 		// ------------------------------------ //
 		// Networking Initialization
 		// ------------------------------------ //
-
-		// Startup the RakNet Natives
-		this.networkManager = new NetworkManager( this );
 		try {
 			this.networkManager.initialize( this.serverConfig.getMaxPlayers(), this.serverConfig.getListener().getIp(), this.serverConfig.getListener().getPort() );
 
@@ -166,6 +157,24 @@ public class GoMintServer implements GoMint {
 	}
 
 	@Override
+    private void loadConfig() {
+        this.serverConfig = new ServerConfig();
+
+        try {
+            this.serverConfig.initialize( new File( "server.cfg" ) );
+        } catch ( IOException e ) {
+            logger.error( "server.cfg is corrupted: ", e );
+            System.exit( -1 );
+        }
+
+        try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
+            this.serverConfig.write( fileWriter );
+        } catch ( IOException e ) {
+            logger.warn( "Could not save server.cfg: ", e );
+        }
+    }
+
+    @Override
 	public String getMotd() {
 		return this.networkManager.getMotd();
 	}
@@ -174,4 +183,11 @@ public class GoMintServer implements GoMint {
 	public void setMotd( String motd ) {
 		this.networkManager.setMotd( motd );
 	}
+
+    /**
+     * Nice shutdown pls
+     */
+    public void shutdown() {
+        this.running.set( false );
+    }
 }

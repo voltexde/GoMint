@@ -11,9 +11,6 @@ import io.gomint.server.GoMintServer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Comparator;
-import java.util.PriorityQueue;
-
 /**
  * @author geNAZt
  * @version 1.0
@@ -21,52 +18,50 @@ import java.util.PriorityQueue;
 @RequiredArgsConstructor
 public class SyncTaskManager {
     @Getter private final GoMintServer goMintServer;
-    private final PriorityQueue<SyncScheduledTask> taskQueue = new PriorityQueue<>( new Comparator<SyncScheduledTask>() {
-        @Override
-        public int compare( SyncScheduledTask syncScheduledTask1, SyncScheduledTask syncScheduledTask2 ) {
-            return (int) ( syncScheduledTask1.getNextExecution() - syncScheduledTask2.getNextExecution() );
-        }
-    } );
+    private final TaskList<SyncScheduledTask> taskList = new TaskList<>();
 
+    /**
+     * Add a new pre configured Task to this scheduler
+     * @param task which shoould be executed
+     */
     public void addTask( SyncScheduledTask task ) {
-        synchronized ( this.taskQueue ) {
-            this.taskQueue.offer( task );
+        if ( task.getNextExecution() == -1 ) return;
+
+        synchronized ( this.taskList ) {
+            this.taskList.add( task.getNextExecution(), task );
         }
     }
 
+    /**
+     * Tick all tasks
+     */
     public void tickTasks() {
-        synchronized ( this.taskQueue ) {
+        synchronized ( this.taskList ) {
             // Iterate over all Tasks until we find some for later ticks
-            while ( this.taskQueue.size() > 0 ) {
-                SyncScheduledTask task = this.taskQueue.peek();
+            while ( !this.taskList.checkNextKey( goMintServer.getCurrentTick() ) ) {
+                SyncScheduledTask task = this.taskList.getNextElement();
                 if ( task == null || task.getNextExecution() > goMintServer.getCurrentTick() ) {
                     return;
                 }
 
-                SyncScheduledTask takeOutTask = this.taskQueue.poll();
-                if ( takeOutTask == null || takeOutTask.getNextExecution() > goMintServer.getCurrentTick() ) {
-                    // Race condition here
-                    return;
-                }
-
                 // Check for abort value ( -1 )
-                if ( takeOutTask.getNextExecution() == -1 ) {
+                if ( task.getNextExecution() == -1 ) {
                     continue;
                 }
 
-                takeOutTask.run();
+                task.run();
 
                 // Reschedule if needed
-                if ( takeOutTask.getNextExecution() > goMintServer.getCurrentTick() ) {
-                    this.taskQueue.add( takeOutTask );
+                if ( task.getNextExecution() > goMintServer.getCurrentTick() ) {
+                    this.taskList.add( task.getNextExecution(), task );
                 }
             }
         }
     }
 
     public void removeTask( SyncScheduledTask task ) {
-        synchronized ( this.taskQueue ) {
-            this.taskQueue.remove( task );
+        synchronized ( this.taskList ) {
+            this.taskList.remove( task );
         }
     }
 }

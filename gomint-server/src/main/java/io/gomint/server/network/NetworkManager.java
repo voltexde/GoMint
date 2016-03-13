@@ -32,9 +32,11 @@ import java.io.OutputStreamWriter;
 import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author BlackyPaw
+ * @author geNAZt
  * @version 1.0
  */
 public class NetworkManager {
