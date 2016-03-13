@@ -34,7 +34,7 @@ public class PacketLogin extends Packet {
 	private int    skinLength;
 
 	public PacketLogin() {
-		super( Protocol.LOGIN_PACKET );
+		super( Protocol.PACKET_LOGIN );
 	}
 
 	@Override

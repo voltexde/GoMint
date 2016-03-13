@@ -18,29 +18,38 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode( callSuper = false )
-public class PacketWorldTime extends Packet {
+public class PacketWorldChunk extends Packet {
 
-	private int ticks;
-	private boolean counting;
+	private int x;
+	private int z;
+	private byte[] data;
 
-	public PacketWorldTime() {
-		super( Protocol.PACKET_WORLD_TIME );
+	public PacketWorldChunk() {
+		super( Protocol.PACKET_WORLD_CHUNK );
 	}
 
 	@Override
 	public void serialize( PacketBuffer buffer ) {
-		buffer.writeInt( this.ticks );
-		buffer.writeBoolean( this.counting );
+		buffer.writeInt( this.x );
+		buffer.writeInt( this.z );
+		buffer.writeByte( (byte) 0x00 );
+		buffer.writeInt( this.data.length );
+		buffer.writeBytes( data );
 	}
 
 	@Override
 	public void deserialize( PacketBuffer buffer ) {
-		this.ticks = buffer.readInt();
-		this.counting = buffer.readBoolean();
+		this.x = buffer.readInt();
+		this.z = buffer.readInt();
+		buffer.skip( 1 );
+		int length = buffer.readInt();
+		this.data = new byte[length];
+		buffer.readBytes( this.data );
 	}
 
 	@Override
 	public int estimateLength() {
-		return 5;
+		return 13 + ( this.data == null ? 0 : this.data.length );
 	}
+
 }

@@ -8,6 +8,7 @@
 package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,29 +19,25 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode( callSuper = false )
-public class PacketWorldTime extends Packet {
+public class PacketEntityMetadata extends Packet {
 
-	private int ticks;
-	private boolean counting;
+	private long entityId;
+	private MetadataContainer metadata;
 
-	public PacketWorldTime() {
-		super( Protocol.PACKET_WORLD_TIME );
+	public PacketEntityMetadata() {
+		super( Protocol.PACKET_ENTITY_METADATA );
 	}
 
 	@Override
 	public void serialize( PacketBuffer buffer ) {
-		buffer.writeInt( this.ticks );
-		buffer.writeBoolean( this.counting );
+		buffer.writeLong( this.entityId );
+		this.metadata.serialize( buffer );
 	}
 
 	@Override
 	public void deserialize( PacketBuffer buffer ) {
-		this.ticks = buffer.readInt();
-		this.counting = buffer.readBoolean();
-	}
-
-	@Override
-	public int estimateLength() {
-		return 5;
+		this.entityId = buffer.readLong();
+		this.metadata = new MetadataContainer();
+		this.metadata.deserialize( buffer );
 	}
 }
