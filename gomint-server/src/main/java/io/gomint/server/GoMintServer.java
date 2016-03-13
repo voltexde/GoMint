@@ -11,7 +11,9 @@ import io.gomint.GoMint;
 import io.gomint.plugin.PluginManager;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.network.NetworkManager;
+import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.report.PerformanceReport;
+import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.scheduler.SyncTaskManager;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -22,7 +24,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -54,38 +59,39 @@ public class GoMintServer implements GoMint {
 	@Getter
 	private PerformanceReport performanceReport;
 
+	/**
+	 * Starts the GoMint server
+	 * @param args which should have been given over from the static Bootstrap
+     */
 	public GoMintServer( String[] args ) {
 		this.performanceReport = new PerformanceReport();
 
 		// ------------------------------------ //
 		// Executor Initialization
 		// ------------------------------------ //
-		this.executorService = Executors.newCachedThreadPool();
+		this.executorService = new ThreadPoolExecutor( 0, 512, 60L, TimeUnit.SECONDS, new SynchronousQueue<>() );
 
 		// ------------------------------------ //
 		// Configuration Initialization
 		// ------------------------------------ //
-		this.serverConfig = new ServerConfig();
-
-		try {
-			this.serverConfig.initialize( new File( "server.cfg" ) );
-		} catch ( IOException e ) {
-			logger.error( "server.cfg is corrupted: ", e );
-			System.exit( -1 );
-		}
-
-		try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
-			this.serverConfig.write( fileWriter );
-		} catch ( IOException e ) {
-			logger.warn( "Could not save server.cfg: ", e );
-		}
+		this.loadConfig();
 
 		// ------------------------------------ //
 		// Scheduler Initialization
 		// ------------------------------------ //
 		this.syncTaskManager = new SyncTaskManager( this );
 
-		this.performanceReport.print();
+		SyncScheduledTask task = new SyncScheduledTask(this.syncTaskManager, new Runnable() {
+			@Override
+			public void run() {
+				System.out.println( "Test 1" );
+			}
+		}, 200, 200, TimeUnit.MILLISECONDS );
+		this.syncTaskManager.addTask( task );
+		this.syncTaskManager.removeTask( task );
+
+		this.pluginManager = new SimplePluginManager( this );
+
 		// ------------------------------------ //
 		// Networking Initialization
 		// ------------------------------------ //
@@ -143,7 +149,24 @@ public class GoMintServer implements GoMint {
 		}
 	}
 
-	@Override
+    private void loadConfig() {
+        this.serverConfig = new ServerConfig();
+
+        try {
+            this.serverConfig.initialize( new File( "server.cfg" ) );
+        } catch ( IOException e ) {
+            logger.error( "server.cfg is corrupted: ", e );
+            System.exit( -1 );
+        }
+
+        try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
+            this.serverConfig.write( fileWriter );
+        } catch ( IOException e ) {
+            logger.warn( "Could not save server.cfg: ", e );
+        }
+    }
+
+    @Override
 	public String getMotd() {
 		return this.networkManager.getMotd();
 	}

@@ -7,6 +7,9 @@
 
 package io.gomint.server;
 
+import io.gomint.server.scheduler.SyncScheduledTask;
+import io.gomint.server.scheduler.TaskList;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
