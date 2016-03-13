@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * @author BlackyPaw
  * @author geNAZt
  * @version 1.0
  */
@@ -23,16 +24,27 @@ import java.util.List;
 @Getter
 public class ServerConfig extends SimpleConfig {
 
-    private ListenerConfig listener = new ListenerConfig();
+	// ------------------------ General
+	@Comment( "The host and port to bind the server to" )
+	private ListenerConfig listener = new ListenerConfig();
 
+	@Comment( "The maximum number of players to play on this server" )
     private int maxPlayers = 10;
 
+	// ------------------------ Packet Dumping
+	@Comment( "Enables packet dumping for development purposes; not to be used for production" )
     private boolean enablePacketDumping = false;
+
+	@Comment( "The directory to save packet dumps into if packet dumping is enabled" )
     private String dumpDirectory = "dumps";
 
-    @Comment("Amount of Chunks which will always be loaded and stay loaded around the spawn area.\n" +
-            "You can set this to 0 if you don't want to hold any Chunks in Memory but this also means\n" +
-            "that you have to load the Chunks from disk everytime someone joins and the Chunk GC has cleared\n" +
-            "the chunks. USE 0 WITH CAUTION!!!")
-    private int amountOfChunksForSpawnArea = 16;
+	// ------------------------ World
+	@Comment( "Name of the world to load on startup" )
+	private String world = "world";
+
+	@Comment("Amount of Chunks which will always be loaded and stay loaded around the spawn area.\n" +
+	         "You can set this to 0 if you don't want to hold any Chunks in Memory but this also means\n" +
+	         "that you have to load the Chunks from disk everytime someone joins and the Chunk GC has cleared\n" +
+	         "the chunks. USE 0 WITH CAUTION!!!")
+	private int amountOfChunksForSpawnArea = 16;
 }

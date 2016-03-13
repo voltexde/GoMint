@@ -59,6 +59,7 @@ public class NetworkManager {
 		this.gomint = gomint;
 	}
 
+	// ======================================= PUBLIC API ======================================= //
 	/**
 	 * Initializes the network manager and its underlying server socket.
 	 *
@@ -86,10 +87,20 @@ public class NetworkManager {
 		this.dumpDirectory = null;
 	}
 
+	/**
+	 * Sets whether or not unknown packets should be dumped.
+	 *
+	 * @param dump Whether or not to enable packet dumping
+	 */
 	public void setDumpingEnabled( boolean dump ) {
 		this.dump = dump;
 	}
 
+	/**
+	 * Sets the directory where packet dump should be written to if dumping is enabled.
+	 *
+	 * @param dumpDirectory The directory to write packet dumps into
+	 */
 	public void setDumpDirectory( File dumpDirectory ) {
 		this.dumpDirectory = dumpDirectory;
 	}
@@ -140,19 +151,50 @@ public class NetworkManager {
 		}
 	}
 
-
+	/**
+	 * Sets the MOTD to be sent inside server pongs.
+	 *
+	 * @param motd The motd to be sent inside server pongs
+	 */
 	public void setMotd( String motd ) {
 		this.socket.setMotd( motd );
 	}
 
+	/**
+	 * Gets the MOTD to be sent inside server pongs.
+	 *
+	 * @return The motd to be sent inside server pongs
+	 */
 	public String getMotd() {
 		return this.socket.getMotd();
 	}
 
+	// ======================================= INTERNALS ======================================= //
+
+	/**
+	 * Used by player connections in order to log warnings and errors.
+	 *
+	 * @return The network manager's own logger
+	 */
 	Logger getLogger() {
 		return this.logger;
 	}
 
+	/**
+	 * Gets the GoMint server instance that created this network manager.
+	 *
+	 * @return The GoMint server instance that created this network manager
+	 */
+	GoMintServer getServer() {
+		return this.gomint;
+	}
+
+	/**
+	 * Invoked by a player connection whenever it encounters a packet it may not decompose.
+	 *
+	 * @param packetId The ID of the packet
+	 * @param buffer The packet's contents without its ID
+ 	 */
 	void notifyUnknownPacket( byte packetId, PacketBuffer buffer ) {
 		this.logger.info( "Received unknown packet 0x" + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
 		if ( this.dump ) {

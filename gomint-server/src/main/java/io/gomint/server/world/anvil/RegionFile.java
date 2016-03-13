@@ -24,16 +24,19 @@ import java.util.zip.InflaterInputStream;
  */
 class RegionFile {
 
+	private final AnvilWorldAdapter world;
 	private final RandomAccessFile file;
 
 	/**
 	 * Constructs a new region file that will load from the specified file.
 	 *
+	 * @param world The world the region file belongs to
 	 * @param file The file to load
 	 *
 	 * @throws IOException Thrown in case the file was not found / could not be opened
 	 */
-	public RegionFile( File file ) throws IOException {
+	public RegionFile( AnvilWorldAdapter world, File file ) throws IOException {
+		this.world = world;
 		this.file = new RandomAccessFile( file, "rw" );
 	}
 
@@ -85,7 +88,7 @@ class RegionFile {
 		}
 
 		NBTTagCompound nbt = NBTTagCompound.readFrom( input, false, ByteOrder.BIG_ENDIAN );
-		return new AnvilChunk( nbt );
+		return new AnvilChunk( this.world, nbt );
 	}
 	
 }

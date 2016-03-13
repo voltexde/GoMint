@@ -14,15 +14,6 @@ package io.gomint.server.world;
 public abstract class ChunkCacheAdapter {
 
 	/**
-	 * Requests loading of the specified chunk. The chunk will be loaded as soon as possible
-	 * by the underlying world implementation.
-	 *
-	 * @param x The x-coordinate of the chunk
-	 * @param z The z-coordinate of the chunk
-	 */
-	public abstract void requestChunk( int x, int z );
-
-	/**
 	 * Checks whether or not the specified chunk is currently in cache.
 	 *
 	 * @param x The x-coordinate of the chunk

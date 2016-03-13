@@ -9,12 +9,16 @@ package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author BlackyPaw
  * @version 1.0
  */
-public class PacketPlayerMovement extends Packet {
+@Data
+@EqualsAndHashCode( callSuper = false )
+public class PacketMovePlayer extends Packet {
 
 	private long entityId;
 	private float x;
@@ -26,8 +30,8 @@ public class PacketPlayerMovement extends Packet {
 	private boolean teleport;
 	private boolean onGround;
 
-	public PacketPlayerMovement() {
-		super( Protocol.PACKET_PLAYER_MOVEMENT );
+	public PacketMovePlayer() {
+		super( Protocol.PACKET_MOVE_PLAYER );
 	}
 
 	@Override

@@ -7,9 +7,23 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.server.async.Delegate;
+import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.Protocol;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketBA;
+import io.gomint.server.network.packet.PacketBatch;
+import io.gomint.server.network.packet.PacketMovePlayer;
+import io.gomint.server.network.packet.PacketWorldChunk;
+import io.gomint.server.world.AsyncChunkLoadTask;
+import io.gomint.server.world.AsyncChunkPackageTask;
+import io.gomint.server.world.AsyncChunkTask;
 import io.gomint.server.world.ChunkAdapter;
+import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.Weather;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldBorder;
@@ -18,12 +32,17 @@ import io.gomint.world.Block;
 import io.gomint.world.GameDifficulty;
 import io.gomint.world.Gamerule;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
+import java.util.zip.Deflater;
 
 /**
  * @author BlackyPaw
@@ -45,6 +64,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
 		AnvilWorldAdapter world = new AnvilWorldAdapter( pathToWorld );
 		world.loadLevelDat();
 		world.prepareSpawnRegion();
+		world.startAsyncWorker();
 		return world;
 	}
 
@@ -54,50 +74,45 @@ public class AnvilWorldAdapter extends WorldAdapter {
 	private final Random random = new Random();
 
 	// World properties
-	private final File                  worldDir;
-	private       String                levelName;
-	private       long                  randomSeed;
-	private       boolean               mapFeatures;
-	private       long                  lastPlayed;
-	private       boolean               allowCommands;
-	private       boolean               hardcore;
-	private       GameDifficulty        difficulty;
-	private       boolean               difficultyLocked;
-	private       long                  time;
-	private       long                  dayTime;
-	private       int                   spawnX;
-	private       int                   spawnY;
-	private       int                   spawnZ;
-	private       WorldBorder           worldBorder;
-	private       Weather               weather;
-	private       Map<Gamerule, Object> gamerules = new HashMap<>();
+	private final File           worldDir;
+	private       String         levelName;
+	private       long           randomSeed;
+	private       boolean        mapFeatures;
+	private       long           lastPlayed;
+	private       boolean        allowCommands;
+	private       boolean        hardcore;
+	private       GameDifficulty difficulty;
+	private       boolean        difficultyLocked;
+	private       long           time;
+	private       long           dayTime;
+	private       int            spawnX;
+	private       int            spawnY;
+	private       int            spawnZ;
+	private       WorldBorder    worldBorder;
+	private       Weather        weather;
+	private Map<Gamerule, Object> gamerules = new HashMap<>();
 
 	// Chunk Handling
 	private AnvilChunkCache chunkCache;
 
+	// I/O
+	private int                          regionXRead;
+	private int                          regionZRead;
+	private RegionFile                   regionFileRead;
+	private boolean                      asyncWorkerRunning;
+	private Queue<AsyncChunkTask>        asyncChunkTasks;
+	private Queue<AsyncChunkPackageTask> chunkPackageTasks;
+	private Deflater                     deflater;
+
 	AnvilWorldAdapter( final File worldDir ) {
 		this.worldDir = worldDir;
-		this.chunkCache = new AnvilChunkCache();
+		this.chunkCache = new AnvilChunkCache( this );
+		this.asyncChunkTasks = new LinkedList<>();
+		this.chunkPackageTasks = new LinkedList<>();
+		this.deflater = new Deflater( Deflater.DEFAULT_COMPRESSION );
 	}
 
-	// ==================================== ACCESSORS ==================================== //
-
-	/**
-	 * Attempts to get the chunk at the specified coordinates. If the chunk is currently not loaded
-	 * it will be loaded asynchronously and its yet hollow instance will be returned.
-	 *
-	 * @param x The x-coordinate of the chunk
-	 * @param z The z-coordinate of the chunk
-	 * @return The chunk if found or null otherwise
-	 */
-	public ChunkAdapter getChunk( int x, int z ) {
-		if ( this.chunkCache.hasChunk( x, z ) ) {
-			return this.chunkCache.getChunk( x, z );
-		} else {
-			// TODO: Implement dynamic loading here
-			return new AnvilChunk();
-		}
-	}
+	// ==================================== WORLD ADAPTER ==================================== //
 
 	public String getWorldName() {
 		return this.worldDir.getName();
@@ -120,7 +135,129 @@ public class AnvilWorldAdapter extends WorldAdapter {
 		return this.gamerules.containsKey( gamerule ) ? (T) this.gamerules.get( gamerule ) : null;
 	}
 
-	// ==================================== I/O ==================================== //
+	@Override
+	public void addPlayer( EntityPlayer player ) {
+		// Schedule sending spawn region chunks:
+		final int spawnRadius = 64; // TODO: Make configurable
+
+		final int minBlockX = this.spawnX - spawnRadius;
+		final int minBlockZ = this.spawnZ - spawnRadius;
+		final int maxBlockX = this.spawnX + spawnRadius;
+		final int maxBlockZ = this.spawnZ + spawnRadius;
+
+		final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
+		final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );
+		final int maxChunkX = CoordinateUtils.fromBlockToChunk( maxBlockX );
+		final int maxChunkZ = CoordinateUtils.fromBlockToChunk( maxBlockZ );
+
+		Delegate<Packet> sendDelegate = new Delegate<Packet>() {
+			@Override
+			public void invoke( Packet arg ) {
+				player.getConnection().sendWorldChunk( arg );
+			}
+		};
+
+		for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
+			for ( int j = minChunkX; j <= maxChunkX; ++j ) {
+				this.getChunk( j, i ).packageChunk( sendDelegate );
+			}
+		}
+	}
+
+	@Override
+	public void tick() {
+		// ---------------------------------------
+		// Chunk packages are done in main thread in order to be able to
+		// cache packets without possibly getting into race conditions:
+		synchronized ( this.chunkPackageTasks ) {
+			if ( !this.chunkPackageTasks.isEmpty() ) {
+				// One chunk per tick at max:
+				AsyncChunkPackageTask task   = this.chunkPackageTasks.poll();
+				AnvilChunk            chunk  = (AnvilChunk) task.getChunk();
+				PacketWorldChunk      packet = chunk.createPackagedData();
+
+				PacketBuffer buffer = new PacketBuffer( packet.estimateLength() + 1 );
+				buffer.writeByte( packet.getId() );
+				packet.serialize( buffer );
+
+				ByteArrayOutputStream bout = new ByteArrayOutputStream();
+				DataOutputStream dout = new DataOutputStream( bout );
+
+				try {
+					dout.writeInt( buffer.getPosition() );
+					dout.write( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+					dout.flush();
+				} catch ( IOException e ) {
+					e.printStackTrace();
+				}
+
+				this.deflater.reset();
+				this.deflater.setInput( bout.toByteArray() );
+				this.deflater.finish();
+
+				bout.reset();
+				byte[] intermediate = new byte[1024];
+				while ( !this.deflater.finished() ) {
+					int read = this.deflater.deflate( intermediate );
+					bout.write( intermediate, 0, read );
+				}
+
+				PacketBatch batch = new PacketBatch();
+				batch.setPayload( bout.toByteArray() );
+
+				try {
+					dout.close();
+				} catch ( IOException e ) {
+					e.printStackTrace();
+				}
+
+				chunk.dirty = false;
+				chunk.cachedPacket = batch;
+				task.getCallback().invoke( batch );
+			}
+		}
+
+		// ---------------------------------------
+		// Perform regular updates:
+	}
+
+	@Override
+	public ChunkAdapter getChunk( int x, int z ) {
+		return this.chunkCache.getChunk( x, z );
+	}
+
+	@Override
+	public void getOrLoadChunk( int x, int z, boolean generate, Delegate<ChunkAdapter> callback ) {
+		// Early out:
+		AnvilChunk chunk = this.chunkCache.getChunk( x, z );
+		if ( chunk != null ) {
+			callback.invoke( chunk );
+			return;
+		}
+
+		// Schedule this chunk for asynchronous loading:
+		AsyncChunkLoadTask task = new AsyncChunkLoadTask( x, z, generate, callback );
+		synchronized ( this.asyncChunkTasks ) {
+			this.asyncChunkTasks.add( task );
+			this.asyncChunkTasks.notify();
+		}
+	}
+
+	// ==================================== INTERNALS ==================================== //
+
+	/**
+	 * Notifies the world that the given chunk was told to package itself. This will effectively
+	 * produce an asynchronous chunk task which will be completed by the asynchronous worker thread.
+	 *
+	 * @param chunk    The chunk that was told to package itself
+	 * @param callback The callback to be invoked once the chunk is packaged
+	 */
+	void notifyPackageChunk( AnvilChunk chunk, Delegate<Packet> callback ) {
+		AsyncChunkPackageTask task = new AsyncChunkPackageTask( chunk, callback );
+		synchronized ( this.chunkPackageTasks ) {
+			this.chunkPackageTasks.add( task );
+		}
+	}
 
 	/**
 	 * Loads all information about the world given inside the level.dat file found
@@ -198,13 +335,8 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
 		for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
 			for ( int j = minChunkX; j <= maxChunkX; ++j ) {
-				AnvilChunk chunk = this.loadChunkOrGenerate( j, i );
-				if ( chunk != null ) {
-					// Just for testing:
-					// chunk.getBatchPacket();
-					// TODO: Handle fully valid chunk here
-					this.chunkCache.putChunk( chunk );
-				} else {
+				AnvilChunk chunk = this.loadChunk( j, i, true );
+				if ( chunk == null ) {
 					throw new IOException( "Failed to load / generate chunk surrounding spawn region" );
 				}
 			}
@@ -212,35 +344,108 @@ public class AnvilWorldAdapter extends WorldAdapter {
 	}
 
 	/**
-	 * Attempts to load a chunk first and generates a new one if the chunk was not found.
-	 *
-	 * @param x The x-coordinate of the chunk
-	 * @param z The z-coordinate of the chunk
-	 *
-	 * @return The chunk that was loaded or generated
+	 * Starts the asynchronous worker thread used by the world to perform I/O operations for chunks.
 	 */
-	private AnvilChunk loadChunkOrGenerate( int x, int z ) {
-		return this.attemptLoadChunk( x, z );
+	private void startAsyncWorker() {
+		Thread worker = new Thread( new Runnable() {
+			@Override
+			public void run() {
+				AnvilWorldAdapter.this.asyncWorkerLoop();
+			}
+		} );
+
+		this.asyncWorkerRunning = true;
+
+		worker.setDaemon( true );
+		worker.setName( this.getWorldName() + "-Worker" );
+		worker.start();
 	}
 
 	/**
-	 * Attempts to load a chunk from its region file.
-	 *
-	 * @param x The x-coordinate of the chunk
-	 * @param z The z-coordinate of the chunk
-	 *
-	 * @return The chunk if it could be loaded or null otherwise
+	 * Main loop of the world's asynchronous worker thread.
 	 */
-	private AnvilChunk attemptLoadChunk( int x, int z ) {
-		try {
-			int        regionX    = CoordinateUtils.fromChunkToRegion( x );
-			int        regionZ    = CoordinateUtils.fromChunkToRegion( z );
-			RegionFile regionFile = new RegionFile( new File( this.worldDir, String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) ) );
-			return regionFile.loadChunk( x, z );
-		} catch ( IOException e ) {
-			e.printStackTrace();
-			return null;
+	private void asyncWorkerLoop() {
+		while ( this.asyncWorkerRunning ) {
+			synchronized ( this.asyncChunkTasks ) {
+				while ( !this.asyncChunkTasks.isEmpty() ) {
+					try {
+						AsyncChunkTask task = this.asyncChunkTasks.poll();
+						AnvilChunk     chunk;
+						switch ( task.getType() ) {
+							case LOAD:
+								AsyncChunkLoadTask load = (AsyncChunkLoadTask) task;
+								chunk = this.loadChunk( load.getX(), load.getZ(), load.isGenerate() );
+								load.getCallback().invoke( chunk );
+								break;
+
+							case SAVE:
+								// TODO: Implement saving chunks
+								break;
+						}
+					} catch ( Throwable cause ) {
+						// Catching throwable in order to make sure no uncaught exceptions puts
+						// the asynchronous worker into nirvana:
+
+					}
+				}
+
+				// Wait for new chunk tasks:
+				try {
+					this.asyncChunkTasks.wait();
+				} catch ( InterruptedException ignored ) {
+					// No need to care about spurious wakeups as they would end up back here again:
+					// ._.
+				}
+			}
 		}
+	}
+
+	// ==================================== I/O ==================================== //
+
+	/**
+	 * Loads the chunk at the specified coordinates synchronously. If the chunk does not yet exist
+	 * and generate is set to true it will be generated instead.
+	 *
+	 * @param x        The x-coordinate of the chunk to be loaded
+	 * @param z        The z-coordinate of the chunk to be loaded
+	 * @param generate Whether or not to generate the chunk if it does not yet exist
+	 *
+	 * @return The chunk that was just loaded or null if it could not be loaded
+	 */
+	private AnvilChunk loadChunk( int x, int z, boolean generate ) {
+		AnvilChunk chunk = this.chunkCache.getChunk( x, z );
+		if ( chunk == null ) {
+			try {
+				int        regionX    = CoordinateUtils.fromChunkToRegion( x );
+				int        regionZ    = CoordinateUtils.fromChunkToRegion( z );
+				RegionFile regionFile = null;
+				if ( this.regionFileRead != null && this.regionXRead == regionX && this.regionZRead == regionZ ) {
+					regionFile = this.regionFileRead;
+				}
+
+				if ( regionFile == null ) {
+					this.regionFileRead = new RegionFile( this, new File( this.worldDir, String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) ) );
+					this.regionXRead = regionX;
+					this.regionZRead = regionZ;
+					regionFile = this.regionFileRead;
+				}
+
+				chunk = regionFile.loadChunk( x, z );
+				if ( chunk != null ) {
+					this.chunkCache.putChunk( chunk );
+				} else if ( generate ) {
+					// TODO: Implement chunk generation here
+				}
+
+				return chunk;
+			} catch ( IOException e ) {
+				if ( generate ) {
+					// TODO: Implement chunk generation here
+				}
+				return null;
+			}
+		}
+		return chunk;
 	}
 
 }

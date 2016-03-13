@@ -24,7 +24,7 @@ public enum PlayerConnectionState {
 	LOGIN,
 
 	/**
-	 * The player is entirely connecting and is playing on the server.
+	 * The player is entirely connected and is playing on the server.
 	 */
 	PLAYING;
 

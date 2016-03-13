@@ -13,6 +13,10 @@ import io.gomint.server.config.ServerConfig;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.report.PerformanceReport;
 import io.gomint.server.scheduler.SyncTaskManager;
+import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.WorldManager;
+import io.gomint.server.world.anvil.AnvilWorldAdapter;
+import io.gomint.world.World;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +43,9 @@ public class GoMintServer implements GoMint {
 
 	// Networking
 	private NetworkManager networkManager;
+
+	// World Management
+	private WorldManager worldManager;
 
 	// Plugin Management
 	private PluginManager pluginManager;
@@ -114,10 +121,20 @@ public class GoMintServer implements GoMint {
 			this.logger.error( "Failed to initialize networking", e );
 			return;
 		}
+		// ------------------------------------ //
+		// World Initialization
+		// ------------------------------------ //
+		this.worldManager = new WorldManager( this.logger );
+		try {
+			this.worldManager.loadWorld( this.serverConfig.getWorld() );
+		} catch ( IOException e ) {
+			this.logger.error( "Failed to load default world", e );
+		}
 
 		// ------------------------------------ //
 		// Main Loop
 		// ------------------------------------ //
+
 		// Tick loop
 		this.currentTick = 0;
 		while ( this.running.get() ) {
@@ -128,6 +145,7 @@ public class GoMintServer implements GoMint {
 
 			// Tick all major subsystems:
 			this.networkManager.tick();
+			this.worldManager.tick();
 
 			// Increase the tick
 			this.currentTick++;
@@ -141,6 +159,10 @@ public class GoMintServer implements GoMint {
 				}
 			}
 		}
+	}
+
+	public WorldAdapter getDefaultWorld() {
+		return this.worldManager.getWorld( this.serverConfig.getWorld() );
 	}
 
 	@Override

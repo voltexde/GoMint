@@ -7,7 +7,11 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.MathUtils;
+import io.gomint.server.async.Delegate;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.PEWorldConstraints;
 import io.gomint.taglib.NBTTagCompound;
@@ -15,7 +19,6 @@ import io.gomint.world.Biome;
 import io.gomint.world.Block;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -28,6 +31,8 @@ import java.util.List;
 class AnvilChunk extends ChunkAdapter {
 
 	// ==================================== METADATA ==================================== //
+	private final AnvilWorldAdapter world;
+
 	// Chunk
 	private int x;
 	private int z;
@@ -44,20 +49,30 @@ class AnvilChunk extends ChunkAdapter {
 	private byte[]      height     = new byte[16 * 16];
 
 	// Networking
-	private boolean     dirty;
-	// private Packet cachedPacket;
+	boolean dirty;
+	Packet  cachedPacket;
 
-	public AnvilChunk() {
+	public AnvilChunk( AnvilWorldAdapter world ) {
+		this.world = world;
 		Arrays.fill( this.biomes, (byte) 1 );
 	}
 
-	public AnvilChunk( NBTTagCompound data ) {
-		this();
+	public AnvilChunk( AnvilWorldAdapter world, NBTTagCompound data ) {
+		this( world );
 		this.loadFromNBT( data );
 		this.dirty = false;
 	}
 
 	// ==================================== MANIPULATION ==================================== //
+
+	@Override
+	public void packageChunk( Delegate<Packet> callback ) {
+		if ( !this.dirty && this.cachedPacket != null ) {
+			callback.invoke( this.cachedPacket );
+			return;
+		}
+		this.world.notifyPackageChunk( this, callback );
+	}
 
 	/**
 	 * Gets the x-coordinate of the chunk.
@@ -209,12 +224,12 @@ class AnvilChunk extends ChunkAdapter {
 	/**
 	 * Sets a block column's biome.
 	 *
-	 * @param x The x-coordinate of the block column
-	 * @param z The z-coordinate of the block column
+	 * @param x     The x-coordinate of the block column
+	 * @param z     The z-coordinate of the block column
 	 * @param biome The biome to set
 	 */
 	private void setBiome( int x, int z, Biome biome ) {
-		this.biomes[ (x << 4) | z ] = (byte) biome.getId();
+		this.biomes[( x << 4 ) | z] = (byte) biome.getId();
 		this.dirty = true;
 	}
 
@@ -233,12 +248,12 @@ class AnvilChunk extends ChunkAdapter {
 	/**
 	 * Gets the RGB color of the block column at the specified coordinates.
 	 *
-	 * @param x The x-coordinate of the block column
-	 * @param z The z-coordinate of the block column
+	 * @param x   The x-coordinate of the block column
+	 * @param z   The z-coordinate of the block column
 	 * @param rgb The color to set
 	 */
 	public void setBiomeColorRGB( int x, int z, int rgb ) {
-		this.biomeColors[ (x << 4) | z ] = rgb & 0xFFFFFF;
+		this.biomeColors[( x << 4 ) | z] = rgb & 0xFFFFFF;
 		this.dirty = true;
 	}
 
@@ -251,7 +266,7 @@ class AnvilChunk extends ChunkAdapter {
 	 * @return The block column's color
 	 */
 	public int getBiomeColorRGB( int x, int z ) {
-		return this.biomeColors[ (x << 4) | z ];
+		return this.biomeColors[( x << 4 ) | z];
 	}
 
 	@Override
@@ -283,15 +298,7 @@ class AnvilChunk extends ChunkAdapter {
 	public void calculateBiomeColors() {
 		for ( int i = 0; i < 16; ++i ) {
 			for ( int k = 0; k < 16; ++k ) {
-				int average = this.averageColorsRGB( this.getBiomeColorRaw( i, k ),
-				                                     this.getBiomeColorRaw( i, k - 1 ),
-				                                     this.getBiomeColorRaw( i, k + 1 ),
-				                                     this.getBiomeColorRaw( i - 1, k ),
-				                                     this.getBiomeColorRaw( i - 1, k - 1 ),
-				                                     this.getBiomeColorRaw( i - 1, k + 1 ),
-				                                     this.getBiomeColorRaw( i + 1, k ),
-				                                     this.getBiomeColorRaw( i + 1, k - 1 ),
-				                                     this.getBiomeColorRaw( i + 1, k + 1 ) );
+				int average = this.averageColorsRGB( this.getBiomeColorRaw( i, k ), this.getBiomeColorRaw( i, k - 1 ), this.getBiomeColorRaw( i, k + 1 ), this.getBiomeColorRaw( i - 1, k ), this.getBiomeColorRaw( i - 1, k - 1 ), this.getBiomeColorRaw( i - 1, k + 1 ), this.getBiomeColorRaw( i + 1, k ), this.getBiomeColorRaw( i + 1, k - 1 ), this.getBiomeColorRaw( i + 1, k + 1 ) );
 				this.setBiomeColorRGB( i, k, average );
 			}
 		}
@@ -427,5 +434,37 @@ class AnvilChunk extends ChunkAdapter {
 		g /= colors.length;
 		b /= colors.length;
 		return ( r << 16 ) | ( g << 8 ) | b;
+	}
+
+	/**
+	 * Invoked by the world's asynchronous worker thread once the chunk is supposed
+	 * to actually pack itself into a world chunk packet.
+	 *
+	 * @return The world chunk packet that is to be sent
+	 */
+	PacketWorldChunk createPackagedData() {
+		PacketBuffer buffer = new PacketBuffer( this.blocks.length +
+		                                        this.data.raw().length +
+		                                        this.blockLight.raw().length +
+		                                        this.skyLight.raw().length +
+		                                        this.height.length +
+		                                        ( this.biomeColors.length << 2 ) +
+												4 );
+
+		buffer.writeBytes( this.blocks );
+		buffer.writeBytes( this.data.raw() );
+		buffer.writeBytes( this.blockLight.raw() );
+		buffer.writeBytes( this.skyLight.raw() );
+		buffer.writeBytes( this.height );
+		for ( int i = 0; i < this.biomeColors.length; ++i ) {
+			buffer.writeInt( ( this.biomes[i] << 24 ) | ( this.biomeColors[i] & 0x00FFFFFF ) );
+		}
+		buffer.writeInt( 0 );
+
+		PacketWorldChunk packet = new PacketWorldChunk();
+		packet.setX( this.x );
+		packet.setZ( this.z );
+		packet.setData( buffer.getBuffer() );
+		return packet;
 	}
 }

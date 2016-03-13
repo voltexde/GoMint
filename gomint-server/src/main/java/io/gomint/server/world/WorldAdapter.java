@@ -7,6 +7,9 @@
 
 package io.gomint.server.world;
 
+import io.gomint.server.async.Delegate;
+import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.network.PlayerConnection;
 import io.gomint.world.World;
 
 /**
@@ -14,5 +17,40 @@ import io.gomint.world.World;
  * @version 1.0
  */
 public abstract class WorldAdapter implements World {
-	
+
+	/**
+	 * Adds a new player to this world and schedules all world chunk packets required for spawning
+	 * the player for send.
+	 *
+	 * @param player The player entity to add to the world
+	 */
+	public abstract void addPlayer( EntityPlayer player );
+
+	/**
+	 * Ticks the world and updates what needs to be updated.
+	 */
+	public abstract void tick();
+
+	/**
+	 * Gets the chunk at the specified coordinates. If the chunk is currently not available
+	 * it will be loaded or generated.
+	 *
+	 * @param x The x-coordinate of the chunk
+	 * @param z The z-coordinate of the chunk
+	 * @return The chunk if available or null otherwise
+	 */
+	public abstract ChunkAdapter getChunk( int x, int z );
+
+	/**
+	 * Gets a chunk asynchronously. This allows to load or generate the chunk if it is not yet available
+	 * and then return it once it gets available. The callback is guaranteed to be invoked: if the chunk
+	 * could not be loaded nor be generated it will be passed null as its argument.
+	 *
+	 * @param x The x-coordinate of the chunk
+	 * @param z The z-coordinate of the chunk
+	 * @param generate Whether or not to generate teh chunk if it does not yet exist
+	 * @param callback The callback to be invoked once the chunk is available
+	 */
+	public abstract void getOrLoadChunk( int x, int z, boolean generate, Delegate<ChunkAdapter> callback );
+
 }

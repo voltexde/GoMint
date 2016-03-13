@@ -7,12 +7,16 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.server.async.Delegate;
+import io.gomint.server.network.packet.Packet;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCacheAdapter;
 import io.gomint.server.world.ChunkCoordinatePair;
+import net.openhft.koloboke.collect.map.ObjObjMap;
+import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+import net.openhft.koloboke.collect.set.ObjSet;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Queue;
 
 /**
  * @author BlackyPaw
@@ -21,17 +25,15 @@ import java.util.Map;
 class AnvilChunkCache extends ChunkCacheAdapter {
 
 	// ==================================== FIELDS ==================================== //
-	private Map<ChunkCoordinatePair, AnvilChunk> cachedChunks = new HashMap<>();
+	private final AnvilWorldAdapter                                        world;
+	private       ObjObjMap<ChunkCoordinatePair, AnvilChunk>               cachedChunks;
 
-	public AnvilChunkCache() {
-
+	public AnvilChunkCache( final AnvilWorldAdapter world ) {
+		this.world = world;
+		this.cachedChunks = HashObjObjMaps.newMutableMap();
 	}
 
 	// ==================================== CHUNK CACHE ==================================== //
-	@Override
-	public void requestChunk( int x, int z ) {
-		// TODO: Implement dynamic chunk loading here
-	}
 
 	@Override
 	public boolean hasChunk( int x, int z ) {
@@ -39,7 +41,7 @@ class AnvilChunkCache extends ChunkCacheAdapter {
 	}
 
 	@Override
-	public ChunkAdapter getChunk( int x, int z ) {
+	public AnvilChunk getChunk( int x, int z ) {
 		return this.cachedChunks.get( new ChunkCoordinatePair( x, z ) );
 	}
 
