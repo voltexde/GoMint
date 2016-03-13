@@ -12,16 +12,11 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketLogin;
-import io.gomint.server.network.packet.PacketWorldTime;
 import io.gomint.server.player.PlayerSkin;
 
 import java.util.UUID;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
-
-import static io.gomint.server.network.Protocol.BATCH_PACKET;
-import static io.gomint.server.network.Protocol.LOGIN_PACKET;
-import static io.gomint.server.network.Protocol.WORLD_TIME_PACKET;
 
 /**
  * @author BlackyPaw
@@ -128,9 +123,9 @@ public class PlayerConnection {
 
 		// If we are still in handshake we only accept certain packets:
 		if ( this.state == PlayerConnectionState.HANDSHAKE ) {
-			if ( packetId == BATCH_PACKET ) {
+			if ( packetId == Protocol.PACKET_BATCH ) {
 				this.handleBatchPacket( buffer );
-			} else if ( packetId == LOGIN_PACKET ) {
+			} else if ( packetId == Protocol.PACKET_LOGIN ) {
 				PacketLogin login = new PacketLogin();
 				login.deserialize( buffer );
 				this.handleLoginPacket( login );
@@ -140,7 +135,7 @@ public class PlayerConnection {
 			return;
 		}
 
-		if ( packetId == BATCH_PACKET ) {
+		if ( packetId == Protocol.PACKET_BATCH ) {
 			this.handleBatchPacket( buffer );
 		} else {
 			this.networkManager.notifyUnknownPacket( packetId, buffer );
@@ -199,12 +194,12 @@ public class PlayerConnection {
 	 *
 	 * @param packet The packet to handle
 	 */
-	private void handlePacket( Packet packet ) {
+	/*private void handlePacket( Packet packet ) {
 		System.out.println( "Handling packet" );
 		switch ( packet.getId() ) {
 
 		}
-	}
+	}*/
 
 	private void handleLoginPacket( PacketLogin packet ) {
 		this.state = PlayerConnectionState.LOGIN;

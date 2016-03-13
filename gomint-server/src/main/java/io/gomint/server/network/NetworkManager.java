@@ -32,14 +32,15 @@ import java.io.OutputStreamWriter;
 import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author BlackyPaw
+ * @author geNAZt
  * @version 1.0
  */
 public class NetworkManager {
 
-	private final GoMintServer gomint;
 	private final Logger logger = LoggerFactory.getLogger( NetworkManager.class );
 
 	private ServerSocket socket;
@@ -47,17 +48,13 @@ public class NetworkManager {
 	private LongObjMap<PlayerConnection> playersByGuid = HashLongObjMaps.newMutableMap();
 
 	// Incoming connections to be added to the player map during next tick:
-	private Queue<PlayerConnection> incomingConnections = new LinkedList<>();
+	private Queue<PlayerConnection> incomingConnections = new ConcurrentLinkedQueue<>();
 	// Connections which were closed and should be removed during next tick:
-	private LongSet                 closedConnections   = HashLongSets.newMutableSet();
+	private final LongSet           closedConnections   = HashLongSets.newMutableSet();
 
 	// Packet Dumping
 	private boolean dump;
 	private File dumpDirectory;
-
-	public NetworkManager( GoMintServer gomint ) {
-		this.gomint = gomint;
-	}
 
 	/**
 	 * Initializes the network manager and its underlying server socket.
@@ -100,11 +97,9 @@ public class NetworkManager {
 	 */
 	public void tick() {
 		// Handle updates to player map:
-		synchronized ( this.incomingConnections ) {
-			while ( !this.incomingConnections.isEmpty() ) {
-				PlayerConnection connection = this.incomingConnections.poll();
-				this.playersByGuid.put( connection.getConnection().getGuid(), connection );
-			}
+		while ( !this.incomingConnections.isEmpty() ) {
+			PlayerConnection connection = this.incomingConnections.poll();
+			this.playersByGuid.put( connection.getConnection().getGuid(), connection );
 		}
 
 		synchronized ( this.closedConnections ) {
@@ -186,9 +181,7 @@ public class NetworkManager {
 	 * @param connection The new incoming connection
 	 */
 	private void handleNewConnection( Connection connection ) {
-		synchronized ( this.incomingConnections ) {
-			this.incomingConnections.add( new PlayerConnection( this, connection, PlayerConnectionState.HANDSHAKE ) );
-		}
+		this.incomingConnections.add( new PlayerConnection( this, connection, PlayerConnectionState.HANDSHAKE ) );
 	}
 
 	/**

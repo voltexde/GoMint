@@ -13,7 +13,6 @@ import io.gomint.server.config.ServerConfig;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.report.PerformanceReport;
-import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.scheduler.SyncTaskManager;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -24,7 +23,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -40,24 +38,24 @@ public class GoMintServer implements GoMint {
 	private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
 
 	// Configuration
-	private ServerConfig serverConfig;
+	private ServerConfig        serverConfig;
 
 	// Networking
-	private NetworkManager networkManager;
+	private NetworkManager      networkManager;
 
 	// Plugin Management
-	private PluginManager pluginManager;
+	private PluginManager       pluginManager;
 
 	// Task Scheduling
 	@Getter
-	private SyncTaskManager syncTaskManager;
-	private AtomicBoolean running = new AtomicBoolean( true );
+	private SyncTaskManager     syncTaskManager;
+	private AtomicBoolean       running = new AtomicBoolean( true );
 	@Getter
-	private long              currentTick;
+	private long                currentTick;
 	@Getter
-	private ExecutorService   executorService;
+	private ExecutorService     executorService;
 	@Getter
-	private PerformanceReport performanceReport;
+	private PerformanceReport   performanceReport;
 
 	/**
 	 * Starts the GoMint server
@@ -77,27 +75,15 @@ public class GoMintServer implements GoMint {
 		this.loadConfig();
 
 		// ------------------------------------ //
-		// Scheduler Initialization
+		// Scheduler + PluginManager Initialization
 		// ------------------------------------ //
 		this.syncTaskManager = new SyncTaskManager( this );
-
-		SyncScheduledTask task = new SyncScheduledTask(this.syncTaskManager, new Runnable() {
-			@Override
-			public void run() {
-				System.out.println( "Test 1" );
-			}
-		}, 200, 200, TimeUnit.MILLISECONDS );
-		this.syncTaskManager.addTask( task );
-		this.syncTaskManager.removeTask( task );
-
+        this.networkManager = new NetworkManager();
 		this.pluginManager = new SimplePluginManager( this );
 
 		// ------------------------------------ //
 		// Networking Initialization
 		// ------------------------------------ //
-
-		// Startup the RakNet Natives
-		this.networkManager = new NetworkManager( this );
 		try {
 			this.networkManager.initialize( this.serverConfig.getMaxPlayers(), this.serverConfig.getListener().getIp(), this.serverConfig.getListener().getPort() );
 
@@ -124,7 +110,6 @@ public class GoMintServer implements GoMint {
 		// ------------------------------------ //
 		// Main Loop
 		// ------------------------------------ //
-		// Tick loop
 		this.currentTick = 0;
 		while ( this.running.get() ) {
 			long start = System.currentTimeMillis();
@@ -175,4 +160,11 @@ public class GoMintServer implements GoMint {
 	public void setMotd( String motd ) {
 		this.networkManager.setMotd( motd );
 	}
+
+    /**
+     * Nice shutdown pls
+     */
+    public void shutdown() {
+        this.running.set( false );
+    }
 }
