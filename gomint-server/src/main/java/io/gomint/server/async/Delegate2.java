@@ -16,7 +16,7 @@ package io.gomint.server.async;
  *
  * Delegate which can handle two arguments on invoke
  */
-public interface TwoArgDelegate<T1, T2> {
+public interface Delegate2<T1, T2> {
 
     /**
      * Invoke this Delegate

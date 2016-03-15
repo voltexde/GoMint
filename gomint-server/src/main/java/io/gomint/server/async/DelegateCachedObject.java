@@ -13,9 +13,9 @@ package io.gomint.server.async;
  */
 public class DelegateCachedObject<T> extends CachedObject<T> {
 
-	private final Delegate0<Future<T>> delegate;
+	private final DelegateR<Future<T>> delegate;
 
-	public DelegateCachedObject( Delegate0<Future<T>> delegate ) {
+	public DelegateCachedObject( DelegateR<Future<T>> delegate ) {
 		this.delegate = delegate;
 	}
 

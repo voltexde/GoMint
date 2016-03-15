@@ -9,7 +9,7 @@ package io.gomint.server.world.anvil;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.MathUtils;
-import io.gomint.server.async.TwoArgDelegate;
+import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
@@ -79,7 +79,7 @@ class AnvilChunk extends ChunkAdapter {
 	// ==================================== MANIPULATION ==================================== //
 
 	@Override
-	public void packageChunk( TwoArgDelegate<Long, Packet> callback ) {
+	public void packageChunk( Delegate2<Long, Packet> callback ) {
 		if ( !this.dirty && this.cachedPacket != null ) {
             Packet packet = this.cachedPacket.get();
             if ( packet != null ) {

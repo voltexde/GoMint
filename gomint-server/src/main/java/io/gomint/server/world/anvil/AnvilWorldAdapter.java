@@ -11,7 +11,7 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
-import io.gomint.server.async.TwoArgDelegate;
+import io.gomint.server.async.Delegate2;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
@@ -251,7 +251,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
         final int spawnXChunk = CoordinateUtils.fromBlockToChunk( this.spawnX );
         final int spawnZChunk = CoordinateUtils.fromBlockToChunk( this.spawnZ );
 
-        TwoArgDelegate<Long, Packet> sendDelegate = new TwoArgDelegate<Long, Packet>() {
+        Delegate2<Long, Packet> sendDelegate = new Delegate2<Long, Packet>() {
             @Override
             public void invoke( Long chunkHash, Packet chunkPacket ) {
                 player.getConnection().sendWorldChunk( chunkHash, chunkPacket );
@@ -296,7 +296,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
      * @param chunk    The chunk that was told to package itself
      * @param callback The callback to be invoked once the chunk is packaged
      */
-    void notifyPackageChunk( AnvilChunk chunk, TwoArgDelegate<Long, Packet> callback ) {
+    void notifyPackageChunk( AnvilChunk chunk, Delegate2<Long, Packet> callback ) {
         AsyncChunkPackageTask task = new AsyncChunkPackageTask( chunk, callback );
         this.chunkPackageTasks.add( task );
     }

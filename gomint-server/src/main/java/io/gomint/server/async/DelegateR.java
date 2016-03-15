@@ -11,7 +11,7 @@ package io.gomint.server.async;
  * @author BlackyPaw
  * @version 1.0
  */
-public interface Delegate0<R> {
+public interface DelegateR<R> {
 
 	R invoke();
 	
