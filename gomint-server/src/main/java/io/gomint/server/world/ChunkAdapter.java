@@ -8,6 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.server.async.Delegate;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.world.Chunk;
 
@@ -28,4 +29,24 @@ public abstract class ChunkAdapter implements Chunk {
 	 */
 	public abstract void packageChunk( Delegate<Packet> callback );
 
+    /**
+     * Add a player to this chunk. This is needed to know when we can GC a chunk
+     *
+     * @param player The player which we want to add to this chunk
+     */
+    public abstract void addPlayer( EntityPlayer player );
+
+    /**
+     * Remove a player from this chunk. This is needed to know when we can GC a chunk
+     *
+     * @param player The player which we want to remove from this chunk
+     */
+    public abstract void removePlayer( EntityPlayer player );
+
+    /**
+     * Checks if this chunk can be gced
+     *
+     * @return true when it can be gced, false when not
+     */
+    public abstract boolean canBeGCed();
 }

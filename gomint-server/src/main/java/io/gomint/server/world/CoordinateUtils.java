@@ -73,6 +73,20 @@ public final class CoordinateUtils {
 		return ( ( v + 1 ) << 5 ) - 1;
 	}
 
+    /**
+     * Shift two int's together to form a compund key
+     *
+     * @param x value of key
+     * @param z value of key
+     * @return long compund of the two int's
+     */
+    public static long toLong(int x, int z) {
+        return ((long) x << 32) + z - Integer.MIN_VALUE;
+    }
+
+    /**
+     * No init!
+     */
 	private CoordinateUtils() {
 		throw new AssertionError( "Cannot instantiate CoordinateUtils!" );
 	}

@@ -10,6 +10,7 @@ package io.gomint.server.world.anvil;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.MathUtils;
 import io.gomint.server.async.Delegate;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.world.ChunkAdapter;
@@ -20,9 +21,12 @@ import io.gomint.world.Block;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author BlackyPaw
@@ -30,7 +34,17 @@ import java.util.List;
  */
 class AnvilChunk extends ChunkAdapter {
 
-	// ==================================== METADATA ==================================== //
+    // Networking
+    /**
+     * Dirty state of this cached packet. True when it needs to be repacked
+     */
+    boolean dirty;
+    /**
+     * Cached packet version of this chunk
+     */
+    SoftReference<Packet> cachedPacket;
+
+    // World
 	private final AnvilWorldAdapter world;
 
 	// Chunk
@@ -48,9 +62,10 @@ class AnvilChunk extends ChunkAdapter {
 	private NibbleArray skyLight   = new NibbleArray( PEWorldConstraints.BLOCKS_PER_CHUNK );
 	private byte[]      height     = new byte[16 * 16];
 
-	// Networking
-	boolean dirty;
-	Packet  cachedPacket;
+    // Players / Chunk GC
+    private List<EntityPlayer> players = new ArrayList<>();
+    private long lastPlayerOnThisChunk = -1;
+    private long loadedTime = System.currentTimeMillis();
 
 	public AnvilChunk( AnvilWorldAdapter world ) {
 		this.world = world;
@@ -68,13 +83,36 @@ class AnvilChunk extends ChunkAdapter {
 	@Override
 	public void packageChunk( Delegate<Packet> callback ) {
 		if ( !this.dirty && this.cachedPacket != null ) {
-			callback.invoke( this.cachedPacket );
+            Packet packet = this.cachedPacket.get();
+            if ( packet != null ) {
+                callback.invoke( packet );
+            }
+
 			return;
 		}
+
 		this.world.notifyPackageChunk( this, callback );
 	}
 
-	/**
+    @Override
+    public void addPlayer( EntityPlayer player ) {
+        this.players.add( player );
+    }
+
+    @Override
+    public void removePlayer( EntityPlayer player ) {
+        this.players.remove( player );
+        this.lastPlayerOnThisChunk = System.currentTimeMillis();
+    }
+
+    @Override
+    public boolean canBeGCed() {
+        return System.currentTimeMillis() - this.loadedTime > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getWaitAfterLoadForGCSeconds() ) &&
+                this.players.isEmpty() &&
+                System.currentTimeMillis() - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getSecondsUntilGCAfterLastPlayerLeft() );
+    }
+
+    /**
 	 * Gets the x-coordinate of the chunk.
 	 *
 	 * @return The chunk's x-coordinate
@@ -342,14 +380,14 @@ class AnvilChunk extends ChunkAdapter {
 			this.biomes = new byte[256];
 			Arrays.fill( this.biomes, (byte) -1 );
 		}
-		Arrays.fill( this.biomes, (byte) 1 );
+		// Arrays.fill( this.biomes, (byte) 1 );
 
 		// Fill in the default biome color:
-		Arrays.fill( this.biomeColors, 0x85B24A );
+		// Arrays.fill( this.biomeColors, 0x85B24A );
 
 		this.loadSections( level.getList( "Sections", false ) );
 
-		//this.calculateHeightmap();
+		this.calculateHeightmap();
 		this.calculateBiomeColors();
 	}
 
@@ -365,9 +403,9 @@ class AnvilChunk extends ChunkAdapter {
 			}
 		}
 
-		Arrays.fill( this.data.raw(), (byte) 0 );
-		Arrays.fill( this.blockLight.raw(), (byte) 0 );
-		Arrays.fill( this.skyLight.raw(), (byte) 0 );
+		// Arrays.fill( this.data.raw(), (byte) 0 );
+		// Arrays.fill( this.blockLight.raw(), (byte) 0 );
+		// Arrays.fill( this.skyLight.raw(), (byte) 0 );
 	}
 
 	/**

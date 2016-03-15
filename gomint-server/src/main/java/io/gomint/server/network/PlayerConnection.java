@@ -378,4 +378,12 @@ public class PlayerConnection {
 		this.send( init );
 	}
 
+    /**
+     * The underlying RakNet Connection closed. Cleanup
+     */
+    public void close() {
+        if ( this.entity.getWorld() != null ) {
+            this.entity.getWorld().removePlayer( this.entity );
+        }
+    }
 }

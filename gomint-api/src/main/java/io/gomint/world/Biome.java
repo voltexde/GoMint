@@ -251,7 +251,7 @@ public enum Biome {
 
 		double[] colors = ( grass ? GRASS_INTERPOLATION_COLORS : FOLIAGE_INTERPOLATION_COLORS );
 		for ( int i = 0; i < 3; ++i ) {
-			r += lambda[i] * colors[i * 3 + 0];
+			r += lambda[i] * colors[i * 3];
 			g += lambda[i] * colors[i * 3 + 1];
 			b += lambda[i] * colors[i * 3 + 2];
 		}

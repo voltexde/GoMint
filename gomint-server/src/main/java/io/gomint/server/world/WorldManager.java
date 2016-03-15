@@ -7,11 +7,13 @@
 
 package io.gomint.server.world;
 
+import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
 import net.openhft.koloboke.collect.map.ObjObjCursor;
 import net.openhft.koloboke.collect.map.ObjObjMap;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,15 +24,15 @@ import java.util.Collection;
  * @version 1.0
  */
 public class WorldManager {
-
-	private final Logger logger;
+    private static final Logger logger = LoggerFactory.getLogger( WorldManager.class );
+	private final GoMintServer server;
 	private ObjObjMap<String, WorldAdapter> loadedWorlds;
 
 	/**
 	 * Constructs a new world manager that does not yet hold any worlds.
 	 */
-	public WorldManager( Logger logger ) {
-		this.logger = logger;
+	public WorldManager( GoMintServer server ) {
+		this.server = server;
 		this.loadedWorlds = HashObjObjMaps.newMutableMap( 4 );
 	}
 
@@ -83,7 +85,7 @@ public class WorldManager {
 	 * @throws IOException Thrown in case the world could not be loaded
 	 */
 	public void loadWorld( String path ) throws IOException {
-		this.logger.info( "Attempting to load world '" + path + "'" );
+		logger.info( "Attempting to load world '" + path + "'" );
 
 		File file = new File( path );
 		if ( !file.exists() ) {
@@ -94,7 +96,7 @@ public class WorldManager {
 			// Anvil world:
 			File levelDat = new File( file, "level.dat" );
 			if ( levelDat.exists() && levelDat.isFile() ) {
-				this.logger.info( "Detected anvil world '" + path + "'" );
+				logger.info( "Detected anvil world '" + path + "'" );
 				this.loadAnvilWorld( file );
 				return;
 			}
@@ -110,9 +112,9 @@ public class WorldManager {
 	 * @throws IOException Thrown in case the world could not be loaded
 	 */
 	private void loadAnvilWorld( File path ) throws IOException {
-		AnvilWorldAdapter world = AnvilWorldAdapter.load( path );
+		AnvilWorldAdapter world = AnvilWorldAdapter.load( this.server, path );
 		this.addWorld( world );
-		this.logger.info( "Successfully loaded world '" + path.getName() + "'" );
+		logger.info( "Successfully loaded world '" + path.getName() + "'" );
 	}
 
 }
