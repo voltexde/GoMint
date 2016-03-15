@@ -32,17 +32,17 @@ import java.util.concurrent.TimeUnit;
  */
 class AnvilChunk extends ChunkAdapter {
 
-    // Networking
-    /**
-     * Dirty state of this cached packet. True when it needs to be repacked
-     */
-    boolean dirty;
-    /**
-     * Cached packet version of this chunk
-     */
-    SoftReference<Packet> cachedPacket;
+	// Networking
+	/**
+	 * Dirty state of this cached packet. True when it needs to be repacked
+	 */
+	boolean               dirty;
+	/**
+	 * Cached packet version of this chunk
+	 */
+	SoftReference<Packet> cachedPacket;
 
-    // World
+	// World
 	private final AnvilWorldAdapter world;
 
 	// Chunk
@@ -60,10 +60,10 @@ class AnvilChunk extends ChunkAdapter {
 	private NibbleArray skyLight   = new NibbleArray( PEWorldConstraints.BLOCKS_PER_CHUNK );
 	private byte[]      height     = new byte[16 * 16];
 
-    // Players / Chunk GC
-    private List<EntityPlayer> players = new ArrayList<>();
-    private long lastPlayerOnThisChunk = -1;
-    private long loadedTime = System.currentTimeMillis();
+	// Players / Chunk GC
+	private List<EntityPlayer> players               = new ArrayList<>();
+	private long               lastPlayerOnThisChunk = -1;
+	private long               loadedTime            = System.currentTimeMillis();
 
 	public AnvilChunk( AnvilWorldAdapter world ) {
 		this.world = world;
@@ -81,10 +81,10 @@ class AnvilChunk extends ChunkAdapter {
 	@Override
 	public void packageChunk( Delegate2<Long, Packet> callback ) {
 		if ( !this.dirty && this.cachedPacket != null ) {
-            Packet packet = this.cachedPacket.get();
-            if ( packet != null ) {
-                callback.invoke( CoordinateUtils.toLong( x, z ), packet );
-            }
+			Packet packet = this.cachedPacket.get();
+			if ( packet != null ) {
+				callback.invoke( CoordinateUtils.toLong( x, z ), packet );
+			}
 
 			return;
 		}
@@ -92,25 +92,25 @@ class AnvilChunk extends ChunkAdapter {
 		this.world.notifyPackageChunk( this, callback );
 	}
 
-    @Override
-    public void addPlayer( EntityPlayer player ) {
-        this.players.add( player );
-    }
+	@Override
+	public void addPlayer( EntityPlayer player ) {
+		this.players.add( player );
+	}
 
-    @Override
-    public void removePlayer( EntityPlayer player ) {
-        this.players.remove( player );
-        this.lastPlayerOnThisChunk = System.currentTimeMillis();
-    }
+	@Override
+	public void removePlayer( EntityPlayer player ) {
+		this.players.remove( player );
+		this.lastPlayerOnThisChunk = System.currentTimeMillis();
+	}
 
-    @Override
-    public boolean canBeGCed() {
-        return System.currentTimeMillis() - this.loadedTime > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getWaitAfterLoadForGCSeconds() ) &&
-                this.players.isEmpty() &&
-                System.currentTimeMillis() - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getSecondsUntilGCAfterLastPlayerLeft() );
-    }
+	@Override
+	public boolean canBeGCed() {
+		return System.currentTimeMillis() - this.loadedTime > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getWaitAfterLoadForGCSeconds() ) &&
+		       this.players.isEmpty() &&
+		       System.currentTimeMillis() - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getSecondsUntilGCAfterLastPlayerLeft() );
+	}
 
-    /**
+	/**
 	 * Gets the x-coordinate of the chunk.
 	 *
 	 * @return The chunk's x-coordinate
@@ -425,13 +425,11 @@ class AnvilChunk extends ChunkAdapter {
 
 					int blockIndex = j << 8 | k << 4 | i;
 
-					int blockId    = ( add.get( blockIndex ) << 8 ) | blocks[blockIndex];
-                    byte blockData = data.get( blockIndex );
+					int  blockId   = ( add.get( blockIndex ) << 8 ) | blocks[blockIndex];
+					byte blockData = data.get( blockIndex );
 
-                    if ( AnvilBlockConverter.needsToConvert( blockId, blockData ) ) {
-                        blockId = AnvilBlockConverter.convertBlockID( blockId, blockData );
-                        blockData = AnvilBlockConverter.convertBlockData( blockId, blockData );
-                    }
+					blockId = AnvilBlockConverter.convertBlockID( blockId, blockData );
+					blockData = AnvilBlockConverter.convertBlockData( blockId, blockData );
 
 					this.setBlock( i, y, k, blockId );
 					this.setData( i, y, k, blockData );
@@ -477,7 +475,7 @@ class AnvilChunk extends ChunkAdapter {
 		                                        this.skyLight.raw().length +
 		                                        this.height.length +
 		                                        ( this.biomeColors.length << 2 ) +
-												4 );
+		                                        4 );
 
 		// Preparations:
 		this.calculateBiomeColors();
