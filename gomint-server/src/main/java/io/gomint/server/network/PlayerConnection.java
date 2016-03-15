@@ -237,7 +237,6 @@ public class PlayerConnection {
 
 			packet.deserialize( buffer );
 			this.handlePacket( packet );
-			*/
 		}
 	}
 

@@ -451,6 +451,9 @@ class AnvilChunk extends ChunkAdapter {
 		                                        ( this.biomeColors.length << 2 ) +
 												4 );
 
+		// Preparations:
+		this.calculateBiomeColors();
+
 		buffer.writeBytes( this.blocks );
 		buffer.writeBytes( this.data.raw() );
 		buffer.writeBytes( this.blockLight.raw() );

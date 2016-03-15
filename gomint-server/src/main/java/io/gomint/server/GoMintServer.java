@@ -11,6 +11,7 @@ import io.gomint.GoMint;
 import io.gomint.plugin.PluginManager;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.network.NetworkManager;
+import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.report.PerformanceReport;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
@@ -84,7 +85,7 @@ public class GoMintServer implements GoMint {
 		// Scheduler + PluginManager Initialization
 		// ------------------------------------ //
 		this.syncTaskManager = new SyncTaskManager( this );
-        this.networkManager = new NetworkManager();
+        this.networkManager = new NetworkManager( this );
 		this.pluginManager = new SimplePluginManager( this );
 
 		// ------------------------------------ //
@@ -156,7 +157,6 @@ public class GoMintServer implements GoMint {
 		return this.worldManager.getWorld( this.serverConfig.getWorld() );
 	}
 
-	@Override
     private void loadConfig() {
         this.serverConfig = new ServerConfig();
 
