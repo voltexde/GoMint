@@ -31,4 +31,9 @@ public abstract class ChunkCacheAdapter {
 	 */
 	public abstract ChunkAdapter getChunk( int x, int z );
 
+    /**
+     * Ticking for Chunk GC
+     */
+    public abstract void tick();
+
 }

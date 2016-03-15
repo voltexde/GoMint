@@ -47,4 +47,14 @@ public class ServerConfig extends SimpleConfig {
 	         "that you have to load the Chunks from disk everytime someone joins and the Chunk GC has cleared\n" +
 	         "the chunks. USE 0 WITH CAUTION!!!")
 	private int amountOfChunksForSpawnArea = 16;
+
+    @Comment("View distance of a player. This defines the amount of chunks sent to a player when he moves or spawns.\n" +
+             "This is measured in Chunks." )
+    private int viewDistance = 6;
+
+    @Comment("After how many seconds should a chunk be marked to be gced after the last player left the chunk.")
+    private int secondsUntilGCAfterLastPlayerLeft = 10;
+
+    @Comment("Amount of seconds to wait after the chunk has come into the cache before we can select it for gc.")
+    private int waitAfterLoadForGCSeconds = 30;
 }

@@ -7,6 +7,7 @@
 
 package io.gomint.server;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gomint.GoMint;
 import io.gomint.plugin.PluginManager;
 import io.gomint.server.config.ServerConfig;
@@ -16,8 +17,6 @@ import io.gomint.server.report.PerformanceReport;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
-import io.gomint.server.world.anvil.AnvilWorldAdapter;
-import io.gomint.world.World;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -42,13 +38,14 @@ public class GoMintServer implements GoMint {
 	private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
 
 	// Configuration
+    @Getter
 	private ServerConfig        serverConfig;
 
 	// Networking
 	private NetworkManager      networkManager;
 
 	// World Management
-	private WorldManager worldManager;
+	private WorldManager 		worldManager;
 
 	// Plugin Management
 	private PluginManager       pluginManager;
@@ -62,19 +59,20 @@ public class GoMintServer implements GoMint {
 	@Getter
 	private ExecutorService     executorService;
 	@Getter
-	private PerformanceReport   performanceReport;
+	private ThreadFactory		threadFactory;
 
 	/**
 	 * Starts the GoMint server
 	 * @param args which should have been given over from the static Bootstrap
      */
 	public GoMintServer( String[] args ) {
-		this.performanceReport = new PerformanceReport();
+        Thread.currentThread().setName( "GoMint Main Thread" );
 
 		// ------------------------------------ //
 		// Executor Initialization
 		// ------------------------------------ //
-		this.executorService = new ThreadPoolExecutor( 0, 512, 60L, TimeUnit.SECONDS, new SynchronousQueue<>() );
+		this.threadFactory = new ThreadFactoryBuilder().setNameFormat( "GoMint Thread #%d" ).build();
+		this.executorService = new ThreadPoolExecutor( 0, 512, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), this.threadFactory );
 
 		// ------------------------------------ //
 		// Configuration Initialization
@@ -91,32 +89,12 @@ public class GoMintServer implements GoMint {
 		// ------------------------------------ //
 		// Networking Initialization
 		// ------------------------------------ //
-		try {
-			this.networkManager.initialize( this.serverConfig.getMaxPlayers(), this.serverConfig.getListener().getIp(), this.serverConfig.getListener().getPort() );
+		if ( !this.initNetworking() ) return;
 
-			if ( this.serverConfig.isEnablePacketDumping() ) {
-				File dumpDirectory = new File( this.serverConfig.getDumpDirectory() );
-				if ( !dumpDirectory.exists() ) {
-					if ( !dumpDirectory.mkdirs() ) {
-						this.logger.error( "Failed to create dump directory; please double-check your filesystem permissions" );
-						return;
-					}
-				} else if ( !dumpDirectory.isDirectory() ) {
-					this.logger.error( "Dump directory path does not point to a valid directory" );
-					return;
-				}
-
-				this.networkManager.setDumpingEnabled( true );
-				this.networkManager.setDumpDirectory( dumpDirectory );
-			}
-		} catch ( SocketException e ) {
-			this.logger.error( "Failed to initialize networking", e );
-			return;
-		}
 		// ------------------------------------ //
 		// World Initialization
 		// ------------------------------------ //
-		this.worldManager = new WorldManager( this.logger );
+		this.worldManager = new WorldManager( this );
 		try {
 			this.worldManager.loadWorld( this.serverConfig.getWorld() );
 		} catch ( IOException e ) {
@@ -151,6 +129,33 @@ public class GoMintServer implements GoMint {
 				}
 			}
 		}
+	}
+
+	private boolean initNetworking() {
+		try {
+			this.networkManager.initialize( this.serverConfig.getMaxPlayers(), this.serverConfig.getListener().getIp(), this.serverConfig.getListener().getPort() );
+
+			if ( this.serverConfig.isEnablePacketDumping() ) {
+				File dumpDirectory = new File( this.serverConfig.getDumpDirectory() );
+				if ( !dumpDirectory.exists() ) {
+					if ( !dumpDirectory.mkdirs() ) {
+						this.logger.error( "Failed to create dump directory; please double-check your filesystem permissions" );
+						return false;
+					}
+				} else if ( !dumpDirectory.isDirectory() ) {
+					this.logger.error( "Dump directory path does not point to a valid directory" );
+					return false;
+				}
+
+				this.networkManager.setDumpingEnabled( true );
+				this.networkManager.setDumpDirectory( dumpDirectory );
+			}
+		} catch ( SocketException e ) {
+			this.logger.error( "Failed to initialize networking", e );
+			return false;
+		}
+
+		return true;
 	}
 
 	public WorldAdapter getDefaultWorld() {

@@ -26,6 +26,13 @@ public abstract class WorldAdapter implements World {
 	 */
 	public abstract void addPlayer( EntityPlayer player );
 
+    /**
+     * Removes a player from this world and cleans up its references
+     *
+     * @param player The player entity which should be removed from the world
+     */
+    public abstract void removePlayer( EntityPlayer player );
+
 	/**
 	 * Ticks the world and updates what needs to be updated.
 	 */

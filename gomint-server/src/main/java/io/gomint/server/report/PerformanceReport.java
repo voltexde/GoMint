@@ -33,14 +33,22 @@ import java.util.function.Function;
  */
 public class PerformanceReport {
     private static final Logger logger = LoggerFactory.getLogger( PerformanceReport.class );
-
-    private final ObjObjMap<String, LongIntMap> performanceReport = HashObjObjMaps.newMutableMap();
     private final String startDate = new Date().toString();
     private final ReadWriteLock lock = new ReentrantReadWriteLock( true );
+    private ObjObjMap<String, LongIntMap> performanceReport;
 
-    private ThreadLocal<ObjLongMap<String>> threadMeasurements = new ThreadLocal<>();
+    private ThreadLocal<ObjLongMap<String>> threadMeasurements;
 
     public void startTiming( String name ) {
+        // Init maps
+        if ( performanceReport == null ) {
+            performanceReport = HashObjObjMaps.newMutableMap();
+        }
+
+        if ( threadMeasurements == null ) {
+            threadMeasurements = new ThreadLocal<>();
+        }
+
         ObjLongMap<String> currentMeasurements = this.threadMeasurements.get();
         if ( currentMeasurements == null ) {
             currentMeasurements = HashObjLongMaps.newMutableMap();

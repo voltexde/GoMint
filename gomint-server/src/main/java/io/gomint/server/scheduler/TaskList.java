@@ -30,7 +30,7 @@ public class TaskList<T> {
 
         // Check if we have a head state
         if ( this.head == null ) {
-            this.head = new LongElement( key, null, taskListNode );
+            this.head = new LongElement( key, null, taskListNode, taskListNode );
         } else {
             LongElement longElement = this.head;
             LongElement previousLongElement = null;
@@ -43,11 +43,11 @@ public class TaskList<T> {
 
             // We are at the end of the chain
             if ( longElement == null ) {
-                previousLongElement.setNext( new LongElement( key, null, taskListNode ) );
+                previousLongElement.setNext( new LongElement( key, null, taskListNode, taskListNode ) );
             } else {
                 // Check if we need to insert a element
                 if ( longElement.getKey() != key ) {
-                    LongElement newLongElement = new LongElement( key, longElement, taskListNode );
+                    LongElement newLongElement = new LongElement( key, longElement, taskListNode, taskListNode );
 
                     if ( previousLongElement != null ) {
                         previousLongElement.setNext( newLongElement );
@@ -57,12 +57,9 @@ public class TaskList<T> {
                     }
                 } else {
                     // We already have this key, append task
-                    TaskListNode node = longElement.getTaskListHead();
-                    while ( node.getTail() != null ) {
-                        node = node.getTail();
-                    }
-
+                    TaskListNode node = longElement.getTaskListTail();
                     node.setTail( taskListNode );
+                    longElement.setTaskListTail( taskListNode );
                 }
             }
         }
@@ -103,6 +100,11 @@ public class TaskList<T> {
         // Extract the element
         T element = taskListNode.getCurrent();
         this.head.setTaskListHead( taskListNode.getTail() );
+        while ( this.head.getTaskListHead() == null ) {
+            this.head = this.head.getNext();
+            if ( this.head == null ) break;
+        }
+
         return element;
     }
 
@@ -124,6 +126,16 @@ public class TaskList<T> {
 
             while ( taskListNode != null ) {
                 if ( taskListNode.getCurrent().equals( task ) ) {
+                    // Check if we are at the tail of the longElement
+                    if ( taskListNode.getTail() == null ) {
+                        if ( previousNode != null ) {
+                            longElement.setTaskListTail( previousNode );
+                        } else {
+                            longElement.setTaskListTail( null );
+                        }
+                    }
+
+                    // Chain the previous node to the next node after the removed one
                     if ( previousNode != null ) {
                         previousNode.setTail( taskListNode.getTail() );
                     } else {
@@ -131,11 +143,11 @@ public class TaskList<T> {
                     }
                 }
 
-                // Check if we have a element
                 previousNode = taskListNode;
                 taskListNode = taskListNode.getTail();
             }
 
+            // Check if we left a empty longElement
             if ( longElement.getTaskListHead() == null ) {
                 if ( previousElement != null ) {
                     previousElement.setNext( longElement.getNext() );
@@ -155,6 +167,7 @@ public class TaskList<T> {
         private long key;
         private LongElement next;
         private TaskListNode taskListHead;
+        private TaskListNode taskListTail;
     }
 
     @AllArgsConstructor
