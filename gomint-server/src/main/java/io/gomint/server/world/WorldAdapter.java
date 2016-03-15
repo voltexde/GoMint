@@ -60,4 +60,22 @@ public abstract class WorldAdapter implements World {
 	 */
 	public abstract void getOrLoadChunk( int x, int z, boolean generate, Delegate<ChunkAdapter> callback );
 
+    /**
+     * Send a chunk of this world to the client
+     *
+     * @param x The x-coordinate of the chunk
+     * @param z The z-coordinate of the chunk
+     * @param player The player we want to send the chunk to
+     */
+    public abstract void sendChunk( int x, int z, EntityPlayer player );
+
+    /**
+     * Move a player to a new chunk. This is done so we know which player is in which chunk so we can unload unneeded
+     * Chunks better and faster.
+     *
+     * @param x The x-coordinate of the chunk
+     * @param z The z-coordinate of the chunk
+     * @param player The player which should be set into the chunk
+     */
+    public abstract void movePlayerToChunk( int x, int z, EntityPlayer player );
 }

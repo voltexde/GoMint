@@ -7,7 +7,7 @@
 
 package io.gomint.server.world;
 
-import io.gomint.server.async.Delegate;
+import io.gomint.server.async.TwoArgDelegate;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.world.Chunk;
@@ -27,7 +27,7 @@ public abstract class ChunkAdapter implements Chunk {
 	 *
 	 * @param callback The callback to be invoked once the operation is complete
 	 */
-	public abstract void packageChunk( Delegate<Packet> callback );
+	public abstract void packageChunk( TwoArgDelegate<Long, Packet> callback );
 
     /**
      * Add a player to this chunk. This is needed to know when we can GC a chunk

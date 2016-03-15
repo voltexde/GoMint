@@ -11,14 +11,11 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.async.TwoArgDelegate;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.Packet;
-import io.gomint.server.network.packet.PacketBA;
 import io.gomint.server.network.packet.PacketBatch;
-import io.gomint.server.network.packet.PacketMovePlayer;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.world.AsyncChunkLoadTask;
 import io.gomint.server.world.AsyncChunkPackageTask;
@@ -149,38 +146,14 @@ public class AnvilWorldAdapter extends WorldAdapter {
         final int maxBlockX = this.spawnX + spawnRadius;
         final int maxBlockZ = this.spawnZ + spawnRadius;
 
-        final int spawnXChunk = CoordinateUtils.fromBlockToChunk( this.spawnX );
-        final int spawnZChunk = CoordinateUtils.fromBlockToChunk( this.spawnZ );
-
         final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
         final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );
         final int maxChunkX = CoordinateUtils.fromBlockToChunk( maxBlockX );
         final int maxChunkZ = CoordinateUtils.fromBlockToChunk( maxBlockZ );
 
-        Delegate<Packet> sendDelegate = new Delegate<Packet>() {
-            @Override
-            public void invoke( Packet arg ) {
-                player.getConnection().sendWorldChunk( arg );
-            }
-        };
-
         for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
             for ( int j = minChunkX; j <= maxChunkX; ++j ) {
-                final int finalI = i;
-                final int finalJ = j;
-
-                this.getOrLoadChunk( j, i, true, new Delegate<ChunkAdapter>() {
-                    @Override
-                    public void invoke( ChunkAdapter chunk ) {
-                        chunk.packageChunk( sendDelegate );
-
-                        if ( finalJ == spawnXChunk && finalI == spawnZChunk ) {
-                            logger.info( "Spawned Player " + player.getId() + " on chunk " + spawnXChunk + "; " + spawnZChunk );
-                            players.put( player, chunk );
-                            chunk.addPlayer( player );
-                        }
-                    }
-                } );
+                this.sendChunk( j, i, player );
             }
         }
     }
@@ -243,9 +216,11 @@ public class AnvilWorldAdapter extends WorldAdapter {
                 e.printStackTrace();
             }
 
+            this.deflater.reset();
+
             chunk.dirty = false;
             chunk.cachedPacket = new SoftReference<>( batch );
-            task.getCallback().invoke( batch );
+            task.getCallback().invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), batch );
         }
 
         // ---------------------------------------
@@ -271,6 +246,47 @@ public class AnvilWorldAdapter extends WorldAdapter {
         this.asyncChunkTasks.offer( task );
     }
 
+    @Override
+    public void sendChunk( int x, int z, EntityPlayer player ) {
+        final int spawnXChunk = CoordinateUtils.fromBlockToChunk( this.spawnX );
+        final int spawnZChunk = CoordinateUtils.fromBlockToChunk( this.spawnZ );
+
+        TwoArgDelegate<Long, Packet> sendDelegate = new TwoArgDelegate<Long, Packet>() {
+            @Override
+            public void invoke( Long chunkHash, Packet chunkPacket ) {
+                player.getConnection().sendWorldChunk( chunkHash, chunkPacket );
+            }
+        };
+
+        this.getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
+            @Override
+            public void invoke( ChunkAdapter chunk ) {
+                chunk.packageChunk( sendDelegate );
+
+                if ( x == spawnXChunk && z == spawnZChunk ) {
+                    logger.info( "Spawned Player " + player.getId() + " on chunk " + spawnXChunk + "; " + spawnZChunk );
+                    players.put( player, chunk );
+                    chunk.addPlayer( player );
+                }
+            }
+        } );
+    }
+
+    @Override
+    public void movePlayerToChunk( int x, int z, EntityPlayer player ) {
+        ChunkAdapter oldChunk = this.players.get( player );
+        getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
+            @Override
+            public void invoke( ChunkAdapter newChunk ) {
+                if ( oldChunk != null && !oldChunk.equals( newChunk ) ) {
+                    oldChunk.removePlayer( player );
+                    newChunk.addPlayer( player );
+                    AnvilWorldAdapter.this.players.put( player, newChunk );
+                }
+            }
+        } );
+    }
+
     // ==================================== INTERNALS ==================================== //
 
     /**
@@ -280,7 +296,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
      * @param chunk    The chunk that was told to package itself
      * @param callback The callback to be invoked once the chunk is packaged
      */
-    void notifyPackageChunk( AnvilChunk chunk, Delegate<Packet> callback ) {
+    void notifyPackageChunk( AnvilChunk chunk, TwoArgDelegate<Long, Packet> callback ) {
         AsyncChunkPackageTask task = new AsyncChunkPackageTask( chunk, callback );
         this.chunkPackageTasks.add( task );
     }
