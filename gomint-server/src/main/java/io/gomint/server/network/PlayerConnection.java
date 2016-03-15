@@ -25,7 +25,12 @@ import io.gomint.server.network.packet.PacketMovePlayer;
 import io.gomint.server.network.packet.PacketWorldInitialization;
 import io.gomint.server.network.packet.PacketWorldTime;
 import io.gomint.server.player.PlayerSkin;
+import io.gomint.server.util.IntPair;
+import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
+import net.openhft.koloboke.collect.LongCursor;
+import net.openhft.koloboke.collect.set.LongSet;
+import net.openhft.koloboke.collect.set.hash.HashLongSets;
 
 import java.util.UUID;
 import java.util.zip.DataFormatException;
@@ -65,6 +70,9 @@ public class PlayerConnection {
 	private Inflater batchDecompressor;
 	private byte[]   batchIntermediate;
 
+    // World data
+    private LongSet playerChunks;
+
 	/**
 	 * Constructs a new player connection.
 	 *
@@ -79,6 +87,8 @@ public class PlayerConnection {
 
 		this.batchDecompressor = new Inflater();
 		this.batchIntermediate = new byte[1024];
+
+        this.playerChunks = HashLongSets.newMutableSet();
 
 		this.sendDelegate = new Delegate<Packet>() {
 			@Override
@@ -181,10 +191,16 @@ public class PlayerConnection {
 	 * Sends a world chunk to the player. This is used by world adapters in order to give the player connection
 	 * a chance to know once it is ready for spawning.
 	 *
+     * @param chunkHash The hash of the chunk to keep track of what the player has loaded
 	 * @param chunkData The chunk data packet to send to the player
 	 */
-	public void sendWorldChunk( Packet chunkData ) {
+	public void sendWorldChunk( long chunkHash, Packet chunkData ) {
 		this.send( chunkData );
+
+        synchronized ( this.playerChunks ) {
+            this.playerChunks.add( chunkHash );
+        }
+
 		this.sentChunks++;
 
 		if ( this.sentChunks == 64 ) {
@@ -229,9 +245,9 @@ public class PlayerConnection {
 		if ( packetId == PACKET_BATCH ) {
 			this.handleBatchPacket( buffer );
 		} else {
-			System.out.println( "Received packet " + packetId );
 			Packet packet = Protocol.createPacket( packetId );
 			if ( packet == null ) {
+                System.out.println( "Received packet " + packetId );
 				return;
 			}
 
@@ -286,10 +302,41 @@ public class PlayerConnection {
 	private void handlePacket( Packet packet ) {
 		switch ( packet.getId() ) {
 			case PACKET_MOVE_PLAYER:
-				this.send( packet );
+                this.handleMovePacket( (PacketMovePlayer) packet );
 				break;
 		}
 	}
+
+    private void handleMovePacket( PacketMovePlayer packet ) {
+        int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) packet.getX() );
+        int currentZChunk = CoordinateUtils.fromBlockToChunk( (int) packet.getZ() );
+
+        int viewDistance = this.networkManager.getServer().getServerConfig().getViewDistance();
+
+        for ( int sendXChunk = currentXChunk - viewDistance; sendXChunk < currentXChunk + viewDistance; sendXChunk++ ) {
+            for ( int sendZChunk = currentZChunk - viewDistance; sendZChunk < currentZChunk + viewDistance; sendZChunk++ ) {
+                if ( !this.playerChunks.contains( CoordinateUtils.toLong( sendXChunk, sendZChunk ) ) ) {
+                    this.entity.getWorld().sendChunk( sendXChunk, sendZChunk, this.entity );
+                }
+            }
+        }
+
+        // Move the player to this chunk
+        this.entity.getWorld().movePlayerToChunk( currentXChunk, currentZChunk, this.entity );
+
+        // Check for unloading chunks
+        LongCursor longCursor = this.playerChunks.cursor();
+        while ( longCursor.moveNext() ) {
+            IntPair intPair = CoordinateUtils.toIntPair( longCursor.elem() );
+            if ( intPair.getX() > currentXChunk + viewDistance ||
+                    intPair.getX() < currentXChunk - viewDistance ||
+                    intPair.getZ() > currentZChunk + viewDistance ||
+                    intPair.getZ() < currentZChunk - viewDistance ) {
+                // TODO: Check for Packets to send to the client to unload the chunk?
+                longCursor.remove();
+            }
+        }
+    }
 
 	private void handleLoginPacket( PacketLogin packet ) {
 		this.state = PlayerConnectionState.LOGIN;

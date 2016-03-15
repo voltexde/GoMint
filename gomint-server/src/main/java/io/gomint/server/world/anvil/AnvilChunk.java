@@ -9,20 +9,18 @@ package io.gomint.server.world.anvil;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.MathUtils;
-import io.gomint.server.async.Delegate;
+import io.gomint.server.async.TwoArgDelegate;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.world.ChunkAdapter;
+import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.PEWorldConstraints;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Biome;
 import io.gomint.world.Block;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.lang.ref.SoftReference;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,11 +79,11 @@ class AnvilChunk extends ChunkAdapter {
 	// ==================================== MANIPULATION ==================================== //
 
 	@Override
-	public void packageChunk( Delegate<Packet> callback ) {
+	public void packageChunk( TwoArgDelegate<Long, Packet> callback ) {
 		if ( !this.dirty && this.cachedPacket != null ) {
             Packet packet = this.cachedPacket.get();
             if ( packet != null ) {
-                callback.invoke( packet );
+                callback.invoke( CoordinateUtils.toLong( x, z ), packet );
             }
 
 			return;
@@ -380,10 +378,6 @@ class AnvilChunk extends ChunkAdapter {
 			this.biomes = new byte[256];
 			Arrays.fill( this.biomes, (byte) -1 );
 		}
-		// Arrays.fill( this.biomes, (byte) 1 );
-
-		// Fill in the default biome color:
-		// Arrays.fill( this.biomeColors, 0x85B24A );
 
 		this.loadSections( level.getList( "Sections", false ) );
 
@@ -402,10 +396,6 @@ class AnvilChunk extends ChunkAdapter {
 				this.loadSection( (NBTTagCompound) section );
 			}
 		}
-
-		// Arrays.fill( this.data.raw(), (byte) 0 );
-		// Arrays.fill( this.blockLight.raw(), (byte) 0 );
-		// Arrays.fill( this.skyLight.raw(), (byte) 0 );
 	}
 
 	/**
@@ -434,16 +424,16 @@ class AnvilChunk extends ChunkAdapter {
 					}
 
 					int blockIndex = j << 8 | k << 4 | i;
-					int blockId    = ( add.get( blockIndex ) << 8 ) | blocks[blockIndex];
 
-					// TODO: Convert block IDs here
+					int blockId    = ( add.get( blockIndex ) << 8 ) | blocks[blockIndex];
+                    byte blockData = data.get( blockIndex );
+
+                    if ( AnvilBlockConverter.needsToConvert( blockId, blockData ) ) {
+                        blockId = AnvilBlockConverter.convertBlockID( blockId, blockData );
+                        blockData = AnvilBlockConverter.convertBlockData( blockId, blockData );
+                    }
 
 					this.setBlock( i, y, k, blockId );
-
-					byte blockData = data.get( blockIndex );
-
-					// TODO: Convert data IDs here
-
 					this.setData( i, y, k, blockData );
 					this.setBlockLight( i, y, k, blockLight.get( blockIndex ) );
 					this.setSkyLight( i, y, k, skyLight.get( blockIndex ) );

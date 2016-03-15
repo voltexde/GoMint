@@ -13,12 +13,9 @@ import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 import net.openhft.koloboke.collect.set.LongSet;
-import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 /**
  * @author BlackyPaw

@@ -7,6 +7,8 @@
 
 package io.gomint.server.world;
 
+import io.gomint.server.util.IntPair;
+
 /**
  * @author BlackyPaw
  * @version 1.0
@@ -82,6 +84,18 @@ public final class CoordinateUtils {
      */
     public static long toLong(int x, int z) {
         return ((long) x << 32) + z - Integer.MIN_VALUE;
+    }
+
+    /**
+     * Return new intpair which converts the hash into its x and z value again
+     * @param hash which should be reversed
+     * @return intpair containing x and z ints
+     */
+    public static IntPair toIntPair( long hash ) {
+        int x = (int) (hash >> 32);
+        int z = (int) (hash & 0xFFFFFFFF) + Integer.MIN_VALUE;
+
+        return new IntPair( x, z );
     }
 
     /**

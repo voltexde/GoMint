@@ -132,7 +132,6 @@ public class NetworkManager {
                     PlayerConnection connection = this.playersByGuid.get( guid );
                     if ( connection != null ) {
                         connection.close();
-                        // TODO: Notify player connection that its connection closed
                         this.playersByGuid.remove( guid );
                     }
                 }

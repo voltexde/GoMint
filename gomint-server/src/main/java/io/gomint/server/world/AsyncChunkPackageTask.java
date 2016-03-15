@@ -7,7 +7,7 @@
 
 package io.gomint.server.world;
 
-import io.gomint.server.async.Delegate;
+import io.gomint.server.async.TwoArgDelegate;
 import io.gomint.server.network.packet.Packet;
 
 /**
@@ -17,9 +17,9 @@ import io.gomint.server.network.packet.Packet;
 public class AsyncChunkPackageTask extends AsyncChunkTask {
 
 	private ChunkAdapter chunk;
-	private Delegate<Packet> callback;
+	private TwoArgDelegate<Long, Packet> callback;
 
-	public AsyncChunkPackageTask( ChunkAdapter chunk, Delegate<Packet> callback ) {
+	public AsyncChunkPackageTask( ChunkAdapter chunk, TwoArgDelegate<Long, Packet> callback ) {
 		super( Type.PACKAGE );
 		this.chunk = chunk;
 		this.callback = callback;
@@ -29,7 +29,7 @@ public class AsyncChunkPackageTask extends AsyncChunkTask {
 		return chunk;
 	}
 
-	public Delegate<Packet> getCallback() {
+	public TwoArgDelegate<Long, Packet> getCallback() {
 		return callback;
 	}
 }
