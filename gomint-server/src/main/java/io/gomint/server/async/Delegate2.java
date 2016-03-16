@@ -8,21 +8,21 @@
 package io.gomint.server.async;
 
 /**
+ * This delegate can be used if you need two arguments for the invocation and you not interested in the result.
+ *
  * @author geNAZt
  * @version 1.0
  *
- * @param <T1> type of first argument for invoke
- * @param <T2> type of second argument for invoke
- *
- * Delegate which can handle two arguments on invoke
+ * @param <T1> The type of first argument for the invocation
+ * @param <T2> The type of second argument for the invocation
  */
 public interface Delegate2<T1, T2> {
 
     /**
-     * Invoke this Delegate
+     * Invoke the calculation with two arguments. There is no result of this calculation
      *
-     * @param arg1 first argument for the delegate
-     * @param arg2 second argument for the delegate
+     * @param arg1 The first argument for the invocation
+     * @param arg2 The second argument for the invocation
      */
 	void invoke( T1 arg1, T2 arg2 );
 

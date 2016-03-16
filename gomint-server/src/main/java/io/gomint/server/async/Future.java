@@ -23,6 +23,8 @@ import java.util.concurrent.TimeoutException;
  *
  * @author BlackyPaw
  * @version 1.0
+ *
+ * @param <T> The type of object we want to resolve with this future
  */
 public class Future<T> {
 
@@ -64,13 +66,7 @@ public class Future<T> {
 			this.wait();
 		}
 
-		switch ( this.state ) {
-			case RESOLVED:
-				return (T) this.result;
-			case FAILED:
-			default:
-				throw new ExecutionException( "Future operation failed to execute", (Throwable) this.result );
-		}
+		return getResultOrException();
 	}
 
 	/**
@@ -90,19 +86,15 @@ public class Future<T> {
 			}
 		}
 
-		switch( this.state ) {
-			case RESOLVED:
-				return (T) this.result;
-			case FAILED:
-			default:
-				throw new ExecutionException( "Future operation failed to execute", (Throwable) this.result );
-		}
+		return getResultOrException();
 	}
 
-	/**
+    /**
 	 * Gets the result of the future operation but will only wait for the specified timeout before a TimeoutException
 	 * will be thrown.
 	 *
+     * @param duration The duration this operation should wait before hitting the timeout
+     * @param unit The TimeUnit which is used to calculate the duration in milliseconds
 	 * @return The future operation's result
 	 * @throws InterruptedException Thrown in case the future gets interrupted whilst waiting for the operation to complete
 	 * @throws ExecutionException Thrown in case the future operation failed
@@ -117,22 +109,16 @@ public class Future<T> {
 			now = System.currentTimeMillis();
 		}
 
-		switch( this.state ) {
-			case UNRESOLVED:
-				throw new TimeoutException( "Future operation did not complete within timeout" );
-			case RESOLVED:
-				return (T) this.result;
-			case FAILED:
-			default:
-				throw new ExecutionException( "Future operation failed to execute", (Throwable) this.result );
-		}
+		return getResultOrTimeoutException();
 	}
 
-	/**
+    /**
 	 * Gets the result of the future operation but will only wait for the specified timeout before a TimeoutException
 	 * will be thrown. This call blocks uninterruptibly, i.e. it will not even wake up if this thread gets interrupted
 	 * by another thread.
 	 *
+     * @param duration The duration this operation should wait before hitting the timeout
+     * @param unit The TimeUnit which is used to calculate the duration in milliseconds
 	 * @return The future operation's result
 	 * @throws ExecutionException Thrown in case the future operation failed
 	 * @throws TimeoutException Thrown in case the specified timeout expires before the future operation completes
@@ -150,15 +136,7 @@ public class Future<T> {
 			now = System.currentTimeMillis();
 		}
 
-		switch( this.state ) {
-			case UNRESOLVED:
-				throw new TimeoutException( "Future operation did not complete within timeout" );
-			case RESOLVED:
-				return (T) this.result;
-			case FAILED:
-			default:
-				throw new ExecutionException( "Future operation failed to execute", (Throwable) this.result );
-		}
+		return getResultOrTimeoutException();
 	}
 
 	/**
@@ -248,5 +226,27 @@ public class Future<T> {
 			this.futureListeners = null;
 		}
 	}
+
+    private T getResultOrException() throws ExecutionException {
+        switch( this.state ) {
+            case RESOLVED:
+                return (T) this.result;
+            case FAILED:
+            default:
+                throw new ExecutionException( "Future operation failed to execute", (Throwable) this.result );
+        }
+    }
+
+    private T getResultOrTimeoutException() throws TimeoutException, ExecutionException {
+        switch( this.state ) {
+            case UNRESOLVED:
+                throw new TimeoutException( "Future operation did not complete within timeout" );
+            case RESOLVED:
+                return (T) this.result;
+            case FAILED:
+            default:
+                throw new ExecutionException( "Future operation failed to execute", (Throwable) this.result );
+        }
+    }
 	
 }

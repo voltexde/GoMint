@@ -231,7 +231,7 @@
         <!-- Restricts throws statements to a specified count. !-->
         <!-- See http://checkstyle.sf.net/config_design.html !-->
         <module name="ThrowsCount">
-            <property name="max" value="2"/>
+            <property name="max" value="3"/>
         </module>
  
         <!-- Checks that classes that define a covariant equals() method also override method equals(java.lang.Object). !-->

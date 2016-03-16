@@ -8,11 +8,20 @@
 package io.gomint.server.async;
 
 /**
+ * Listener for Futures. It invokes when a Future this has been appended to has been resolved.
+ *
  * @author BlackyPaw
  * @version 1.0
+ *
+ * @param <T> The type of Future which resolves
  */
 public interface FutureListener<T extends Future> {
 
+    /**
+     * Invoked when the Future which this is appended to has been resolved.
+     *
+     * @param future The future which has been resolved
+     */
 	void onFutureResolved( T future );
 
 }
