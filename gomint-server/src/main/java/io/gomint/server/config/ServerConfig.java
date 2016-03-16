@@ -9,13 +9,13 @@ package io.gomint.server.config;
 
 import com.blackypaw.simpleconfig.SimpleConfig;
 import com.blackypaw.simpleconfig.annotation.Comment;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
+ * Global configuration for the whole GoMint Server.
+ *
  * @author BlackyPaw
  * @author geNAZt
  * @version 1.0
@@ -57,4 +57,5 @@ public class ServerConfig extends SimpleConfig {
 
     @Comment("Amount of seconds to wait after the chunk has come into the cache before we can select it for gc.")
     private int waitAfterLoadForGCSeconds = 30;
+
 }

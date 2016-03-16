@@ -104,6 +104,7 @@ public class Future<T> {
 	public synchronized T get( long duration, TimeUnit unit ) throws InterruptedException, ExecutionException, TimeoutException {
 		long now = System.currentTimeMillis();
 		long end = now + unit.toMillis( duration );
+
 		while ( this.state == UNRESOLVED && now < end ) {
 			this.wait( end - now );
 			now = System.currentTimeMillis();
@@ -133,6 +134,7 @@ public class Future<T> {
 			} catch ( InterruptedException ignored ) {
 				// ._.
 			}
+
 			now = System.currentTimeMillis();
 		}
 
@@ -185,46 +187,16 @@ public class Future<T> {
 	 * @param result The result of the future operation
 	 */
 	public synchronized void resolve( T result ) {
-		if ( this.state == UNRESOLVED ) {
-			this.state = RESOLVED;
-			this.result = result;
-			this.notifyAll();
-
-			for ( FutureListener<Future<T>> listener : this.futureListeners ) {
-				try {
-					listener.onFutureResolved( this );
-				} catch ( Throwable rethrown ) {
-					logger.error( "Failed to invoke future listener", rethrown );
-				}
-			}
-
-			// Release all references to listeners:
-			this.futureListeners = null;
-		}
+		setWhenUnresolved( result, RESOLVED );
 	}
 
-	/**
+    /**
 	 * Resolves the future indicating that the future operation failed for the given cause.
 	 *
 	 * @param cause The cause of the future operation's failure
 	 */
 	public synchronized void fail( Throwable cause ) {
-		if ( this.state == UNRESOLVED ) {
-			this.state = FAILED;
-			this.result = cause;
-			this.notifyAll();
-
-			for ( FutureListener<Future<T>> listener : this.futureListeners ) {
-				try {
-					listener.onFutureResolved( this );
-				} catch ( Throwable rethrown ) {
-					logger.error( "Failed to invoke future listener", rethrown );
-				}
-			}
-
-			// Release all references to listeners:
-			this.futureListeners = null;
-		}
+		setWhenUnresolved( cause, FAILED );
 	}
 
     private T getResultOrException() throws ExecutionException {
@@ -248,5 +220,24 @@ public class Future<T> {
                 throw new ExecutionException( "Future operation failed to execute", (Throwable) this.result );
         }
     }
-	
+
+    private void setWhenUnresolved( Object result, byte resolved ) {
+        if ( this.state == UNRESOLVED ) {
+            this.state = resolved;
+            this.result = result;
+            this.notifyAll();
+
+            for ( FutureListener<Future<T>> listener : this.futureListeners ) {
+                try {
+                    listener.onFutureResolved( this );
+                } catch ( Throwable rethrown ) {
+                    logger.error( "Failed to invoke future listener", rethrown );
+                }
+            }
+
+            // Release all references to listeners:
+            this.futureListeners = null;
+        }
+    }
+
 }
