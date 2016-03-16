@@ -12,6 +12,8 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.world.Chunk;
 
+import java.util.Collection;
+
 /**
  * @author BlackyPaw
  * @version 1.0
@@ -49,4 +51,12 @@ public abstract class ChunkAdapter implements Chunk {
      * @return true when it can be gced, false when not
      */
     public abstract boolean canBeGCed();
+
+    /**
+     * Return a collection of players which are currently on this chunk
+     *
+     * @return non modifiable collection of players on this chunk
+     */
+    public abstract Collection<EntityPlayer> getPlayers();
+
 }

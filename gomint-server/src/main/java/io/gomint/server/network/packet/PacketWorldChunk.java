@@ -52,4 +52,19 @@ public class PacketWorldChunk extends Packet {
 		return 13 + ( this.data == null ? 0 : this.data.length );
 	}
 
+    @Override
+    public String toString() {
+        return "PacketWorldChunk(x=" + x + ";z="+ z + ";dataHash=" + hashPayload( data ) + ")";
+    }
+
+    private long hashPayload( byte[] array ) {
+        long h = 0;
+
+        for ( byte aPayload : array ) {
+            h = 31 * h + aPayload;
+        }
+
+        return h;
+    }
+
 }

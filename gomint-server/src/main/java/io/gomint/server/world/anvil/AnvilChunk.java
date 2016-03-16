@@ -23,6 +23,8 @@ import io.gomint.world.Block;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -84,12 +86,12 @@ class AnvilChunk extends ChunkAdapter {
 			Packet packet = this.cachedPacket.get();
 			if ( packet != null ) {
 				callback.invoke( CoordinateUtils.toLong( x, z ), packet );
-			}
-
-			return;
-		}
-
-		this.world.notifyPackageChunk( this, callback );
+			} else {
+                this.world.notifyPackageChunk( this, callback );
+            }
+		} else {
+            this.world.notifyPackageChunk( this, callback );
+        }
 	}
 
 	@Override
@@ -103,14 +105,20 @@ class AnvilChunk extends ChunkAdapter {
 		this.lastPlayerOnThisChunk = System.currentTimeMillis();
 	}
 
-	@Override
-	public boolean canBeGCed() {
-		return System.currentTimeMillis() - this.loadedTime > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getWaitAfterLoadForGCSeconds() ) &&
-		       this.players.isEmpty() &&
-		       System.currentTimeMillis() - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getSecondsUntilGCAfterLastPlayerLeft() );
-	}
+    @Override
+    public boolean canBeGCed() {
+        return System.currentTimeMillis() - this.loadedTime > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getWaitAfterLoadForGCSeconds() ) &&
+                this.players.isEmpty() &&
+                this.lastPlayerOnThisChunk > -1 &&
+                System.currentTimeMillis() - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( this.world.getServer().getServerConfig().getSecondsUntilGCAfterLastPlayerLeft() );
+    }
 
-	/**
+    @Override
+    public Collection<EntityPlayer> getPlayers() {
+        return Collections.unmodifiableCollection( this.players );
+    }
+
+    /**
 	 * Gets the x-coordinate of the chunk.
 	 *
 	 * @return The chunk's x-coordinate

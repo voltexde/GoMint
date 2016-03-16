@@ -7,8 +7,11 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.math.Location;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.world.World;
+import lombok.Getter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -23,12 +26,12 @@ public abstract class Entity {
 
 	protected final long          id;
 	protected final EntityType   type;
-	protected       WorldAdapter world;
+    @Getter private Location location;
 
 	protected Entity( EntityType type, WorldAdapter world ) {
 		this.id = nextEntityId.incrementAndGet();
 		this.type = type;
-		this.world = world;
+		this.location = world.getSpawnLocation().clone();
 	}
 
 	/**
@@ -51,11 +54,11 @@ public abstract class Entity {
 
 	/**
 	 * Gets the world of this entity.
-	 *
+	 *♥
 	 * @return The world of this entity
 	 */
-	public WorldAdapter getWorld() {
-		return this.world;
+	public World getWorld() {
+		return this.location.getWorld();
 	}
 
 	/**

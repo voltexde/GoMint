@@ -8,6 +8,7 @@
 package io.gomint.math;
 
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>
@@ -15,14 +16,15 @@ import lombok.Getter;
  * </p>
  *
  * @author Digot
- * @version 1.0
+ * @author geNAZt
+ * @version 1.1
  */
 public class Vector implements Cloneable {
     public static final Vector ZERO = new Vector( 0, 0, 0 );
 
-    @Getter protected final double x;
-    @Getter protected final double y;
-    @Getter protected final double z;
+    @Getter @Setter protected double x;
+    @Getter @Setter protected double y;
+    @Getter @Setter protected double z;
 
     public Vector( double x, double y, double z ) {
         this.x = x;
@@ -30,44 +32,44 @@ public class Vector implements Cloneable {
         this.z = z;
     }
 
-    public Vector add( Vector other ) {
-        return new Vector(
-                this.x + other.getX(),
-                this.y + other.getY(),
-                this.z + other.getZ()
-        );
+    public Vector add( double x, double y, double z ) {
+        this.x += x;
+        this.y += y;
+        this.z += z;
+
+        return this;
     }
 
-    public Vector subtract( Vector other ) {
-        return new Vector(
-                this.x - other.getX(),
-                this.y - other.getY(),
-                this.z - other.getZ()
-        );
+    public Vector subtract( double x, double y, double z ) {
+        this.x -= x;
+        this.y -= y;
+        this.z -= z;
+
+        return this;
     }
 
-    public Vector multiply( Vector other ) {
-        return new Vector(
-                this.x * other.getX(),
-                this.y * other.getY(),
-                this.z * other.getZ()
-        );
+    public Vector multiply( double x, double y, double z ) {
+        this.x *= x;
+        this.y *= y;
+        this.z *= z;
+
+        return this;
     }
 
-    public Vector divide( Vector other ) {
-        return new Vector(
-                this.x / other.getX(),
-                this.y / other.getY(),
-                this.z / other.getZ()
-        );
+    public Vector divide( double x, double y, double z ) {
+        this.x /= x;
+        this.y /= y;
+        this.z /= z;
+
+        return this;
     }
 
     public Vector scalar( float value ) {
-        return new Vector(
-                this.x * value,
-                this.y * value,
-                this.z * value
-        );
+        this.x *= value;
+        this.y *= value;
+        this.z *= value;
+
+        return this;
     }
 
     @Override

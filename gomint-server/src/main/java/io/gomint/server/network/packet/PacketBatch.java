@@ -11,6 +11,7 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author BlackyPaw
@@ -43,4 +44,5 @@ public class PacketBatch extends Packet {
 	public int estimateLength() {
 		return 4 + this.payload.length;
 	}
+
 }

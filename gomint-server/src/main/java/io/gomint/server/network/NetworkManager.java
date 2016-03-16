@@ -202,9 +202,9 @@ public class NetworkManager {
      * @param packetId The ID of the packet
      * @param buffer   The packet's contents without its ID
      */
-    void notifyUnknownPacket( byte packetId, PacketBuffer buffer ) {
-        this.logger.info( "Received unknown packet 0x" + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+    public void notifyUnknownPacket( byte packetId, PacketBuffer buffer ) {
         if ( this.dump ) {
+            this.logger.info( "Received unknown packet 0x" + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
             this.dumpPacket( packetId, buffer );
         }
     }

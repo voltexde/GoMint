@@ -136,7 +136,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
     @Override
     public void addPlayer( EntityPlayer player ) {
         // Schedule sending spawn region chunks:
-        int spawnRadius = this.server.getServerConfig().getAmountOfChunksForSpawnArea() * 16;
+        int spawnRadius = player.getViewDistance() * 16;
         if ( spawnRadius < 64 ) {
             spawnRadius = 64; // We need at least 64 blocks to spawn
         }
@@ -248,8 +248,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
     @Override
     public void sendChunk( int x, int z, EntityPlayer player ) {
-        final int spawnXChunk = CoordinateUtils.fromBlockToChunk( this.spawnX );
-        final int spawnZChunk = CoordinateUtils.fromBlockToChunk( this.spawnZ );
+        logger.debug( "Wanting to send Chunk " + x + "; " + z + " to " + player.getUsername() );
 
         Delegate2<Long, Packet> sendDelegate = new Delegate2<Long, Packet>() {
             @Override
@@ -262,12 +261,6 @@ public class AnvilWorldAdapter extends WorldAdapter {
             @Override
             public void invoke( ChunkAdapter chunk ) {
                 chunk.packageChunk( sendDelegate );
-
-                if ( x == spawnXChunk && z == spawnZChunk ) {
-                    logger.info( "Spawned Player " + player.getId() + " on chunk " + spawnXChunk + "; " + spawnZChunk );
-                    players.put( player, chunk );
-                    chunk.addPlayer( player );
-                }
             }
         } );
     }
@@ -278,6 +271,11 @@ public class AnvilWorldAdapter extends WorldAdapter {
         getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
             @Override
             public void invoke( ChunkAdapter newChunk ) {
+                if ( oldChunk == null ) {
+                    newChunk.addPlayer( player );
+                    AnvilWorldAdapter.this.players.put( player, newChunk );
+                }
+
                 if ( oldChunk != null && !oldChunk.equals( newChunk ) ) {
                     oldChunk.removePlayer( player );
                     newChunk.addPlayer( player );

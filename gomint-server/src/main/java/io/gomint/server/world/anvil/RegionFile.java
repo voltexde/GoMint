@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
+import java.util.IllegalFormatException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
@@ -88,7 +89,12 @@ class RegionFile {
 		}
 
 		NBTTagCompound nbt = NBTTagCompound.readFrom( input, false, ByteOrder.BIG_ENDIAN );
-		return new AnvilChunk( this.world, nbt );
+		AnvilChunk anvilChunk = new AnvilChunk( this.world, nbt );
+        if ( anvilChunk.getX() != x || anvilChunk.getZ() != z ) {
+            throw new IllegalStateException( "The loaded chunk for " + x + "; " + z + " did load as " + anvilChunk.getX() + "; " + anvilChunk.getZ() );
+        }
+
+        return anvilChunk;
 	}
 	
 }

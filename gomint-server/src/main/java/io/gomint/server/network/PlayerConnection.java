@@ -11,28 +11,23 @@ import io.gomint.jraknet.Connection;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.Location;
-import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.packet.Packet;
-import io.gomint.server.network.packet.PacketA8;
-import io.gomint.server.network.packet.PacketB9;
-import io.gomint.server.network.packet.PacketBA;
-import io.gomint.server.network.packet.PacketEntityMetadata;
-import io.gomint.server.network.packet.PacketLogin;
-import io.gomint.server.network.packet.PacketPlayState;
-import io.gomint.server.network.packet.PacketMovePlayer;
-import io.gomint.server.network.packet.PacketWorldInitialization;
-import io.gomint.server.network.packet.PacketWorldTime;
-import io.gomint.server.player.PlayerSkin;
+import io.gomint.server.network.packet.*;
 import io.gomint.server.util.IntPair;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.world.World;
 import net.openhft.koloboke.collect.LongCursor;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -44,393 +39,463 @@ import static io.gomint.server.network.Protocol.*;
  */
 public class PlayerConnection {
 
-	// Network manager that created this connection:
-	private final NetworkManager networkManager;
+    private static final Logger logger = LoggerFactory.getLogger( PlayerConnection.class );
 
-	// Actual connection for wire transfer:
-	private final Connection connection;
+    // Network manager that created this connection:
+    private final NetworkManager networkManager;
 
-	// Commonly used delegates:
-	private Delegate<Packet> sendDelegate;
+    // Actual connection for wire transfer:
+    private final Connection connection;
 
-	// Connection State:
-	private PlayerConnectionState state;
-	private int sentChunks;
+    // Commonly used delegates:
+    private Delegate<Packet> sendDelegate;
 
-	// Player Information
-	private String     username;
-	private UUID       uuid;
-	private String     secretToken;
-	private PlayerSkin skin;
+    // Connection State:
+    private long lastPerformance;
+    private PlayerConnectionState state;
+    private int sentChunks;
 
-	// Entity
-	private EntityPlayer entity;
+    // Entity
+    private EntityPlayer entity;
 
-	// Used for BatchPacket decompression; stored here in order to save allocations at runtime:
-	private Inflater batchDecompressor;
-	private byte[]   batchIntermediate;
+    // Used for BatchPacket decompression; stored here in order to save allocations at runtime:
+    private Inflater batchDecompressor;
+    private byte[] batchIntermediate;
 
     // World data
     private LongSet playerChunks;
+    private LongSet currentlySendingPlayerChunks;
 
-	/**
-	 * Constructs a new player connection.
-	 *
-	 * @param networkManager The network manager creating this instance
-	 * @param connection     The jRakNet connection for actual wire-transfer
-	 * @param initialState   The player connection's initial state
-	 */
-	PlayerConnection( NetworkManager networkManager, Connection connection, PlayerConnectionState initialState ) {
-		this.networkManager = networkManager;
-		this.connection = connection;
-		this.state = initialState;
+    /**
+     * Constructs a new player connection.
+     *
+     * @param networkManager The network manager creating this instance
+     * @param connection     The jRakNet connection for actual wire-transfer
+     * @param initialState   The player connection's initial state
+     */
+    PlayerConnection( NetworkManager networkManager, Connection connection, PlayerConnectionState initialState ) {
+        this.networkManager = networkManager;
+        this.connection = connection;
+        this.state = initialState;
 
-		this.batchDecompressor = new Inflater();
-		this.batchIntermediate = new byte[1024];
+        this.batchDecompressor = new Inflater();
+        this.batchIntermediate = new byte[1024];
 
         this.playerChunks = HashLongSets.newMutableSet();
+        this.currentlySendingPlayerChunks = HashLongSets.newMutableSet();
 
-		this.sendDelegate = new Delegate<Packet>() {
-			@Override
-			public void invoke( Packet arg ) {
-				if ( arg != null ) {
-					PlayerConnection.this.send( arg );
-				}
-			}
-		};
-	}
+        this.sendDelegate = new Delegate<Packet>() {
+            @Override
+            public void invoke( Packet arg ) {
+                if ( arg != null ) {
+                    PlayerConnection.this.send( arg );
+                }
+            }
+        };
+    }
 
-	/**
-	 * Gets the player connection's current state.
-	 *
-	 * @return The player connection's current state
-	 */
-	public PlayerConnectionState getState() {
-		return this.state;
-	}
+    /**
+     * Gets the player connection's current state.
+     *
+     * @return The player connection's current state
+     */
+    public PlayerConnectionState getState() {
+        return this.state;
+    }
 
-	/**
-	 * Gets the player's actual jRakNet connection.
-	 *
-	 * @return The player's actual jRakNet connection
-	 */
-	public Connection getConnection() {
-		return this.connection;
-	}
+    /**
+     * Gets the player's actual jRakNet connection.
+     *
+     * @return The player's actual jRakNet connection
+     */
+    public Connection getConnection() {
+        return this.connection;
+    }
 
-	/**
-	 * Gets the delegate to be used whenever a packet is to be sent once an asynchronous
-	 * operation completes.
-	 *
-	 * @return The delegate to be used for sending packets asynchronously
-	 */
-	public Delegate<Packet> getSendDelegate() {
-		return this.sendDelegate;
-	}
+    /**
+     * Gets the delegate to be used whenever a packet is to be sent once an asynchronous
+     * operation completes.
+     *
+     * @return The delegate to be used for sending packets asynchronously
+     */
+    public Delegate<Packet> getSendDelegate() {
+        return this.sendDelegate;
+    }
 
-	/**
-	 * Gets the EntityPlayer associated with this player connection. This might return null if
-	 * the player has not logged in yet.
-	 *
-	 * @return The entity associated with this player connection
-	 */
-	public EntityPlayer getEntity() {
-		return this.entity;
-	}
+    /**
+     * Gets the EntityPlayer associated with this player connection. This might return null if
+     * the player has not logged in yet.
+     *
+     * @return The entity associated with this player connection
+     */
+    public EntityPlayer getEntity() {
+        return this.entity;
+    }
 
-	/**
-	 * Gets the username of this player.
-	 *
-	 * @return The username of this player
-	 */
-	public String getUsername() {
-		return this.username;
-	}
+    /**
+     * Performs a network tick on this player connection. All incoming packets are received and handled
+     * accordingly.
+     */
+    public void tick() {
+        // Receive all waiting packets:
+        byte[] packetData;
+        while ( ( packetData = this.connection.receive() ) != null ) {
+            this.handleSocketData( new PacketBuffer( packetData, 0 ) );
+        }
+    }
 
-	/**
-	 * Performs a network tick on this player connection. All incoming packets are received and handled
-	 * accordingly.
-	 */
-	public void tick() {
-		// Receive all waiting packets:
-		byte[] packetData;
-		while ( ( packetData = this.connection.receive() ) != null ) {
-			this.handleSocketData( new PacketBuffer( packetData, 0 ) );
-		}
-	}
+    /**
+     * Sends the given packet to the player.
+     *
+     * @param packet The packet to send to the player
+     */
+    public void send( Packet packet ) {
+        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
+        buffer.writeByte( (byte) 0x8E );
+        buffer.writeByte( packet.getId() );
+        packet.serialize( buffer );
+        this.connection.send( PacketReliability.RELIABLE, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+    }
 
-	/**
-	 * Sends the given packet to the player.
-	 *
-	 * @param packet The packet to send to the player
-	 */
-	public void send( Packet packet ) {
-		PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-		buffer.writeByte( (byte) 0x8E );
-		buffer.writeByte( packet.getId() );
-		packet.serialize( buffer );
-		this.connection.send( PacketReliability.RELIABLE, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition()  );
-	}
+    /**
+     * Sends the given packet to the player.
+     *
+     * @param reliability     The reliability to send the packet with
+     * @param orderingChannel The ordering channel to send the packet on
+     * @param packet          The packet to send to the player
+     */
+    public void send( PacketReliability reliability, int orderingChannel, Packet packet ) {
+        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
+        buffer.writeByte( (byte) 0x8E );
+        buffer.writeByte( packet.getId() );
+        packet.serialize( buffer );
+        this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
+    }
 
-	/**
-	 * Sends the given packet to the player.
-	 *
-	 * @param reliability The reliability to send the packet with
-	 * @param orderingChannel The ordering channel to send the packet on
-	 * @param packet The packet to send to the player
-	 */
-	public void send( PacketReliability reliability, int orderingChannel, Packet packet ) {
-		PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-		buffer.writeByte( (byte) 0x8E );
-		buffer.writeByte( packet.getId() );
-		packet.serialize( buffer );
-		this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition()  );
-	}
-
-	/**
-	 * Sends a world chunk to the player. This is used by world adapters in order to give the player connection
-	 * a chance to know once it is ready for spawning.
-	 *
+    /**
+     * Sends a world chunk to the player. This is used by world adapters in order to give the player connection
+     * a chance to know once it is ready for spawning.
+     *
      * @param chunkHash The hash of the chunk to keep track of what the player has loaded
-	 * @param chunkData The chunk data packet to send to the player
-	 */
-	public void sendWorldChunk( long chunkHash, Packet chunkData ) {
-		this.send( chunkData );
+     * @param chunkData The chunk data packet to send to the player
+     */
+    public void sendWorldChunk( long chunkHash, Packet chunkData ) {
+        this.send( chunkData );
 
         synchronized ( this.playerChunks ) {
+            this.currentlySendingPlayerChunks.removeLong( chunkHash );
             this.playerChunks.add( chunkHash );
         }
 
-		this.sentChunks++;
+        if ( this.state == PlayerConnectionState.LOGIN ) {
+            this.sentChunks++;
 
-		if ( this.sentChunks == 64 ) {
-			this.sendWorldTime( 0, false );
-			this.sendPlayState( PacketPlayState.PlayState.SPAWN );
-		}
-	}
+            if ( this.sentChunks == 64 ) {
+                int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
+                int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
-	// ========================================= PACKET HANDLERS ========================================= //
+                logger.info( "Spawned Player " + this.entity.getId() + " on chunk " + spawnXChunk + "; " + spawnZChunk + " after " + ( System.currentTimeMillis() - this.lastPerformance ) + " ms" );
 
-	/**
-	 * Handles data received directly from the player's connection.
-	 *
-	 * @param buffer The buffer containing the received data
-	 */
-	private void handleSocketData( PacketBuffer buffer ) {
-		if ( buffer.getRemaining() <= 0 ) {
-			// Malformed packet:
-			return;
-		}
+                WorldAdapter worldAdapter = (WorldAdapter) this.entity.getWorld();
+                worldAdapter.movePlayerToChunk( spawnXChunk, spawnZChunk, this.entity );
 
-		// Grab the packet ID from the packet's data
-		byte packetId = buffer.readByte();
-		if ( packetId == (byte) 0x8E && buffer.getRemaining() > 0 ) {
-			packetId = buffer.readByte();
-		}
+                this.sendPlayState( PacketPlayState.PlayState.SPAWN );
+                this.sendWorldTime( 0, false );
+                this.sendMovePlayer( this.entity.getLocation() );
 
-		// If we are still in handshake we only accept certain packets:
-		if ( this.state == PlayerConnectionState.HANDSHAKE ) {
-			if ( packetId == PACKET_BATCH ) {
-				this.handleBatchPacket( buffer );
-			} else if ( packetId == PACKET_LOGIN ) {
-				PacketLogin login = new PacketLogin();
-				login.deserialize( buffer );
-				this.handleLoginPacket( login );
-			}
+                networkManager.getServer().getExecutorService().execute( new Runnable() {
+                    @Override
+                    public void run() {
+                        while ( connection.isConnected() ) {
+                            PacketSetCompassTarget packetSetCompassTarget = new PacketSetCompassTarget();
+                            packetSetCompassTarget.setX( (int) entity.getLocation().getX() );
+                            packetSetCompassTarget.setY( (int) entity.getLocation().getY() );
+                            packetSetCompassTarget.setZ( (int) entity.getLocation().getZ() );
+                            send( packetSetCompassTarget );
 
-			// Don't allow for any other packets if we are in HANDSHAKE state:
-			return;
-		}
+                            try {
+                                Thread.sleep( 250 );
+                            } catch ( InterruptedException e ) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                } );
 
-		if ( packetId == PACKET_BATCH ) {
-			this.handleBatchPacket( buffer );
-		} else {
-			Packet packet = Protocol.createPacket( packetId );
-			if ( packet == null ) {
-                System.out.println( "Received packet " + packetId );
-				return;
-			}
+                this.state = PlayerConnectionState.PLAYING;
+            }
+        }
+    }
 
-			packet.deserialize( buffer );
-			this.handlePacket( packet );
-		}
-	}
+    // ========================================= PACKET HANDLERS ========================================= //
 
-	/**
-	 * Handles compressed batch packets directly by decoding their payload.
-	 *
-	 * @param buffer The buffer containing the batch packet's data (except packet ID)
-	 */
-	private void handleBatchPacket( PacketBuffer buffer ) {
-		buffer.skip( 4 );               // Compressed payload length (not of interest; only uncompressed size matteres)
+    /**
+     * Handles data received directly from the player's connection.
+     *
+     * @param buffer The buffer containing the received data
+     */
+    private void handleSocketData( PacketBuffer buffer ) {
+        if ( buffer.getRemaining() <= 0 ) {
+            // Malformed packet:
+            return;
+        }
 
-		this.batchDecompressor.reset();
-		this.batchDecompressor.setInput( buffer.getBuffer(), buffer.getPosition(), buffer.getRemaining() );
+        // Grab the packet ID from the packet's data
+        byte packetId = buffer.readByte();
+        if ( packetId == (byte) 0x8E && buffer.getRemaining() > 0 ) {
+            packetId = buffer.readByte();
+        }
 
-		byte[] payload;
-		try {
-			// Only inflate decompressed payload size before allocating the actual payload array:
-			this.batchDecompressor.inflate( this.batchIntermediate, 0, 4 );
-			int decompressedSize = ( ( this.batchIntermediate[0] & 255 ) << 24 |
-			                         ( this.batchIntermediate[1] & 255 ) << 16 |
-			                         ( this.batchIntermediate[2] & 255 ) << 8 |
-			                         ( this.batchIntermediate[3] & 255 ) );
+        // If we are still in handshake we only accept certain packets:
+        if ( this.state == PlayerConnectionState.HANDSHAKE ) {
+            if ( packetId == PACKET_BATCH ) {
+                this.handleBatchPacket( buffer );
+            } else if ( packetId == PACKET_LOGIN ) {
+                PacketLogin login = new PacketLogin();
+                login.deserialize( buffer );
+                System.out.println( buffer.getRemaining() );
 
-			if ( decompressedSize < 0 ) {
-				this.networkManager.getLogger().warn( "Received malformed batch packet; declared negative payload size (" + decompressedSize + ")" );
-				return;
-			}
+                this.handleLoginPacket( login );
+            }
 
-			payload = new byte[decompressedSize];
-			this.batchDecompressor.inflate( payload );
-		} catch ( DataFormatException e ) {
-			this.networkManager.getLogger().warn( "Received malformed batch packet", e );
-			return;
-		}
+            // Don't allow for any other packets if we are in HANDSHAKE state:
+            return;
+        }
 
-		PacketBuffer payloadBuffer = new PacketBuffer( payload, 0 );
-		while ( payloadBuffer.getRemaining() > 0 ) {
-			this.handleSocketData( payloadBuffer );
-		}
-	}
+        if ( packetId == PACKET_BATCH ) {
+            this.handleBatchPacket( buffer );
+        } else {
+            Packet packet = Protocol.createPacket( packetId );
+            if ( packet == null ) {
+                this.networkManager.notifyUnknownPacket( packetId, buffer );
+                return;
+            }
 
-	/**
-	 * Handles a deserialized packet by dispatching it to the appropriate handler method.
-	 *
-	 * @param packet The packet to handle
-	 */
-	private void handlePacket( Packet packet ) {
-		switch ( packet.getId() ) {
-			case PACKET_MOVE_PLAYER:
+            packet.deserialize( buffer );
+            this.handlePacket( packet );
+        }
+    }
+
+    /**
+     * Handles compressed batch packets directly by decoding their payload.
+     *
+     * @param buffer The buffer containing the batch packet's data (except packet ID)
+     */
+    private void handleBatchPacket( PacketBuffer buffer ) {
+        buffer.skip( 4 );               // Compressed payload length (not of interest; only uncompressed size matteres)
+
+        this.batchDecompressor.reset();
+        this.batchDecompressor.setInput( buffer.getBuffer(), buffer.getPosition(), buffer.getRemaining() );
+
+        byte[] payload;
+        try {
+            // Only inflate decompressed payload size before allocating the actual payload array:
+            this.batchDecompressor.inflate( this.batchIntermediate, 0, 4 );
+            int decompressedSize = ( ( this.batchIntermediate[0] & 255 ) << 24 |
+                    ( this.batchIntermediate[1] & 255 ) << 16 |
+                    ( this.batchIntermediate[2] & 255 ) << 8 |
+                    ( this.batchIntermediate[3] & 255 ) );
+
+            if ( decompressedSize < 0 ) {
+                this.networkManager.getLogger().warn( "Received malformed batch packet; declared negative payload size (" + decompressedSize + ")" );
+                return;
+            }
+
+            payload = new byte[decompressedSize];
+            this.batchDecompressor.inflate( payload );
+        } catch ( DataFormatException e ) {
+            this.networkManager.getLogger().warn( "Received malformed batch packet", e );
+            return;
+        }
+
+        PacketBuffer payloadBuffer = new PacketBuffer( payload, 0 );
+        while ( payloadBuffer.getRemaining() > 0 ) {
+            this.handleSocketData( payloadBuffer );
+        }
+    }
+
+    /**
+     * Handles a deserialized packet by dispatching it to the appropriate handler method.
+     *
+     * @param packet The packet to handle
+     */
+    private void handlePacket( Packet packet ) {
+        switch ( packet.getId() ) {
+            case PACKET_MOVE_PLAYER:
                 this.handleMovePacket( (PacketMovePlayer) packet );
-				break;
-		}
-	}
+                break;
+            case PACKET_SET_CHUNK_RADIUS:
+                this.handleSetChunkRadius( (PacketSetChunkRadius) packet );
+                break;
+        }
+    }
+
+    private void handleSetChunkRadius( PacketSetChunkRadius packet ) {
+        // Check if the wanted Viewdistance is under the servers setting
+        int oldViewdistance = this.entity.getViewDistance();
+        this.entity.setViewDistance( Math.min( packet.getChunkRadius(), this.networkManager.getServer().getServerConfig().getViewDistance() ) );
+        if ( oldViewdistance != this.entity.getViewDistance() ) {
+            logger.debug( "Setting new Viewdistance for " + this.entity.getUsername() + " to " + this.entity.getViewDistance() );
+            this.checkForNewChunks();
+        }
+
+        PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
+        packetConfirmChunkRadius.setChunkRadius( this.entity.getViewDistance() );
+        this.send( packetConfirmChunkRadius );
+    }
 
     private void handleMovePacket( PacketMovePlayer packet ) {
-        int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) packet.getX() );
-        int currentZChunk = CoordinateUtils.fromBlockToChunk( (int) packet.getZ() );
+        // TODO: Send some sort of movement event
 
-        int viewDistance = this.networkManager.getServer().getServerConfig().getViewDistance();
+        int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
+        int currentZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
-        for ( int sendXChunk = currentXChunk - viewDistance; sendXChunk < currentXChunk + viewDistance; sendXChunk++ ) {
-            for ( int sendZChunk = currentZChunk - viewDistance; sendZChunk < currentZChunk + viewDistance; sendZChunk++ ) {
-                if ( !this.playerChunks.contains( CoordinateUtils.toLong( sendXChunk, sendZChunk ) ) ) {
-                    this.entity.getWorld().sendChunk( sendXChunk, sendZChunk, this.entity );
+        this.entity.getLocation().setX( packet.getX() );
+        this.entity.getLocation().setY( packet.getY() );
+        this.entity.getLocation().setZ( packet.getZ() );
+
+        int newXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
+        int newZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
+
+        if ( currentXChunk != newXChunk || currentZChunk != newZChunk ) {
+            this.checkForNewChunks();
+        }
+    }
+
+    private void checkForNewChunks() {
+        WorldAdapter worldAdapter = ( (WorldAdapter) this.entity.getWorld() );
+
+        int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
+        int currentZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
+
+        int viewDistance = this.entity.getViewDistance();
+        synchronized ( this.playerChunks ) {
+            for ( int sendXChunk = currentXChunk - viewDistance; sendXChunk < currentXChunk + viewDistance; sendXChunk++ ) {
+                for ( int sendZChunk = currentZChunk - viewDistance; sendZChunk < currentZChunk + viewDistance; sendZChunk++ ) {
+                    if ( !this.playerChunks.contains( CoordinateUtils.toLong( sendXChunk, sendZChunk ) ) &&
+                            !this.currentlySendingPlayerChunks.contains( CoordinateUtils.toLong( sendXChunk, sendZChunk ) ) ) {
+                        this.currentlySendingPlayerChunks.add( CoordinateUtils.toLong( sendXChunk, sendZChunk ) );
+                        worldAdapter.sendChunk( sendXChunk, sendZChunk, this.entity );
+                    }
                 }
             }
         }
 
         // Move the player to this chunk
-        this.entity.getWorld().movePlayerToChunk( currentXChunk, currentZChunk, this.entity );
+        worldAdapter.movePlayerToChunk( currentXChunk, currentZChunk, this.entity );
 
         // Check for unloading chunks
-        LongCursor longCursor = this.playerChunks.cursor();
-        while ( longCursor.moveNext() ) {
-            IntPair intPair = CoordinateUtils.toIntPair( longCursor.elem() );
-            if ( intPair.getX() > currentXChunk + viewDistance ||
-                    intPair.getX() < currentXChunk - viewDistance ||
-                    intPair.getZ() > currentZChunk + viewDistance ||
-                    intPair.getZ() < currentZChunk - viewDistance ) {
-                // TODO: Check for Packets to send to the client to unload the chunk?
-                longCursor.remove();
+        synchronized ( this.playerChunks ) {
+            LongCursor longCursor = this.playerChunks.cursor();
+            while ( longCursor.moveNext() ) {
+                IntPair intPair = CoordinateUtils.toIntPair( longCursor.elem() );
+                if ( intPair.getX() > currentXChunk + viewDistance ||
+                        intPair.getX() < currentXChunk - viewDistance ||
+                        intPair.getZ() > currentZChunk + viewDistance ||
+                        intPair.getZ() < currentZChunk - viewDistance ) {
+                    // TODO: Check for Packets to send to the client to unload the chunk?
+                    longCursor.remove();
+                }
             }
         }
     }
 
-	private void handleLoginPacket( PacketLogin packet ) {
-		this.state = PlayerConnectionState.LOGIN;
+    private void handleLoginPacket( PacketLogin packet ) {
+        this.state = PlayerConnectionState.LOGIN;
+        this.lastPerformance = System.currentTimeMillis();
 
-		this.username = packet.getUsername();
-		this.uuid = packet.getClientUUID();
-		this.secretToken = packet.getClientSecret();
+        this.sendPlayState( PacketPlayState.PlayState.HANDSHAKE );
 
-		this.sendPlayState( PacketPlayState.PlayState.HANDSHAKE );
+        System.out.println( packet.getSkinName() );
 
-		// Create entity:
-		WorldAdapter world = this.networkManager.getServer().getDefaultWorld();
-		this.entity = new EntityPlayer( world, this );
+        // Create entity:
+        WorldAdapter world = this.networkManager.getServer().getDefaultWorld();
+        this.entity = new EntityPlayer( world, this );
+        this.entity.setUsername( packet.getUsername() );
+        this.entity.setUuid( packet.getClientUUID() );
+        this.entity.setSecretToken( packet.getClientSecret() );
+        this.entity.setViewDistance( this.networkManager.getServer().getServerConfig().getViewDistance() );
 
-		this.sendWorldInitialization();
+        this.sendWorldInitialization();
 
-		// Add player to world (will send world chunk packets):
-		world.addPlayer( this.entity );
-	}
+        // Add player to world (will send world chunk packets):
+        world.addPlayer( this.entity );
+    }
 
-	// ====================================== PACKET SENDERS ====================================== //
+    // ====================================== PACKET SENDERS ====================================== //
 
-	/**
-	 * Sends a PacketPlayState with the specified state to this player.
-	 *
-	 * @param state The state to send
-	 */
-	private void sendPlayState( PacketPlayState.PlayState state ) {
-		PacketPlayState packet = new PacketPlayState();
-		packet.setState( state );
-		this.send( PacketReliability.RELIABLE_ORDERED, 0, packet );
-	}
+    /**
+     * Sends a PacketPlayState with the specified state to this player.
+     *
+     * @param state The state to send
+     */
+    private void sendPlayState( PacketPlayState.PlayState state ) {
+        PacketPlayState packet = new PacketPlayState();
+        packet.setState( state );
+        this.send( PacketReliability.RELIABLE_ORDERED, 0, packet );
+    }
 
-	/**
-	 * Sends the player a move player packet which will teleport him to the
-	 * given location.
-	 *
-	 * @param location The location to teleport the player to
-	 */
-	private void sendMovePlayer( Location location ) {
-		PacketMovePlayer move = new PacketMovePlayer();
-		move.setEntityId( 0 );                      // All packets referencing the local player have entity ID 0
-		move.setX( (float) location.getX() );
-		move.setY( (float) location.getY() );
-		move.setZ( (float) location.getZ() );
-		move.setYaw( 0.0F );
-		move.setPitch( 0.0F );
-		move.setTeleport( true );
-		move.setOnGround( false );
-		this.send( move );
-	}
+    /**
+     * Sends the player a move player packet which will teleport him to the
+     * given location.
+     *
+     * @param location The location to teleport the player to
+     */
+    private void sendMovePlayer( Location location ) {
+        PacketMovePlayer move = new PacketMovePlayer();
+        move.setEntityId( 0 );                      // All packets referencing the local player have entity ID 0
+        move.setX( (float) location.getX() );
+        move.setY( (float) location.getY() );
+        move.setZ( (float) location.getZ() );
+        move.setYaw( 0.0F );
+        move.setPitch( 0.0F );
+        move.setTeleport( true );
+        move.setOnGround( false );
+        this.send( move );
+    }
 
-	/**
-	 * Sends the player the specified time as world time. The original client sends
-	 * the current world time every 256 ticks in order to synchronize all client's world
-	 * times.
-	 *
-	 * @param ticks The current number of ticks of the world time
-	 * @param counting Whether or not the world time is counting upwards
-	 */
-	private void sendWorldTime( int ticks, boolean counting ) {
-		PacketWorldTime time = new PacketWorldTime();
-		time.setTicks( ticks );
-		time.setCounting( counting );
-		this.send( time );
-	}
+    /**
+     * Sends the player the specified time as world time. The original client sends
+     * the current world time every 256 ticks in order to synchronize all client's world
+     * times.
+     *
+     * @param ticks    The current number of ticks of the world time
+     * @param counting Whether or not the world time is counting upwards
+     */
+    private void sendWorldTime( int ticks, boolean counting ) {
+        PacketWorldTime time = new PacketWorldTime();
+        time.setTicks( ticks );
+        time.setCounting( counting );
+        this.send( time );
+    }
 
-	/**
-	 * Sends a world initialization packet of the world the entity associated with this
-	 * connection is currently in to this player.
-	 */
-	private void sendWorldInitialization() {
-		WorldAdapter world = this.entity.getWorld();
-		PacketWorldInitialization init = new PacketWorldInitialization();
-		init.setSeed( -1 );
-		init.setDimension( (byte) 0 );
-		init.setGenerator( 0 );
-		init.setGamemode( 1 );
-		init.setEntityId( 0L );
-		init.setSpawnX( (int) world.getSpawnLocation().getX() );
-		init.setSpawnY( (int) world.getSpawnLocation().getY() );
-		init.setSpawnZ( (int) world.getSpawnLocation().getZ() );
-		init.setX( (float) world.getSpawnLocation().getX() );
-		init.setY( (float) world.getSpawnLocation().getY() );
-		init.setZ( (float) world.getSpawnLocation().getZ() );
-		this.send( init );
-	}
+    /**
+     * Sends a world initialization packet of the world the entity associated with this
+     * connection is currently in to this player.
+     */
+    private void sendWorldInitialization() {
+        World world = this.entity.getWorld();
+        PacketWorldInitialization init = new PacketWorldInitialization();
+        init.setSeed( -1 );
+        init.setDimension( (byte) 0 );
+        init.setGenerator( 0 );
+        init.setGamemode( 1 );
+        init.setEntityId( 0L );
+        init.setSpawnX( (int) world.getSpawnLocation().getX() );
+        init.setSpawnY( (int) world.getSpawnLocation().getY() );
+        init.setSpawnZ( (int) world.getSpawnLocation().getZ() );
+        init.setX( (float) world.getSpawnLocation().getX() );
+        init.setY( (float) world.getSpawnLocation().getY() );
+        init.setZ( (float) world.getSpawnLocation().getZ() );
+        this.send( init );
+    }
 
     /**
      * The underlying RakNet Connection closed. Cleanup
      */
     public void close() {
         if ( this.entity.getWorld() != null ) {
-            this.entity.getWorld().removePlayer( this.entity );
+            ( (WorldAdapter) this.entity.getWorld() ).removePlayer( this.entity );
         }
     }
 }

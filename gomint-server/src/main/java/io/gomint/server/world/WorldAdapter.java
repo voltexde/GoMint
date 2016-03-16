@@ -9,7 +9,6 @@ package io.gomint.server.world;
 
 import io.gomint.server.async.Delegate;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.PlayerConnection;
 import io.gomint.world.World;
 
 /**

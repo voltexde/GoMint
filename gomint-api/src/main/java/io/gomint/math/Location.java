@@ -9,15 +9,19 @@ package io.gomint.math;
 
 import io.gomint.world.World;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>
  * A Location defines a point a world with three coordinates
  * </p>
- * Created by Markus on 21.10.2015.
+ *
+ * @author Digot
+ * @author geNAZt
+ * @version 1.1
  */
 public class Location extends Vector implements Cloneable {
-    @Getter private final World world;
+    @Getter @Setter private World world;
 
     public Location( World world, double x, double y, double z ) {
         super( x, y, z );
@@ -30,33 +34,33 @@ public class Location extends Vector implements Cloneable {
     }
 
     @Override
-    public Location add( Vector other ) {
-        Vector vector = super.add( other );
-        return new Location( this.world, vector );
+    public Location add( double x, double y, double z ) {
+        super.add( x, y, z );
+        return this;
     }
 
     @Override
-    public Location subtract( Vector other ) {
-        Vector vector = super.subtract( other );
-        return new Location( this.world, vector );
+    public Location subtract( double x, double y, double z ) {
+        super.subtract( x, y, z );
+        return this;
     }
 
     @Override
-    public Location multiply( Vector other ) {
-        Vector vector = super.multiply( other );
-        return new Location( this.world, vector );
+    public Location multiply( double x, double y, double z ) {
+        super.multiply( x, y, z );
+        return this;
     }
 
     @Override
-    public Location divide( Vector other ) {
-        Vector vector = super.divide( other );
-        return new Location( this.world, vector );
+    public Location divide( double x, double y, double z ) {
+        super.divide( x, y, z );
+        return this;
     }
 
     @Override
     public Location scalar( float scalar ) {
-        Vector vector = super.scalar( scalar );
-        return new Location( this.world, vector );
+        super.scalar( scalar );
+        return this;
     }
 
     @Override

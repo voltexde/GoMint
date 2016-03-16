@@ -9,15 +9,29 @@ package io.gomint.server.entity;
 
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.world.WorldAdapter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.util.UUID;
 
 /**
  * @author BlackyPaw
  * @version 1.0
  */
+@Data
+@EqualsAndHashCode( callSuper = false )
 public class EntityPlayer extends Entity {
 
 	private final PlayerConnection connection;
+    private int viewDistance;
+
+    // Player Information
+    private String username;
+    private UUID uuid;
+    private String secretToken;
+    private PlayerSkin skin;
 
 	/**
 	 * Constructs a new player entity which will be spawned inside the specified world.
@@ -44,7 +58,7 @@ public class EntityPlayer extends Entity {
 		MetadataContainer metadata = super.getMetadata();
 		metadata.putBoolean( 0, false );
 		metadata.putShort( 1, (short) 0x2c01 );
-		metadata.putString( 2, this.connection.getUsername() );
+		metadata.putString( 2, getUsername() );
 		metadata.putBoolean( 3, true );
 		metadata.putBoolean( 4, false );
 		metadata.putInt( 7, 0 );

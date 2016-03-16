@@ -7,6 +7,8 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCacheAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import net.openhft.koloboke.collect.map.LongObjCursor;
@@ -60,7 +62,6 @@ class AnvilChunkCache extends ChunkCacheAdapter {
 
         LongSet skipChunks = HashLongSets.newMutableSet();
 
-        int viewDistance = this.world.getServer().getServerConfig().getViewDistance();
         int spawnAreaSize = this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea();
 
         // Check for gc
@@ -76,6 +77,9 @@ class AnvilChunkCache extends ChunkCacheAdapter {
                 if ( this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea() > 0 ) {
                     if ( cursor.value().getX() <= spawnXChunk + spawnAreaSize &&
                             cursor.value().getZ() <= spawnZChunk + spawnAreaSize ) {
+                        // Get the biggest viewDistance in this chunk
+                        int viewDistance = detectViewDistance( cursor.value() );
+
                         // Whitelist all chunks which are in the viewdistance of this
                         if ( viewDistance > 0 ) {
                             for ( int whitelistX = cursor.value().getX() - viewDistance; whitelistX < cursor.value().getX() + viewDistance; whitelistX++ ) {
@@ -83,12 +87,18 @@ class AnvilChunkCache extends ChunkCacheAdapter {
                                     skipChunks.add( CoordinateUtils.toLong( whitelistX, whitelistZ ) );
                                 }
                             }
+                        } else {
+                            // Always keep this chunk
+                            skipChunks.add( CoordinateUtils.toLong( cursor.value().getX(), cursor.value().getZ() ) );
                         }
                     }
                 }
 
                 // Check if this chunk wants to be gced
                 if ( !cursor.value().canBeGCed() ) {
+                    // Get the biggest viewDistance in this chunk
+                    int viewDistance = detectViewDistance( cursor.value() );
+
                     // Whitelist all chunks which are in the viewdistance of this
                     if ( viewDistance > 0 ) {
                         for ( int whitelistX = cursor.value().getX() - viewDistance; whitelistX < cursor.value().getX() + viewDistance; whitelistX++ ) {
@@ -100,14 +110,30 @@ class AnvilChunkCache extends ChunkCacheAdapter {
                 }
             }
 
+            // Remove all chunks which are not whitelisted
             cursor = this.cachedChunks.cursor();
             while ( cursor.moveNext() ) {
                 if ( !skipChunks.contains( cursor.key() ) ) {
-                    logger.debug( "GCed Chunk: " + cursor.value().getX() + "; " + cursor.value().getZ() );
                     cursor.remove();
                 }
             }
         }
+    }
+
+    private int detectViewDistance( ChunkAdapter chunk ) {
+        int viewDistance = 0;
+
+        for ( EntityPlayer entityPlayer : chunk.getPlayers() ) {
+            if ( entityPlayer.getViewDistance() > viewDistance ) {
+                viewDistance = entityPlayer.getViewDistance();
+                if ( viewDistance >= this.world.getServer().getServerConfig().getViewDistance() ) {
+                    viewDistance = this.world.getServer().getServerConfig().getViewDistance();
+                    break;
+                }
+            }
+        }
+
+        return viewDistance;
     }
 
     /**
