@@ -11,9 +11,9 @@ import io.gomint.math.Location;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.World;
+
 import lombok.Getter;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -22,14 +22,26 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class Entity {
 
-	private static final AtomicLong nextEntityId = new AtomicLong( 0 );
+	private static final AtomicLong ENTITY_ID = new AtomicLong( 0 );
 
+    /**
+     * The id of this entity
+     */
 	protected final long          id;
+    /**
+     * Type of the entity
+     */
 	protected final EntityType   type;
     @Getter private Location location;
 
+    /**
+     * Construct a new Entity
+     *
+     * @param type The type of the Entity
+     * @param world The world in which this entity is in
+     */
 	protected Entity( EntityType type, WorldAdapter world ) {
-		this.id = nextEntityId.incrementAndGet();
+		this.id = ENTITY_ID.incrementAndGet();
 		this.type = type;
 		this.location = world.getSpawnLocation().clone();
 	}

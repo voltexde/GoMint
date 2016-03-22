@@ -8,11 +8,11 @@
 package io.gomint.server.world.anvil;
 
 /**
+ * Static class for transforming Anvil Blocks into PE blocks
+ *
  * @author BlackyPaw
  * @author geNAZt
  * @version 1.1
- *
- * Static class for transforming Anvil Blocks into PE blocks
  */
 public final class AnvilBlockConverter {
 
@@ -333,6 +333,10 @@ public final class AnvilBlockConverter {
 
     };
 
+    private AnvilBlockConverter() {
+        throw new AssertionError( "Cannot instantiate AnvilBlockConverter!" );
+    }
+
     /**
      * Converts a block's ID from anvil format to its respective MCPE value.
      *
@@ -359,7 +363,4 @@ public final class AnvilBlockConverter {
         return blockData;
     }
 
-	private AnvilBlockConverter() {
-		throw new AssertionError( "Cannot instantiate AnvilBlockConverter!" );
-	}
 }

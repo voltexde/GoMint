@@ -11,6 +11,7 @@ import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import lombok.EqualsAndHashCode;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 
 /**
@@ -21,15 +22,27 @@ import java.lang.reflect.Method;
 class EventHandlerMethod implements Comparable<EventHandlerMethod> {
 
 	private final EventListener instance;
-	private final Method        method;
+	private final MethodHandle  method;
 	private final EventHandler  annotation;
 
-	public EventHandlerMethod( final EventListener instance, final Method method, final EventHandler annotation ) {
+    /**
+     * Construct a new data holder for a EventHandler.
+     *
+     * @param instance The instance of the EventHandler which should be used to invoke the EventHandler Method
+     * @param method The method which should be invoked when the event arrives
+     * @param annotation The annotation which holds additional information about this EventHandler Method
+     */
+	public EventHandlerMethod( final EventListener instance, final MethodHandle method, final EventHandler annotation ) {
 		this.instance = instance;
 		this.method = method;
 		this.annotation = annotation;
 	}
 
+    /**
+     * Invoke this Eventhandler.
+     *
+     * @param args First element in this Array is the Event
+     */
 	public void invoke( Object[] args ) {
 		try {
 			this.method.invoke( this.instance, args );
@@ -38,6 +51,11 @@ class EventHandlerMethod implements Comparable<EventHandlerMethod> {
 		}
 	}
 
+    /**
+     * Returns true when this EventHandler accepts cancelled events
+     *
+     * @return true when it wants to accept events when cancelled, false if not
+     */
 	public boolean ignoreCancelled() {
 		return this.annotation.ignoreCancelled();
 	}
@@ -46,4 +64,5 @@ class EventHandlerMethod implements Comparable<EventHandlerMethod> {
 	public int compareTo( EventHandlerMethod o ) {
 		return ( Byte.compare( this.annotation.priority().getValue(), o.annotation.priority().getValue() ) );
 	}
+
 }

@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SyncTaskManager {
     @Getter private final GoMintServer goMintServer;
+    @Getter private final long tickLength;
     private final TaskList<SyncScheduledTask> taskList = new TaskList<>();
 
     /**
@@ -38,7 +39,7 @@ public class SyncTaskManager {
     public void tickTasks() {
         synchronized ( this.taskList ) {
             // Iterate over all Tasks until we find some for later ticks
-            while ( !this.taskList.checkNextKey( goMintServer.getCurrentTick() ) ) {
+            while ( this.taskList.checkNextKey( goMintServer.getCurrentTick() ) ) {
                 SyncScheduledTask task = this.taskList.getNextElement();
                 if ( task == null || task.getNextExecution() > goMintServer.getCurrentTick() ) {
                     return;

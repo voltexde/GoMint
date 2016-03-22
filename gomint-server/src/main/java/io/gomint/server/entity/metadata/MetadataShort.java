@@ -67,4 +67,5 @@ public class MetadataShort extends MetadataValue {
 	byte getTypeId() {
 		return MetadataContainer.METADATA_SHORT;
 	}
+
 }

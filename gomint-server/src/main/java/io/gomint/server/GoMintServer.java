@@ -14,6 +14,7 @@ import io.gomint.server.config.ServerConfig;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.report.PerformanceReport;
+import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
@@ -27,6 +28,8 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author BlackyPaw
@@ -36,6 +39,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GoMintServer implements GoMint {
 
 	private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
+
+    // Global tick lock
+    private ReentrantLock tickLock = new ReentrantLock( true );
+    private Condition tickCondition = tickLock.newCondition();
+    private double currentLoad;
 
 	// Configuration
     @Getter
@@ -79,10 +87,14 @@ public class GoMintServer implements GoMint {
 		// ------------------------------------ //
 		this.loadConfig();
 
+        // Calculate the nanoseconds we need for the tick loop
+        long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
+        logger.debug( "Setting skipNanos to: " + skipNanos );
+
 		// ------------------------------------ //
 		// Scheduler + PluginManager Initialization
 		// ------------------------------------ //
-		this.syncTaskManager = new SyncTaskManager( this );
+		this.syncTaskManager = new SyncTaskManager( this, skipNanos );
         this.networkManager = new NetworkManager( this );
 		this.pluginManager = new SimplePluginManager( this );
 
@@ -105,29 +117,41 @@ public class GoMintServer implements GoMint {
 		// Main Loop
 		// ------------------------------------ //
 
+        // Debug output for system usage
+        this.syncTaskManager.addTask( new SyncScheduledTask( this.syncTaskManager, new Runnable() {
+            @Override
+            public void run() {
+                logger.debug( "Tickloop Usage: " + Math.round( currentLoad * 100 ) + "%; Memory Usage: " + ( Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() ) + " bytes" );
+            }
+        }, 1, 1, TimeUnit.SECONDS ) );
+
 		// Tick loop
 		this.currentTick = 0;
 		while ( this.running.get() ) {
-			long start = System.currentTimeMillis();
+            this.tickLock.lock();
+            try {
+                long start = System.nanoTime();
 
-			// Tick the syncTaskManager
-			this.syncTaskManager.tickTasks();
+                // Tick the syncTaskManager
+                this.syncTaskManager.tickTasks();
 
-			// Tick all major subsystems:
-			this.networkManager.tick();
-			this.worldManager.tick();
+                // Tick all major subsystems:
+                this.networkManager.tick();
+                this.worldManager.tick();
 
-			// Increase the tick
-			this.currentTick++;
+                // Increase the tick
+                this.currentTick++;
 
-			long diff = System.currentTimeMillis() - start;
-			if ( diff < 50 ) {
-				try {
-					Thread.sleep( 50 - diff );
-				} catch ( InterruptedException e ) {
-					e.printStackTrace();
-				}
-			}
+                long diff = System.nanoTime() - start;
+                if ( diff < skipNanos ) {
+                    this.currentLoad = diff / (double) skipNanos;
+                    this.tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
+                }
+            } catch ( InterruptedException e ) {
+                // Ignored ._.
+            } finally {
+                this.tickLock.unlock();
+            }
 		}
 	}
 

@@ -28,6 +28,12 @@ public class WorldBorder {
 	private long sizeLerpTime = 0;
 	private double damagePerBlock = 0.2D;
 
+    /**
+     * Construct a new WorldBorder. It overtakes the settings from a NBTTagCompound.
+     *
+     * @param world     The world for which this border should be used
+     * @param compound  The compound from which the settings should be read
+     */
 	public WorldBorder( World world, NBTTagCompound compound ) {
 		this.world = world;
 		if ( !compound.containsKey( "BorderCenterX" ) || !compound.containsKey( "BorderCenterZ" ) ) {

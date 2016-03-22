@@ -17,6 +17,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
+import io.gomint.server.util.SerializableByteArrayOutputstream;
 import io.gomint.server.world.AsyncChunkLoadTask;
 import io.gomint.server.world.AsyncChunkPackageTask;
 import io.gomint.server.world.AsyncChunkTask;
@@ -72,9 +73,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
     private boolean difficultyLocked;
     private long time;
     private long dayTime;
-    private int spawnX;
-    private int spawnY;
-    private int spawnZ;
+    private Location spawn;
     private WorldBorder worldBorder;
     private Weather weather;
     private Map<Gamerule, Object> gamerules = new HashMap<>();
@@ -112,22 +111,27 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
     // ==================================== WORLD ADAPTER ==================================== //
 
+    @Override
     public String getWorldName() {
         return this.worldDir.getName();
     }
 
+    @Override
     public String getLevelName() {
         return this.levelName;
     }
 
+    @Override
     public Location getSpawnLocation() {
-        return new Location( this, this.spawnX, this.spawnY, this.spawnZ );
+        return this.spawn;
     }
 
+    @Override
     public Block getBlockAt( Vector vector ) {
         return null;
     }
 
+    @Override
     @SuppressWarnings( "unchecked" )
     public <T> T getGamerule( Gamerule<T> gamerule ) {
         return this.gamerules.containsKey( gamerule ) ? (T) this.gamerules.get( gamerule ) : null;
@@ -141,10 +145,10 @@ public class AnvilWorldAdapter extends WorldAdapter {
             spawnRadius = 64; // We need at least 64 blocks to spawn
         }
 
-        final int minBlockX = this.spawnX - spawnRadius;
-        final int minBlockZ = this.spawnZ - spawnRadius;
-        final int maxBlockX = this.spawnX + spawnRadius;
-        final int maxBlockZ = this.spawnZ + spawnRadius;
+        final int minBlockX = (int) (this.spawn.getX() - spawnRadius);
+        final int minBlockZ = (int) (this.spawn.getZ() - spawnRadius);
+        final int maxBlockX = (int) (this.spawn.getX() + spawnRadius);
+        final int maxBlockZ = (int) (this.spawn.getZ() + spawnRadius);
 
         final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
         final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );
@@ -178,53 +182,80 @@ public class AnvilWorldAdapter extends WorldAdapter {
         if ( !this.chunkPackageTasks.isEmpty() ) {
             // One chunk per tick at max:
             AsyncChunkPackageTask task = this.chunkPackageTasks.poll();
-            AnvilChunk chunk = (AnvilChunk) task.getChunk();
-            PacketWorldChunk packet = chunk.createPackagedData();
+            AnvilChunk chunk = (AnvilChunk) this.getChunk( task.getX(), task.getZ() );
+            if ( chunk == null ) {
+                final Object lock = new Object();
 
-            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() + 1 );
-            buffer.writeByte( packet.getId() );
-            packet.serialize( buffer );
+                this.getOrLoadChunk( task.getX(), task.getZ(), false, new Delegate<ChunkAdapter>() {
+                    @Override
+                    public void invoke( ChunkAdapter arg ) {
+                        synchronized ( lock ) {
+                            packageChunk( (AnvilChunk) arg, task.getCallback() );
+                            lock.notifyAll();
+                        }
+                    }
+                } );
 
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            DataOutputStream dout = new DataOutputStream( bout );
-
-            try {
-                dout.writeInt( buffer.getPosition() );
-                dout.write( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
-                dout.flush();
-            } catch ( IOException e ) {
-                e.printStackTrace();
+                // Wait until the chunk is loaded
+                synchronized ( lock ) {
+                    try {
+                        lock.wait();
+                    } catch ( InterruptedException e ) {
+                        // Ignored .-.
+                    }
+                }
+            } else {
+                packageChunk( chunk, task.getCallback() );
             }
-
-            this.deflater.reset();
-            this.deflater.setInput( bout.toByteArray() );
-            this.deflater.finish();
-
-            bout.reset();
-            byte[] intermediate = new byte[1024];
-            while ( !this.deflater.finished() ) {
-                int read = this.deflater.deflate( intermediate );
-                bout.write( intermediate, 0, read );
-            }
-
-            PacketBatch batch = new PacketBatch();
-            batch.setPayload( bout.toByteArray() );
-
-            try {
-                dout.close();
-            } catch ( IOException e ) {
-                e.printStackTrace();
-            }
-
-            this.deflater.reset();
-
-            chunk.dirty = false;
-            chunk.cachedPacket = new SoftReference<>( batch );
-            task.getCallback().invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), batch );
         }
 
         // ---------------------------------------
         // Perform regular updates:
+    }
+
+    private void packageChunk( AnvilChunk chunk, Delegate2<Long, Packet> callback ) {
+        PacketWorldChunk packet = chunk.createPackagedData();
+
+        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() + 1 );
+        buffer.writeByte( packet.getId() );
+        packet.serialize( buffer );
+
+        SerializableByteArrayOutputstream bout = new SerializableByteArrayOutputstream();
+        DataOutputStream dout = new DataOutputStream( bout );
+
+        try {
+            dout.writeInt( buffer.getPosition() );
+            dout.write( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+            dout.flush();
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+
+        this.deflater.reset();
+        this.deflater.setInput( bout.toByteArray() );
+        this.deflater.finish();
+
+        bout.reset();
+        byte[] intermediate = new byte[1024];
+        while ( !this.deflater.finished() ) {
+            int read = this.deflater.deflate( intermediate );
+            bout.write( intermediate, 0, read );
+        }
+
+        PacketBatch batch = new PacketBatch();
+        batch.setByteArrayOutputstream( bout );
+
+        try {
+            dout.close();
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+
+        this.deflater.reset();
+
+        chunk.dirty = false;
+        chunk.cachedPacket = new SoftReference<>( batch );
+        callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), batch );
     }
 
     @Override
@@ -248,8 +279,6 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
     @Override
     public void sendChunk( int x, int z, EntityPlayer player ) {
-        logger.debug( "Wanting to send Chunk " + x + "; " + z + " to " + player.getUsername() );
-
         Delegate2<Long, Packet> sendDelegate = new Delegate2<Long, Packet>() {
             @Override
             public void invoke( Long chunkHash, Packet chunkPacket ) {
@@ -291,11 +320,12 @@ public class AnvilWorldAdapter extends WorldAdapter {
      * Notifies the world that the given chunk was told to package itself. This will effectively
      * produce an asynchronous chunk task which will be completed by the asynchronous worker thread.
      *
-     * @param chunk    The chunk that was told to package itself
+     * @param x        The x coordinate of the chunk we want to package
+     * @param z        The z coordinate of the chunk we want to package
      * @param callback The callback to be invoked once the chunk is packaged
      */
-    void notifyPackageChunk( AnvilChunk chunk, Delegate2<Long, Packet> callback ) {
-        AsyncChunkPackageTask task = new AsyncChunkPackageTask( chunk, callback );
+    void notifyPackageChunk( int x, int z, Delegate2<Long, Packet> callback ) {
+        AsyncChunkPackageTask task = new AsyncChunkPackageTask( x, z, callback );
         this.chunkPackageTasks.add( task );
     }
 
@@ -332,9 +362,8 @@ public class AnvilWorldAdapter extends WorldAdapter {
             this.difficultyLocked = data.getByte( "DifficultyLocked", (byte) 0 ) > 0;
             this.time = data.getLong( "Time", 0L );
             this.dayTime = data.getLong( "DayTime", 0L );
-            this.spawnX = data.getInteger( "SpawnX", 0 );
-            this.spawnY = data.getInteger( "SpawnY", 0 );
-            this.spawnZ = data.getInteger( "SpawnZ", 0 );
+
+            this.spawn = new Location( this, data.getInteger( "SpawnX", 0 ), data.getInteger( "SpawnY", 0 ), data.getInteger( "SpawnZ", 0 ) );
             this.worldBorder = new WorldBorder( this, data );
             this.weather = new Weather( this.random, data );
 
@@ -364,10 +393,10 @@ public class AnvilWorldAdapter extends WorldAdapter {
         final int spawnRadius = this.server.getServerConfig().getAmountOfChunksForSpawnArea() * 16;
         if ( spawnRadius == 0 ) return;
 
-        final int minBlockX = this.spawnX - spawnRadius;
-        final int minBlockZ = this.spawnZ - spawnRadius;
-        final int maxBlockX = this.spawnX + spawnRadius;
-        final int maxBlockZ = this.spawnZ + spawnRadius;
+        final int minBlockX = (int) (this.spawn.getX() - spawnRadius);
+        final int minBlockZ = (int) (this.spawn.getZ() - spawnRadius);
+        final int maxBlockX = (int) (this.spawn.getX() + spawnRadius);
+        final int maxBlockZ = (int) (this.spawn.getZ() + spawnRadius);
 
         final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
         final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );

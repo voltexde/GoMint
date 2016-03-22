@@ -13,6 +13,9 @@ package io.gomint.server.world;
  */
 public final class PEWorldConstraints {
 
+    /**
+     * Height of the Map. Defined per MC:PE Client
+     */
 	public static final int MAX_BUILD_HEIGHT = 128;
 	public static final int BLOCKS_PER_CHUNK = 16 * 16 * MAX_BUILD_HEIGHT;
 	public static final int WATER_LEVEL      = 64;

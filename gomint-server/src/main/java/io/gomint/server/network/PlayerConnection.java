@@ -202,26 +202,6 @@ public class PlayerConnection {
                 this.sendPlayState( PacketPlayState.PlayState.SPAWN );
                 this.sendWorldTime( 0, false );
                 this.sendMovePlayer( this.entity.getLocation() );
-
-                networkManager.getServer().getExecutorService().execute( new Runnable() {
-                    @Override
-                    public void run() {
-                        while ( connection.isConnected() ) {
-                            PacketSetCompassTarget packetSetCompassTarget = new PacketSetCompassTarget();
-                            packetSetCompassTarget.setX( (int) entity.getLocation().getX() );
-                            packetSetCompassTarget.setY( (int) entity.getLocation().getY() );
-                            packetSetCompassTarget.setZ( (int) entity.getLocation().getZ() );
-                            send( packetSetCompassTarget );
-
-                            try {
-                                Thread.sleep( 250 );
-                            } catch ( InterruptedException e ) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                } );
-
                 this.state = PlayerConnectionState.PLAYING;
             }
         }

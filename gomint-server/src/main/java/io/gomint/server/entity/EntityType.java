@@ -22,6 +22,11 @@ public enum EntityType {
 
 	private final int id;
 
+    /**
+     * New enum value for EntityType
+     *
+     * @param id The MC:PE id of this EntityType
+     */
 	EntityType( int id ) {
 		this.id = id;
 	}

@@ -11,6 +11,7 @@ import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.world.WorldAdapter;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

@@ -67,4 +67,5 @@ public class MetadataByte extends MetadataValue {
 	byte getTypeId() {
 		return MetadataContainer.METADATA_BYTE;
 	}
+
 }

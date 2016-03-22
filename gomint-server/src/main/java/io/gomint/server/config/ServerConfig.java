@@ -58,4 +58,8 @@ public class ServerConfig extends SimpleConfig {
     @Comment("Amount of seconds to wait after the chunk has come into the cache before we can select it for gc.")
     private int waitAfterLoadForGCSeconds = 30;
 
+    // ------------------------ Advanced Performance Settings
+    @Comment( "Amount of Ticks per second which should be used to drive this server." )
+    private int targetTPS = 64;
+
 }

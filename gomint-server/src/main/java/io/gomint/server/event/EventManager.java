@@ -13,6 +13,8 @@ import io.gomint.event.EventListener;
 import net.openhft.koloboke.collect.map.IntObjMap;
 import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -173,11 +175,12 @@ public class EventManager {
 	private void triggerEvent0( Event event ) {
 		// Assume we already acquired a readLock:
 		int eventHash = event.getClass().hashCode();
-		if ( !this.eventHandlers.containsKey( eventHash ) ) {
+        EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
+		if ( eventHandlerList == null ) {
 			return;
 		}
 
-		this.eventHandlers.get( eventHash ).triggerEvent( event );
+        eventHandlerList.triggerEvent( event );
 	}
 
 	private <T extends EventListener> void registerListener0( T listener, Method listenerMethod ) {
@@ -185,12 +188,16 @@ public class EventManager {
 		try {
 			int          eventHash  = listenerMethod.getParameterTypes()[0].hashCode();
 			EventHandler annotation = listenerMethod.getAnnotation( EventHandler.class );
-			if ( !this.eventHandlers.containsKey( eventHash ) ) {
-				this.eventHandlers.put( eventHash, new EventHandlerList() );
+            EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
+			if ( eventHandlerList == null ) {
+                eventHandlerList = new EventHandlerList();
+				this.eventHandlers.put( eventHash, eventHandlerList );
 			}
 
-			this.eventHandlers.get( eventHash ).addHandler( new EventHandlerMethod( listener, listenerMethod, annotation ) );
-		} finally {
+            eventHandlerList.addHandler( new EventHandlerMethod( listener, MethodHandles.lookup().unreflect( listenerMethod ), annotation ) );
+		} catch ( IllegalAccessException e ) {
+            // Ignored .-.
+        } finally {
 			this.collectionLock.writeLock().unlock();
 		}
 	}
@@ -200,12 +207,15 @@ public class EventManager {
 		try {
 			int          eventHash  = listenerMethod.getParameterTypes()[0].hashCode();
 			EventHandler annotation = listenerMethod.getAnnotation( EventHandler.class );
-			if ( !this.eventHandlers.containsKey( eventHash ) ) {
+            EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
+			if ( eventHandlerList == null ) {
 				return;
 			}
 
-			this.eventHandlers.get( eventHash ).removeHandler( new EventHandlerMethod( listener, listenerMethod, annotation ) );
-		} finally {
+            eventHandlerList.removeHandler( new EventHandlerMethod( listener, MethodHandles.lookup().unreflect( listenerMethod ), annotation ) );
+		} catch ( IllegalAccessException e ) {
+            // Ignored .-.
+        } finally {
 			this.collectionLock.writeLock().unlock();
 		}
 	}

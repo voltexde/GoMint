@@ -8,6 +8,7 @@
 package io.gomint.server.entity.metadata;
 
 import io.gomint.jraknet.PacketBuffer;
+
 import net.openhft.koloboke.collect.map.ByteObjCursor;
 import net.openhft.koloboke.collect.map.ByteObjMap;
 import net.openhft.koloboke.collect.map.hash.HashByteObjMaps;
@@ -18,10 +19,25 @@ import net.openhft.koloboke.collect.map.hash.HashByteObjMaps;
  */
 public class MetadataContainer {
 
+    /**
+     * Internal byte representation for a byte meta
+     */
 	static final byte METADATA_BYTE       = 0;
+    /**
+     * Internal byte representation for a short meta
+     */
 	static final byte METADATA_SHORT      = 1;
+    /**
+     * Internal byte representation for a int meta
+     */
 	static final byte METADATA_INT        = 2;
+    /**
+     * Internal byte representation for a string meta
+     */
 	static final byte METADATA_STRING     = 4;
+    /**
+     * Internal byte representation for a int triple meta
+     */
 	static final byte METADATA_INT_TRIPLE = 6;
 
 	private ByteObjMap<MetadataValue> entries;
@@ -123,9 +139,11 @@ public class MetadataContainer {
 		if ( value == null ) {
 			throw new IllegalArgumentException( "No value stored at index " + index );
 		}
+
 		if ( value.getTypeId() != METADATA_BYTE ) {
 			throw new IllegalArgumentException( "Value of different type stored at index " + index );
 		}
+
 		return ( (MetadataByte) value ).getValue();
 	}
 
@@ -153,9 +171,11 @@ public class MetadataContainer {
 		if ( value == null ) {
 			throw new IllegalArgumentException( "No value stored at index " + index );
 		}
+
 		if ( value.getTypeId() != METADATA_SHORT ) {
 			throw new IllegalArgumentException( "Value of different type stored at index " + index );
 		}
+
 		return ( (MetadataShort) value ).getValue();
 	}
 
@@ -183,9 +203,11 @@ public class MetadataContainer {
 		if ( value == null ) {
 			throw new IllegalArgumentException( "No value stored at index " + index );
 		}
+
 		if ( value.getTypeId() != METADATA_INT ) {
 			throw new IllegalArgumentException( "Value of different type stored at index " + index );
 		}
+
 		return ( (MetadataInt) value ).getValue();
 	}
 
@@ -213,9 +235,11 @@ public class MetadataContainer {
 		if ( value == null ) {
 			throw new IllegalArgumentException( "No value stored at index " + index );
 		}
+
 		if ( value.getTypeId() != METADATA_STRING ) {
 			throw new IllegalArgumentException( "Value of different type stored at index " + index );
 		}
+
 		return ( (MetadataString) value ).getValue();
 	}
 
@@ -245,9 +269,11 @@ public class MetadataContainer {
 		if ( value == null ) {
 			throw new IllegalArgumentException( "No value stored at index " + index );
 		}
+
 		if ( value.getTypeId() != METADATA_INT_TRIPLE ) {
 			throw new IllegalArgumentException( "Value of different type stored at index " + index );
 		}
+
 		return ( (MetadataIntTriple) value );
 	}
 
@@ -258,11 +284,13 @@ public class MetadataContainer {
 	 */
 	public void serialize( PacketBuffer buffer ) {
 		ByteObjCursor<MetadataValue> cursor = this.entries.cursor();
+
 		while ( cursor.moveNext() ) {
 			byte index = cursor.key();
 			MetadataValue value = cursor.value();
 			value.serialize( buffer, index );
 		}
+
 		buffer.writeByte( (byte) 0x7F ); // End identifier
 	}
 
@@ -308,6 +336,7 @@ public class MetadataContainer {
 			this.entries.put( index, value );
 			flags = buffer.readByte();
 		}
+
 		return true;
 	}
 

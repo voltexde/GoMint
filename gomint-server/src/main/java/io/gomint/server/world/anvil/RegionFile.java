@@ -7,8 +7,10 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTTagCompound;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -88,8 +90,8 @@ class RegionFile {
 				break;
 		}
 
-		NBTTagCompound nbt = NBTTagCompound.readFrom( input, false, ByteOrder.BIG_ENDIAN );
-		AnvilChunk anvilChunk = new AnvilChunk( this.world, nbt );
+        NBTStream nbtStream = new NBTStream( new BufferedInputStream( input ), ByteOrder.BIG_ENDIAN );
+		AnvilChunk anvilChunk = new AnvilChunk( this.world, nbtStream );
         if ( anvilChunk.getX() != x || anvilChunk.getZ() != z ) {
             throw new IllegalStateException( "The loaded chunk for " + x + "; " + z + " did load as " + anvilChunk.getX() + "; " + anvilChunk.getZ() );
         }

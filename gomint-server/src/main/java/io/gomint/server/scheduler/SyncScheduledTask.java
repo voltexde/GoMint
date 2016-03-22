@@ -30,21 +30,29 @@ public class SyncScheduledTask implements Task, Runnable {
     /**
      * Constructs a new SyncScheduledTask. It needs to be executed via a normal {@link java.util.concurrent.ExecutorService}
      *
-     * @param task runnable which should be executed
-     * @param delay of this execution
-     * @param period delay after execution to run the runnable again
+     * @param syncTaskManager   The taskmanager which handles and schedules this task
+     * @param task              The runnable which should be executed
+     * @param delay             Amount of time units to wait until the invocation of this execution
+     * @param period            Amount of time units for the delay after execution to run the runnable again
      * @param unit of time
      */
     public SyncScheduledTask( SyncTaskManager syncTaskManager, Runnable task, long delay, long period, TimeUnit unit ) {
         this.syncTaskManager = syncTaskManager;
         this.task = task;
-        this.period = ( period >= 0) ? ( (Double) Math.floor( unit.toMillis( period ) / 50 ) ).longValue() : -1;
+        this.period = ( period >= 0) ?
+                ( (Double) Math.floor( unit.toNanos( period ) / syncTaskManager.getTickLength() ) ).longValue() :
+                -1;
 
-        this.nextExecution = ( delay >= 0 ) ? ( syncTaskManager.getGoMintServer().getCurrentTick() + ( (Double) Math.floor( unit.toMillis( delay ) / 50 ) ).longValue() ) : -1;
+        this.nextExecution = ( delay >= 0 ) ?
+                ( syncTaskManager.getGoMintServer().getCurrentTick() +
+                        ( (Double) Math.floor( unit.toNanos( period ) / syncTaskManager.getTickLength() ) ).longValue()
+                ) :
+                -1;
     }
 
     @Override
     public void run() {
+        // CHECKSTYLE:OFF
         try {
             this.task.run();
         } catch ( Exception e ) {
@@ -56,6 +64,7 @@ public class SyncScheduledTask implements Task, Runnable {
                 e.printStackTrace();
             }
         }
+        // CHECKSTYLE:ON
 
         if ( this.period > 0 ) {
             this.nextExecution = syncTaskManager.getGoMintServer().getCurrentTick() + this.period;

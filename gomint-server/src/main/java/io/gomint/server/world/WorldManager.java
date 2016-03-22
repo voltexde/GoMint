@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.function.BiConsumer;
 
 /**
  * @author BlackyPaw
@@ -40,11 +41,10 @@ public class WorldManager {
 	 * Ticks all worlds that are currently loaded.
 	 */
 	public void tick() {
-		ObjObjCursor<String, WorldAdapter> cursor = this.loadedWorlds.cursor();
-		while ( cursor.moveNext() ) {
-			cursor.value().tick();
-		}
-	}
+        for ( WorldAdapter worldAdapter : getWorlds() ) {
+            worldAdapter.tick();
+        }
+    }
 
 	/**
 	 * Gets a collection of all worlds held by the world manager.

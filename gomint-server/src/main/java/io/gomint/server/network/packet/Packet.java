@@ -15,6 +15,9 @@ import io.gomint.jraknet.PacketBuffer;
  */
 public abstract class Packet {
 
+    /**
+     * Internal MC:PE id of this packet
+     */
 	protected final byte id;
 
 	protected Packet( byte id ) {

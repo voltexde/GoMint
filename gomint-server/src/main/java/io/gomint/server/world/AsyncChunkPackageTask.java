@@ -9,27 +9,25 @@ package io.gomint.server.world;
 
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.network.packet.Packet;
+import lombok.Getter;
 
 /**
  * @author BlackyPaw
+ * @author geNAZt
  * @version 1.0
  */
+@Getter
 public class AsyncChunkPackageTask extends AsyncChunkTask {
 
-	private ChunkAdapter            chunk;
-	private Delegate2<Long, Packet> callback;
+	private int                     x;
+    private int                     z;
+    private Delegate2<Long, Packet> callback;
 
-	public AsyncChunkPackageTask( ChunkAdapter chunk, Delegate2<Long, Packet> callback ) {
+	public AsyncChunkPackageTask( int x, int z, Delegate2<Long, Packet> callback ) {
 		super( Type.PACKAGE );
-		this.chunk = chunk;
+		this.x = x;
+        this.z = z;
 		this.callback = callback;
 	}
 
-	public ChunkAdapter getChunk() {
-		return chunk;
-	}
-
-	public Delegate2<Long, Packet> getCallback() {
-		return callback;
-	}
 }

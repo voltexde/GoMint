@@ -126,4 +126,5 @@ public class MetadataIntTriple extends MetadataValue {
 	byte getTypeId() {
 		return MetadataContainer.METADATA_INT_TRIPLE;
 	}
+
 }

@@ -79,4 +79,18 @@ public class NibbleArray {
 		return this.length;
 	}
 
+    /**
+     * Return a byte array with all values as a single key. This is double the length as {@link #raw()}.
+     *
+     * @return Full length data array
+     */
+    public byte[] toByteArray() {
+        byte[] fullData = new byte[this.length];
+
+        for ( int i = 0; i < this.length; i++ ) {
+            fullData[i] = get( i );
+        }
+
+        return fullData;
+    }
 }
