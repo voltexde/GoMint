@@ -45,7 +45,10 @@ public class ServerConfig extends SimpleConfig {
 	@Comment("Amount of Chunks which will always be loaded and stay loaded around the spawn area.\n" +
 	         "You can set this to 0 if you don't want to hold any Chunks in Memory but this also means\n" +
 	         "that you have to load the Chunks from disk everytime someone joins and the Chunk GC has cleared\n" +
-	         "the chunks. USE 0 WITH CAUTION!!!")
+	         "the chunks. USE 0 WITH CAUTION!!! If the JVM gets out of memory, chunks get removed out of the Cache\n" +
+             "to give memory back to the JVM to not crash. You _can_ run GoMint on ~4MB (tested) with a viewDistance of 4\n" +
+             "and this set to 8. But be sure that everything that has todo with chunks (even setting or getting blocks) will\n" +
+             "cause GoMint to load Chunks from Disc and save them directly after that.")
 	private int amountOfChunksForSpawnArea = 16;
 
     @Comment("View distance of a player. This defines the amount of chunks sent to a player when he moves or spawns.\n" +
