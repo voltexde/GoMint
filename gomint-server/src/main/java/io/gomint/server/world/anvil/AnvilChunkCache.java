@@ -8,16 +8,21 @@
 package io.gomint.server.world.anvil;
 
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.util.IntPair;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCacheAdapter;
 import io.gomint.server.world.CoordinateUtils;
+
+import net.openhft.koloboke.collect.LongCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
-import net.openhft.koloboke.function.LongObjPredicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.ref.SoftReference;
+import java.util.Map;
 
 /**
  * @author BlackyPaw
@@ -25,10 +30,11 @@ import java.lang.ref.SoftReference;
  */
 class AnvilChunkCache extends ChunkCacheAdapter {
 
+    private static final Logger logger = LoggerFactory.getLogger( AnvilChunkCache.class );
+
 	// ==================================== FIELDS ==================================== //
 	private final AnvilWorldAdapter                         world;
 	private final LongObjMap<SoftReference<AnvilChunk>>     cachedChunks;
-    private final LongSet                                   gcLongSet;
 
     /**
      * New cache for Anvil format Chunks
@@ -37,7 +43,6 @@ class AnvilChunkCache extends ChunkCacheAdapter {
 	public AnvilChunkCache( final AnvilWorldAdapter world ) {
 		this.world = world;
 		this.cachedChunks = HashLongObjMaps.newMutableMap();
-        this.gcLongSet = HashLongSets.newMutableSet();
 	}
 
 	// ==================================== CHUNK CACHE ==================================== //
@@ -71,81 +76,62 @@ class AnvilChunkCache extends ChunkCacheAdapter {
         int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.world.getSpawnLocation().getX() );
         int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.world.getSpawnLocation().getZ() );
 
-        this.gcLongSet.clear();
-
         int spawnAreaSize = this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea();
 
         // Check for gc
         synchronized ( this.cachedChunks ) {
-            for ( SoftReference<AnvilChunk> chunkSoftReference : this.cachedChunks.values() ) {
-                AnvilChunk chunk = chunkSoftReference.get();
+            // Calculate the hashes which are used by players viewdistances
+            LongSet viewDistanceSet = HashLongSets.newMutableSet();
+            for ( Map.Entry<EntityPlayer, ChunkAdapter> playerChunkAdapterEntry : this.world.getPlayers().entrySet() ) {
+                int viewDistance = playerChunkAdapterEntry.getKey().getViewDistance();
+                AnvilChunk chunk = (AnvilChunk) playerChunkAdapterEntry.getValue();
 
-                // Check if this chunk is whitelisted
-                if ( chunk == null || this.gcLongSet.contains( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ) ) ) {
+                for ( int x = chunk.getX() - viewDistance; x < chunk.getX() + viewDistance; x++ ) {
+                    for ( int z = chunk.getZ() - viewDistance; z < chunk.getZ() + viewDistance; z++ ) {
+                        viewDistanceSet.add( CoordinateUtils.toLong( x, z ) );
+                    }
+                }
+            }
+
+            // Copy over the current loaded chunk hashes
+            LongCursor longs = HashLongSets.newMutableSet( this.cachedChunks.keySet() ).cursor();
+            while ( longs.moveNext() ) {
+                long chunkHash = longs.elem();
+
+                // Fast skip if chunk is whitelisted cause of view distance
+                if ( viewDistanceSet.contains( chunkHash ) ) {
                     continue;
                 }
 
-                // Check if this chunk is part of the spawn
+                IntPair intPair = CoordinateUtils.toIntPair( chunkHash );
+
+                // Skip if this chunk is a spawn chunk
                 if ( this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea() > 0 ) {
-                    if ( chunk.getX() <= spawnXChunk + spawnAreaSize &&
-                            chunk.getZ() <= spawnZChunk + spawnAreaSize ) {
-                        // Get the biggest viewDistance in this chunk
-                        int viewDistance = detectViewDistance( chunk );
-
-                        // Whitelist all chunks which are in the viewdistance of this
-                        if ( viewDistance > 0 ) {
-                            for ( int whitelistX = chunk.getX() - viewDistance; whitelistX < chunk.getX() + viewDistance; whitelistX++ ) {
-                                for ( int whitelistZ = chunk.getZ() - viewDistance; whitelistZ < chunk.getZ() + viewDistance; whitelistZ++ ) {
-                                    this.gcLongSet.add( CoordinateUtils.toLong( whitelistX, whitelistZ ) );
-                                }
-                            }
-                        } else {
-                            // Always keep this chunk
-                            this.gcLongSet.add( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ) );
-                        }
+                    if ( intPair.getX() <= spawnXChunk + spawnAreaSize && intPair.getZ() <= spawnZChunk + spawnAreaSize ) {
+                        continue;
                     }
                 }
 
-                // Check if this chunk wants to be gced
-                if ( !chunk.canBeGCed() ) {
-                    // Get the biggest viewDistance in this chunk
-                    int viewDistance = detectViewDistance( chunk );
+                // Check if there is any chunk specific reasons against a GC
+                SoftReference<AnvilChunk> chunkSoftReference = this.cachedChunks.get( chunkHash );
+                if ( chunkSoftReference == null ) continue; // Chunk already has been gced? o.O
 
-                    // Whitelist all chunks which are in the viewdistance of this
-                    if ( viewDistance > 0 ) {
-                        for ( int whitelistX = chunk.getX() - viewDistance; whitelistX < chunk.getX() + viewDistance; whitelistX++ ) {
-                            for ( int whitelistZ = chunk.getZ() - viewDistance; whitelistZ < chunk.getZ() + viewDistance; whitelistZ++ ) {
-                                this.gcLongSet.add( CoordinateUtils.toLong( whitelistX, whitelistZ ) );
-                            }
-                        }
-                    }
+                AnvilChunk chunk = chunkSoftReference.get();
+
+                // If the JVM decided it needed the space we can remove the reference to the chunk completely
+                if ( chunk == null ) {
+                    logger.debug( "Removed chunk " + intPair.getX() + "; " + intPair.getZ() + ": The JVM cleared this chunk" );
+                    this.cachedChunks.remove( chunkHash );
+                    continue;
                 }
-            }
 
-            // Remove all chunks which are not whitelisted
-            this.cachedChunks.removeIf( new LongObjPredicate<SoftReference<AnvilChunk>>() {
-                @Override
-                public boolean test( long key, SoftReference<AnvilChunk> anvilChunkSoftReference ) {
-                    return !gcLongSet.contains( key ) && anvilChunkSoftReference.get() != null;
-                }
-            } );
-        }
-    }
-
-    private int detectViewDistance( ChunkAdapter chunk ) {
-        int viewDistance = 0;
-
-        for ( EntityPlayer entityPlayer : chunk.getPlayers() ) {
-            if ( entityPlayer.getViewDistance() > viewDistance ) {
-                viewDistance = entityPlayer.getViewDistance();
-                if ( viewDistance >= this.world.getServer().getServerConfig().getViewDistance() ) {
-                    viewDistance = this.world.getServer().getServerConfig().getViewDistance();
-                    break;
+                // Ask this chunk if he wants to be gced
+                if ( chunk.canBeGCed() ) {
+                    logger.debug( "Removed chunk " + intPair.getX() + "; " + intPair.getZ() + ": Chunk can be gced" );
+                    this.cachedChunks.remove( chunkHash );
                 }
             }
         }
-
-        return viewDistance;
     }
 
     /**

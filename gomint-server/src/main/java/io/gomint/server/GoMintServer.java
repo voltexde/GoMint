@@ -7,13 +7,11 @@
 
 package io.gomint.server;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gomint.GoMint;
 import io.gomint.plugin.PluginManager;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.plugin.SimplePluginManager;
-import io.gomint.server.report.PerformanceReport;
 import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
@@ -28,6 +26,7 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -79,7 +78,17 @@ public class GoMintServer implements GoMint {
 		// ------------------------------------ //
 		// Executor Initialization
 		// ------------------------------------ //
-		this.threadFactory = new ThreadFactoryBuilder().setNameFormat( "GoMint Thread #%d" ).build();
+		this.threadFactory = new ThreadFactory() {
+            private AtomicLong counter = new AtomicLong( 0 );
+
+            @Override
+            public Thread newThread( Runnable r ) {
+                Thread thread = Executors.defaultThreadFactory().newThread( r );
+                thread.setName( "GoMint Thread #" + counter.getAndIncrement() );
+                return thread;
+            }
+        };
+
 		this.executorService = new ThreadPoolExecutor( 0, 512, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), this.threadFactory );
 
 		// ------------------------------------ //
@@ -109,7 +118,7 @@ public class GoMintServer implements GoMint {
 		this.worldManager = new WorldManager( this );
 		try {
 			this.worldManager.loadWorld( this.serverConfig.getWorld() );
-		} catch ( IOException e ) {
+		} catch ( Exception e ) {
 			this.logger.error( "Failed to load default world", e );
 		}
 

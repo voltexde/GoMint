@@ -180,6 +180,10 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     public void sendWorldChunk( long chunkHash, Packet chunkData ) {
+        IntPair intPair = CoordinateUtils.toIntPair( chunkHash );
+
+        logger.debug( "Sending chunk " + intPair.getX() + "; " + intPair.getZ() );
+
         this.send( chunkData );
 
         synchronized ( this.playerChunks ) {
@@ -233,8 +237,6 @@ public class PlayerConnection {
             } else if ( packetId == PACKET_LOGIN ) {
                 PacketLogin login = new PacketLogin();
                 login.deserialize( buffer );
-                System.out.println( buffer.getRemaining() );
-
                 this.handleLoginPacket( login );
             }
 
@@ -327,19 +329,14 @@ public class PlayerConnection {
     private void handleMovePacket( PacketMovePlayer packet ) {
         // TODO: Send some sort of movement event
 
-        int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
-        int currentZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
+        if ( (int) this.entity.getLocation().getX() != (int) packet.getX() ||
+                (int) this.entity.getLocation().getZ() != (int) packet.getZ() ) {
+            this.checkForNewChunks();
+        }
 
         this.entity.getLocation().setX( packet.getX() );
         this.entity.getLocation().setY( packet.getY() );
         this.entity.getLocation().setZ( packet.getZ() );
-
-        int newXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
-        int newZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
-
-        if ( currentXChunk != newXChunk || currentZChunk != newZChunk ) {
-            this.checkForNewChunks();
-        }
     }
 
     private void checkForNewChunks() {
@@ -385,8 +382,6 @@ public class PlayerConnection {
         this.lastPerformance = System.currentTimeMillis();
 
         this.sendPlayState( PacketPlayState.PlayState.HANDSHAKE );
-
-        System.out.println( packet.getSkinName() );
 
         // Create entity:
         WorldAdapter world = this.networkManager.getServer().getDefaultWorld();

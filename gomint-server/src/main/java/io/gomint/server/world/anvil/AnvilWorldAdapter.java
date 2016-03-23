@@ -23,28 +23,38 @@ import io.gomint.server.world.AsyncChunkPackageTask;
 import io.gomint.server.world.AsyncChunkTask;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
-import io.gomint.server.world.Weather;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.WorldBorder;
-import io.gomint.taglib.NBTTagCompound;
+import io.gomint.taglib.NBTStream;
+import io.gomint.taglib.NBTStreamListener;
 import io.gomint.world.Block;
-import io.gomint.world.GameDifficulty;
 import io.gomint.world.Gamerule;
+
 import lombok.Getter;
+
 import net.openhft.koloboke.collect.map.ObjObjMap;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.nio.ByteOrder;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
+import java.util.zip.GZIPInputStream;
 
 /**
  * @author BlackyPaw
@@ -52,30 +62,15 @@ import java.util.zip.Deflater;
  */
 public class AnvilWorldAdapter extends WorldAdapter {
 
-    private static final Logger logger = LoggerFactory.getLogger( WorldAdapter.class );
-
     // ==================================== FIELDS ==================================== //
 
     // Shared objects
-    private final Random random = new Random();
-    @Getter
-    private final GoMintServer server;
+    @Getter private final GoMintServer server;
 
     // World properties
     private final File worldDir;
     private String levelName;
-    private long randomSeed;
-    private boolean mapFeatures;
-    private long lastPlayed;
-    private boolean allowCommands;
-    private boolean hardcore;
-    private GameDifficulty difficulty;
-    private boolean difficultyLocked;
-    private long time;
-    private long dayTime;
     private Location spawn;
-    private WorldBorder worldBorder;
-    private Weather weather;
     private Map<Gamerule, Object> gamerules = new HashMap<>();
 
     // Chunk Handling
@@ -140,15 +135,10 @@ public class AnvilWorldAdapter extends WorldAdapter {
     @Override
     public void addPlayer( EntityPlayer player ) {
         // Schedule sending spawn region chunks:
-        int spawnRadius = player.getViewDistance() * 16;
-        if ( spawnRadius < 64 ) {
-            spawnRadius = 64; // We need at least 64 blocks to spawn
-        }
-
-        final int minBlockX = (int) (this.spawn.getX() - spawnRadius);
-        final int minBlockZ = (int) (this.spawn.getZ() - spawnRadius);
-        final int maxBlockX = (int) (this.spawn.getX() + spawnRadius);
-        final int maxBlockZ = (int) (this.spawn.getZ() + spawnRadius);
+        final int minBlockX = (int) (this.spawn.getX() - 64);
+        final int minBlockZ = (int) (this.spawn.getZ() - 64);
+        final int maxBlockX = (int) (this.spawn.getX() + 64);
+        final int maxBlockZ = (int) (this.spawn.getZ() + 64);
 
         final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
         final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );
@@ -335,49 +325,52 @@ public class AnvilWorldAdapter extends WorldAdapter {
      *
      * @throws IOException Thrown in case the level.dat file could not be loaded
      */
-    private void loadLevelDat() throws IOException {
+    private void loadLevelDat() throws Exception {
         try {
             File levelDat = new File( this.worldDir, "level.dat" );
             if ( !levelDat.exists() || !levelDat.isFile() ) {
                 throw new IOException( "Missing level.dat" );
             }
 
-            NBTTagCompound nbt = NBTTagCompound.readFrom( levelDat, true, ByteOrder.BIG_ENDIAN );
-            NBTTagCompound data = nbt.getCompound( "Data", false );
-            if ( data == null ) {
-                throw new IOException( "level.dat is missing 'Data' tag" );
-            }
+            // Default the settings
+            this.levelName = "";
+            this.spawn = new Location( this, 0, 0, 0 );
 
-            if ( data.getInteger( "version", 0 ) != 19133 ) {
-                throw new IOException( "unsupported world format" );
-            }
+            // Stream the contents to save memory usage
+            try ( InputStream in = new BufferedInputStream( new GZIPInputStream( new FileInputStream( levelDat ) ) ) ) {
+                NBTStream nbtStream = new NBTStream(
+                        in,
+                        ByteOrder.BIG_ENDIAN
+                );
 
-            this.levelName = data.getString( "LevelName", "" );
-            this.randomSeed = data.getLong( "RandomSeed", 0L );
-            this.mapFeatures = data.getByte( "MapFeatures", (byte) 0 ) > 0;
-            this.lastPlayed = data.getLong( "LastPlayed", 0L );
-            this.allowCommands = data.getByte( "allowCommands", (byte) 0 ) > 0;
-            this.hardcore = data.getByte( "hardcore", (byte) 0 ) > 0;
-            this.difficulty = GameDifficulty.valueOf( data.getByte( "Difficulty", (byte) 0 ) );
-            this.difficultyLocked = data.getByte( "DifficultyLocked", (byte) 0 ) > 0;
-            this.time = data.getLong( "Time", 0L );
-            this.dayTime = data.getLong( "DayTime", 0L );
-
-            this.spawn = new Location( this, data.getInteger( "SpawnX", 0 ), data.getInteger( "SpawnY", 0 ), data.getInteger( "SpawnZ", 0 ) );
-            this.worldBorder = new WorldBorder( this, data );
-            this.weather = new Weather( this.random, data );
-
-            // Load gamerules:
-            NBTTagCompound gamerules = data.getCompound( "GameRules", false );
-            if ( gamerules != null ) {
-                for ( Map.Entry<String, Object> entry : gamerules.entrySet() ) {
-                    if ( entry.getValue() instanceof String ) {
-                        Gamerule gamerule = Gamerule.getByNbtName( entry.getKey() );
-                        if ( gamerule != null ) {
-                            this.gamerules.put( gamerule, gamerule.createValueFromString( (String) entry.getValue() ) );
+                nbtStream.addListener( new NBTStreamListener() {
+                    @Override
+                    public void onNBTValue( String path, Object value ) throws Exception {
+                        switch ( path ) {
+                            case ".Data.version":
+                                if ( (int) value != 19133 ) {
+                                    throw new IOException( "unsupported world format" );
+                                }
+                                break;
+                            case ".Data.LevelName":
+                                AnvilWorldAdapter.this.levelName = (String) value;
+                                break;
+                            case ".Data.SpawnX":
+                                AnvilWorldAdapter.this.spawn.setX( (int) value );
+                                break;
+                            case ".Data.SpawnY":
+                                AnvilWorldAdapter.this.spawn.setY( (int) value );
+                                break;
+                            case ".Data.SpawnZ":
+                                AnvilWorldAdapter.this.spawn.setZ( (int) value );
+                                break;
+                            default:
+                                break;
                         }
                     }
-                }
+                } );
+
+                nbtStream.parse();
             }
         } catch ( IOException e ) {
             throw new IOException( "Failed to load anvil world: " + e.getMessage() );
@@ -517,13 +510,22 @@ public class AnvilWorldAdapter extends WorldAdapter {
      * @param server The GoMint Server which runs this
      * @param pathToWorld The path to the world's directory
      * @return The anvil world adapter used to access the world
-     * @throws IOException Thrown in case the world could not be loaded successfully
+     * @throws Exception Thrown in case the world could not be loaded successfully
      */
-    public static AnvilWorldAdapter load( GoMintServer server, File pathToWorld ) throws IOException {
+    public static AnvilWorldAdapter load( GoMintServer server, File pathToWorld ) throws Exception {
         AnvilWorldAdapter world = new AnvilWorldAdapter( server, pathToWorld );
         world.loadLevelDat();
         world.prepareSpawnRegion();
         world.startAsyncWorker( server.getExecutorService() );
         return world;
+    }
+
+    /**
+     * Get the current view of players on this world.
+     *
+     * @return The Collection View of the Players currently on this world
+     */
+    public Map<EntityPlayer,ChunkAdapter> getPlayers() {
+        return players;
     }
 }

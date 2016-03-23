@@ -9,39 +9,40 @@ package io.gomint.server.world;
 
 import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
-import net.openhft.koloboke.collect.map.ObjObjCursor;
-import net.openhft.koloboke.collect.map.ObjObjMap;
-import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.function.BiConsumer;
+import java.util.List;
 
 /**
  * @author BlackyPaw
+ * @author geNAZt
  * @version 1.0
  */
 public class WorldManager {
     private static final Logger logger = LoggerFactory.getLogger( WorldManager.class );
 	private final GoMintServer server;
-	private ObjObjMap<String, WorldAdapter> loadedWorlds;
+	private List<WorldAdapter> loadedWorlds;
 
 	/**
 	 * Constructs a new world manager that does not yet hold any worlds.
+     *
+     * @param server The server for which this WorldManager handles world for
 	 */
 	public WorldManager( GoMintServer server ) {
 		this.server = server;
-		this.loadedWorlds = HashObjObjMaps.newMutableMap( 4 );
+		this.loadedWorlds = new ArrayList<>();
 	}
 
 	/**
 	 * Ticks all worlds that are currently loaded.
 	 */
 	public void tick() {
-        for ( WorldAdapter worldAdapter : getWorlds() ) {
+        for ( WorldAdapter worldAdapter : this.loadedWorlds ) {
             worldAdapter.tick();
         }
     }
@@ -52,7 +53,7 @@ public class WorldManager {
 	 * @return A collection of all worlds held by the world manager
 	 */
 	public Collection<WorldAdapter> getWorlds() {
-		return this.loadedWorlds.values();
+		return this.loadedWorlds;
 	}
 
 	/**
@@ -63,7 +64,13 @@ public class WorldManager {
 	 * @return The world if found or null otherwise
 	 */
 	public WorldAdapter getWorld( String name ) {
-		return this.loadedWorlds.get( name );
+        for ( WorldAdapter world : this.loadedWorlds ) {
+            if ( world.getWorldName().equals( name ) ) {
+                return world;
+            }
+        }
+
+		return null;
 	}
 
 	/**
@@ -73,7 +80,7 @@ public class WorldManager {
 	 * @param world The world to be added
 	 */
 	public void addWorld( WorldAdapter world ) {
-		this.loadedWorlds.put( world.getWorldName(), world );
+		this.loadedWorlds.add( world );
 	}
 
 	/**
@@ -82,9 +89,9 @@ public class WorldManager {
 	 * world manage immediately.
 	 *
 	 * @param path The path of the world
-	 * @throws IOException Thrown in case the world could not be loaded
+	 * @throws Exception Thrown in case the world could not be loaded
 	 */
-	public void loadWorld( String path ) throws IOException {
+	public void loadWorld( String path ) throws Exception {
 		logger.info( "Attempting to load world '" + path + "'" );
 
 		File file = new File( path );
@@ -109,9 +116,9 @@ public class WorldManager {
 	 * Attempts to load an anvil world.
 	 *
 	 * @param path The path to the world's folder
-	 * @throws IOException Thrown in case the world could not be loaded
+	 * @throws Exception Thrown in case the world could not be loaded
 	 */
-	private void loadAnvilWorld( File path ) throws IOException {
+	private void loadAnvilWorld( File path ) throws Exception {
 		AnvilWorldAdapter world = AnvilWorldAdapter.load( this.server, path );
 		this.addWorld( world );
 		logger.info( "Successfully loaded world '" + path.getName() + "'" );

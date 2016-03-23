@@ -77,4 +77,5 @@ public abstract class WorldAdapter implements World {
      * @param player The player which should be set into the chunk
      */
     public abstract void movePlayerToChunk( int x, int z, EntityPlayer player );
+
 }

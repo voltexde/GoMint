@@ -13,6 +13,7 @@ import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
+import io.gomint.server.util.Color;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.PEWorldConstraints;
@@ -21,8 +22,6 @@ import io.gomint.taglib.NBTStreamListener;
 import io.gomint.world.Biome;
 import io.gomint.world.Block;
 
-import java.awt.*;
-import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +66,7 @@ class AnvilChunk extends ChunkAdapter {
 
 	// Players / Chunk GC
 	private List<EntityPlayer> players               = new ArrayList<>();
-	private long               lastPlayerOnThisChunk = -1;
+	private long               lastPlayerOnThisChunk;
 	private long               loadedTime            = System.currentTimeMillis();
 
     /**
@@ -126,7 +125,6 @@ class AnvilChunk extends ChunkAdapter {
 
         return System.currentTimeMillis() - this.loadedTime > TimeUnit.SECONDS.toMillis( waitAfterLoad ) &&
                 this.players.isEmpty() &&
-                this.lastPlayerOnThisChunk > -1 &&
                 System.currentTimeMillis() - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( secondsAfterLeft );
     }
 
@@ -384,7 +382,7 @@ class AnvilChunk extends ChunkAdapter {
                         this.getBiomeColorRaw( i + 1, k + 1 )
                 );
 
-				this.setBiomeColorRGB( i, k, (byte) average.getRed(), (byte) average.getGreen(), (byte) average.getBlue() );
+				this.setBiomeColorRGB( i, k, average.getR(), average.getG(), average.getB() );
 			}
 		}
 	}
@@ -487,11 +485,13 @@ class AnvilChunk extends ChunkAdapter {
         } );
 
         // Start parsing the nbt tag
+        // CHECKSTYLE:OFF
         try {
             nbtStream.parse();
-        } catch ( IOException e ) {
+        } catch ( Exception e ) {
             e.printStackTrace();
         }
+        // CHECKSTYLE:ON
 
         // Load last section and calc biome colors
 		this.loadSection( section );
@@ -550,7 +550,7 @@ class AnvilChunk extends ChunkAdapter {
 	 * @return The combined color
 	 */
 	public Color averageColorsRGB( int... colors ) {
-		int r = 0, g = 0, b = 0;
+		byte r = 0, g = 0, b = 0;
 
         for ( int color : colors ) {
             r += color >> 16 & 0xff;
