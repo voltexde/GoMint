@@ -203,6 +203,10 @@ public class PlayerConnection {
                 WorldAdapter worldAdapter = (WorldAdapter) this.entity.getWorld();
                 worldAdapter.movePlayerToChunk( spawnXChunk, spawnZChunk, this.entity );
 
+                PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
+                packetConfirmChunkRadius.setChunkRadius( this.entity.getViewDistance() );
+                this.send( packetConfirmChunkRadius );
+
                 this.sendPlayState( PacketPlayState.PlayState.SPAWN );
                 this.sendWorldTime( 0, false );
                 this.sendMovePlayer( this.entity.getLocation() );
