@@ -8,7 +8,6 @@
 package io.gomint.entity;
 
 import io.gomint.command.CommandSender;
-import io.gomint.inventory.Inventory;
 
 import java.util.UUID;
 

@@ -33,9 +33,13 @@ public class PacketBatch extends Packet {
         if ( byteArrayOutputstream != null ) {
             buffer.writeInt( this.byteArrayOutputstream.size() );
 
+	        /*
             for ( int i = 0; i < this.byteArrayOutputstream.size(); i++ ) {
                 buffer.writeByte( this.byteArrayOutputstream.getByte( i ) );
             }
+            */
+
+	        buffer.writeBytes( this.byteArrayOutputstream.toByteArray() );
         } else {
             buffer.writeInt( this.payload.length );
             buffer.writeBytes( this.payload );
