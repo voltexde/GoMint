@@ -12,6 +12,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketCraftingRecipes;
+import io.gomint.taglib.NBTTagCompound;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -102,6 +103,14 @@ public class RecipeManager {
 	public void registerRecipe( Recipe recipe ) {
 		this.recipes.add( recipe );
 		this.dirty = true;
+	}
+
+	/**
+	 * Loads all
+	 * @param recipes
+	 */
+	public void loadFromAssets( NBTTagCompound recipes ) {
+
 	}
 
 }

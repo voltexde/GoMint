@@ -10,7 +10,9 @@ package io.gomint.server;
 import io.gomint.GoMint;
 import io.gomint.inventory.ItemStack;
 import io.gomint.plugin.PluginManager;
+import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
+import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
 import io.gomint.server.crafting.ShapedRecipe;
 import io.gomint.server.crafting.ShapelessRecipe;
@@ -20,6 +22,7 @@ import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
+import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +31,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
+import java.nio.ByteOrder;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -43,13 +47,13 @@ public class GoMintServer implements GoMint {
 
 	private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
 
-    // Global tick lock
-    private ReentrantLock tickLock = new ReentrantLock( true );
-    private Condition tickCondition = tickLock.newCondition();
-    private double currentLoad;
+	// Global tick lock
+	private ReentrantLock tickLock = new ReentrantLock( true );
+	private Condition tickCondition = tickLock.newCondition();
+	private double currentLoad;
 
 	// Configuration
-    @Getter
+	@Getter
 	private ServerConfig        serverConfig;
 
 	// Networking
@@ -78,23 +82,23 @@ public class GoMintServer implements GoMint {
 	/**
 	 * Starts the GoMint server
 	 * @param args which should have been given over from the static Bootstrap
-     */
+	 */
 	public GoMintServer( String[] args ) {
-        Thread.currentThread().setName( "GoMint Main Thread" );
+		Thread.currentThread().setName( "GoMint Main Thread" );
 
 		// ------------------------------------ //
 		// Executor Initialization
 		// ------------------------------------ //
 		this.threadFactory = new ThreadFactory() {
-            private AtomicLong counter = new AtomicLong( 0 );
+			private AtomicLong counter = new AtomicLong( 0 );
 
-            @Override
-            public Thread newThread( Runnable r ) {
-                Thread thread = Executors.defaultThreadFactory().newThread( r );
-                thread.setName( "GoMint Thread #" + counter.getAndIncrement() );
-                return thread;
-            }
-        };
+			@Override
+			public Thread newThread( Runnable r ) {
+				Thread thread = Executors.defaultThreadFactory().newThread( r );
+				thread.setName( "GoMint Thread #" + counter.getAndIncrement() );
+				return thread;
+			}
+		};
 
 		this.executorService = new ThreadPoolExecutor( 0, 512, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), this.threadFactory );
 
@@ -103,15 +107,15 @@ public class GoMintServer implements GoMint {
 		// ------------------------------------ //
 		this.loadConfig();
 
-        // Calculate the nanoseconds we need for the tick loop
-        long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
-        logger.debug( "Setting skipNanos to: " + skipNanos );
+		// Calculate the nanoseconds we need for the tick loop
+		long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
+		logger.debug( "Setting skipNanos to: " + skipNanos );
 
 		// ------------------------------------ //
 		// Scheduler + PluginManager Initialization
 		// ------------------------------------ //
 		this.syncTaskManager = new SyncTaskManager( this, skipNanos );
-        this.networkManager = new NetworkManager( this );
+		this.networkManager = new NetworkManager( this );
 		this.pluginManager = new SimplePluginManager( this );
 
 		// ------------------------------------ //
@@ -122,17 +126,23 @@ public class GoMintServer implements GoMint {
 		// ------------------------------------ //
 		// Pre World Initialization
 		// ------------------------------------ //
+		// Load assets from file:
+		this.logger.info( "Loading assets library..." );
+		AssetsLibrary assetsLibrary = new AssetsLibrary();
+		try {
+			assetsLibrary.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
+		} catch ( IOException e ) {
+			this.logger.error( "Failed to load assets library", e );
+			return;
+		}
+
+		this.logger.info( "Initializing recipes..." );
 		this.recipeManager = new RecipeManager( this );
 
-		// Add test recipe:
-		ShapedRecipe recipe = new ShapedRecipe( 2, 2,
-		                                        new ItemStack[] {
-				                                    new ItemStack( 5, (short) 0xFFFF, 1 ), new ItemStack( 5, (short) 0xFFFF, 1 ),
-				                                    new ItemStack( 5, (short) 0xFFFF, 1 ), new ItemStack( 5, (short) 0xFFFF, 1 )
-		                                        },
-		                                        new ItemStack( 58, (short) 0, 1 ),
-		                                        null );
-		this.recipeManager.registerRecipe( recipe );
+		// Add all recipes from asset library:
+		for ( Recipe recipe : assetsLibrary.getRecipes() ) {
+			this.recipeManager.registerRecipe( recipe );
+		}
 
 		// ------------------------------------ //
 		// World Initialization
@@ -148,41 +158,41 @@ public class GoMintServer implements GoMint {
 		// Main Loop
 		// ------------------------------------ //
 
-        // Debug output for system usage
-        this.syncTaskManager.addTask( new SyncScheduledTask( this.syncTaskManager, new Runnable() {
-            @Override
-            public void run() {
-                logger.debug( "Tickloop Usage: " + Math.round( currentLoad * 100 ) + "%; Memory Usage: " + ( Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() ) + " bytes" );
-            }
-        }, 1, 1, TimeUnit.SECONDS ) );
+		// Debug output for system usage
+		this.syncTaskManager.addTask( new SyncScheduledTask( this.syncTaskManager, new Runnable() {
+			@Override
+			public void run() {
+				//logger.debug( "Tickloop Usage: " + Math.round( currentLoad * 100 ) + "%; Memory Usage: " + ( Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() ) + " bytes" );
+			}
+		}, 1, 1, TimeUnit.SECONDS ) );
 
 		// Tick loop
 		this.currentTick = 0;
 		while ( this.running.get() ) {
-            this.tickLock.lock();
-            try {
-                long start = System.nanoTime();
+			this.tickLock.lock();
+			try {
+				long start = System.nanoTime();
 
-                // Tick the syncTaskManager
-                this.syncTaskManager.tickTasks();
+				// Tick the syncTaskManager
+				this.syncTaskManager.tickTasks();
 
-                // Tick all major subsystems:
-                this.networkManager.tick();
-                this.worldManager.tick();
+				// Tick all major subsystems:
+				this.networkManager.tick();
+				this.worldManager.tick();
 
-                // Increase the tick
-                this.currentTick++;
+				// Increase the tick
+				this.currentTick++;
 
-                long diff = System.nanoTime() - start;
-                if ( diff < skipNanos ) {
-                    this.currentLoad = diff / (double) skipNanos;
-                    this.tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
-                }
-            } catch ( InterruptedException e ) {
-                // Ignored ._.
-            } finally {
-                this.tickLock.unlock();
-            }
+				long diff = System.nanoTime() - start;
+				if ( diff < skipNanos ) {
+					this.currentLoad = diff / (double) skipNanos;
+					this.tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
+				}
+			} catch ( InterruptedException e ) {
+				// Ignored ._.
+			} finally {
+				this.tickLock.unlock();
+			}
 		}
 	}
 
@@ -221,24 +231,24 @@ public class GoMintServer implements GoMint {
 		return this.recipeManager;
 	}
 
-    private void loadConfig() {
-        this.serverConfig = new ServerConfig();
+	private void loadConfig() {
+		this.serverConfig = new ServerConfig();
 
-        try {
-            this.serverConfig.initialize( new File( "server.cfg" ) );
-        } catch ( IOException e ) {
-            logger.error( "server.cfg is corrupted: ", e );
-            System.exit( -1 );
-        }
+		try {
+			this.serverConfig.initialize( new File( "server.cfg" ) );
+		} catch ( IOException e ) {
+			logger.error( "server.cfg is corrupted: ", e );
+			System.exit( -1 );
+		}
 
-        try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
-            this.serverConfig.write( fileWriter );
-        } catch ( IOException e ) {
-            logger.warn( "Could not save server.cfg: ", e );
-        }
-    }
+		try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
+			this.serverConfig.write( fileWriter );
+		} catch ( IOException e ) {
+			logger.warn( "Could not save server.cfg: ", e );
+		}
+	}
 
-    @Override
+	@Override
 	public String getMotd() {
 		return this.networkManager.getMotd();
 	}
@@ -248,10 +258,10 @@ public class GoMintServer implements GoMint {
 		this.networkManager.setMotd( motd );
 	}
 
-    /**
-     * Nice shutdown pls
-     */
-    public void shutdown() {
-        this.running.set( false );
-    }
+	/**
+	 * Nice shutdown pls
+	 */
+	public void shutdown() {
+		this.running.set( false );
+	}
 }

@@ -1,0 +1,158 @@
+/*
+ * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+package io.gomint.server.assets;
+
+import io.gomint.inventory.ItemStack;
+import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.crafting.Recipe;
+import io.gomint.server.crafting.ShapedRecipe;
+import io.gomint.server.crafting.ShapelessRecipe;
+import io.gomint.server.crafting.SmeltingRecipe;
+import io.gomint.taglib.NBTTagCompound;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteOrder;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * A wrapper class around any suitable file format (currently NBT) that allows
+ * for loading constant game-data into memory at runtime instead of hardcoding
+ * it.
+ *
+ * @author BlackyPaw
+ * @version 1.0
+ */
+public class AssetsLibrary {
+
+	private Set<Recipe> recipes;
+
+	public AssetsLibrary() {
+
+	}
+
+	/**
+	 * Loads the assets library from the given file.
+	 *
+	 * @param input The input stream to read the asset library from
+	 * @throws IOException Thrown if an I/O error occurs whilst loading the library
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void load( InputStream input ) throws IOException {
+		NBTTagCompound root = NBTTagCompound.readFrom( input, false, ByteOrder.BIG_ENDIAN );
+		this.loadRecipes( (List<NBTTagCompound>) ( (List) root.getList( "recipes", false ) ) );
+	}
+
+	/**
+	 * Gets the set of recipes stored inside the library.
+	 *
+	 * @return The set of recipes stored inside the library
+	 */
+	public Collection<Recipe> getRecipes() {
+		return this.recipes;
+	}
+
+	private void loadRecipes( List<NBTTagCompound> raw ) throws IOException {
+		this.recipes = new HashSet<>();
+
+		if ( raw == null ) {
+			return;
+		}
+
+		for ( NBTTagCompound compound : raw ) {
+			byte   type = compound.getByte( "type", (byte) -1 );
+			Recipe recipe;
+			switch ( type ) {
+				case 0:
+					recipe = this.loadShapelessRecipe( compound );
+					break;
+
+				case 1:
+					recipe = this.loadShapedRecipe( compound );
+					break;
+
+				case 2:
+					recipe = this.loadSmeltingRecipe( compound );
+					break;
+
+				default:
+					continue;
+			}
+			this.recipes.add( recipe );
+		}
+	}
+
+	private ShapelessRecipe loadShapelessRecipe( NBTTagCompound data ) throws IOException {
+		int count = data.getInteger( "c", 0 );
+
+		byte[] ingredientData = data.getByteArray( "i", new byte[0] );
+		PacketBuffer buffer = new PacketBuffer( ingredientData, 0 );
+
+		ItemStack[] ingredients = new ItemStack[count];
+		for ( int i = 0; i < count; ++i ) {
+			ingredients[i] = this.loadItemStack( buffer );
+		}
+
+		byte[] outcomeData = data.getByteArray( "o", new byte[0] );
+		ItemStack outcome = this.loadItemStack( new PacketBuffer( outcomeData, 0 ) );
+
+		return new ShapelessRecipe( ingredients, outcome, null );
+	}
+
+	private ShapedRecipe loadShapedRecipe( NBTTagCompound data ) throws IOException {
+		int width = data.getInteger( "w", 0 );
+		int height = data.getInteger( "h", 0 );
+
+		byte[] arrangementData = data.getByteArray( "a", new byte[0] );
+		PacketBuffer buffer = new PacketBuffer( arrangementData, 0 );
+
+		ItemStack[] arrangement = new ItemStack[width * height];
+		for ( int j = 0; j < height; ++j ) {
+			for ( int i = 0; i < width; ++i ) {
+				arrangement[ j * width + i ] = this.loadItemStack( buffer );
+			}
+		}
+
+		byte[] outcomeData = data.getByteArray( "o", new byte[0] );
+		ItemStack outcome = this.loadItemStack( new PacketBuffer( outcomeData, 0 ) );
+
+		return new ShapedRecipe( width, height, arrangement, outcome, null );
+	}
+
+	private SmeltingRecipe loadSmeltingRecipe( NBTTagCompound data ) throws IOException {
+		byte[] inputData = data.getByteArray( "i", new byte[0] );
+		ItemStack input = this.loadItemStack( new PacketBuffer( inputData, 0 ) );
+
+		byte[] outcomeData = data.getByteArray( "o", new byte[0] );
+		ItemStack outcome = this.loadItemStack( new PacketBuffer( outcomeData, 0 ) );
+
+		return new SmeltingRecipe( input, outcome, null );
+	}
+
+	private ItemStack loadItemStack( PacketBuffer buffer ) throws IOException {
+		short id = buffer.readShort();
+		byte amount = buffer.readByte();
+		short data = buffer.readShort();
+		short extraLen = buffer.readShort();
+
+		NBTTagCompound compound = null;
+		if ( extraLen > 0 ) {
+			ByteArrayInputStream bin = new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), extraLen );
+			compound = NBTTagCompound.readFrom( bin, false, ByteOrder.BIG_ENDIAN );
+			bin.close();
+		}
+
+		return new ItemStack( id, data, amount, compound );
+	}
+
+}
