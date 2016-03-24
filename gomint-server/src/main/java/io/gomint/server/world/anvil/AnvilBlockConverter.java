@@ -7,6 +7,10 @@
 
 package io.gomint.server.world.anvil;
 
+import net.openhft.koloboke.collect.map.ByteObjMap;
+import net.openhft.koloboke.collect.map.hash.HashByteByteMaps;
+import net.openhft.koloboke.collect.map.hash.HashByteObjMaps;
+
 /**
  * Static class for transforming Anvil Blocks into PE blocks
  *
@@ -16,7 +20,7 @@ package io.gomint.server.world.anvil;
  */
 public final class AnvilBlockConverter {
 
-	/**
+    /**
      * Array holding all 256 values for blocks IDs so that basically anvil ids are merely
      * an index into these ids. For documentation concerns, please always name your IDs
      * with EOL comments with the respective block names. Also, please insert empty lines every
@@ -248,13 +252,13 @@ public final class AnvilBlockConverter {
             (byte) 185,     // Jungle Fence Gate
             (byte) 186,     // Dark Oak Fence Gate
             (byte) 187,     // Acacia Fence Gate
-            0,              // Spruce Fence
-            0,              // Birch Fence
+            85,             // Spruce Fence
+            85,             // Birch Fence
 
             // 190 - 199
-            0,              // Jungle Fence
-            0,              // Dark Oak Fence
-            0,              // Acacia Fence
+            85,             // Jungle Fence
+            85,             // Dark Oak Fence
+            85,             // Acacia Fence
             0,              // Spruce Door
             0,              // Birch Door
             0,              // Jungle Door
@@ -333,6 +337,115 @@ public final class AnvilBlockConverter {
 
     };
 
+    private static final ByteObjMap<DataConverter> DATA_CONVERTERS = HashByteObjMaps.newMutableMap();
+
+    static {
+        // Fix double slaps
+        DATA_CONVERTERS.put( (byte) 43, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return ( original == 7 ) ? 6 : original;
+            }
+        } );
+
+        // Fix normal slaps
+        DATA_CONVERTERS.put( (byte) 44, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return ( original == 7 ) ? 6 : ( original == 15 ) ? 14 : original;
+            }
+        } );
+
+        // Fix rotation of trapdoors ( data order is in reverse )
+        DATA_CONVERTERS.put( (byte) 96, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return (byte) ( ( ( original & 0x04 ) << 1 ) | ( ( original & 0x08 ) >> 1 ) | ( 3 - ( original & 0x03 ) ) );
+            }
+        } );
+
+        // Converter for block state
+        DataConverter blockStateConverter = new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                switch ( original & 0x7f ) {
+                    case 0:
+                        return (byte) 0;
+                    case 1:
+                        return (byte) 5;
+                    case 2:
+                        return (byte) 4;
+                    case 3:
+                        return (byte) 3;
+                    case 4:
+                        return (byte) 2;
+                    case 5:
+                        return (byte) 1;
+                    default:
+                        return original;
+                }
+            }
+        };
+
+        // Fix blockface of wooden buttons
+        DATA_CONVERTERS.put( (byte) 143, blockStateConverter );
+
+        // Same for stone buttons
+        DATA_CONVERTERS.put( (byte) 77, blockStateConverter );
+
+        // Fix for "new" Fenced
+        DATA_CONVERTERS.put( (byte) 188, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return 1;
+            }
+        } );
+
+        DATA_CONVERTERS.put( (byte) 189, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return 2;
+            }
+        } );
+
+        DATA_CONVERTERS.put( (byte) 190, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return 3;
+            }
+        } );
+
+        DATA_CONVERTERS.put( (byte) 191, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return 4;
+            }
+        } );
+
+        DATA_CONVERTERS.put( (byte) 192, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return 5;
+            }
+        } );
+
+        // Grass path fix for ID 3:1
+        DATA_CONVERTERS.put( (byte) 198, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return 0;
+            }
+        } );
+
+        // Grass path fix for ID 3:2
+        DATA_CONVERTERS.put( (byte) 243, new DataConverter() {
+            @Override
+            public byte convert( byte original ) {
+                return 0;
+            }
+        } );
+    }
+
     private AnvilBlockConverter() {
         throw new AssertionError( "Cannot instantiate AnvilBlockConverter!" );
     }
@@ -340,27 +453,54 @@ public final class AnvilBlockConverter {
     /**
      * Converts a block's ID from anvil format to its respective MCPE value.
      *
-     * @param blockId The ID of the block to be converted
+     * @param blockId   The ID of the block to be converted
      * @param blockData Any additonal block data to be taken into account
      * @return The ID of the block expressed in MCPE's IDs
      */
     public static int convertBlockID( int blockId, byte blockData ) {
-	    if ( blockId < 0 || blockId >= CONVERSION_IDS.length ) {
-		    return 0; // Return Air for invalid block IDs
-	    }
-	    return CONVERSION_IDS[blockId];
+        if ( blockId < 0 || blockId >= CONVERSION_IDS.length ) {
+            return 0; // Return Air for invalid block IDs
+        }
+
+        // Special fix for grass paths
+        if ( blockId == 3 && blockData == 1 ) {
+            return 198;
+        } else if ( blockId == 3 && blockData == 2 ) {
+            return 243;
+        }
+
+        return CONVERSION_IDS[blockId];
     }
 
     /**
      * Convert's a block's additional data value from anvil format to its respective MCPE value.
      *
-     * @param blockId The ID of the block whose data is to be converted
+     * @param blockId   The ID of the block whose data is to be converted
      * @param blockData The data value to be converted
      * @return The respective data value of the block expressed in MCPE's values
      */
     public static byte convertBlockData( int blockId, byte blockData ) {
-	    // TODO: Implement data ID conversion:
+        if ( blockId < 0 || blockId >= CONVERSION_IDS.length ) {
+            return 0; // Return Air for invalid block IDs
+        }
+
+        // Check for changed blocks
+        if ( CONVERSION_IDS[blockId] != blockId ) {
+            return 0;
+        }
+
+        DataConverter dataConverter = DATA_CONVERTERS.get( (byte) blockId );
+        if ( dataConverter != null ) {
+            return dataConverter.convert( blockData );
+        }
+
         return blockData;
+    }
+
+    private interface DataConverter {
+
+        byte convert( byte original );
+
     }
 
 }
