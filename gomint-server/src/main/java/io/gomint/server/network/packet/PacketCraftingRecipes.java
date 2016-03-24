@@ -53,6 +53,7 @@ public class PacketCraftingRecipes extends Packet {
 		} catch ( IOException e ) {
 			e.printStackTrace();
 		}
+		buffer.writeByte( (byte) 1 ); // Unknown use
 	}
 
 	@Override
@@ -90,6 +91,7 @@ public class PacketCraftingRecipes extends Packet {
 					break;
 			}
 		}
+		buffer.skip( 1 ); // Unknown use
 	}
 
 	private ShapelessRecipe readShapelessRecipe( PacketBuffer buffer ) {

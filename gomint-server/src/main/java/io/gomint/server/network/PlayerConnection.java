@@ -399,6 +399,9 @@ public class PlayerConnection {
 
         // Add player to world (will send world chunk packets):
         world.addPlayer( this.entity );
+
+        // Send Crafting recipes:
+        this.send( PacketReliability.RELIABLE_ORDERED, 0, this.networkManager.getServer().getRecipeManager().getCraftingRecipesBatch() );
     }
 
     // ====================================== PACKET SENDERS ====================================== //

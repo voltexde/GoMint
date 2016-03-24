@@ -8,8 +8,12 @@
 package io.gomint.server;
 
 import io.gomint.GoMint;
+import io.gomint.inventory.ItemStack;
 import io.gomint.plugin.PluginManager;
 import io.gomint.server.config.ServerConfig;
+import io.gomint.server.crafting.RecipeManager;
+import io.gomint.server.crafting.ShapedRecipe;
+import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncScheduledTask;
@@ -53,6 +57,9 @@ public class GoMintServer implements GoMint {
 
 	// World Management
 	private WorldManager 		worldManager;
+
+	// Game Information
+	private RecipeManager       recipeManager;
 
 	// Plugin Management
 	private PluginManager       pluginManager;
@@ -111,6 +118,21 @@ public class GoMintServer implements GoMint {
 		// Networking Initialization
 		// ------------------------------------ //
 		if ( !this.initNetworking() ) return;
+
+		// ------------------------------------ //
+		// Pre World Initialization
+		// ------------------------------------ //
+		this.recipeManager = new RecipeManager( this );
+
+		// Add test recipe:
+		ShapedRecipe recipe = new ShapedRecipe( 2, 2,
+		                                        new ItemStack[] {
+				                                    new ItemStack( 5, (short) 0xFFFF, 1 ), new ItemStack( 5, (short) 0xFFFF, 1 ),
+				                                    new ItemStack( 5, (short) 0xFFFF, 1 ), new ItemStack( 5, (short) 0xFFFF, 1 )
+		                                        },
+		                                        new ItemStack( 58, (short) 0, 1 ),
+		                                        null );
+		this.recipeManager.registerRecipe( recipe );
 
 		// ------------------------------------ //
 		// World Initialization
@@ -193,6 +215,10 @@ public class GoMintServer implements GoMint {
 
 	public WorldAdapter getDefaultWorld() {
 		return this.worldManager.getWorld( this.serverConfig.getWorld() );
+	}
+
+	public RecipeManager getRecipeManager() {
+		return this.recipeManager;
 	}
 
     private void loadConfig() {
