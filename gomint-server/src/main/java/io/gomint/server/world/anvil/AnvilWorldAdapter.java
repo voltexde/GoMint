@@ -17,7 +17,6 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
-import io.gomint.server.util.SerializableByteArrayOutputstream;
 import io.gomint.server.world.AsyncChunkLoadTask;
 import io.gomint.server.world.AsyncChunkPackageTask;
 import io.gomint.server.world.AsyncChunkTask;
@@ -34,10 +33,8 @@ import lombok.Getter;
 import net.openhft.koloboke.collect.map.ObjObjMap;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -210,7 +207,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
         buffer.writeByte( packet.getId() );
         packet.serialize( buffer );
 
-        SerializableByteArrayOutputstream bout = new SerializableByteArrayOutputstream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
         DataOutputStream dout = new DataOutputStream( bout );
 
         try {
@@ -233,7 +230,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
         }
 
         PacketBatch batch = new PacketBatch();
-        batch.setByteArrayOutputstream( bout );
+        batch.setPayload( bout.toByteArray() );
 
         try {
             dout.close();

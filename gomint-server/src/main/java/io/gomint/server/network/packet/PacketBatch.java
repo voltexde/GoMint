@@ -9,7 +9,7 @@ package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
-import io.gomint.server.util.SerializableByteArrayOutputstream;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -22,7 +22,6 @@ import lombok.EqualsAndHashCode;
 public class PacketBatch extends Packet {
 
 	private byte[] payload;
-    private SerializableByteArrayOutputstream byteArrayOutputstream;
 
 	public PacketBatch() {
 		super( Protocol.PACKET_BATCH );
@@ -30,20 +29,8 @@ public class PacketBatch extends Packet {
 
 	@Override
 	public void serialize( PacketBuffer buffer ) {
-        if ( byteArrayOutputstream != null ) {
-            buffer.writeInt( this.byteArrayOutputstream.size() );
-
-	        /*
-            for ( int i = 0; i < this.byteArrayOutputstream.size(); i++ ) {
-                buffer.writeByte( this.byteArrayOutputstream.getByte( i ) );
-            }
-            */
-
-	        buffer.writeBytes( this.byteArrayOutputstream.toByteArray() );
-        } else {
-            buffer.writeInt( this.payload.length );
-            buffer.writeBytes( this.payload );
-        }
+        buffer.writeInt( this.payload.length );
+        buffer.writeBytes( this.payload );
 	}
 
 	@Override
@@ -55,7 +42,7 @@ public class PacketBatch extends Packet {
 
 	@Override
 	public int estimateLength() {
-		return 4 + ( this.byteArrayOutputstream != null ? this.byteArrayOutputstream.size() : this.payload.length );
+		return 4 + this.payload.length;
 	}
 
 }
