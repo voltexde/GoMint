@@ -118,7 +118,7 @@ public class PacketCraftingRecipes extends Packet {
 			arrangement[i] = this.readItemStack( buffer );
 		}
 
-		buffer.skip( 4 ); // Unknown use
+		buffer.skip( 4 ); // TODO: Check if this is maybe support for multiple outputs in recipes
 		ItemStack outcome = this.readItemStack( buffer );
 		UUID      uuid    = buffer.readUUID();
 
