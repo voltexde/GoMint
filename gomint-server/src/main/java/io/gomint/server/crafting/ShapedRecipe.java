@@ -19,6 +19,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -35,12 +37,12 @@ public class ShapedRecipe extends CraftingRecipe {
 	private int height;
 
 	private ItemStack[] arrangement;
-	private ItemStack   outcome;
+	private ItemStack[]   outcome;
 
 	private Collection<ItemStack> ingredients;
 
-	public ShapedRecipe( int width, int height, ItemStack[] ingredients, ItemStack outcome, UUID uuid ) {
-		super( uuid );
+	public ShapedRecipe( int width, int height, ItemStack[] ingredients, ItemStack[] outcome, UUID uuid ) {
+		super( outcome, uuid );
 		assert ingredients.length == width * height : "Invalid arrangement: Fill out empty slots with air!";
 
 		this.width = width;
@@ -99,11 +101,6 @@ public class ShapedRecipe extends CraftingRecipe {
 	}
 
 	@Override
-	public ItemStack createResult() {
-		return this.outcome.clone();
-	}
-
-	@Override
 	public void serialize( PacketBuffer buffer, PacketDataOutputStream intermediate ) throws IOException {
 		intermediate.writeInt( this.width );
 		intermediate.writeInt( this.height );
@@ -117,8 +114,15 @@ public class ShapedRecipe extends CraftingRecipe {
 			}
 		}
 
-		intermediate.writeInt( 1 );             // Unknown use
-		intermediate.writeItemStack( this.outcome );
+		intermediate.writeInt( this.outcome.length );
+		for ( int i = 0; i < this.outcome.length; ++i ) {
+			ItemStack stack = this.outcome[i];
+			if ( stack.getId() == 0 ) {
+				intermediate.writeShort( (short) 0 );
+			} else {
+				intermediate.writeItemStack( stack );
+			}
+		}
 		intermediate.writeUUID( this.getUUID() );
 
 		byte[] recipeData = intermediate.toByteArray();

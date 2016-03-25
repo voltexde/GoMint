@@ -47,13 +47,17 @@ public abstract class Recipe {
 	public abstract Collection<ItemStack> getIngredients();
 
 	/**
-	 * Creates a new item stack resembling the result of this recipe.
-	 * The returned item stack is ready for use and does not need to be
-	 * cloned before further usage.
+	 * Creates a collections of items stacks which represent the
+	 * result of the recipe. Usually a recipe has only got one
+	 * result item stack yet there are recipes such as the one
+	 * for cake which do have more than one result. Such recipes
+	 * might return multiple item stacks. Item stacks returned by
+	 * this method are entirely new instances and mays be modified
+	 * without prior cloning.
 	 *
-	 * @return The newly created resulting item stack
+	 * @return The newly created resulting item stacks
 	 */
-	public abstract ItemStack createResult();
+	public abstract Collection<ItemStack> createResult();
 
 	/**
 	 * Serializes the recipe into the given packet buffer.

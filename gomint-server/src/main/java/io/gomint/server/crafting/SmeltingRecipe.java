@@ -42,8 +42,8 @@ public class SmeltingRecipe extends Recipe {
 	}
 
 	@Override
-	public ItemStack createResult() {
-		return this.outcome.clone();
+	public Collection<ItemStack> createResult() {
+		return Collections.singletonList( this.outcome.clone() );
 	}
 
 	@Override

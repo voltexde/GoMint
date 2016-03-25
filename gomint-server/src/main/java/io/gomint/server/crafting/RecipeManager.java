@@ -105,12 +105,4 @@ public class RecipeManager {
 		this.dirty = true;
 	}
 
-	/**
-	 * Loads all
-	 * @param recipes
-	 */
-	public void loadFromAssets( NBTTagCompound recipes ) {
-
-	}
-
 }

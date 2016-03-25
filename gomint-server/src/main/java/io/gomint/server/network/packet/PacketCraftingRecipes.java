@@ -102,9 +102,12 @@ public class PacketCraftingRecipes extends Packet {
 			ingredients[i] = this.readItemStack( buffer );
 		}
 
-		buffer.skip( 4 ); // Unknown use
-		ItemStack outcome = this.readItemStack( buffer );
-		UUID      uuid    = buffer.readUUID();
+		count = buffer.readInt();
+		ItemStack[] outcome = new ItemStack[count];
+		for ( int i = 0; i < count; ++i ) {
+			outcome[i] = this.readItemStack( buffer );
+		}
+		UUID uuid = buffer.readUUID();
 
 		return new ShapelessRecipe( ingredients, outcome, uuid );
 	}
@@ -118,9 +121,12 @@ public class PacketCraftingRecipes extends Packet {
 			arrangement[i] = this.readItemStack( buffer );
 		}
 
-		buffer.skip( 4 ); // Unknown use
-		ItemStack outcome = this.readItemStack( buffer );
-		UUID      uuid    = buffer.readUUID();
+		int         count   = buffer.readInt();
+		ItemStack[] outcome = new ItemStack[count];
+		for ( int i = 0; i < count; ++i ) {
+			outcome[i] = this.readItemStack( buffer );
+		}
+		UUID uuid = buffer.readUUID();
 
 		return new ShapedRecipe( width, height, arrangement, outcome, uuid );
 	}
@@ -128,19 +134,19 @@ public class PacketCraftingRecipes extends Packet {
 	private SmeltingRecipe readSmeltingRecipe2( PacketBuffer buffer ) {
 		// Read metadata first:
 		short metadata = buffer.readShort();
-		short id = buffer.readShort();
+		short id       = buffer.readShort();
 		return this.readSmeltingRecipeBase( buffer, id, metadata );
 	}
 
 	private SmeltingRecipe readSmeltingRecipe3( PacketBuffer buffer ) {
 		// Read ID first:
-		short id = buffer.readShort();
+		short id       = buffer.readShort();
 		short metadata = buffer.readShort();
 		return this.readSmeltingRecipeBase( buffer, id, metadata );
 	}
 
 	private SmeltingRecipe readSmeltingRecipeBase( PacketBuffer buffer, short id, short metadata ) {
-		ItemStack input = new ItemStack( id, metadata, 1 );
+		ItemStack input   = new ItemStack( id, metadata, 1 );
 		ItemStack outcome = this.readItemStack( buffer );
 
 		return new SmeltingRecipe( input, outcome, null );

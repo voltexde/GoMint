@@ -14,6 +14,7 @@ import io.gomint.server.crafting.ShapedRecipe;
 import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.crafting.SmeltingRecipe;
 import io.gomint.taglib.NBTTagCompound;
+import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -35,10 +36,16 @@ import java.util.Set;
  */
 public class AssetsLibrary {
 
+	private final Logger logger;
 	private Set<Recipe> recipes;
 
-	public AssetsLibrary() {
+	// Statistics
+	private int shapelessRecipes;
+	private int shapedRecipes;
+	private int smeltingRecipes;
 
+	public AssetsLibrary( Logger logger ) {
+		this.logger = logger;
 	}
 
 	/**
@@ -65,6 +72,10 @@ public class AssetsLibrary {
 	private void loadRecipes( List<NBTTagCompound> raw ) throws IOException {
 		this.recipes = new HashSet<>();
 
+		this.shapelessRecipes = 0;
+		this.shapedRecipes = 0;
+		this.smeltingRecipes = 0;
+
 		if ( raw == null ) {
 			return;
 		}
@@ -90,6 +101,8 @@ public class AssetsLibrary {
 			}
 			this.recipes.add( recipe );
 		}
+
+		this.logger.info( String.format( "Loaded %d shapeless, %d shaped and %d smelting recipes", this.shapelessRecipes, this.shapedRecipes, this.smeltingRecipes ) );
 	}
 
 	private ShapelessRecipe loadShapelessRecipe( NBTTagCompound data ) throws IOException {
@@ -103,9 +116,17 @@ public class AssetsLibrary {
 			ingredients[i] = this.loadItemStack( buffer );
 		}
 
-		byte[] outcomeData = data.getByteArray( "o", new byte[0] );
-		ItemStack outcome = this.loadItemStack( new PacketBuffer( outcomeData, 0 ) );
+		count = data.getInteger( "r", 0 );
 
+		byte[] outcomeData = data.getByteArray( "o", new byte[0] );
+		buffer = new PacketBuffer( outcomeData, 0 );
+
+		ItemStack[] outcome = new ItemStack[count];
+		for ( int i = 0; i < count; ++i ) {
+			outcome[i] = this.loadItemStack( buffer );
+		}
+
+		this.shapelessRecipes++;
 		return new ShapelessRecipe( ingredients, outcome, null );
 	}
 
@@ -123,9 +144,17 @@ public class AssetsLibrary {
 			}
 		}
 
-		byte[] outcomeData = data.getByteArray( "o", new byte[0] );
-		ItemStack outcome = this.loadItemStack( new PacketBuffer( outcomeData, 0 ) );
+		int count = data.getInteger( "r", 0 );
 
+		byte[] outcomeData = data.getByteArray( "o", new byte[0] );
+		buffer = new PacketBuffer( outcomeData, 0 );
+
+		ItemStack[] outcome = new ItemStack[count];
+		for ( int i = 0; i < count; ++i ) {
+			outcome[i] = this.loadItemStack( buffer );
+		}
+
+		this.shapedRecipes++;
 		return new ShapedRecipe( width, height, arrangement, outcome, null );
 	}
 
@@ -136,11 +165,15 @@ public class AssetsLibrary {
 		byte[] outcomeData = data.getByteArray( "o", new byte[0] );
 		ItemStack outcome = this.loadItemStack( new PacketBuffer( outcomeData, 0 ) );
 
+		this.smeltingRecipes++;
 		return new SmeltingRecipe( input, outcome, null );
 	}
 
 	private ItemStack loadItemStack( PacketBuffer buffer ) throws IOException {
 		short id = buffer.readShort();
+		if ( id == 0 ) {
+			return new ItemStack( 0, (short) 0, 0, null );
+		}
 		byte amount = buffer.readByte();
 		short data = buffer.readShort();
 		short extraLen = buffer.readShort();

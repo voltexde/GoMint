@@ -128,7 +128,7 @@ public class GoMintServer implements GoMint {
 		// ------------------------------------ //
 		// Load assets from file:
 		this.logger.info( "Loading assets library..." );
-		AssetsLibrary assetsLibrary = new AssetsLibrary();
+		AssetsLibrary assetsLibrary = new AssetsLibrary( LoggerFactory.getLogger( AssetsLibrary.class ) );
 		try {
 			assetsLibrary.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
 		} catch ( IOException e ) {
