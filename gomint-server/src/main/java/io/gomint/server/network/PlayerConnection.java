@@ -460,7 +460,7 @@ public class PlayerConnection {
         PacketWorldInitialization init = new PacketWorldInitialization();
         init.setSeed( -1 );
         init.setDimension( (byte) 0 );
-        init.setGenerator( 0 );
+        init.setGenerator( 1 );
         init.setGamemode( 1 );
         init.setEntityId( 0L );
         init.setSpawnX( (int) world.getSpawnLocation().getX() );
@@ -469,6 +469,7 @@ public class PlayerConnection {
         init.setX( (float) world.getSpawnLocation().getX() );
         init.setY( (float) world.getSpawnLocation().getY() );
         init.setZ( (float) world.getSpawnLocation().getZ() );
+        init.setAllowCheats( true );
         this.send( init );
     }
 

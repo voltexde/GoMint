@@ -31,6 +31,7 @@ public class PacketWorldInitialization extends Packet {
 	private float x;
 	private float y;
 	private float z;
+	private boolean allowCheats;
 
 	public PacketWorldInitialization() {
 		super( Protocol.PACKET_WORLD_INITIALIZATION );
@@ -49,6 +50,9 @@ public class PacketWorldInitialization extends Packet {
 		buffer.writeFloat( this.x );
 		buffer.writeFloat( this.y );
 		buffer.writeFloat( this.z );
+		buffer.writeBoolean( this.allowCheats );
+		buffer.writeBoolean( true );        // Unknown
+		buffer.writeBoolean( false );       // Unknown
 	}
 
 	@Override
@@ -64,5 +68,7 @@ public class PacketWorldInitialization extends Packet {
 		this.x = buffer.readFloat();
 		this.y = buffer.readFloat();
 		this.z = buffer.readFloat();
+		this.allowCheats = buffer.readBoolean();
+		buffer.skip( 2 );
 	}
 }
