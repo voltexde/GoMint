@@ -7,15 +7,49 @@
 
 package io.gomint.server.world;
 
+import io.gomint.math.Location;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
+import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.world.Gamerule;
 import io.gomint.world.World;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author BlackyPaw
  * @version 1.0
  */
 public abstract class WorldAdapter implements World {
+
+	// CHECKSTYLE:OFF
+	// Shared objects
+	@Getter
+	protected final GoMintServer server;
+	protected final Logger       logger;
+
+	// World properties
+	protected final File     worldDir;
+	protected       String   levelName;
+	protected       Location spawn;
+	protected Map<Gamerule, Object> gamerules = new HashMap<>();
+
+	// Chunk Handling
+	protected ChunkCacheAdapter chunkCache;
+
+	protected WorldAdapter( GoMintServer server, File worldDir ) {
+		this.server = server;
+		this.logger = LoggerFactory.getLogger( "AnvilWorld-" + worldDir.getName() );
+		this.worldDir = worldDir;
+	}
+	// CHECKSTYLE:ON
 
 	/**
 	 * Adds a new player to this world and schedules all world chunk packets required for spawning
@@ -80,4 +114,7 @@ public abstract class WorldAdapter implements World {
      */
     public abstract void movePlayerToChunk( int x, int z, EntityPlayer player );
 
+	public void notifyPackageChunk( int x, int z, Delegate2<Long, Packet> callback ) {
+
+	}
 }

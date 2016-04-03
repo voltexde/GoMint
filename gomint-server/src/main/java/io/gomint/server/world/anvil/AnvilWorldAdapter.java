@@ -22,6 +22,7 @@ import io.gomint.server.world.AsyncChunkPackageTask;
 import io.gomint.server.world.AsyncChunkSaveTask;
 import io.gomint.server.world.AsyncChunkTask;
 import io.gomint.server.world.ChunkAdapter;
+import io.gomint.server.world.ChunkCacheAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTStream;
@@ -64,19 +65,6 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
     // ==================================== FIELDS ==================================== //
 
-    // Shared objects
-    @Getter private final GoMintServer server;
-	private final Logger logger;
-
-    // World properties
-    private final File worldDir;
-    private String levelName;
-    private Location spawn;
-    private Map<Gamerule, Object> gamerules = new HashMap<>();
-
-    // Chunk Handling
-    private AnvilChunkCache chunkCache;
-
     // I/O
     private int regionXRead;
     private int regionZRead;
@@ -96,9 +84,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
      * @param worldDir the folder where the world should be in
      */
     AnvilWorldAdapter( final GoMintServer server, final File worldDir ) {
-        this.server = server;
-	    this.logger = LoggerFactory.getLogger( "AnvilWorld-" + worldDir.getName() );
-        this.worldDir = worldDir;
+		super( server, worldDir );
         this.chunkCache = new AnvilChunkCache( this );
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
@@ -208,7 +194,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
         // Perform regular updates:
     }
 
-    private void packageChunk( AnvilChunk chunk, Delegate2<Long, Packet> callback ) {
+    private void packageChunk( ChunkAdapter chunk, Delegate2<Long, Packet> callback ) {
         PacketWorldChunk packet = chunk.createPackagedData();
 
         PacketBuffer buffer = new PacketBuffer( packet.estimateLength() + 1 );
@@ -248,8 +234,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
         this.deflater.reset();
 
-        chunk.dirty = false;
-        chunk.cachedPacket = new SoftReference<>( batch );
+        chunk.setCachedPacket( batch );
         callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), batch );
     }
 

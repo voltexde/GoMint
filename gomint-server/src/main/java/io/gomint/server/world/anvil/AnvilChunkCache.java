@@ -31,8 +31,6 @@ import java.util.concurrent.TimeUnit;
  */
 class AnvilChunkCache extends ChunkCacheAdapter {
 
-    private static final Logger logger = LoggerFactory.getLogger( AnvilChunkCache.class );
-
 	// ==================================== FIELDS ==================================== //
 	private final AnvilWorldAdapter                         world;
 	private final LongObjMap<AnvilChunk>                    cachedChunks;
@@ -44,8 +42,7 @@ class AnvilChunkCache extends ChunkCacheAdapter {
      * @param world for which we cache chunks
      */
 	public AnvilChunkCache( final AnvilWorldAdapter world ) {
-		this.world = world;
-		this.cachedChunks = HashLongObjMaps.newMutableMap();
+		super( world );
 		this.enableAutoSave = true;
 		this.autoSaveInterval = TimeUnit.MINUTES.toMillis( 5L );
 	}

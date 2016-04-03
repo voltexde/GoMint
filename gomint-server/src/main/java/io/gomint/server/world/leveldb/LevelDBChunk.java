@@ -27,16 +27,6 @@ public class LevelDBChunk extends ChunkAdapter {
 	}
 
 	@Override
-	public void addPlayer( EntityPlayer player ) {
-
-	}
-
-	@Override
-	public void removePlayer( EntityPlayer player ) {
-
-	}
-
-	@Override
 	public boolean canBeGCed() {
 		return false;
 	}
