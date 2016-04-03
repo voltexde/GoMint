@@ -9,13 +9,16 @@ package io.gomint.server.network;
 
 import io.gomint.jraknet.Connection;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.jraknet.PacketReliability;
 import io.gomint.jraknet.ServerSocket;
 import io.gomint.jraknet.Socket;
 import io.gomint.jraknet.SocketEvent;
 import io.gomint.jraknet.SocketEventHandler;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.network.packet.Packet;
 import net.openhft.koloboke.collect.LongCursor;
 import net.openhft.koloboke.collect.ObjCursor;
+import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 import net.openhft.koloboke.collect.set.LongSet;
@@ -176,6 +179,29 @@ public class NetworkManager {
         return this.socket.getMotd();
     }
 
+	/**
+	 * Broadcasts the given packet to all players. Yields the same effect as invoking
+	 * {@link #broadcast(PacketReliability, int, Packet)} with {@link PacketReliability#RELIABLE} and
+	 * orderingChannel set to zero.
+	 *
+	 * @param packet The packet to broadcast
+	 */
+	public void broadcast( Packet packet ) {
+		this.broadcast( PacketReliability.RELIABLE, 0, packet );
+	}
+
+	/**
+	 * Broadcasts the given packet to all players.
+	 *
+	 * @param packet The packet to broadcast
+	 */
+	public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
+		LongObjCursor<PlayerConnection> cursor = this.playersByGuid.cursor();
+		while ( cursor.moveNext() ) {
+			cursor.value().send( reliability, orderingChannel, packet );
+		}
+	}
+
     // ======================================= INTERNALS ======================================= //
 
     /**
@@ -296,5 +322,7 @@ public class NetworkManager {
             this.logger.error( "Failed to dump packet " + filename );
         }
     }
+
+    // ======================================= PACKET HANDLERS ======================================= //
 
 }

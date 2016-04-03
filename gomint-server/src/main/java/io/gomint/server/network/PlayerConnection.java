@@ -307,6 +307,9 @@ public class PlayerConnection {
      */
     private void handlePacket( Packet packet ) {
         switch ( packet.getId() ) {
+            case PACKET_CHAT:
+                this.handleChat( (PacketChat) packet );
+                break;
             case PACKET_MOVE_PLAYER:
                 this.handleMovePacket( (PacketMovePlayer) packet );
                 break;
@@ -315,6 +318,22 @@ public class PlayerConnection {
                 break;
         }
     }
+
+	private void handleChat( PacketChat packet ) {
+		if ( packet.getType() != PacketChat.Type.PLAYER_CHAT ) {
+			// Players are not allowed to send any other chat messages:
+			return;
+		}
+
+		// Verify sender:
+		if ( !packet.getSender().equals( this.entity.getUsername() ) ) {
+			// Player is trying to fake messages:
+			return;
+		}
+
+		// TODO: Trigger chat event here
+		this.networkManager.broadcast( PacketReliability.RELIABLE, 0, packet );
+	}
 
     private void handleSetChunkRadius( PacketSetChunkRadius packet ) {
         // Check if the wanted Viewdistance is under the servers setting
