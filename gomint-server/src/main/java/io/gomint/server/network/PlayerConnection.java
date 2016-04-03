@@ -24,10 +24,6 @@ import net.openhft.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -307,8 +303,8 @@ public class PlayerConnection {
      */
     private void handlePacket( Packet packet ) {
         switch ( packet.getId() ) {
-            case PACKET_CHAT:
-                this.handleChat( (PacketChat) packet );
+            case PACKET_TEXT:
+                this.handleChat( (PacketText) packet );
                 break;
             case PACKET_MOVE_PLAYER:
                 this.handleMovePacket( (PacketMovePlayer) packet );
@@ -319,8 +315,8 @@ public class PlayerConnection {
         }
     }
 
-	private void handleChat( PacketChat packet ) {
-		if ( packet.getType() != PacketChat.Type.PLAYER_CHAT ) {
+	private void handleChat( PacketText packet ) {
+		if ( packet.getType() != PacketText.Type.PLAYER_CHAT ) {
 			// Players are not allowed to send any other chat messages:
 			return;
 		}

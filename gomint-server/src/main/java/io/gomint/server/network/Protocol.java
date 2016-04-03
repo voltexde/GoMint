@@ -11,7 +11,7 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketA8;
 import io.gomint.server.network.packet.PacketB9;
 import io.gomint.server.network.packet.PacketBatch;
-import io.gomint.server.network.packet.PacketChat;
+import io.gomint.server.network.packet.PacketText;
 import io.gomint.server.network.packet.PacketCraftingRecipes;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketEntityMotion;
@@ -35,7 +35,7 @@ public final class Protocol {
 	public static final byte PACKET_LOGIN                = (byte) 0x8F;
 	public static final byte PACKET_PLAY_STATE           = (byte) 0x90;
 	public static final byte PACKET_BATCH                = (byte) 0x92;
-	public static final byte PACKET_CHAT                 = (byte) 0x93;
+	public static final byte PACKET_TEXT                 = (byte) 0x93;
 	public static final byte PACKET_WORLD_TIME           = (byte) 0x94;
 	public static final byte PACKET_WORLD_INITIALIZATION = (byte) 0x95;
 	public static final byte PACKET_ENTITY_MOVEMENT      = (byte) 0x9C;
@@ -72,8 +72,8 @@ public final class Protocol {
 			case PACKET_BATCH:
 				return new PacketBatch();
 
-			case PACKET_CHAT:
-				return new PacketChat();
+			case PACKET_TEXT:
+				return new PacketText();
 
 			case PACKET_WORLD_TIME:
 				return new PacketWorldTime();
