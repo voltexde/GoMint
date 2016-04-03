@@ -136,29 +136,30 @@ class AnvilChunkCache extends ChunkCacheAdapter {
 		            continue;
 	            }
 
-	            if ( chunk.getLastSavedTimestamp() + this.autoSaveInterval < currentTimeMS ) {
+	            boolean readyForGC = false;
+	            if ( !viewDistanceSet.contains( chunkHash ) ) {
+		            // Skip if this chunk is a spawn chunk
+		            boolean isSpawnChunk = false;
+		            IntPair intPair = CoordinateUtils.toIntPair( chunkHash );
+		            if ( this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea() > 0 ) {
+			            if ( intPair.getX() <= spawnXChunk + spawnAreaSize && intPair.getZ() <= spawnZChunk + spawnAreaSize ) {
+				            isSpawnChunk = true;
+			            }
+		            }
+
+		            // Ask this chunk if he wants to be gced
+		            if ( !isSpawnChunk && chunk.canBeGCed() ) {
+			            readyForGC = true;
+		            }
+	            }
+
+	            if ( readyForGC || chunk.getLastSavedTimestamp() + this.autoSaveInterval < currentTimeMS ) {
 		            this.world.saveChunkAsynchronously( chunk );
 		            chunk.setLastSavedTimestamp( currentTimeMS );
 	            }
 
-                // Fast skip if chunk is whitelisted cause of view distance
-                if ( viewDistanceSet.contains( chunkHash ) ) {
-                    continue;
-                }
-
-                IntPair intPair = CoordinateUtils.toIntPair( chunkHash );
-
-                // Skip if this chunk is a spawn chunk
-                if ( this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea() > 0 ) {
-                    if ( intPair.getX() <= spawnXChunk + spawnAreaSize && intPair.getZ() <= spawnZChunk + spawnAreaSize ) {
-                        continue;
-                    }
-                }
-
                 // Ask this chunk if he wants to be gced
-                if ( chunk.canBeGCed() ) {
-                    logger.debug( "Removed chunk " + intPair.getX() + "; " + intPair.getZ() + ": Chunk can be gced" );
-	                this.world.saveChunkAsynchronously( chunk );
+                if ( readyForGC ) {
                     this.cachedChunks.remove( chunkHash );
                 }
             }
