@@ -15,7 +15,6 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.util.Color;
-import io.gomint.server.world.anvil.NibbleArray;
 import io.gomint.world.Biome;
 import io.gomint.world.Block;
 import io.gomint.world.Chunk;

@@ -18,16 +18,14 @@ import io.gomint.server.util.IntPair;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.World;
+
 import net.openhft.koloboke.collect.LongCursor;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -180,10 +178,6 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     public void sendWorldChunk( long chunkHash, Packet chunkData ) {
-        IntPair intPair = CoordinateUtils.toIntPair( chunkHash );
-
-        logger.debug( "Sending chunk " + intPair.getX() + "; " + intPair.getZ() );
-
         this.send( chunkData );
 
         synchronized ( this.playerChunks ) {

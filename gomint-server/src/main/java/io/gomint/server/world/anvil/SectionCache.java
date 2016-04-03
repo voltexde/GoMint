@@ -7,6 +7,8 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.server.world.NibbleArray;
+
 import lombok.Data;
 
 /**

@@ -7,33 +7,19 @@
 
 package io.gomint.server.world.anvil;
 
-import io.gomint.jraknet.PacketBuffer;
-import io.gomint.math.MathUtils;
-import io.gomint.server.async.Delegate2;
-import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.packet.Packet;
-import io.gomint.server.network.packet.PacketWorldChunk;
-import io.gomint.server.util.Color;
 import io.gomint.server.world.ChunkAdapter;
-import io.gomint.server.world.CoordinateUtils;
+import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.PEWorldConstraints;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
 import io.gomint.taglib.NBTTagCompound;
-import io.gomint.taglib.NBTWriter;
-import io.gomint.world.Biome;
-import io.gomint.world.Block;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.ref.SoftReference;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author BlackyPaw
@@ -42,25 +28,15 @@ import java.util.concurrent.TimeUnit;
 class AnvilChunk extends ChunkAdapter {
 
     /**
-     * Generate a new Chunk with no blocks.
-     *
-     * @param world The world in which this Chunk resides
-     */
-    public AnvilChunk( AnvilWorldAdapter world ) {
-        this.world = world;
-        this.lastSavedTimestamp = System.currentTimeMillis();
-        this.loadedTime = this.lastSavedTimestamp;
-        Arrays.fill( this.biomes, (byte) 1 );
-    }
-
-    /**
      * Load a Chunk from a NBTTagCompund. This is used when loaded from a Regionfile.
      *
      * @param world     The world in which this Chunk resides
      * @param nbtStream The NBT Stream which reads and emits data from the chunk
      */
-    public AnvilChunk( AnvilWorldAdapter world, NBTStream nbtStream ) {
-        this( world );
+    AnvilChunk( AnvilWorldAdapter world, NBTStream nbtStream ) {
+        this.world = world;
+        this.lastSavedTimestamp = System.currentTimeMillis();
+        this.loadedTime = this.lastSavedTimestamp;
         this.loadFromNBT( nbtStream );
         this.dirty = false;
     }
@@ -73,7 +49,7 @@ class AnvilChunk extends ChunkAdapter {
      * @param out The output stream to write the chunk data to.
      * @throws IOException Thrown in case the chunk could not be stored
      */
-    public void saveToNBT( OutputStream out ) throws IOException {
+    void saveToNBT( OutputStream out ) throws IOException {
         NBTTagCompound chunk = new NBTTagCompound( "" );
 
         NBTTagCompound level = new NBTTagCompound( "Level" );
@@ -165,7 +141,6 @@ class AnvilChunk extends ChunkAdapter {
 		                break;
                     default:
                         if ( path.startsWith( ".Level.Sections" ) ) {
-	                        System.out.println( path );
                             // Parse the index
                             String[] split = path.split( "\\." );
                             int sectionIndex = Integer.parseInt( split[3] );
@@ -205,6 +180,8 @@ class AnvilChunk extends ChunkAdapter {
                                     break;
                                 case "SkyLight":
                                     section.setSkyLight( new NibbleArray( (byte[]) object ) );
+                                    break;
+                                default:
                                     break;
                             }
                         }
