@@ -7,15 +7,14 @@
 
 package io.gomint.entity;
 
-import io.gomint.command.CommandSender;
-
 import java.util.UUID;
 
 /**
  * @author BlackyPaw
  * @author Digot
  */
-public interface Player extends Entity, CommandSender {
+public interface Player extends Entity {
+
     /**
      * Gets the name of the player. It is NOT globally unique since the
      * player can change it inside the Client. Yet it is unique for all
@@ -32,9 +31,5 @@ public interface Player extends Entity, CommandSender {
 	 * @return The player's UUID.
 	 */
 	UUID getUUID();
-    
-    void sendPopup(String message);
-    void sendPopup(String message, String submessage);
-    void sendTip(String message);
     
 }
