@@ -19,6 +19,7 @@ import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.world.AsyncChunkLoadTask;
 import io.gomint.server.world.AsyncChunkPackageTask;
+import io.gomint.server.world.AsyncChunkSaveTask;
 import io.gomint.server.world.AsyncChunkTask;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
@@ -32,6 +33,8 @@ import lombok.Getter;
 
 import net.openhft.koloboke.collect.map.ObjObjMap;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -63,6 +66,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
     // Shared objects
     @Getter private final GoMintServer server;
+	private final Logger logger;
 
     // World properties
     private final File worldDir;
@@ -93,6 +97,7 @@ public class AnvilWorldAdapter extends WorldAdapter {
      */
     AnvilWorldAdapter( final GoMintServer server, final File worldDir ) {
         this.server = server;
+	    this.logger = LoggerFactory.getLogger( "AnvilWorld-" + worldDir.getName() );
         this.worldDir = worldDir;
         this.chunkCache = new AnvilChunkCache( this );
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
@@ -158,7 +163,12 @@ public class AnvilWorldAdapter extends WorldAdapter {
     }
 
     @Override
-    public void tick() {
+    public void tick( long currentTimeMS ) {
+	    // ---------------------------------------
+	    // Save all chunks that should be saved to prevent
+	    // data loss:
+
+
         // ---------------------------------------
         // Tick the chunk cache to get rid of Chunks
         this.chunkCache.tick();
@@ -437,6 +447,9 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
                     case SAVE:
                         // TODO: Implement saving chunks
+	                    AsyncChunkSaveTask save = (AsyncChunkSaveTask) task;
+	                    chunk = ( (AnvilChunk) save.getChunk() );
+                        this.saveChunk( chunk );
                         break;
 
                     default:
@@ -498,6 +511,41 @@ public class AnvilWorldAdapter extends WorldAdapter {
         }
         return chunk;
     }
+
+	/**
+	 * Saves the given chunk to its respective region file. The respective region file
+	 * is created automatically if it does not yet exist.
+	 *
+	 * @param chunk The chunk to be saved
+	 */
+	private void saveChunk( AnvilChunk chunk ) {
+		if ( chunk == null ) {
+			return;
+		}
+
+		int chunkX = chunk.getX();
+		int chunkZ = chunk.getZ();
+		int regionX = CoordinateUtils.fromChunkToRegion( chunkX );
+		int regionZ = CoordinateUtils.fromChunkToRegion( chunkZ );
+
+		try {
+			RegionFile regionFile = null;
+			if ( this.regionFileRead != null && this.regionXRead == regionX && this.regionZRead == regionZ ) {
+				regionFile = this.regionFileRead;
+			}
+
+			if ( regionFile == null ) {
+				this.regionFileRead = new RegionFile( this, new File( this.worldDir, String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) ) );
+				this.regionXRead = regionX;
+				this.regionZRead = regionZ;
+				regionFile = this.regionFileRead;
+			}
+
+			regionFile.saveChunk( chunk, true );
+		} catch ( IOException e ) {
+			this.logger.error( "Failed to save chunk to region file", e );
+		}
+	}
 
     /**
      * Loads an anvil world given the path to the world's directory. This operation

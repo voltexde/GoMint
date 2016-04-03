@@ -19,10 +19,15 @@ import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.PEWorldConstraints;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
+import io.gomint.taglib.NBTTagCompound;
+import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
 import io.gomint.world.Block;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.ref.SoftReference;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,6 +57,7 @@ class AnvilChunk extends ChunkAdapter {
     // Chunk
     private int x;
     private int z;
+	private long inhabitedTime;
 
     // Biomes
     private byte[] biomes = new byte[16 * 16];
@@ -67,7 +73,8 @@ class AnvilChunk extends ChunkAdapter {
     // Players / Chunk GC
     private List<EntityPlayer> players = new ArrayList<>();
     private long lastPlayerOnThisChunk;
-    private long loadedTime = System.currentTimeMillis();
+    private long loadedTime;
+    private long lastSavedTimestamp;
 
     /**
      * Generate a new Chunk with no blocks.
@@ -76,6 +83,8 @@ class AnvilChunk extends ChunkAdapter {
      */
     public AnvilChunk( AnvilWorldAdapter world ) {
         this.world = world;
+        this.lastSavedTimestamp = System.currentTimeMillis();
+        this.loadedTime = this.lastSavedTimestamp;
         Arrays.fill( this.biomes, (byte) 1 );
     }
 
@@ -173,7 +182,7 @@ class AnvilChunk extends ChunkAdapter {
      * @return The ID of the block
      */
     public byte getBlock( int x, int y, int z ) {
-        return this.blocks[( x << 11 ) | ( z << 7 ) | y];
+        return this.blocks[( x * 2048 ) + ( z * 128 ) + y];
     }
 
     /**
@@ -198,7 +207,7 @@ class AnvilChunk extends ChunkAdapter {
      * @return The data value of the block
      */
     public byte getData( int x, int y, int z ) {
-        return this.data.get( ( x << 11 ) | ( z << 7 ) | y );
+        return this.data.get( ( x * 2048 ) + ( z * 128 ) + y );
     }
 
     /**
@@ -209,7 +218,7 @@ class AnvilChunk extends ChunkAdapter {
      * @param height The maximum block height
      */
     private void setHeight( int x, int z, byte height ) {
-        this.height.set( ( x << 4 ) | z, height );
+        this.height.set( ( x << 4 ) + z, height );
         this.dirty = true;
     }
 
@@ -222,7 +231,7 @@ class AnvilChunk extends ChunkAdapter {
      * @return The maximum block height
      */
     public byte getHeight( int x, int z ) {
-        return this.height.get( ( x << 4 ) | z );
+        return this.height.get( ( x << 4 ) + z );
     }
 
     /**
@@ -247,7 +256,7 @@ class AnvilChunk extends ChunkAdapter {
      * @return The block's lighting value
      */
     public byte getBlockLight( int x, int y, int z ) {
-        return this.blockLight.get( ( x << 11 ) | ( z << 7 ) | y );
+        return this.blockLight.get( ( x * 2048 ) + ( z * 128 ) + y );
     }
 
     /**
@@ -272,7 +281,7 @@ class AnvilChunk extends ChunkAdapter {
      * @return The block's lighting value
      */
     public byte getSkyLight( int x, int y, int z ) {
-        return this.skyLight.get( ( x << 11 ) | ( z << 7 ) | y );
+        return this.skyLight.get( ( x * 2048 ) + ( z * 128 ) + y );
     }
 
     /**
@@ -283,7 +292,7 @@ class AnvilChunk extends ChunkAdapter {
      * @param biome The biome to set
      */
     private void setBiome( int x, int z, Biome biome ) {
-        this.biomes[( x << 4 ) | z] = (byte) biome.getId();
+        this.biomes[( x << 4 ) + z] = (byte) biome.getId();
         this.dirty = true;
     }
 
@@ -295,7 +304,7 @@ class AnvilChunk extends ChunkAdapter {
      * @return The block column's biome
      */
     public Biome getBiome( int x, int z ) {
-        return Biome.getBiomeById( this.biomes[( x << 4 ) | z] );
+        return Biome.getBiomeById( this.biomes[( x << 4 ) + z] );
     }
 
     /**
@@ -308,7 +317,7 @@ class AnvilChunk extends ChunkAdapter {
      * @param b The blue to set
      */
     public void setBiomeColorRGB( int x, int z, byte r, byte g, byte b ) {
-        int basisIndex = ( x << 4 ) | z;
+        int basisIndex = ( x << 4 ) + z;
 
         this.biomeColors[basisIndex * 3] = r;
         this.biomeColors[basisIndex * 3 + 1] = g;
@@ -325,7 +334,7 @@ class AnvilChunk extends ChunkAdapter {
      * @return The block column's color
      */
     public int getBiomeColorRGB( int x, int z ) {
-        int basisIndex = ( x << 4 ) | z;
+        int basisIndex = ( x << 4 ) + z;
 
         byte r = this.biomeColors[basisIndex * 3];
         byte g = this.biomeColors[basisIndex * 3 + 1];
@@ -400,6 +409,90 @@ class AnvilChunk extends ChunkAdapter {
 
     // ==================================== I/O ==================================== //
 
+	/**
+	 * Gets the time at which this chunk was last written out to disk.
+	 *
+	 * @return The timestamp this chunk was last written out at
+	 */
+	public long getLastSavedTimestamp() {
+		return this.lastSavedTimestamp;
+	}
+
+	/**
+	 * Sets the timestamp on which this chunk was last written out to disk.
+	 *
+	 * @param timestamp The timestamp to set
+	 */
+	public void setLastSavedTimestamp( long timestamp ) {
+		this.lastSavedTimestamp = timestamp;
+	}
+
+	/**
+     * Writes the chunk's raw NBT data to the given output stream.
+     *
+     * @param out The output stream to write the chunk data to.
+     * @throws IOException Thrown in case the chunk could not be stored
+     */
+    public void saveToNBT( OutputStream out ) throws IOException {
+        NBTTagCompound chunk = new NBTTagCompound( "" );
+
+        NBTTagCompound level = new NBTTagCompound( "Level" );
+	    level.addValue( "LightPopulated", (byte) 1 );
+	    level.addValue( "TerrainPopulated", (byte) 1 );
+	    level.addValue( "V", (byte) 1 );
+	    level.addValue( "xPos", this.x );
+	    level.addValue( "zPos", this.z );
+	    level.addValue( "InhabitedTime", this.inhabitedTime );
+	    level.addValue( "LastUpdate", 0L );
+	    level.addValue( "Biomes", this.biomes );
+
+	    int[] heightmap = new int[256];
+	    for ( int i = 0; i < this.height.length(); ++i ) {
+		    heightmap[i] = this.height.get( i );
+	    }
+	    level.addValue( "HeightMap", heightmap );
+
+	    List<NBTTagCompound> sections = new ArrayList<>( 8 );
+
+	    for ( int sectionY = 0; sectionY < 8; ++sectionY ) {
+		    byte[] blocks = new byte[4096];
+		    NibbleArray data = new NibbleArray( 4096 );
+		    NibbleArray blockLight = new NibbleArray( 4096 );
+		    NibbleArray skyLight = new NibbleArray( 4096 );
+		    int baseIndex = sectionY * 16;
+		    for ( int y = baseIndex; y < baseIndex + 16; ++y ) {
+			    for ( int x = 0; x < 16; ++x ) {
+				    for ( int z = 0; z < 16; ++z ) {
+					    int blockIndex = (y - baseIndex) << 8 | z << 4 | x;
+
+					    byte blockId = this.getBlock( x, y, z );
+					    byte blockData = this.getData( x, y, z );
+
+					    blocks[blockIndex] = AnvilBlockConverter.revertBlockID( blockId, blockData );
+					    data.set( blockIndex, AnvilBlockConverter.revertBlockData( blockId, blockData ) );
+					    blockLight.set( blockIndex, this.getBlockLight( x, y, z ) );
+					    skyLight.set( blockIndex, this.getSkyLight( x, y, z ) );
+				    }
+			    }
+		    }
+
+		    NBTTagCompound section = new NBTTagCompound( "" );
+		    section.addValue( "Y", sectionY );
+		    section.addValue( "Blocks", blocks );
+		    section.addValue( "Data", data.toByteArray() );
+		    section.addValue( "BlockLight", blockLight.toByteArray() );
+		    section.addValue( "SkyLight", skyLight.toByteArray() );
+		    sections.add( section );
+	    }
+
+	    level.addValue( "Sections", sections );
+	    level.addValue( "Entities", new ArrayList( 0 ) );
+	    level.addValue( "TileEntities", new ArrayList( 0 ) );
+
+	    chunk.addChild( level );
+	    chunk.writeTo( out, false, ByteOrder.BIG_ENDIAN );
+    }
+
     /**
      * Loads the chunk from the specified NBTTagCompound
      *
@@ -427,6 +520,9 @@ class AnvilChunk extends ChunkAdapter {
                     case ".Level.Biomes":
                         AnvilChunk.this.biomes = (byte[]) object;
                         break;
+	                case ".Level.InhabitedTime":
+		                AnvilChunk.this.inhabitedTime = (long) object;
+		                break;
                     default:
                         if ( path.startsWith( ".Level.Sections" ) ) {
                             // Parse the index
@@ -469,12 +565,7 @@ class AnvilChunk extends ChunkAdapter {
                                 case "SkyLight":
                                     section.setSkyLight( new NibbleArray( (byte[]) object ) );
                                     break;
-                                default:
-                                    System.out.println( split[4] );
-                                    break;
                             }
-                        } else {
-                            System.out.println( path );
                         }
                 }
             }
@@ -492,6 +583,7 @@ class AnvilChunk extends ChunkAdapter {
         // Load last section and calc biome colors
         this.loadSection( section );
         this.calculateBiomeColors();
+	    this.calculateHeightmap();
     }
 
     /**
