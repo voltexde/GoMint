@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package io.gomint.server.world.anvil;
+package io.gomint.server.world;
 
 /**
  * @author BlackyPaw

@@ -110,6 +110,13 @@ class RegionFile {
 		return anvilChunk;
 	}
 
+    /**
+     * Write a chunk into this regionfile
+     *
+     * @param chunk             The chunk which should be written to the region file
+     * @param writeTimestamp    Boolean which decides whether or not to write the timestamp
+     * @throws IOException A exception which get thrown when a I/O error occurred
+     */
 	public void saveChunk( AnvilChunk chunk, boolean writeTimestamp ) throws IOException {
 		int x = chunk.getX();
 		int z = chunk.getZ();

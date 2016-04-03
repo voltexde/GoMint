@@ -24,6 +24,7 @@ import java.util.List;
  * @version 1.0
  */
 public class WorldManager {
+
     private static final Logger logger = LoggerFactory.getLogger( WorldManager.class );
 	private final GoMintServer server;
 	private List<WorldAdapter> loadedWorlds;
@@ -103,8 +104,8 @@ public class WorldManager {
 
 		if ( file.isDirectory() ) {
 			// Anvil world:
-			File levelDat = new File( file, "level.dat" );
-			if ( levelDat.exists() && levelDat.isFile() ) {
+			File regionFolder = new File( file, "region" );
+			if ( regionFolder.exists() && regionFolder.isDirectory() ) {
 				logger.info( "Detected anvil world '" + path + "'" );
 				this.loadAnvilWorld( file );
 				return;

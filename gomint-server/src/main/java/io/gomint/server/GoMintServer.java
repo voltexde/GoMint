@@ -8,21 +8,18 @@
 package io.gomint.server;
 
 import io.gomint.GoMint;
-import io.gomint.inventory.ItemStack;
 import io.gomint.plugin.PluginManager;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
-import io.gomint.server.crafting.ShapedRecipe;
-import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
-import io.gomint.taglib.NBTTagCompound;
+
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +28,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
-import java.nio.ByteOrder;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;

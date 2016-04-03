@@ -17,7 +17,7 @@ import net.openhft.koloboke.collect.map.hash.HashByteObjMaps;
  * @author geNAZt
  * @version 1.1
  */
-public final class AnvilBlockConverter {
+final class AnvilBlockConverter {
 
 	/**
 	 * Array holding all 256 values for blocks IDs so that basically anvil ids are merely
@@ -819,7 +819,7 @@ public final class AnvilBlockConverter {
 	 *
 	 * @return The ID of the block expressed in MCPE's IDs
 	 */
-	public static int convertBlockID( int blockId, byte blockData ) {
+	static int convertBlockID( int blockId, byte blockData ) {
 		if ( blockId < 0 || blockId >= CONVERSION_IDS.length ) {
 			return 0; // Return Air for invalid block IDs
 		}
@@ -842,7 +842,7 @@ public final class AnvilBlockConverter {
 	 *
 	 * @return The anvil block ID
 	 */
-	public static byte revertBlockID( int blockId, byte blockData ) {
+	static byte revertBlockID( int blockId, byte blockData ) {
 		if ( blockId < 0 || blockId >= CONVERSION_IDS.length ) {
 			return 0; // Return Air for invalid block IDs
 		}
@@ -860,6 +860,8 @@ public final class AnvilBlockConverter {
 					return (byte) 191;
 				case 5:
 					return (byte) 192;
+                default:
+                    break;
 			}
 		}
 
@@ -874,7 +876,7 @@ public final class AnvilBlockConverter {
 	 *
 	 * @return The respective data value of the block expressed in MCPE's values
 	 */
-	public static byte convertBlockData( int blockId, byte blockData ) {
+	static byte convertBlockData( int blockId, byte blockData ) {
 		if ( blockId < 0 || blockId >= CONVERSION_IDS.length ) {
 			return 0; // Return Air for invalid block IDs
 		}

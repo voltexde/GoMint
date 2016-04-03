@@ -56,6 +56,11 @@
             <artifactId>taglib</artifactId>
             <version>1.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.tinfoiled.mcpe.leveldb</groupId>
+            <artifactId>leveldb</artifactId>
+            <version>0.8</version>
+        </dependency>
     </dependencies>
 
     <build>
