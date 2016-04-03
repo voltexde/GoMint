@@ -17,7 +17,7 @@ import net.openhft.koloboke.collect.map.hash.HashByteObjMaps;
  * @author geNAZt
  * @version 1.1
  */
-public final class AnvilBlockConverter {
+final class AnvilBlockConverter {
 
 	/**
 	 * Array holding all 256 values for blocks IDs so that basically anvil ids are merely
