@@ -7,13 +7,15 @@
 
 package io.gomint.server.world.leveldb;
 
-import io.gomint.server.async.Delegate2;
-import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.packet.Packet;
 import io.gomint.server.world.ChunkAdapter;
-import io.gomint.world.Block;
+import io.gomint.server.world.NibbleArray;
+import io.gomint.server.world.PEWorldConstraints;
+import io.gomint.server.world.WorldAdapter;
 
-import java.util.Collection;
+import java.awt.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 /**
  * @author geNAZt
@@ -21,24 +23,52 @@ import java.util.Collection;
  */
 public class LevelDBChunk extends ChunkAdapter {
 
-	@Override
-	public void packageChunk( Delegate2<Long, Packet> callback ) {
+    public LevelDBChunk( WorldAdapter worldAdapter, byte[] chunkData, int x, int z ) {
+        this.world = worldAdapter;
+        this.x = x;
+        this.z = z;
 
-	}
+        // Load chunk
+        this.loadChunk( chunkData );
+        this.calculateBiomeColors();
+        this.calculateHeightmap();
+    }
 
-	@Override
-	public boolean canBeGCed() {
-		return false;
-	}
+    private void loadChunk( byte[] chunkData ) {
+        // Wrap data and read blocks
+        ByteBuffer buffer = ByteBuffer.wrap( chunkData ).order( ByteOrder.BIG_ENDIAN );
+        buffer.get( this.blocks );
 
-	@Override
-	public Collection<EntityPlayer> getPlayers() {
-		return null;
-	}
+        // Read in data
+        byte[] data = new byte[16384];
+        buffer.get( data );
+        this.data = new NibbleArray( data );
 
-	@Override
-	public Block getBlockAt( int x, int y, int z ) {
-		return null;
-	}
+        // Read in skylight
+        byte[] skyLight = new byte[16384];
+        buffer.get( skyLight );
+        this.skyLight = new NibbleArray( skyLight );
+
+        // Read in blocklight
+        byte[] blockLight = new byte[16384];
+        buffer.get( blockLight );
+        this.blockLight = new NibbleArray( blockLight );
+
+        // Read in height
+        for ( int i = 0; i < 256; i++ ) {
+            this.height.set( i, buffer.get() );
+        }
+
+        // Read in color
+        int c = 0;
+        for ( int i = 0; i < 256; i++ ) {
+            int biome = buffer.getInt();
+            Color color = new Color( biome );
+            this.biomes[i] = (byte) (biome >> 24);
+            this.biomeColors[c++] = (byte) color.getRed();
+            this.biomeColors[c++] = (byte) color.getGreen();
+            this.biomeColors[c++] = (byte) color.getBlue();
+        }
+    }
 
 }

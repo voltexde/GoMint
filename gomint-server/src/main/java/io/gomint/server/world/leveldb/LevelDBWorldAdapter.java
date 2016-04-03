@@ -12,7 +12,6 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCache;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.anvil.AnvilWorldAdapter;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
 
@@ -47,10 +46,25 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         try {
             this.loadLevelDat();
             this.db = Iq80DBFactory.factory.open( new File( this.worldDir, "db" ), new Options().createIfMissing( true ) );
+            this.prepareSpawnRegion();
         } catch ( Exception e ) {
             e.printStackTrace();
         }
         // CHECKSTYLE:ON
+    }
+
+    private byte[] getTerrainKey( int chunkX, int chunkZ ) {
+        return new byte[]{
+                (byte) ( chunkX & 0xFF ),
+                (byte) ( ( chunkX >>> 8 ) & 0xFF ),
+                (byte) ( ( chunkX >>> 16 ) & 0xFF ),
+                (byte) ( ( chunkX >>> 24 ) & 0xFF ),
+                (byte) ( chunkZ & 0xFF ),
+                (byte) ( ( chunkZ >>> 8 ) & 0xFF ),
+                (byte) ( ( chunkZ >>> 16 ) & 0xFF ),
+                (byte) ( ( chunkZ >>> 24 ) & 0xFF ),
+                (byte) 0x30
+        };
     }
 
     private void loadLevelDat() throws Exception {
@@ -71,7 +85,6 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             nbtStream.addListener( new NBTStreamListener() {
                 @Override
                 public void onNBTValue( String path, Object value ) throws Exception {
-                    System.out.println( path );
                     switch ( path ) {
                         case ".LevelName":
                             LevelDBWorldAdapter.this.levelName = (String) value;
@@ -96,7 +109,18 @@ public class LevelDBWorldAdapter extends WorldAdapter {
 
     @Override
     protected ChunkAdapter loadChunk( int x, int z, boolean generate ) {
-        return null;
+        ChunkAdapter chunk = this.chunkCache.getChunk( x, z );
+        if ( chunk == null ) {
+            byte[] chunkData = this.db.get( this.getTerrainKey( x, z ) );
+            if ( chunkData != null ) {
+                chunk = new LevelDBChunk( this, chunkData, x, z );
+                this.chunkCache.putChunk( chunk );
+            } else if ( generate ) {
+                // TODO: Implement chunk generation here
+            }
+        }
+
+        return chunk;
     }
 
     @Override
