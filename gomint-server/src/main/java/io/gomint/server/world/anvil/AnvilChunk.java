@@ -477,11 +477,11 @@ class AnvilChunk extends ChunkAdapter {
 		    }
 
 		    NBTTagCompound section = new NBTTagCompound( "" );
-		    section.addValue( "Y", sectionY );
+		    section.addValue( "Y", (byte) sectionY );
 		    section.addValue( "Blocks", blocks );
-		    section.addValue( "Data", data.toByteArray() );
-		    section.addValue( "BlockLight", blockLight.toByteArray() );
-		    section.addValue( "SkyLight", skyLight.toByteArray() );
+		    section.addValue( "Data", data.raw() );
+		    section.addValue( "BlockLight", blockLight.raw() );
+		    section.addValue( "SkyLight", skyLight.raw() );
 		    sections.add( section );
 	    }
 
@@ -525,6 +525,7 @@ class AnvilChunk extends ChunkAdapter {
 		                break;
                     default:
                         if ( path.startsWith( ".Level.Sections" ) ) {
+	                        System.out.println( path );
                             // Parse the index
                             String[] split = path.split( "\\." );
                             int sectionIndex = Integer.parseInt( split[3] );

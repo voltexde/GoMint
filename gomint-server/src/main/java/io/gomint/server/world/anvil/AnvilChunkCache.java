@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.ref.SoftReference;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author BlackyPaw
@@ -34,7 +35,9 @@ class AnvilChunkCache extends ChunkCacheAdapter {
 
 	// ==================================== FIELDS ==================================== //
 	private final AnvilWorldAdapter                         world;
-	private final LongObjMap<SoftReference<AnvilChunk>>     cachedChunks;
+	private final LongObjMap<AnvilChunk>                    cachedChunks;
+	private boolean enableAutoSave;
+	private long autoSaveInterval;
 
     /**
      * New cache for Anvil format Chunks
@@ -43,6 +46,45 @@ class AnvilChunkCache extends ChunkCacheAdapter {
 	public AnvilChunkCache( final AnvilWorldAdapter world ) {
 		this.world = world;
 		this.cachedChunks = HashLongObjMaps.newMutableMap();
+		this.enableAutoSave = true;
+		this.autoSaveInterval = TimeUnit.MINUTES.toMillis( 5L );
+	}
+
+	/**
+	 * Sets whether or not the auto-save feature should be enabled, i.e. whether or not
+	 * chunks should be saved automatically in regular intervals.
+	 *
+	 * @param autoSave Whether or not to enable the auto-save feature
+	 */
+	public void setEnableAutosave( boolean autoSave ) {
+		this.enableAutoSave = autoSave;
+	}
+
+	/**
+	 * Checks whether or not the auto-save feature is enabled.
+	 *
+	 * @return Whether or not the auto-save feature is enabled
+	 */
+	public boolean isAutosaveEnabled() {
+		return this.enableAutoSave;
+	}
+
+	/**
+	 * Gets the interval in milliseconds in which chunks get saved automatically.
+	 *
+	 * @param interval The interval in which to save chunks
+	 */
+	public void setAutoSaveInterval( long interval ) {
+		this.autoSaveInterval = interval;
+	}
+
+	/**
+	 * Gets the interval in milliseconds in which chunks get saved automatically.
+	 *
+	 * @return The auto-save interval
+	 */
+	public long getAutoSaveInterval() {
+		return this.autoSaveInterval;
 	}
 
 	// ==================================== CHUNK CACHE ==================================== //
@@ -58,21 +100,12 @@ class AnvilChunkCache extends ChunkCacheAdapter {
 	public AnvilChunk getChunk( int x, int z ) {
         synchronized ( this.cachedChunks ) {
             long chunkHash = CoordinateUtils.toLong( x, z );
-
-            SoftReference<AnvilChunk> reference = this.cachedChunks.get( chunkHash );
-            if ( reference == null ) return null;
-
-            AnvilChunk chunk = reference.get();
-            if ( chunk == null ) {
-                this.cachedChunks.remove( chunkHash );
-            }
-
-            return chunk;
+            return this.cachedChunks.get( chunkHash );
         }
 	}
 
     @Override
-    public void tick() {
+    public void tick( long currentTimeMS ) {
         int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.world.getSpawnLocation().getX() );
         int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.world.getSpawnLocation().getZ() );
 
@@ -98,6 +131,16 @@ class AnvilChunkCache extends ChunkCacheAdapter {
             while ( longs.moveNext() ) {
                 long chunkHash = longs.elem();
 
+	            AnvilChunk chunk = this.cachedChunks.get( chunkHash );
+	            if ( chunk == null ) {
+		            continue;
+	            }
+
+	            if ( chunk.getLastSavedTimestamp() + this.autoSaveInterval < currentTimeMS ) {
+		            this.world.saveChunkAsynchronously( chunk );
+		            chunk.setLastSavedTimestamp( currentTimeMS );
+	            }
+
                 // Fast skip if chunk is whitelisted cause of view distance
                 if ( viewDistanceSet.contains( chunkHash ) ) {
                     continue;
@@ -112,22 +155,10 @@ class AnvilChunkCache extends ChunkCacheAdapter {
                     }
                 }
 
-                // Check if there is any chunk specific reasons against a GC
-                SoftReference<AnvilChunk> chunkSoftReference = this.cachedChunks.get( chunkHash );
-                if ( chunkSoftReference == null ) continue; // Chunk already has been gced? o.O
-
-                AnvilChunk chunk = chunkSoftReference.get();
-
-                // If the JVM decided it needed the space we can remove the reference to the chunk completely
-                if ( chunk == null ) {
-                    logger.debug( "Removed chunk " + intPair.getX() + "; " + intPair.getZ() + ": The JVM cleared this chunk" );
-                    this.cachedChunks.remove( chunkHash );
-                    continue;
-                }
-
                 // Ask this chunk if he wants to be gced
                 if ( chunk.canBeGCed() ) {
                     logger.debug( "Removed chunk " + intPair.getX() + "; " + intPair.getZ() + ": Chunk can be gced" );
+	                this.world.saveChunkAsynchronously( chunk );
                     this.cachedChunks.remove( chunkHash );
                 }
             }
@@ -141,7 +172,7 @@ class AnvilChunkCache extends ChunkCacheAdapter {
 	 */
 	void putChunk( AnvilChunk chunk ) {
         synchronized ( this.cachedChunks ) {
-            this.cachedChunks.put( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), new SoftReference<>( chunk ) );
+            this.cachedChunks.put( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk );
         }
 	}
 }

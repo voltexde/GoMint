@@ -178,7 +178,7 @@ public class GoMintServer implements GoMint {
 
 				// Tick all major subsystems:
 				this.networkManager.tick();
-				this.worldManager.tick();
+				this.worldManager.tick( System.currentTimeMillis() );
 
 				// Increase the tick
 				this.currentTick++;

@@ -33,7 +33,9 @@ public abstract class ChunkCacheAdapter {
 
     /**
      * Ticking for Chunk GC
+     *
+     * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
      */
-    public abstract void tick();
+    public abstract void tick( long currentTimeMS );
 
 }

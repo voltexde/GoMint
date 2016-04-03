@@ -61,6 +61,12 @@ public class ServerConfig extends SimpleConfig {
     @Comment("Amount of seconds to wait after the chunk has come into the cache before we can select it for gc.")
     private int waitAfterLoadForGCSeconds = 30;
 
+	@Comment( "Whether or not the world should be saved automatically on a regular basis" )
+	private boolean autoSave = true;
+
+	@Comment( "The auto-save interval in which chunks should be saved automatically in milliseconds" )
+	private int autoSaveInterval = 300000;
+
     // ------------------------ Advanced Performance Settings
     @Comment( "Amount of Ticks per second which should be used to drive this server." )
     private int targetTPS = 64;

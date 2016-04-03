@@ -40,10 +40,12 @@ public class WorldManager {
 
 	/**
 	 * Ticks all worlds that are currently loaded.
+	 *
+	 * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
 	 */
-	public void tick() {
+	public void tick( long currentTimeMS ) {
         for ( WorldAdapter worldAdapter : this.loadedWorlds ) {
-            worldAdapter.tick();
+            worldAdapter.tick( currentTimeMS );
         }
     }
 

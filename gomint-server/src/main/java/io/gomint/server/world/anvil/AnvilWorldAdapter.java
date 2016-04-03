@@ -104,6 +104,9 @@ public class AnvilWorldAdapter extends WorldAdapter {
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
         this.deflater = new Deflater( Deflater.DEFAULT_COMPRESSION );
         this.players = HashObjObjMaps.newMutableMap();
+
+	    this.chunkCache.setEnableAutosave( this.server.getServerConfig().isAutoSave() );
+	    this.chunkCache.setAutoSaveInterval( this.server.getServerConfig().getAutoSaveInterval() );
     }
 
     // ==================================== WORLD ADAPTER ==================================== //
@@ -164,14 +167,9 @@ public class AnvilWorldAdapter extends WorldAdapter {
 
     @Override
     public void tick( long currentTimeMS ) {
-	    // ---------------------------------------
-	    // Save all chunks that should be saved to prevent
-	    // data loss:
-
-
         // ---------------------------------------
         // Tick the chunk cache to get rid of Chunks
-        this.chunkCache.tick();
+        this.chunkCache.tick( currentTimeMS );
 
         // ---------------------------------------
         // Chunk packages are done in main thread in order to be able to
@@ -446,7 +444,6 @@ public class AnvilWorldAdapter extends WorldAdapter {
                         break;
 
                     case SAVE:
-                        // TODO: Implement saving chunks
 	                    AsyncChunkSaveTask save = (AsyncChunkSaveTask) task;
 	                    chunk = ( (AnvilChunk) save.getChunk() );
                         this.saveChunk( chunk );
@@ -466,6 +463,16 @@ public class AnvilWorldAdapter extends WorldAdapter {
     }
 
     // ==================================== I/O ==================================== //
+
+	/**
+	 * Saves the given chunk to its region file asynchronously.
+	 *
+	 * @param chunk The chunk to save
+	 */
+	protected void saveChunkAsynchronously( AnvilChunk chunk ) {
+		AsyncChunkSaveTask task = new AsyncChunkSaveTask( chunk );
+		this.asyncChunkTasks.add( task );
+	}
 
     /**
      * Loads the chunk at the specified coordinates synchronously. If the chunk does not yet exist
