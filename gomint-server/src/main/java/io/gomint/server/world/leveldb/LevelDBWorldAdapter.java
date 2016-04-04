@@ -54,7 +54,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         // CHECKSTYLE:ON
     }
 
-    private byte[] getTerrainKey( int chunkX, int chunkZ ) {
+    private byte[] getKey( int chunkX, int chunkZ, byte dataType ) {
         return new byte[]{
                 (byte) ( chunkX & 0xFF ),
                 (byte) ( ( chunkX >>> 8 ) & 0xFF ),
@@ -64,7 +64,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                 (byte) ( ( chunkZ >>> 8 ) & 0xFF ),
                 (byte) ( ( chunkZ >>> 16 ) & 0xFF ),
                 (byte) ( ( chunkZ >>> 24 ) & 0xFF ),
-                (byte) 0x30
+                dataType
         };
     }
 
@@ -112,9 +112,11 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     protected ChunkAdapter loadChunk( int x, int z, boolean generate ) {
         ChunkAdapter chunk = this.chunkCache.getChunk( x, z );
         if ( chunk == null ) {
-            byte[] chunkData = this.db.get( this.getTerrainKey( x, z ) );
+            byte[] chunkData = this.db.get( this.getKey( x, z, (byte) 0x30 ) );
+            byte[] tileEntityData = this.db.get( this.getKey( x, z, (byte) 0x31 ) );
+
             if ( chunkData != null ) {
-                chunk = new LevelDBChunk( this, chunkData, x, z );
+                chunk = new LevelDBChunk( this, x, z, chunkData, tileEntityData );
                 this.chunkCache.putChunk( chunk );
             } else if ( generate ) {
                 // TODO: Implement chunk generation here
@@ -134,7 +136,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         int chunkZ = chunk.getZ();
 
         WriteBatch writeBatch = this.db.createWriteBatch();
-        writeBatch.put( this.getTerrainKey( chunkX, chunkZ ), ( (LevelDBChunk) chunk ).getSaveData() );
+        writeBatch.put( this.getKey( chunkX, chunkZ, (byte) 0x30 ), ( (LevelDBChunk) chunk ).getSaveData() );
         this.db.write( writeBatch );
     }
 

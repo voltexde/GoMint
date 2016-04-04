@@ -9,13 +9,19 @@ package io.gomint.server.world.leveldb;
 
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
-import io.gomint.server.world.PEWorldConstraints;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.taglib.NBTTagCompound;
 
-import java.awt.*;
+import com.google.common.base.Strings;
+
+import java.awt.Color;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author geNAZt
@@ -23,15 +29,68 @@ import java.util.Arrays;
  */
 public class LevelDBChunk extends ChunkAdapter {
 
-    public LevelDBChunk( WorldAdapter worldAdapter, byte[] chunkData, int x, int z ) {
+    public LevelDBChunk( WorldAdapter worldAdapter, int x, int z, byte[] chunkData, byte[] tileEntityData ) {
         this.world = worldAdapter;
         this.x = x;
         this.z = z;
 
         // Load chunk
         this.loadChunk( chunkData );
+
+        if ( tileEntityData != null && tileEntityData.length > 0 ) {
+            this.loadTileEntity( tileEntityData );
+        }
+
         this.calculateBiomeColors();
         this.calculateHeightmap();
+    }
+
+    private void loadTileEntity( byte[] tileEntityData ) {
+        List<NBTTagCompound> tileEntities = new ArrayList<>();
+
+        try ( ByteArrayInputStream inputStream = new ByteArrayInputStream( tileEntityData ) ) {
+            while ( inputStream.available() > 0 ) {
+                NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( inputStream, false, ByteOrder.LITTLE_ENDIAN );
+                tileEntities.add( nbtTagCompound );
+            }
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+
+        for ( NBTTagCompound entity : tileEntities ) {
+            System.out.println( "Found new TileEntity: \n");
+
+            dumpNBTTag( entity, 0 );
+
+            System.out.println( "-----------------");
+        }
+    }
+
+    private void dumpNBTTag( NBTTagCompound entity, int depth ) {
+        for ( Map.Entry<String, Object> stringObjectEntry : entity.entrySet() ) {
+            Object obj = stringObjectEntry.getValue();
+            if ( obj instanceof List ) {
+                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": [" );
+
+                List v = (List) obj;
+                if ( v.size() > 0 ) {
+                    System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
+                }
+
+                for ( Object o : v ) {
+                    if ( o instanceof NBTTagCompound ) {
+                        dumpNBTTag( (NBTTagCompound) o, depth + 1 );
+                        System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
+                    } else {
+                        System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + o );
+                    }
+                }
+
+                System.out.println( Strings.repeat( " ", depth * 2 ) + "]" );
+            } else {
+                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": " + obj );
+            }
+        }
     }
 
     private void loadChunk( byte[] chunkData ) {
@@ -64,7 +123,7 @@ public class LevelDBChunk extends ChunkAdapter {
         for ( int i = 0; i < 256; i++ ) {
             int biome = buffer.getInt();
             Color color = new Color( biome );
-            this.biomes[i] = (byte) (biome >> 24);
+            this.biomes[i] = (byte) ( biome >> 24 );
             this.biomeColors[c++] = (byte) color.getRed();
             this.biomeColors[c++] = (byte) color.getGreen();
             this.biomeColors[c++] = (byte) color.getBlue();
