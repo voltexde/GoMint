@@ -71,4 +71,35 @@ public class LevelDBChunk extends ChunkAdapter {
         }
     }
 
+    /**
+     * Calculates the needed data to be saved back to the database
+     *
+     * @return The data which will be saved in the database for this chunk
+     */
+    byte[] getSaveData() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate( this.blocks.length +
+                this.data.raw().length +
+                this.skyLight.raw().length +
+                this.blockLight.raw().length +
+                this.height.length() +
+                256 );
+
+        byteBuffer.put( this.blocks );
+        byteBuffer.put( this.data.raw() );
+        byteBuffer.put( this.skyLight.raw() );
+        byteBuffer.put( this.blockLight.raw() );
+        byteBuffer.put( this.height.toByteArray() );
+
+        for ( int i = 0; i < 256; i++ ) {
+            byte r = this.biomeColors[i * 3];
+            byte g = this.biomeColors[i * 3 + 1];
+            byte b = this.biomeColors[i * 3 + 2];
+
+            int color = ( r << 16 ) | ( g << 8 ) | b;
+
+            byteBuffer.putInt( ( this.biomes[i] << 24 ) | ( color & 0x00FFFFFF ) );
+        }
+
+        return byteBuffer.array();
+    }
 }

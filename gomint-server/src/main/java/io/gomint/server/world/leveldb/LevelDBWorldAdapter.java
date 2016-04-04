@@ -17,6 +17,7 @@ import io.gomint.taglib.NBTStreamListener;
 
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
+import org.iq80.leveldb.WriteBatch;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
@@ -125,7 +126,16 @@ public class LevelDBWorldAdapter extends WorldAdapter {
 
     @Override
     protected void saveChunk( ChunkAdapter chunk ) {
+        if ( chunk == null ) {
+            return;
+        }
 
+        int chunkX = chunk.getX();
+        int chunkZ = chunk.getZ();
+
+        WriteBatch writeBatch = this.db.createWriteBatch();
+        writeBatch.put( this.getTerrainKey( chunkX, chunkZ ), ( (LevelDBChunk) chunk ).getSaveData() );
+        this.db.write( writeBatch );
     }
 
     /**
