@@ -37,7 +37,7 @@ public class SignTileEntity extends TileEntity {
     }
 
     @Override
-    public void tick( long currentMillis ) {
+    public void update( long currentMillis, float dF ) {
 
     }
 
