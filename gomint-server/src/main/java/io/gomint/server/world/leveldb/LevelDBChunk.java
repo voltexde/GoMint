@@ -46,51 +46,7 @@ public class LevelDBChunk extends ChunkAdapter {
     }
 
     private void loadTileEntity( byte[] tileEntityData ) {
-        List<NBTTagCompound> tileEntities = new ArrayList<>();
 
-        try ( ByteArrayInputStream inputStream = new ByteArrayInputStream( tileEntityData ) ) {
-            while ( inputStream.available() > 0 ) {
-                NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( inputStream, false, ByteOrder.LITTLE_ENDIAN );
-                tileEntities.add( nbtTagCompound );
-            }
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
-
-        for ( NBTTagCompound entity : tileEntities ) {
-            System.out.println( "Found new TileEntity: \n");
-
-            dumpNBTTag( entity, 0 );
-
-            System.out.println( "-----------------");
-        }
-    }
-
-    private void dumpNBTTag( NBTTagCompound entity, int depth ) {
-        for ( Map.Entry<String, Object> stringObjectEntry : entity.entrySet() ) {
-            Object obj = stringObjectEntry.getValue();
-            if ( obj instanceof List ) {
-                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": [" );
-
-                List v = (List) obj;
-                if ( v.size() > 0 ) {
-                    System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
-                }
-
-                for ( Object o : v ) {
-                    if ( o instanceof NBTTagCompound ) {
-                        dumpNBTTag( (NBTTagCompound) o, depth + 1 );
-                        System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
-                    } else {
-                        System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + o );
-                    }
-                }
-
-                System.out.println( Strings.repeat( " ", depth * 2 ) + "]" );
-            } else {
-                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": " + obj );
-            }
-        }
     }
 
     private void loadChunk( byte[] chunkData ) {

@@ -23,7 +23,7 @@ public class SyncTaskManager {
 
     /**
      * Add a new pre configured Task to this scheduler
-     * @param task which shoould be executed
+     * @param task which should be executed
      */
     public void addTask( SyncScheduledTask task ) {
         if ( task.getNextExecution() == -1 ) return;
@@ -34,14 +34,28 @@ public class SyncTaskManager {
     }
 
     /**
-     * Tick all tasks
+     * Remove a specific task
+     *
+     * @param task  The task which should be removed
      */
-    public void tickTasks() {
+    public void removeTask( SyncScheduledTask task ) {
+        synchronized ( this.taskList ) {
+            this.taskList.remove( task );
+        }
+    }
+
+    /**
+     * Update and run all tasks which should be run
+     *
+     * @param currentMillis     The amount of millis when the update started
+     * @param dt                The delta time from a full second which has already been calculated
+     */
+    public void update( long currentMillis, float dt ) {
         synchronized ( this.taskList ) {
             // Iterate over all Tasks until we find some for later ticks
-            while ( this.taskList.checkNextKey( goMintServer.getCurrentTick() ) ) {
+            while ( this.taskList.getNextTaskTime() < currentMillis ) {
                 SyncScheduledTask task = this.taskList.getNextElement();
-                if ( task == null || task.getNextExecution() > goMintServer.getCurrentTick() ) {
+                if ( task == null ) {
                     return;
                 }
 
@@ -53,16 +67,10 @@ public class SyncTaskManager {
                 task.run();
 
                 // Reschedule if needed
-                if ( task.getNextExecution() > goMintServer.getCurrentTick() ) {
+                if ( task.getNextExecution() > currentMillis ) {
                     this.taskList.add( task.getNextExecution(), task );
                 }
             }
-        }
-    }
-
-    public void removeTask( SyncScheduledTask task ) {
-        synchronized ( this.taskList ) {
-            this.taskList.remove( task );
         }
     }
 }

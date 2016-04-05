@@ -66,6 +66,15 @@ public class TaskList<T> {
     }
 
     /**
+     *
+     *
+     * @return
+     */
+    public long getNextTaskTime() {
+        return this.head != null ? this.head.getKey() : Long.MAX_VALUE;
+    }
+
+    /**
      * Check if the current head key is the key we want to check against
      *
      * @param key to check against

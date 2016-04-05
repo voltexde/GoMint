@@ -24,7 +24,7 @@ public enum TileEntities {
     SIGN( "Sign", SignTileEntity.class );
 
     private final String nbtID;
-    private final MethodHandle tileEntityConstructor;
+    private MethodHandle tileEntityConstructor;
 
     /**
      * Construct a new TileEntity enum value
