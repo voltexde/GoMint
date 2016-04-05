@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
 import java.util.ArrayList;
@@ -23,10 +24,11 @@ public class SignTileEntity extends TileEntity {
     /**
      * Construct new TileEntity from TagCompound
      *
-     * @param tagCompound The TagCompound which should be used to read data from
+     * @param tagCompound   The TagCompound which should be used to read data from
+     * @param world         The world in which this TileEntity resides
      */
-    public SignTileEntity( NBTTagCompound tagCompound ) {
-        super( tagCompound );
+    public SignTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
+        super( tagCompound, world );
 
         this.lines.add( tagCompound.getString( "Text1", "" ) );
         this.lines.add( tagCompound.getString( "Text2", "" ) );

@@ -40,7 +40,7 @@ public abstract class Entity {
      * @param type The type of the Entity
      * @param world The world in which this entity is in
      */
-	protected Entity( EntityType type, WorldAdapter world ) {
+	Entity( EntityType type, WorldAdapter world ) {
 		this.id = ENTITY_ID.incrementAndGet();
 		this.type = type;
 		this.location = world.getSpawnLocation().clone();

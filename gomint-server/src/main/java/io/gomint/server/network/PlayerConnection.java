@@ -14,6 +14,7 @@ import io.gomint.math.Location;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
+import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.util.IntPair;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;

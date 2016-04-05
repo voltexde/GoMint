@@ -7,7 +7,10 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.math.Location;
+import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.Getter;
 
 /**
  * @author geNAZt
@@ -16,20 +19,23 @@ import io.gomint.taglib.NBTTagCompound;
 public abstract class TileEntity {
 
     // CHECKSTYLE:OFF
-    protected int x;
-    protected int y;
-    protected int z;
+	@Getter
+	protected Location location;
     // CHECKSTYLE:ON
 
     /**
      * Construct new TileEntity from TagCompound
      *
-     * @param tagCompound The TagCompound which should be used to read data from
+     * @param tagCompound   The TagCompound which should be used to read data from
+     * @param world         The world in which this TileEntity resides
      */
-    public TileEntity( NBTTagCompound tagCompound ) {
-        this.x = tagCompound.getInteger( "x", 0 );
-        this.y = tagCompound.getInteger( "y", -1 );
-        this.z = tagCompound.getInteger( "z", 0 );
+    public TileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
+	    this.location = new Location(
+			    world,
+			    tagCompound.getInteger( "x", 0 ),
+			    tagCompound.getInteger( "y", -1 ),
+			    tagCompound.getInteger( "z", 0 )
+	    );
     }
 
     /**
@@ -45,9 +51,9 @@ public abstract class TileEntity {
      * @param compound The Compound which should be used to save the data into
      */
     public void toCompund( NBTTagCompound compound ) {
-        compound.addValue( "x", this.x );
-        compound.addValue( "y", this.y );
-        compound.addValue( "z", this.z );
+        compound.addValue( "x", (int) this.location.getX() );
+        compound.addValue( "y", (int) this.location.getY() );
+        compound.addValue( "z", (int) this.location.getZ() );
     }
 
 }
