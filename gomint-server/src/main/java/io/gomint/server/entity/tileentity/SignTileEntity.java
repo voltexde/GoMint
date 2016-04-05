@@ -45,6 +45,7 @@ class SignTileEntity extends TileEntity {
     public void toCompund( NBTTagCompound compound ) {
         super.toCompund( compound );
 
+        compound.addValue( "id", "Sign" );
         compound.addValue( "Text1", this.lines.get( 0 ) );
         compound.addValue( "Text2", this.lines.get( 1 ) );
         compound.addValue( "Text3", this.lines.get( 2 ) );

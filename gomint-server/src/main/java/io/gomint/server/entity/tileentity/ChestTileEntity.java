@@ -58,6 +58,7 @@ class ChestTileEntity extends TileEntity {
     @Override
     public void toCompund( NBTTagCompound compound ) {
         super.toCompund( compound );
+        compound.addValue( "id", "Chest" );
 
         List<NBTTagCompound> nbtTagCompounds = new ArrayList<>();
         for ( int i = 0; i < this.inventory.size(); i++ ) {
