@@ -17,7 +17,7 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-public class SignTileEntity extends TileEntity {
+class SignTileEntity extends TileEntity {
 
     private List<String> lines = new ArrayList<>( 4 );
 

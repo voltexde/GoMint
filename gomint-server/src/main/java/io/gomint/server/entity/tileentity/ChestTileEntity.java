@@ -12,13 +12,14 @@ import io.gomint.server.inventory.ChestInventory;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public class ChestTileEntity extends TileEntity {
+class ChestTileEntity extends TileEntity {
 
     private ChestInventory inventory;
 
@@ -54,4 +55,23 @@ public class ChestTileEntity extends TileEntity {
 
     }
 
+    @Override
+    public void toCompund( NBTTagCompound compound ) {
+        super.toCompund( compound );
+
+        List<NBTTagCompound> nbtTagCompounds = new ArrayList<>();
+        for ( int i = 0; i < this.inventory.size(); i++ ) {
+            ItemStack itemStack = this.inventory.getContent( i );
+            if ( itemStack != null ) {
+                NBTTagCompound nbtTagCompound = new NBTTagCompound( "" );
+                nbtTagCompound.addValue( "Slot", (byte) i );
+                nbtTagCompound.addValue( "id", (short) itemStack.getId() );
+                nbtTagCompound.addValue( "Damage", itemStack.getData() );
+                nbtTagCompound.addValue( "Count", (byte) itemStack.getAmount() );
+                nbtTagCompounds.add( nbtTagCompound );
+            }
+        }
+
+        compound.addValue( "Items", nbtTagCompounds );
+    }
 }
