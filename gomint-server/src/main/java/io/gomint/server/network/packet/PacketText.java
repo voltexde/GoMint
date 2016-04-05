@@ -25,7 +25,7 @@ public class PacketText extends Packet {
 		/**
 		 * Type value for unformatted messages.
 		 */
-		SYSTEM( (byte) 0 ),
+		CLIENT_MESSAGE( (byte) 0 ),
 
 		/**
 		 * Type value for usual player chat.
@@ -35,38 +35,38 @@ public class PacketText extends Packet {
 		/**
 		 * Type value for localizable messages included in Minecraft's language files.
 		 */
-		LOCALIZABLE( (byte) 2 ),
+		LOCALIZABLE_MESSAGE( (byte) 2 ),
 
 		/**
 		 * Type value for displaying text right above a player's action bar.
 		 */
-		HOTBAR( (byte) 3 ),
+		POPUP_NOTICE( (byte) 3 ),
 
 		/**
 		 * Type value for displaying text slightly below the center of the screen (similar to title
 		 * text of PC edition).
 		 */
-		TITLE( (byte) 4 ),
+		TIP_MESSAGE( (byte) 4 ),
 
 		/**
 		 * Type value for unformatted messages. Actual use unknown, same as system, apparently.
 		 */
-		UNKNOWN( (byte) 5 );
+		SYSTEM_MESSAGE( (byte) 5 );
 
 		public static Type getById( byte id ) {
 			switch ( id ) {
 				case 0:
-					return SYSTEM;
+					return CLIENT_MESSAGE;
 				case 1:
 					return PLAYER_CHAT;
 				case 2:
-					return LOCALIZABLE;
+					return LOCALIZABLE_MESSAGE;
 				case 3:
-					return HOTBAR;
+					return POPUP_NOTICE;
 				case 4:
-					return TITLE;
+					return TIP_MESSAGE;
 				case 5:
-					return UNKNOWN;
+					return SYSTEM_MESSAGE;
 				default:
 					return null;
 			}
@@ -110,9 +110,10 @@ public class PacketText extends Packet {
 	public void serialize( PacketBuffer buffer ) {
 		buffer.writeByte( this.type.getId() );
 		switch ( this.type ) {
-			case SYSTEM:
-			case TITLE:
-			case UNKNOWN:
+			case CLIENT_MESSAGE:
+			case TIP_MESSAGE:
+			case SYSTEM_MESSAGE:
+			case POPUP_NOTICE:
 				buffer.writeString( this.message );
 				break;
 
@@ -121,8 +122,7 @@ public class PacketText extends Packet {
 				buffer.writeString( this.message );
 				break;
 
-			case LOCALIZABLE:
-			case HOTBAR:
+			case LOCALIZABLE_MESSAGE:
 				buffer.writeString( this.message );
 				buffer.writeByte( (byte) this.arguments.length );
 				for ( int i = 0; i < this.arguments.length; ++i ) {
@@ -136,9 +136,10 @@ public class PacketText extends Packet {
 	public void deserialize( PacketBuffer buffer ) {
 		this.type = Type.getById( buffer.readByte() );
 		switch ( this.type ) {
-			case SYSTEM:
-			case TITLE:
-			case UNKNOWN:
+			case CLIENT_MESSAGE:
+			case TIP_MESSAGE:
+			case SYSTEM_MESSAGE:
+			case POPUP_NOTICE:
 				this.message = buffer.readString();
 				break;
 
@@ -147,8 +148,7 @@ public class PacketText extends Packet {
 				this.message = buffer.readString();
 				break;
 
-			case LOCALIZABLE:
-			case HOTBAR:
+			case LOCALIZABLE_MESSAGE:
 				this.message = buffer.readString();
 				byte count = buffer.readByte();
 				this.arguments = new String[count];

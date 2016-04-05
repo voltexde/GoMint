@@ -525,7 +525,6 @@ class AnvilChunk extends ChunkAdapter {
 		                break;
                     default:
                         if ( path.startsWith( ".Level.Sections" ) ) {
-	                        System.out.println( path );
                             // Parse the index
                             String[] split = path.split( "\\." );
                             int sectionIndex = Integer.parseInt( split[3] );
