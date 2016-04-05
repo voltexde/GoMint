@@ -11,15 +11,20 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.MathUtils;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.util.Color;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Biome;
 import io.gomint.world.Block;
 import io.gomint.world.Chunk;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.ref.SoftReference;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -61,6 +66,9 @@ public abstract class ChunkAdapter implements Chunk {
 	protected long lastPlayerOnThisChunk;
 	protected long loadedTime;
 	protected long lastSavedTimestamp;
+
+	// TileEntities
+	protected List<TileEntity> tileEntities = new ArrayList<>();
 	// CHECKSTYLE:ON
 
     /**
@@ -483,6 +491,26 @@ public abstract class ChunkAdapter implements Chunk {
 		}
 
 		buffer.writeInt( 0 );
+
+		// TileEntity Data?
+		if ( this.tileEntities.size() > 0 ) {
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			for ( TileEntity tileEntity : this.tileEntities ) {
+				NBTTagCompound nbtTagCompound = new NBTTagCompound( "" );
+				tileEntity.toCompund( nbtTagCompound );
+
+				try {
+					nbtTagCompound.writeTo( byteArrayOutputStream, false, ByteOrder.LITTLE_ENDIAN );
+				} catch ( IOException e ) {
+					e.printStackTrace();
+				}
+			}
+
+			buffer.writeInt( byteArrayOutputStream.size() );
+			buffer.writeBytes( byteArrayOutputStream.toByteArray() );
+		} else {
+			buffer.writeInt( 0 );
+		}
 
 		PacketWorldChunk packet = new PacketWorldChunk();
 		packet.setX( this.x );

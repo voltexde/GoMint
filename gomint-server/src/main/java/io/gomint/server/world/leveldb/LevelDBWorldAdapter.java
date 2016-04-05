@@ -9,6 +9,7 @@ package io.gomint.server.world.leveldb;
 
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCache;
 import io.gomint.server.world.WorldAdapter;
@@ -114,9 +115,15 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         if ( chunk == null ) {
             byte[] chunkData = this.db.get( this.getKey( x, z, (byte) 0x30 ) );
             byte[] tileEntityData = this.db.get( this.getKey( x, z, (byte) 0x31 ) );
+	        byte[] entityData = this.db.get( this.getKey( x, z, (byte) 0x32 ) );
+	        byte[] extraData = this.db.get( this.getKey( x, z, (byte) 0x34 ) );
+
+	        if ( extraData != null ) {
+		        DumpUtil.dumpByteArray( extraData );
+	        }
 
             if ( chunkData != null ) {
-                chunk = new LevelDBChunk( this, x, z, chunkData, tileEntityData );
+                chunk = new LevelDBChunk( this, x, z, chunkData, tileEntityData, entityData );
                 this.chunkCache.putChunk( chunk );
             } else if ( generate ) {
                 // TODO: Implement chunk generation here

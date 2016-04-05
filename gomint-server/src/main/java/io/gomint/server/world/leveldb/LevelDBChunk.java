@@ -7,6 +7,9 @@
 
 package io.gomint.server.world.leveldb;
 
+import io.gomint.server.entity.tileentity.TileEntities;
+import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
@@ -19,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +31,7 @@ import java.util.Map;
  */
 public class LevelDBChunk extends ChunkAdapter {
 
-    public LevelDBChunk( WorldAdapter worldAdapter, int x, int z, byte[] chunkData, byte[] tileEntityData ) {
+    public LevelDBChunk( WorldAdapter worldAdapter, int x, int z, byte[] chunkData, byte[] tileEntityData, byte[] entityData ) {
         this.world = worldAdapter;
         this.x = x;
         this.z = z;
@@ -37,59 +39,47 @@ public class LevelDBChunk extends ChunkAdapter {
         // Load chunk
         this.loadChunk( chunkData );
 
+	    // Load TileEntities
         if ( tileEntityData != null && tileEntityData.length > 0 ) {
             this.loadTileEntity( tileEntityData );
         }
+
+	    // Load Entities
+	    if ( entityData != null && entityData.length > 0 ) {
+		    this.loadEntity( entityData );
+	    }
 
         this.calculateBiomeColors();
         this.calculateHeightmap();
     }
 
-    private void loadTileEntity( byte[] tileEntityData ) {
-        List<NBTTagCompound> tileEntities = new ArrayList<>();
+	private void loadEntity( byte[] entityData ) {
+		try ( ByteArrayInputStream inputStream = new ByteArrayInputStream( entityData ) ) {
+			while ( inputStream.available() > 0 ) {
+				NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( inputStream, false, ByteOrder.LITTLE_ENDIAN );
+				DumpUtil.dumpNBTCompund( nbtTagCompound );
+			}
+		} catch ( IOException e ) {
+			e.printStackTrace();
+		}
+	}
 
+	private void loadTileEntity( byte[] tileEntityData ) {
         try ( ByteArrayInputStream inputStream = new ByteArrayInputStream( tileEntityData ) ) {
             while ( inputStream.available() > 0 ) {
                 NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( inputStream, false, ByteOrder.LITTLE_ENDIAN );
-                tileEntities.add( nbtTagCompound );
+	            TileEntity tileEntity = TileEntities.construct( nbtTagCompound, world );
+	            if ( tileEntity != null ) {
+					tileEntities.add( tileEntity );
+		            // System.out.println( "TileEntity @ " + tileEntity.getLocation() );
+	            } /* else {
+		            System.out.println( "Found new TileEntity: \n");
+		            dumpNBTTag( nbtTagCompound, 0 );
+		            System.out.println( "-----------------");
+	            } */
             }
         } catch ( IOException e ) {
             e.printStackTrace();
-        }
-
-        for ( NBTTagCompound entity : tileEntities ) {
-            System.out.println( "Found new TileEntity: \n");
-
-            dumpNBTTag( entity, 0 );
-
-            System.out.println( "-----------------");
-        }
-    }
-
-    private void dumpNBTTag( NBTTagCompound entity, int depth ) {
-        for ( Map.Entry<String, Object> stringObjectEntry : entity.entrySet() ) {
-            Object obj = stringObjectEntry.getValue();
-            if ( obj instanceof List ) {
-                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": [" );
-
-                List v = (List) obj;
-                if ( v.size() > 0 ) {
-                    System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
-                }
-
-                for ( Object o : v ) {
-                    if ( o instanceof NBTTagCompound ) {
-                        dumpNBTTag( (NBTTagCompound) o, depth + 1 );
-                        System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
-                    } else {
-                        System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + o );
-                    }
-                }
-
-                System.out.println( Strings.repeat( " ", depth * 2 ) + "]" );
-            } else {
-                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": " + obj );
-            }
         }
     }
 

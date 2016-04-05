@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
 import java.lang.invoke.MethodHandle;
@@ -24,7 +25,7 @@ public enum TileEntities {
     SIGN( "Sign", SignTileEntity.class );
 
     private final String nbtID;
-    private final MethodHandle tileEntityConstructor;
+    private MethodHandle tileEntityConstructor;
 
     /**
      * Construct a new TileEntity enum value
@@ -36,7 +37,7 @@ public enum TileEntities {
         this.nbtID = nbtID;
 
         try {
-            this.tileEntityConstructor = MethodHandles.lookup().unreflectConstructor( tileEntityClass.getConstructor( NBTTagCompound.class ) );
+            this.tileEntityConstructor = MethodHandles.lookup().unreflectConstructor( tileEntityClass.getConstructor( NBTTagCompound.class, WorldAdapter.class ) );
         } catch ( IllegalAccessException | NoSuchMethodException e ) {
             e.printStackTrace();
             this.tileEntityConstructor = null;
@@ -47,14 +48,28 @@ public enum TileEntities {
      * Construct a new TileEntity which then reads in the data from the given Compound
      *
      * @param compound  The compound from which the data should be read
+     * @param world     The world in which this TileEntity resides
      * @return The constructed and ready to use TileEntity or null
      */
-    public TileEntity construct( NBTTagCompound compound ) {
-        try {
-            return (TileEntity) this.tileEntityConstructor.invoke( compound );
-        } catch ( Throwable throwable ) {
-            throwable.printStackTrace();
-        }
+    public static TileEntity construct( NBTTagCompound compound, WorldAdapter world ) {
+	    // Check if compound has a id
+	    String id = compound.getString( "id", null );
+	    if ( id == null ) {
+		    return null;
+	    }
+
+	    // Search for correct tile entity
+	    for ( TileEntities tileEntities : values() ) {
+		    if ( tileEntities.nbtID.equals( id ) ) {
+			    try {
+				    return (TileEntity) tileEntities.tileEntityConstructor.invoke( compound, world );
+			    } catch ( Throwable throwable ) {
+				    throwable.printStackTrace();
+				    return null;
+			    }
+
+		    }
+	    }
 
         return null;
     }
