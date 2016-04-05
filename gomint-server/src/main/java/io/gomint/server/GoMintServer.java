@@ -45,10 +45,8 @@ public class GoMintServer implements GoMint {
 
 	// Global tick lock
 	private ReentrantLock tickLock = new ReentrantLock( true );
-	private Condition tickCondition = tickLock.newCondition();
-	private double currentLoad;
 
-	// Configuration
+    // Configuration
 	@Getter
 	private ServerConfig        serverConfig;
 
@@ -68,8 +66,6 @@ public class GoMintServer implements GoMint {
 	@Getter
 	private SyncTaskManager     syncTaskManager;
 	private AtomicBoolean       running = new AtomicBoolean( true );
-	@Getter
-	private long                currentTick;
 	@Getter
 	private ExecutorService     executorService;
 	@Getter
@@ -154,35 +150,35 @@ public class GoMintServer implements GoMint {
 		// Main Loop
 		// ------------------------------------ //
 
-		// Debug output for system usage
-		this.syncTaskManager.addTask( new SyncScheduledTask( this.syncTaskManager, new Runnable() {
-			@Override
-			public void run() {
-				//logger.debug( "Tickloop Usage: " + Math.round( currentLoad * 100 ) + "%; Memory Usage: " + ( Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() ) + " bytes" );
-			}
-		}, 1, 1, TimeUnit.SECONDS ) );
+        this.syncTaskManager.addTask( new SyncScheduledTask( new Runnable() {
+            @Override
+            public void run() {
+                logger.debug( "Tick!" );
+            }
+        }, 1, 1, TimeUnit.SECONDS ) );
 
 		// Tick loop
-		this.currentTick = 0;
+        float lastTickTime = Float.MIN_NORMAL;
+        Condition tickCondition = tickLock.newCondition();
+
 		while ( this.running.get() ) {
 			this.tickLock.lock();
 			try {
 				long start = System.nanoTime();
 
-				// Tick the syncTaskManager
-				this.syncTaskManager.tickTasks();
+                // Tick networking at every tick
+                this.networkManager.tick();
 
 				// Tick all major subsystems:
-				this.networkManager.tick();
-				this.worldManager.tick( System.currentTimeMillis() );
-
-				// Increase the tick
-				this.currentTick++;
+                long currentMillis = System.currentTimeMillis();
+                this.syncTaskManager.update( currentMillis, lastTickTime );
+				this.worldManager.update( currentMillis, lastTickTime );
 
 				long diff = System.nanoTime() - start;
+                lastTickTime = diff / 1000000;
+
 				if ( diff < skipNanos ) {
-					this.currentLoad = diff / (double) skipNanos;
-					this.tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
+                    tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
 				}
 			} catch ( InterruptedException e ) {
 				// Ignored ._.

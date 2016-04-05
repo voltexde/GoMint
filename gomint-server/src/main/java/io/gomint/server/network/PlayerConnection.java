@@ -27,7 +27,7 @@ import net.openhft.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
+import java.io.ByteArrayOutputStream;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -140,7 +140,7 @@ public class PlayerConnection {
         // Receive all waiting packets:
         byte[] packetData;
         while ( ( packetData = this.connection.receive() ) != null ) {
-            this.handleSocketData( new PacketBuffer( packetData, 0 ) );
+            this.handleSocketData( new PacketBuffer( packetData, 0 ), false );
         }
     }
 
@@ -194,8 +194,6 @@ public class PlayerConnection {
                 int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
                 int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
-                logger.info( "Spawned Player " + this.entity.getId() + " on chunk " + spawnXChunk + "; " + spawnZChunk + " after " + ( System.currentTimeMillis() - this.lastPerformance ) + " ms" );
-
                 WorldAdapter worldAdapter = (WorldAdapter) this.entity.getWorld();
                 worldAdapter.movePlayerToChunk( spawnXChunk, spawnZChunk, this.entity );
 
@@ -218,7 +216,7 @@ public class PlayerConnection {
      *
      * @param buffer The buffer containing the received data
      */
-    private void handleSocketData( PacketBuffer buffer ) {
+    private void handleSocketData( PacketBuffer buffer, boolean batch ) {
         if ( buffer.getRemaining() <= 0 ) {
             // Malformed packet:
             return;
@@ -233,11 +231,13 @@ public class PlayerConnection {
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
             if ( packetId == PACKET_BATCH ) {
-                this.handleBatchPacket( buffer );
+                this.handleBatchPacket( buffer, batch );
             } else if ( packetId == PACKET_LOGIN ) {
                 PacketLogin login = new PacketLogin();
                 login.deserialize( buffer );
                 this.handleLoginPacket( login );
+            } else {
+	            System.out.println ( "Received odd packet" );
             }
 
             // Don't allow for any other packets if we are in HANDSHAKE state:
@@ -245,11 +245,14 @@ public class PlayerConnection {
         }
 
         if ( packetId == PACKET_BATCH ) {
-            this.handleBatchPacket( buffer );
+            this.handleBatchPacket( buffer, false );
         } else {
             Packet packet = Protocol.createPacket( packetId );
             if ( packet == null ) {
                 this.networkManager.notifyUnknownPacket( packetId, buffer );
+
+	            // Got to skip
+	            buffer.skip( buffer.getRemaining() );
                 return;
             }
 
@@ -263,36 +266,42 @@ public class PlayerConnection {
      *
      * @param buffer The buffer containing the batch packet's data (except packet ID)
      */
-    private void handleBatchPacket( PacketBuffer buffer ) {
-        buffer.skip( 4 );               // Compressed payload length (not of interest; only uncompressed size matteres)
+    private void handleBatchPacket( PacketBuffer buffer, boolean batch ) {
+	    if ( batch ) {
+		    this.networkManager.getLogger().error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
+		    return;
+	    }
+
+        buffer.skip( 4 );               // Compressed payload length (not of interest; only uncompressed size matters)
 
         this.batchDecompressor.reset();
         this.batchDecompressor.setInput( buffer.getBuffer(), buffer.getPosition(), buffer.getRemaining() );
 
-        byte[] payload;
-        try {
-            // Only inflate decompressed payload size before allocating the actual payload array:
-            this.batchDecompressor.inflate( this.batchIntermediate, 0, 4 );
-            int decompressedSize = ( ( this.batchIntermediate[0] & 255 ) << 24 |
-                    ( this.batchIntermediate[1] & 255 ) << 16 |
-                    ( this.batchIntermediate[2] & 255 ) << 8 |
-                    ( this.batchIntermediate[3] & 255 ) );
+	    ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
-            if ( decompressedSize < 0 ) {
-                this.networkManager.getLogger().warn( "Received malformed batch packet; declared negative payload size (" + decompressedSize + ")" );
-                return;
-            }
+	    try {
+		    while ( this.batchDecompressor.finished() ) {
+			    int read = this.batchDecompressor.inflate( this.batchIntermediate );
+			    bout.write( this.batchIntermediate, 0, read );
+		    }
+	    } catch ( DataFormatException e ) {
+		    this.networkManager.getLogger().error( "Failed to decompress batch packet", e );
+		    return;
+	    }
 
-            payload = new byte[decompressedSize];
-            this.batchDecompressor.inflate( payload );
-        } catch ( DataFormatException e ) {
-            this.networkManager.getLogger().warn( "Received malformed batch packet", e );
-            return;
-        }
+	    byte[] payload = bout.toByteArray();
 
         PacketBuffer payloadBuffer = new PacketBuffer( payload, 0 );
         while ( payloadBuffer.getRemaining() > 0 ) {
-            this.handleSocketData( payloadBuffer );
+	        int packetLength = payloadBuffer.readInt();
+	        int expectedPosition = payloadBuffer.getPosition() + packetLength;
+
+            this.handleSocketData( payloadBuffer, true );
+
+	        if ( payloadBuffer.getPosition() != expectedPosition ) {
+		        this.networkManager.getLogger().error( "Malformed batch packet payload: Could not read enclosed packet data correctly" );
+		        return;
+	        }
         }
     }
 

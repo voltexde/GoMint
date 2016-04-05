@@ -18,36 +18,23 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  */
 public class SyncScheduledTask implements Task, Runnable {
-    private final SyncTaskManager syncTaskManager;
     private final Runnable task;
-
     private final long period;          // -1 means no reschedule
-
     @Getter private long nextExecution; // -1 is cancelled
-
     private ExceptionHandler exceptionHandler;
 
     /**
      * Constructs a new SyncScheduledTask. It needs to be executed via a normal {@link java.util.concurrent.ExecutorService}
      *
-     * @param syncTaskManager   The taskmanager which handles and schedules this task
      * @param task              The runnable which should be executed
      * @param delay             Amount of time units to wait until the invocation of this execution
      * @param period            Amount of time units for the delay after execution to run the runnable again
      * @param unit of time
      */
-    public SyncScheduledTask( SyncTaskManager syncTaskManager, Runnable task, long delay, long period, TimeUnit unit ) {
-        this.syncTaskManager = syncTaskManager;
+    public SyncScheduledTask( Runnable task, long delay, long period, TimeUnit unit ) {
         this.task = task;
-        this.period = ( period >= 0) ?
-                ( (Double) Math.floor( unit.toNanos( period ) / syncTaskManager.getTickLength() ) ).longValue() :
-                -1;
-
-        this.nextExecution = ( delay >= 0 ) ?
-                ( syncTaskManager.getGoMintServer().getCurrentTick() +
-                        ( (Double) Math.floor( unit.toNanos( period ) / syncTaskManager.getTickLength() ) ).longValue()
-                ) :
-                -1;
+        this.period = ( period >= 0) ? unit.toMillis( period ) : -1;
+        this.nextExecution = ( delay >= 0 ) ? System.currentTimeMillis() + unit.toMillis( period ) : -1;
     }
 
     @Override
@@ -67,7 +54,7 @@ public class SyncScheduledTask implements Task, Runnable {
         // CHECKSTYLE:ON
 
         if ( this.period > 0 ) {
-            this.nextExecution = syncTaskManager.getGoMintServer().getCurrentTick() + this.period;
+            this.nextExecution = System.currentTimeMillis() + this.period;
         } else {
             this.cancel();
         }
@@ -75,7 +62,6 @@ public class SyncScheduledTask implements Task, Runnable {
 
     @Override
     public void cancel() {
-        this.syncTaskManager.removeTask( this );
         this.nextExecution = -1;
     }
 

@@ -81,7 +81,7 @@ public class LevelDBChunk extends ChunkAdapter {
         } catch ( IOException e ) {
             e.printStackTrace();
         }
-    }
+	}
 
     private void loadChunk( byte[] chunkData ) {
         // Wrap data and read blocks
