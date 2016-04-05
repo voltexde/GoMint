@@ -106,6 +106,14 @@ public class PacketText extends Packet {
 		this.message = message;
 	}
 
+	public void setSubtitle( String subtitle ) {
+		this.sender = subtitle;
+	}
+
+	public String getSubtitle() {
+		return this.sender;
+	}
+
 	@Override
 	public void serialize( PacketBuffer buffer ) {
 		buffer.writeByte( this.type.getId() );
@@ -113,7 +121,6 @@ public class PacketText extends Packet {
 			case CLIENT_MESSAGE:
 			case TIP_MESSAGE:
 			case SYSTEM_MESSAGE:
-			case POPUP_NOTICE:
 				buffer.writeString( this.message );
 				break;
 
@@ -129,6 +136,11 @@ public class PacketText extends Packet {
 					buffer.writeString( this.arguments[i] );
 				}
 				break;
+
+			case POPUP_NOTICE:
+				buffer.writeString( this.message );
+				buffer.writeString( this.sender );
+				break;
 		}
 	}
 
@@ -139,7 +151,6 @@ public class PacketText extends Packet {
 			case CLIENT_MESSAGE:
 			case TIP_MESSAGE:
 			case SYSTEM_MESSAGE:
-			case POPUP_NOTICE:
 				this.message = buffer.readString();
 				break;
 
@@ -155,6 +166,11 @@ public class PacketText extends Packet {
 				for ( byte i = 0; i < count; ++i ) {
 					arguments[i] = buffer.readString();
 				}
+				break;
+
+			case POPUP_NOTICE:
+				this.message = buffer.readString();
+				this.sender = buffer.readString();
 				break;
 		}
 	}
