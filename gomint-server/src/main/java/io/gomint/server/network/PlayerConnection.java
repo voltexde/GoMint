@@ -18,9 +18,11 @@ import io.gomint.server.util.IntPair;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.World;
+
 import net.openhft.koloboke.collect.LongCursor;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,8 +179,6 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     public void sendWorldChunk( long chunkHash, Packet chunkData ) {
-        IntPair intPair = CoordinateUtils.toIntPair( chunkHash );
-
         this.send( chunkData );
 
         synchronized ( this.playerChunks ) {
@@ -230,7 +230,7 @@ public class PlayerConnection {
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
             if ( packetId == PACKET_BATCH ) {
-                this.handleBatchPacket( buffer, false );
+                this.handleBatchPacket( buffer, batch );
             } else if ( packetId == PACKET_LOGIN ) {
                 PacketLogin login = new PacketLogin();
                 login.deserialize( buffer );

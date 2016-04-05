@@ -9,6 +9,8 @@ package io.gomint.server.world;
 
 import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
+import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +26,7 @@ import java.util.List;
  * @version 1.0
  */
 public class WorldManager {
+
     private static final Logger logger = LoggerFactory.getLogger( WorldManager.class );
 	private final GoMintServer server;
 	private List<WorldAdapter> loadedWorlds;
@@ -103,23 +106,31 @@ public class WorldManager {
 
 		if ( file.isDirectory() ) {
 			// Anvil world:
-			File levelDat = new File( file, "level.dat" );
-			if ( levelDat.exists() && levelDat.isFile() ) {
+			File regionFolder = new File( file, "region" );
+			if ( regionFolder.exists() && regionFolder.isDirectory() ) {
 				logger.info( "Detected anvil world '" + path + "'" );
 				this.loadAnvilWorld( file );
 				return;
 			}
+
+            // LevelDB world:
+            File dbFolder = new File( file, "db" );
+            if ( dbFolder.exists() && dbFolder.isDirectory() ) {
+                logger.info( "Detected leveldb world '" + path + "'" );
+                this.loadLevelDBWorld( file );
+                return;
+            }
 		}
 
 		throw new IOException( "Could not detect world format" );
 	}
 
-	/**
-	 * Attempts to load an anvil world.
-	 *
-	 * @param path The path to the world's folder
-	 * @throws Exception Thrown in case the world could not be loaded
-	 */
+    private void loadLevelDBWorld( File path ) throws Exception {
+        LevelDBWorldAdapter world = LevelDBWorldAdapter.load( this.server, path );
+        this.addWorld( world );
+        logger.info( "Successfully loaded world '" + path.getName() + "'" );
+    }
+
 	private void loadAnvilWorld( File path ) throws Exception {
 		AnvilWorldAdapter world = AnvilWorldAdapter.load( this.server, path );
 		this.addWorld( world );
