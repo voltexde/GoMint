@@ -151,8 +151,9 @@ public abstract class WorldAdapter implements World {
 	 * Ticks the world and updates what needs to be updated.
 	 *
 	 * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
+     * @param dT The delta from the full second which has been calculated in the last tick
 	 */
-    public void tick( long currentTimeMS ) {
+    public void update( long currentTimeMS, float dT ) {
         // ---------------------------------------
         // Tick the chunk cache to get rid of Chunks
         this.chunkCache.tick( currentTimeMS );

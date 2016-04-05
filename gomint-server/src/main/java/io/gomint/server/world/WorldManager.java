@@ -45,10 +45,11 @@ public class WorldManager {
 	 * Ticks all worlds that are currently loaded.
 	 *
 	 * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
+     * @param dT The delta from the full second which has been calculated in the last tick
 	 */
-	public void tick( long currentTimeMS ) {
+	public void update( long currentTimeMS, float dT ) {
         for ( WorldAdapter worldAdapter : this.loadedWorlds ) {
-            worldAdapter.tick( currentTimeMS );
+            worldAdapter.update( currentTimeMS, dT );
         }
     }
 
