@@ -92,9 +92,8 @@ public class EntityManager {
 	 * @param entityId The unique ID of the entity
 	 */
 	public void despawnEntity( long entityId ) {
-		if ( this.entitiesById.containsKey( entityId ) ) {
-			this.entitiesById.remove( entityId );
-
+		Entity entity = this.entitiesById.remove( entityId );
+		if ( entity != null ) {
 			// Broadcast despawn entity packet:
 			PacketDespawnEntity packet = new PacketDespawnEntity();
 			packet.setEntityId( entityId );

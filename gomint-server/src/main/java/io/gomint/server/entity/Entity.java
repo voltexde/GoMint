@@ -199,4 +199,11 @@ public abstract class Entity {
 
 	}
 
+	/**
+	 * Despawns this entity if it is currently spawned into any world.
+	 */
+	public void despawn() {
+		this.world.despawnEntity( this.id );
+	}
+
 }

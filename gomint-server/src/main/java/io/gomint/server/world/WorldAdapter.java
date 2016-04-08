@@ -14,9 +14,12 @@ import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
+import io.gomint.server.network.packet.PacketDespawnEntity;
+import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.world.Block;
 import io.gomint.world.Gamerule;
@@ -69,6 +72,9 @@ public abstract class WorldAdapter implements World {
 	// Chunk Handling
 	protected ChunkCache chunkCache;
 
+	// Entity Handling
+	protected EntityManager entityManager;
+
     // Player handling
     private ObjObjMap<EntityPlayer, ChunkAdapter> players;
 
@@ -76,6 +82,7 @@ public abstract class WorldAdapter implements World {
 		this.server = server;
 		this.logger = LoggerFactory.getLogger( "World-" + worldDir.getName() );
 		this.worldDir = worldDir;
+		this.entityManager = new EntityManager( this );
         this.players = HashObjObjMaps.newMutableMap();
         this.deflater = new Deflater( Deflater.DEFAULT_COMPRESSION );
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
@@ -209,6 +216,51 @@ public abstract class WorldAdapter implements World {
             chunkAdapter.removePlayer( player );
         }
     }
+
+	/**
+	 * Gets an entity given its unique ID.
+	 *
+	 * @param entityId The entity's unique ID
+	 * @return The entity if found or null otherwise
+	 */
+	public Entity findEntity( long entityId ) {
+		return this.entityManager.findEntity( entityId );
+	}
+
+	/**
+	 * Spawns the given entity at the specified position.
+	 *
+	 * @param entity The entity to spawn
+	 * @param positionX The x coordinate to spawn the entity at
+	 * @param positionY The y coordinate to spawn the entity at
+	 * @param positionZ The z coordinate to spawn the entity at
+	 */
+	public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ ) {
+		this.entityManager.spawnEntityAt( entity, positionX, positionY, positionZ );
+	}
+
+	/**
+	 * Spawns the given entity at the specified position with the specified rotation.
+	 *
+	 * @param entity The entity to spawn
+	 * @param positionX The x coordinate to spawn the entity at
+	 * @param positionY The y coordinate to spawn the entity at
+	 * @param positionZ The z coordinate to spawn the entity at
+	 * @param yaw The yaw value of the entity ; will be applied to both the entity's body and head
+	 * @param pitch The pitch value of the entity
+	 */
+	public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
+		this.entityManager.spawnEntityAt( entity, positionX, positionY, positionZ, yaw, pitch );
+	}
+
+	/**
+	 * Despawns an entity given its unique ID.
+	 *
+	 * @param entityId The unique ID of the entity
+	 */
+	public void despawnEntity( long entityId ) {
+		this.entityManager.despawnEntity( entityId );
+	}
 
 	// ==================================== CHUNK MANAGEMENT ==================================== //
 
