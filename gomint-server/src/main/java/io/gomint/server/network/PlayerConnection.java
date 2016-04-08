@@ -134,6 +134,18 @@ public class PlayerConnection {
         return this.entity;
     }
 
+	/**
+	 * Notifies the player connection that the player's view distance was changed somehow. This might
+	 * result in several packets and chunks to be sent in order to account for the change.
+	 */
+	public void onViewDistanceChanged() {
+		this.checkForNewChunks();
+
+		PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
+		packetConfirmChunkRadius.setChunkRadius( this.entity.getViewDistance() );
+		this.send( packetConfirmChunkRadius );
+	}
+
     /**
      * Performs a network tick on this player connection. All incoming packets are received and handled
      * accordingly.
@@ -349,14 +361,13 @@ public class PlayerConnection {
     private void handleSetChunkRadius( PacketSetChunkRadius packet ) {
         // Check if the wanted Viewdistance is under the servers setting
         int oldViewdistance = this.entity.getViewDistance();
-        this.entity.setViewDistance( Math.min( packet.getChunkRadius(), this.networkManager.getServer().getServerConfig().getViewDistance() ) );
-        if ( oldViewdistance != this.entity.getViewDistance() ) {
-            this.checkForNewChunks();
+        this.entity.setViewDistance( packet.getChunkRadius() );
+        if ( oldViewdistance == this.entity.getViewDistance() ) {
+	        // Got to send confirmation anyways:
+	        PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
+	        packetConfirmChunkRadius.setChunkRadius( this.entity.getViewDistance() );
+	        this.send( packetConfirmChunkRadius );
         }
-
-        PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
-        packetConfirmChunkRadius.setChunkRadius( this.entity.getViewDistance() );
-        this.send( packetConfirmChunkRadius );
     }
 
     private void handleMovePacket( PacketMovePlayer packet ) {
@@ -420,11 +431,7 @@ public class PlayerConnection {
 
         // Create entity:
         WorldAdapter world = this.networkManager.getServer().getDefaultWorld();
-        this.entity = new EntityPlayer( world, this );
-        this.entity.setUsername( packet.getUsername() );
-        this.entity.setUuid( packet.getClientUUID() );
-        this.entity.setSecretToken( packet.getClientSecret() );
-        this.entity.setViewDistance( this.networkManager.getServer().getServerConfig().getViewDistance() );
+        this.entity = new EntityPlayer( world, this, packet.getUsername(), packet.getClientUUID(), packet.getClientSecret() );
 
         this.sendWorldInitialization();
 
