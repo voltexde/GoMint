@@ -345,7 +345,6 @@ public class PlayerConnection {
         int oldViewdistance = this.entity.getViewDistance();
         this.entity.setViewDistance( Math.min( packet.getChunkRadius(), this.networkManager.getServer().getServerConfig().getViewDistance() ) );
         if ( oldViewdistance != this.entity.getViewDistance() ) {
-            logger.debug( "Setting new Viewdistance for " + this.entity.getUsername() + " to " + this.entity.getViewDistance() );
             this.checkForNewChunks();
         }
 

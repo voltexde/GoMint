@@ -84,37 +84,94 @@ public abstract class WorldAdapter implements World {
 	}
 	// CHECKSTYLE:ON
 
-    // ==================================== NETWORKING HELPERS ==================================== //
+	// ==================================== GENERAL ACCESSORS ==================================== //
 
-    /**
-     * Broadcasts the given packet to all players in this world.
-     *
-     * @param reliability The reliability to send the packet with
-     * @param orderingChannel The ordering channel to send the packet on
-     * @param packet The packet to send
-     */
-    public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
-        // Avoid duplicate arrays containing the very same data:
-        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-        buffer.writeByte( (byte) 0x8E );
-        buffer.writeByte( packet.getId() );
-        packet.serialize( buffer );
+	/**
+	 * Get the current view of players on this world.
+	 *
+	 * @return The Collection View of the Players currently on this world
+	 */
+	public Map<EntityPlayer,ChunkAdapter> getPlayers() {
+		return players;
+	}
 
-        // Avoid duplicate array copies:
-        byte[] payload;
+	@Override
+	public String getWorldName() {
+		return this.worldDir.getName();
+	}
 
-        if ( buffer.getRemaining() == 0 ) {
-            payload = buffer.getBuffer();
-        } else {
-            payload = new byte[ buffer.getPosition() - buffer.getBufferOffset() ];
-            System.arraycopy( buffer.getBuffer(), buffer.getBufferOffset(), payload, 0, buffer.getPosition() - buffer.getBufferOffset() );
-        }
+	@Override
+	public String getLevelName() {
+		return this.levelName;
+	}
 
-        // Send directly:
-        for ( EntityPlayer player : this.players.keySet() ) {
-            player.getConnection().getConnection().send( reliability, orderingChannel, payload );
-        }
-    }
+	@Override
+	public Location getSpawnLocation() {
+		return this.spawn;
+	}
+
+	@Override
+	public Block getBlockAt( Vector vector ) {
+		return null;
+	}
+
+	@Override
+	@SuppressWarnings( "unchecked" )
+	public <T> T getGamerule( Gamerule<T> gamerule ) {
+		return this.gamerules.containsKey( gamerule ) ? (T) this.gamerules.get( gamerule ) : null;
+	}
+
+	// ==================================== UPDATING ==================================== //
+
+	/**
+	 * Ticks the world and updates what needs to be updated.
+	 *
+	 * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
+	 * @param dT The delta from the full second which has been calculated in the last tick
+	 */
+	public void update( long currentTimeMS, float dT ) {
+		// ---------------------------------------
+		// Tick the chunk cache to get rid of Chunks
+		this.chunkCache.tick( currentTimeMS );
+
+		// ---------------------------------------
+		// Chunk packages are done in main thread in order to be able to
+		// cache packets without possibly getting into race conditions:
+		if ( !this.chunkPackageTasks.isEmpty() ) {
+			// One chunk per tick at max:
+			AsyncChunkPackageTask task = this.chunkPackageTasks.poll();
+			ChunkAdapter chunk = this.getChunk( task.getX(), task.getZ() );
+			if ( chunk == null ) {
+				final Object lock = new Object();
+
+				this.getOrLoadChunk( task.getX(), task.getZ(), false, new Delegate<ChunkAdapter>() {
+					@Override
+					public void invoke( ChunkAdapter arg ) {
+						synchronized ( lock ) {
+							packageChunk( arg, task.getCallback() );
+							lock.notifyAll();
+						}
+					}
+				} );
+
+				// Wait until the chunk is loaded
+				synchronized ( lock ) {
+					try {
+						lock.wait();
+					} catch ( InterruptedException e ) {
+						// Ignored .-.
+					}
+				}
+			} else {
+				packageChunk( chunk, task.getCallback() );
+			}
+		}
+
+		// ---------------------------------------
+		// Perform regular updates:
+	}
+
+	// ==================================== ENTITY MANAGEMENT ==================================== //
 
     /**
      * Adds a new player to this world and schedules all world chunk packets required for spawning
@@ -153,80 +210,7 @@ public abstract class WorldAdapter implements World {
         }
     }
 
-
-    @Override
-    public String getWorldName() {
-        return this.worldDir.getName();
-    }
-
-    @Override
-    public String getLevelName() {
-        return this.levelName;
-    }
-
-    @Override
-    public Location getSpawnLocation() {
-        return this.spawn;
-    }
-
-    @Override
-    public Block getBlockAt( Vector vector ) {
-        return null;
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public <T> T getGamerule( Gamerule<T> gamerule ) {
-        return this.gamerules.containsKey( gamerule ) ? (T) this.gamerules.get( gamerule ) : null;
-    }
-
-	/**
-	 * Ticks the world and updates what needs to be updated.
-	 *
-	 * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
-     * @param dT The delta from the full second which has been calculated in the last tick
-	 */
-    public void update( long currentTimeMS, float dT ) {
-        // ---------------------------------------
-        // Tick the chunk cache to get rid of Chunks
-        this.chunkCache.tick( currentTimeMS );
-
-        // ---------------------------------------
-        // Chunk packages are done in main thread in order to be able to
-        // cache packets without possibly getting into race conditions:
-        if ( !this.chunkPackageTasks.isEmpty() ) {
-            // One chunk per tick at max:
-            AsyncChunkPackageTask task = this.chunkPackageTasks.poll();
-            ChunkAdapter chunk = this.getChunk( task.getX(), task.getZ() );
-            if ( chunk == null ) {
-                final Object lock = new Object();
-
-                this.getOrLoadChunk( task.getX(), task.getZ(), false, new Delegate<ChunkAdapter>() {
-                    @Override
-                    public void invoke( ChunkAdapter arg ) {
-                        synchronized ( lock ) {
-                            packageChunk( arg, task.getCallback() );
-                            lock.notifyAll();
-                        }
-                    }
-                } );
-
-                // Wait until the chunk is loaded
-                synchronized ( lock ) {
-                    try {
-                        lock.wait();
-                    } catch ( InterruptedException e ) {
-                        // Ignored .-.
-                    }
-                }
-            } else {
-                packageChunk( chunk, task.getCallback() );
-            }
-        }
-
-        // ---------------------------------------
-        // Perform regular updates:
-    }
+	// ==================================== CHUNK MANAGEMENT ==================================== //
 
 	/**
 	 * Gets the chunk at the specified coordinates. If the chunk is currently not available
@@ -312,6 +296,35 @@ public abstract class WorldAdapter implements World {
             }
         } );
     }
+
+	/**
+	 * Prepares the region surrounding the world's spawn point.
+	 *
+	 * @throws IOException Throws in case the spawn region could not be loaded nor generated
+	 */
+	protected void prepareSpawnRegion() throws IOException {
+		final int spawnRadius = this.server.getServerConfig().getAmountOfChunksForSpawnArea() * 16;
+		if ( spawnRadius == 0 ) return;
+
+		final int minBlockX = (int) (this.spawn.getX() - spawnRadius);
+		final int minBlockZ = (int) (this.spawn.getZ() - spawnRadius);
+		final int maxBlockX = (int) (this.spawn.getX() + spawnRadius);
+		final int maxBlockZ = (int) (this.spawn.getZ() + spawnRadius);
+
+		final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
+		final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );
+		final int maxChunkX = CoordinateUtils.fromBlockToChunk( maxBlockX );
+		final int maxChunkZ = CoordinateUtils.fromBlockToChunk( maxBlockZ );
+
+		for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
+			for ( int j = minChunkX; j <= maxChunkX; ++j ) {
+				ChunkAdapter chunk = this.loadChunk( j, i, true );
+				if ( chunk == null ) {
+					throw new IOException( "Failed to load / generate chunk surrounding spawn region" );
+				}
+			}
+		}
+	}
 
     /**
      * Load a Chunk from the underlying implementation
@@ -404,6 +417,40 @@ public abstract class WorldAdapter implements World {
         callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), batch );
     }
 
+	// ==================================== NETWORKING HELPERS ==================================== //
+
+	/**
+	 * Broadcasts the given packet to all players in this world.
+	 *
+	 * @param reliability The reliability to send the packet with
+	 * @param orderingChannel The ordering channel to send the packet on
+	 * @param packet The packet to send
+	 */
+	public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
+		// Avoid duplicate arrays containing the very same data:
+		PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
+		buffer.writeByte( (byte) 0x8E );
+		buffer.writeByte( packet.getId() );
+		packet.serialize( buffer );
+
+		// Avoid duplicate array copies:
+		byte[] payload;
+
+		if ( buffer.getRemaining() == 0 ) {
+			payload = buffer.getBuffer();
+		} else {
+			payload = new byte[ buffer.getPosition() - buffer.getBufferOffset() ];
+			System.arraycopy( buffer.getBuffer(), buffer.getBufferOffset(), payload, 0, buffer.getPosition() - buffer.getBufferOffset() );
+		}
+
+		// Send directly:
+		for ( EntityPlayer player : this.players.keySet() ) {
+			player.getConnection().getConnection().send( reliability, orderingChannel, payload );
+		}
+	}
+
+	// ==================================== ASYNCHRONOUS WORKER ==================================== //
+
     /**
      * Starts the asynchronous worker thread used by the world to perform I/O operations for chunks.
      */
@@ -453,44 +500,6 @@ public abstract class WorldAdapter implements World {
 
             }
         }
-    }
-
-    /**
-     * Prepares the region surrounding the world's spawn point.
-     *
-     * @throws IOException Throws in case the spawn region could not be loaded nor generated
-     */
-    protected void prepareSpawnRegion() throws IOException {
-        final int spawnRadius = this.server.getServerConfig().getAmountOfChunksForSpawnArea() * 16;
-        if ( spawnRadius == 0 ) return;
-
-        final int minBlockX = (int) (this.spawn.getX() - spawnRadius);
-        final int minBlockZ = (int) (this.spawn.getZ() - spawnRadius);
-        final int maxBlockX = (int) (this.spawn.getX() + spawnRadius);
-        final int maxBlockZ = (int) (this.spawn.getZ() + spawnRadius);
-
-        final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
-        final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );
-        final int maxChunkX = CoordinateUtils.fromBlockToChunk( maxBlockX );
-        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( maxBlockZ );
-
-        for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
-            for ( int j = minChunkX; j <= maxChunkX; ++j ) {
-                ChunkAdapter chunk = this.loadChunk( j, i, true );
-                if ( chunk == null ) {
-                    throw new IOException( "Failed to load / generate chunk surrounding spawn region" );
-                }
-            }
-        }
-    }
-
-    /**
-     * Get the current view of players on this world.
-     *
-     * @return The Collection View of the Players currently on this world
-     */
-    public Map<EntityPlayer,ChunkAdapter> getPlayers() {
-        return players;
     }
 
 }
