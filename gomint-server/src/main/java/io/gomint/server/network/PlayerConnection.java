@@ -362,6 +362,8 @@ public class PlayerConnection {
             this.checkForNewChunks();
         }
 
+        this.entity.setPosition( packet.getX(), packet.getY(), packet.getZ() );
+
         this.entity.getLocation().setX( packet.getX() );
         this.entity.getLocation().setY( packet.getY() );
         this.entity.getLocation().setZ( packet.getZ() );
@@ -487,13 +489,18 @@ public class PlayerConnection {
         init.setGenerator( 1 );
         init.setGamemode( 1 );
         init.setEntityId( 0L );
-        init.setSpawnX( (int) world.getSpawnLocation().getX() );
-        init.setSpawnY( (int) world.getSpawnLocation().getY() );
-        init.setSpawnZ( (int) world.getSpawnLocation().getZ() );
-        init.setX( (float) world.getSpawnLocation().getX() );
-        init.setY( (float) world.getSpawnLocation().getY() );
-        init.setZ( (float) world.getSpawnLocation().getZ() );
+
+        Location spawn = world.getSpawnLocation();
+
+        init.setSpawnX( (int) spawn.getX() );
+        init.setSpawnY( (int) spawn.getY() );
+        init.setSpawnZ( (int) spawn.getZ() );
+        init.setX( spawn.getX() );
+        init.setY( spawn.getY() );
+        init.setZ( spawn.getZ() );
         init.setAllowCheats( true );
+
+        this.entity.setPosition( spawn );
         this.send( init );
     }
 

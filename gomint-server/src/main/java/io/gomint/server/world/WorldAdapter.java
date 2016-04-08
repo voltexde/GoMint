@@ -8,6 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
@@ -82,6 +83,38 @@ public abstract class WorldAdapter implements World {
         this.startAsyncWorker( server.getExecutorService() );
 	}
 	// CHECKSTYLE:ON
+
+    // ==================================== NETWORKING HELPERS ==================================== //
+
+    /**
+     * Broadcasts the given packet to all players in this world.
+     *
+     * @param reliability The reliability to send the packet with
+     * @param orderingChannel The ordering channel to send the packet on
+     * @param packet The packet to send
+     */
+    public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
+        // Avoid duplicate arrays containing the very same data:
+        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
+        buffer.writeByte( (byte) 0x8E );
+        buffer.writeByte( packet.getId() );
+        packet.serialize( buffer );
+
+        // Avoid duplicate array copies:
+        byte[] payload;
+
+        if ( buffer.getRemaining() == 0 ) {
+            payload = buffer.getBuffer();
+        } else {
+            payload = new byte[ buffer.getPosition() - buffer.getBufferOffset() ];
+            System.arraycopy( buffer.getBuffer(), buffer.getBufferOffset(), payload, 0, buffer.getPosition() - buffer.getBufferOffset() );
+        }
+
+        // Send directly:
+        for ( EntityPlayer player : this.players.keySet() ) {
+            player.getConnection().getConnection().send( reliability, orderingChannel, payload );
+        }
+    }
 
     /**
      * Adds a new player to this world and schedules all world chunk packets required for spawning

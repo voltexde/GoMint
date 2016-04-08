@@ -12,27 +12,33 @@ import lombok.Setter;
 
 /**
  * <p>
- * An immutable class to represent a x, y and z coordinate
+ * A mutable class representing a triple of float values resembling
+ * the x, y and z coordinates of a point respectively.
  * </p>
  *
  * @author Digot
  * @author geNAZt
- * @version 1.1
+ * @author BlackyPaw
+ * @version 1.2
  */
 public class Vector implements Cloneable {
     public static final Vector ZERO = new Vector( 0, 0, 0 );
 
-    @Getter @Setter protected double x;
-    @Getter @Setter protected double y;
-    @Getter @Setter protected double z;
+    @Getter @Setter protected float x;
+    @Getter @Setter protected float y;
+    @Getter @Setter protected float z;
 
-    public Vector( double x, double y, double z ) {
+    public Vector() {
+
+    }
+
+    public Vector( float x, float y, float z ) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
-    public Vector add( double x, double y, double z ) {
+    public Vector add( float x, float y, float z ) {
         this.x += x;
         this.y += y;
         this.z += z;
@@ -40,7 +46,15 @@ public class Vector implements Cloneable {
         return this;
     }
 
-    public Vector subtract( double x, double y, double z ) {
+    public Vector add( Vector v ) {
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
+
+        return this;
+    }
+
+    public Vector subtract( float x, float y, float z ) {
         this.x -= x;
         this.y -= y;
         this.z -= z;
@@ -48,7 +62,15 @@ public class Vector implements Cloneable {
         return this;
     }
 
-    public Vector multiply( double x, double y, double z ) {
+    public Vector subtract( Vector v ) {
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
+
+        return this;
+    }
+
+    public Vector multiply( float x, float y, float z ) {
         this.x *= x;
         this.y *= y;
         this.z *= z;
@@ -56,7 +78,15 @@ public class Vector implements Cloneable {
         return this;
     }
 
-    public Vector divide( double x, double y, double z ) {
+    public Vector multiply( Vector v ) {
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
+
+        return this;
+    }
+
+    public Vector divide( float x, float y, float z ) {
         this.x /= x;
         this.y /= y;
         this.z /= z;
@@ -64,7 +94,15 @@ public class Vector implements Cloneable {
         return this;
     }
 
-    public Vector scalar( float value ) {
+    public Vector divide( Vector v ) {
+        this.x /= v.x;
+        this.y /= v.y;
+        this.z /= v.z;
+
+        return this;
+    }
+
+    public Vector multiply( float value ) {
         this.x *= value;
         this.y *= value;
         this.z *= value;
@@ -73,7 +111,20 @@ public class Vector implements Cloneable {
     }
 
     @Override
+    public String toString() {
+        return String.format( "[x=%.3f, y=%.3f, z=%.3f]", this.x, this.y, this.z );
+    }
+
+    @Override
     public Vector clone() {
-        return new Vector( x, y, z );
+        try {
+            Vector vector = (Vector) super.clone();
+            vector.x = this.x;
+            vector.y = this.y;
+            vector.z = this.z;
+            return vector;
+        } catch ( CloneNotSupportedException e ) {
+            throw new AssertionError( "Failed to clone vector!" );
+        }
     }
 }
