@@ -124,7 +124,7 @@ public class EntityPlayer extends EntityLiving {
 		MetadataContainer metadata = super.getMetadata();
 		metadata.putBoolean( 0, false );
 		metadata.putShort( 1, (short) 0x2c01 );
-		metadata.putString( 2, getUsername() );
+		metadata.putString( 2, this.getUsername() );
 		metadata.putBoolean( 3, true );
 		metadata.putBoolean( 4, false );
 		metadata.putInt( 7, 0 );

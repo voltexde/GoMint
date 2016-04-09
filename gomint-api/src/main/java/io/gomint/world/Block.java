@@ -15,32 +15,32 @@ package io.gomint.world;
 public interface Block {
 
 	/**
-     * Gets the complete ID (range 0 - 4095) of the block.
+     * Gets the ID of the block.
      *
      * @return The ID of the block
      */
     int getBlockId();
 
 	/**
-     * Gets the data value of the block (0 - 15).
+     * Gets the block's data value (0 - 15)
      *
-     * @return The data value of the block
+     * @return The block's data value
      */
     byte getBlockData();
 
 	/**
-     * Sets the complete ID of the block. Any values that are out of the supported ID range (0 - 4095) will be
+     * Sets the block's ID. Any values that lie outside of the valid ID range will be
      * set to 0 (Air).
      *
-     * @param id The ID of the block
+     * @param id The ID to set
      */
     void setBlockId( int id );
 
 	/**
-     * Sets the data value of the block. Any values that are out of the supported ID range (0 - 15) will be
+     * Sets the block's data value. Any values that lie outside of the valid ID range (0 - 15) will be
      * set to 0 (no data).
      *
-     * @param data The data value of the block
+     * @param data The data value ofto set
      */
     void setBlockData( byte data );
 

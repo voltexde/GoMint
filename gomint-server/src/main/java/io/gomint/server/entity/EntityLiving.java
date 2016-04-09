@@ -1,6 +1,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.server.entity.component.AIBehaviourComponent;
+import io.gomint.server.entity.pathfinding.PathfindingEngine;
 import io.gomint.server.world.WorldAdapter;
 
 /**
@@ -15,6 +16,8 @@ public abstract class EntityLiving extends Entity {
 
 	// AI of the entity:
 	protected AIBehaviourComponent behaviour;
+	// Pathfinding engine of the entity:
+	protected PathfindingEngine pathfinding;
 
 	/**
 	 * Constructs a new EntityLiving
@@ -25,6 +28,7 @@ public abstract class EntityLiving extends Entity {
 	protected EntityLiving( EntityType type, WorldAdapter world ) {
 		super( type, world );
 		this.behaviour = new AIBehaviourComponent();
+		this.pathfinding = new PathfindingEngine( this.getTransform() );
 	}
 
 	// ==================================== UPDATING ==================================== //

@@ -29,6 +29,11 @@ public abstract class AIState {
 		return ( this.machine.getActiveState() == this );
 	}
 
+
+	public void onEvent( AIEvent event ) {
+
+	}
+
 	/**
 	 * Updates the AI state. Will be invoked by the AIStateMachine the state is added to
 	 * whenever this state is currently active.

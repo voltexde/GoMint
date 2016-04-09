@@ -115,7 +115,7 @@ public abstract class Entity {
 	 *
 	 * @return The entity's transform
 	 */
-	Transformable getTransform() {
+	public Transformable getTransform() {
 		return this.transform;
 	}
 

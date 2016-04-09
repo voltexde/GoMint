@@ -29,6 +29,17 @@ public class AIStateMachine {
 	}
 
 	/**
+	 * Propagates the given AI event to the currently active AI state.
+	 *
+	 * @param event The event to propagate
+	 */
+	public void propagateEvent( AIEvent event ) {
+		if ( this.activeState != null ) {
+			this.activeState.onEvent( event );
+		}
+	}
+
+	/**
 	 * Switches the currently active AI state. If next is set to null
 	 * this function will behave exactly as {@link #stopExecution()}.
 	 * In order to get the first AI state running the creator of the

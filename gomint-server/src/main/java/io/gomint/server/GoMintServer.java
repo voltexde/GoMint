@@ -168,7 +168,7 @@ public class GoMintServer implements GoMint {
 				this.worldManager.update( currentMillis, lastTickTime );
 
 				long diff = System.nanoTime() - start;
-                lastTickTime = diff / 1000000;
+                lastTickTime = (float) diff / 1000000.0F;
 
 				if ( diff < skipNanos ) {
                     tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );

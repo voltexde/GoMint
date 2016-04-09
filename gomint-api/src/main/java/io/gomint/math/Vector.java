@@ -110,6 +110,18 @@ public class Vector implements Cloneable {
         return this;
     }
 
+    public Vector normalize() {
+        float mag = (float) Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+	    if ( mag == 0.0F ) {
+		    return this;
+	    }
+        this.x /= mag;
+        this.y /= mag;
+        this.z /= mag;
+
+        return this;
+    }
+
     @Override
     public String toString() {
         return String.format( "[x=%.3f, y=%.3f, z=%.3f]", this.x, this.y, this.z );

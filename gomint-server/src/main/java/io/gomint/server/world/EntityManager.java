@@ -10,9 +10,14 @@ package io.gomint.server.world;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.network.packet.PacketDespawnEntity;
+import io.gomint.server.network.packet.PacketEntityMovement;
 import io.gomint.server.network.packet.PacketSpawnEntity;
+import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Helper class that manages all entities inside a world.
@@ -32,9 +37,66 @@ public class EntityManager {
 	}
 
 	/**
+	 * Updates all entities managed by the EntityManager.
+	 *
+	 * @param currentTimeMS The current system time in milliseconds
+	 * @param dT            The time that has passed since the last update in seconds
+	 */
+	public void update( long currentTimeMS, float dT ) {
+		// --------------------------------------
+		// Update all entities:
+		Set<Entity>           movedEntities = new HashSet<>();
+		LongObjCursor<Entity> cursor        = this.entitiesById.cursor();
+		while ( cursor.moveNext() ) {
+			Entity entity = cursor.value();
+			entity.update( currentTimeMS, dT );
+			if ( entity.getTransform().isDirty() ) {
+				movedEntities.add( entity );
+			}
+		}
+
+		// --------------------------------------
+		// Create movement batches:
+		if ( movedEntities.size() > 0 ) {
+			PacketEntityMovement movement = new PacketEntityMovement();
+
+			long[]  entityId = new long[movedEntities.size()];
+			float[] x        = new float[movedEntities.size()];
+			float[] y        = new float[movedEntities.size()];
+			float[] z        = new float[movedEntities.size()];
+			float[] yaw      = new float[movedEntities.size()];
+			float[] headYaw  = new float[movedEntities.size()];
+			float[] pitch    = new float[movedEntities.size()];
+
+			int position = 0;
+			for ( Entity entity : movedEntities ) {
+				entityId[position] = entity.getId();
+				x[position] = entity.getPositionX();
+				y[position] = entity.getPositionY();
+				z[position] = entity.getPositionZ();
+				yaw[position] = entity.getYaw();
+				headYaw[position] = entity.getHeadYaw();
+				pitch[position] = entity.getPitch();
+				position++;
+			}
+
+			movement.setEntityId( entityId );
+			movement.setX( x );
+			movement.setY( y );
+			movement.setZ( z );
+			movement.setYaw( yaw );
+			movement.setHeadYaw( headYaw );
+			movement.setPitch( pitch );
+
+			this.world.broadcast( PacketReliability.RELIABLE_SEQUENCED, 0, movement );
+		}
+	}
+
+	/**
 	 * Gets an entity given its unique ID.
 	 *
 	 * @param entityId The entity's unique ID
+	 *
 	 * @return The entity if found or null otherwise
 	 */
 	public Entity findEntity( long entityId ) {
@@ -44,7 +106,7 @@ public class EntityManager {
 	/**
 	 * Spawns the given entity at the specified position.
 	 *
-	 * @param entity The entity to spawn
+	 * @param entity    The entity to spawn
 	 * @param positionX The x coordinate to spawn the entity at
 	 * @param positionY The y coordinate to spawn the entity at
 	 * @param positionZ The z coordinate to spawn the entity at
@@ -56,12 +118,12 @@ public class EntityManager {
 	/**
 	 * Spawns the given entity at the specified position with the specified rotation.
 	 *
-	 * @param entity The entity to spawn
+	 * @param entity    The entity to spawn
 	 * @param positionX The x coordinate to spawn the entity at
 	 * @param positionY The y coordinate to spawn the entity at
 	 * @param positionZ The z coordinate to spawn the entity at
-	 * @param yaw The yaw value of the entity ; will be applied to both the entity's body and head
-	 * @param pitch The pitch value of the entity
+	 * @param yaw       The yaw value of the entity ; will be applied to both the entity's body and head
+	 * @param pitch     The pitch value of the entity
 	 */
 	public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
 		entity.setPosition( positionX, positionY, positionZ );
