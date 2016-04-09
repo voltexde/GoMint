@@ -42,7 +42,7 @@ public class AIPassiveIdleMovement extends AIState {
 			IntTriple blockPosition = new IntTriple( (int) position.getX(), (int) position.getY(), (int) position.getZ() );
 			IntTriple node          = this.path.get( this.currentPathNode );
 
-			Vector direction = node.toVector().subtract( position ).normalize().multiply( 0.005F * dT );
+			Vector direction = node.toVector().subtract( position ).normalize().multiply( 0.05F * dT );
 			this.pathfinding.getTransform().setPosition( position.add( direction ) );
 
 			if ( blockPosition.equals( node ) ) {

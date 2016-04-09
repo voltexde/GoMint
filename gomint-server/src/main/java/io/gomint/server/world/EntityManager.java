@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.network.packet.PacketDespawnEntity;
+import io.gomint.server.network.packet.PacketEntityMotion;
 import io.gomint.server.network.packet.PacketEntityMovement;
 import io.gomint.server.network.packet.PacketSpawnEntity;
 import net.openhft.koloboke.collect.map.LongObjCursor;
@@ -59,6 +60,7 @@ public class EntityManager {
 		// Create movement batches:
 		if ( movedEntities.size() > 0 ) {
 			PacketEntityMovement movement = new PacketEntityMovement();
+			PacketEntityMotion motion = new PacketEntityMotion();
 
 			long[]  entityId = new long[movedEntities.size()];
 			float[] x        = new float[movedEntities.size()];
@@ -67,6 +69,10 @@ public class EntityManager {
 			float[] yaw      = new float[movedEntities.size()];
 			float[] headYaw  = new float[movedEntities.size()];
 			float[] pitch    = new float[movedEntities.size()];
+
+			float[] velocityX = new float[movedEntities.size()];
+			float[] velocityY = new float[movedEntities.size()];
+			float[] velocityZ = new float[movedEntities.size()];
 
 			int position = 0;
 			for ( Entity entity : movedEntities ) {
@@ -77,6 +83,11 @@ public class EntityManager {
 				yaw[position] = entity.getYaw();
 				headYaw[position] = entity.getHeadYaw();
 				pitch[position] = entity.getPitch();
+
+				velocityX[position] = 0.0F;
+				velocityY[position] = 0.0F;
+				velocityZ[position] = 0.0F;
+
 				position++;
 			}
 
@@ -88,7 +99,13 @@ public class EntityManager {
 			movement.setHeadYaw( headYaw );
 			movement.setPitch( pitch );
 
+			motion.setEntityId( entityId );
+			motion.setVelocityX( velocityX );
+			motion.setVelocityY( velocityY );
+			motion.setVelocityZ( velocityZ );
+
 			this.world.broadcast( PacketReliability.RELIABLE_SEQUENCED, 0, movement );
+			this.world.broadcast( PacketReliability.RELIABLE_SEQUENCED, 0, motion );
 		}
 	}
 
