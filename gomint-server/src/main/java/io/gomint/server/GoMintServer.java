@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
+import java.security.Security;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -76,6 +77,7 @@ public class GoMintServer implements GoMint {
 	 * @param args which should have been given over from the static Bootstrap
 	 */
 	public GoMintServer( String[] args ) {
+		Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
 		Thread.currentThread().setName( "GoMint Main Thread" );
 
 		// ------------------------------------ //

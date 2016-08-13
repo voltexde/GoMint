@@ -8,6 +8,7 @@
 package io.gomint.server.network;
 
 import io.gomint.jraknet.Connection;
+import io.gomint.jraknet.EncapsulatedPacket;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.Location;
@@ -29,9 +30,12 @@ import net.openhft.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 import static io.gomint.server.network.Protocol.*;
 
@@ -53,16 +57,11 @@ public class PlayerConnection {
     private Delegate<Packet> sendDelegate;
 
     // Connection State:
-    private long lastPerformance;
     private PlayerConnectionState state;
     private int sentChunks;
 
     // Entity
     private EntityPlayer entity;
-
-    // Used for BatchPacket decompression; stored here in order to save allocations at runtime:
-    private Inflater batchDecompressor;
-    private byte[] batchIntermediate;
 
     // World data
     private LongSet playerChunks;
@@ -79,9 +78,6 @@ public class PlayerConnection {
         this.networkManager = networkManager;
         this.connection = connection;
         this.state = initialState;
-
-        this.batchDecompressor = new Inflater();
-        this.batchIntermediate = new byte[1024];
 
         this.playerChunks = HashLongSets.newMutableSet();
         this.currentlySendingPlayerChunks = HashLongSets.newMutableSet();
@@ -152,9 +148,9 @@ public class PlayerConnection {
      */
     public void tick() {
         // Receive all waiting packets:
-        byte[] packetData;
+        EncapsulatedPacket packetData;
         while ( ( packetData = this.connection.receive() ) != null ) {
-            this.handleSocketData( new PacketBuffer( packetData, 0 ), false );
+            this.handleSocketData( new PacketBuffer( packetData.getPacketData(), 0 ), false );
         }
     }
 
@@ -165,7 +161,7 @@ public class PlayerConnection {
      */
     public void send( Packet packet ) {
         PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-        buffer.writeByte( (byte) 0x8E );
+        buffer.writeByte( (byte) 0xFE );
         buffer.writeByte( packet.getId() );
         packet.serialize( buffer );
         this.connection.send( PacketReliability.RELIABLE, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
@@ -180,7 +176,7 @@ public class PlayerConnection {
      */
     public void send( PacketReliability reliability, int orderingChannel, Packet packet ) {
         PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-        buffer.writeByte( (byte) 0x8E );
+        buffer.writeByte( (byte) 0xFE );
         buffer.writeByte( packet.getId() );
         packet.serialize( buffer );
         this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
@@ -208,7 +204,7 @@ public class PlayerConnection {
                 int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
                 int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
-                WorldAdapter worldAdapter = (WorldAdapter) this.entity.getWorld();
+                WorldAdapter worldAdapter = this.entity.getWorld();
                 worldAdapter.movePlayerToChunk( spawnXChunk, spawnZChunk, this.entity );
 
                 PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
@@ -238,7 +234,7 @@ public class PlayerConnection {
 
         // Grab the packet ID from the packet's data
         byte packetId = buffer.readByte();
-        if ( packetId == (byte) 0x8E && buffer.getRemaining() > 0 ) {
+        if ( packetId == (byte) 0xFE && buffer.getRemaining() > 0 ) {
             packetId = buffer.readByte();
         }
 
@@ -259,7 +255,7 @@ public class PlayerConnection {
         }
 
         if ( packetId == PACKET_BATCH ) {
-            this.handleBatchPacket( buffer, false );
+            this.handleBatchPacket( buffer, batch );
         } else {
             Packet packet = Protocol.createPacket( packetId );
             if ( packet == null ) {
@@ -286,33 +282,35 @@ public class PlayerConnection {
 		    return;
 	    }
 
-        buffer.skip( 4 );               // Compressed payload length (not of interest; only uncompressed size matters)
+        int compressedSize = buffer.readInt();               // Compressed payload length (not of interest; only uncompressed size matters)
 
-        this.batchDecompressor.reset();
-        this.batchDecompressor.setInput( buffer.getBuffer(), buffer.getPosition(), buffer.getRemaining() );
+        InflaterInputStream inflaterInputStream = new InflaterInputStream( new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), compressedSize ) );
 
-	    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream( compressedSize );
+        byte[] batchIntermediate = new byte[256];
 
-	    try {
-		    while ( this.batchDecompressor.finished() ) {
-			    int read = this.batchDecompressor.inflate( this.batchIntermediate );
-			    bout.write( this.batchIntermediate, 0, read );
-		    }
-	    } catch ( DataFormatException e ) {
-		    this.networkManager.getLogger().error( "Failed to decompress batch packet", e );
-		    return;
-	    }
+        try {
+            int read;
+            while ( ( read = inflaterInputStream.read( batchIntermediate ) ) > -1 ) {
+                bout.write( batchIntermediate, 0, read );
+            }
+        } catch ( IOException e ) {
+            this.networkManager.getLogger().error( "Failed to decompress batch packet", e );
+            return;
+        }
 
 	    byte[] payload = bout.toByteArray();
 
         PacketBuffer payloadBuffer = new PacketBuffer( payload, 0 );
         while ( payloadBuffer.getRemaining() > 0 ) {
 	        int packetLength = payloadBuffer.readInt();
-	        int expectedPosition = payloadBuffer.getPosition() + packetLength;
 
-            this.handleSocketData( payloadBuffer, true );
+            byte[] payData = new byte[packetLength];
+            payloadBuffer.readBytes( payData );
+            PacketBuffer pktBuf = new PacketBuffer( payData, 0 );
+            this.handleSocketData( pktBuf, true );
 
-	        if ( payloadBuffer.getPosition() != expectedPosition ) {
+	        if ( pktBuf.getRemaining() > 0 ) {
 		        this.networkManager.getLogger().error( "Malformed batch packet payload: Could not read enclosed packet data correctly" );
 		        return;
 	        }
@@ -335,10 +333,28 @@ public class PlayerConnection {
             case PACKET_SET_CHUNK_RADIUS:
                 this.handleSetChunkRadius( (PacketSetChunkRadius) packet );
                 break;
+            case PACKET_PLAYER_ACTION:
+                this.handlePlayerAction( (PacketPlayerAction) packet );
+                break;
+            case PACKET_MOB_ARMOR_EQUIPMENT:
+                this.handleMobArmorEquipment( (PacketMobArmorEquipment) packet );
+                break;
         }
     }
 
-	private void handleChat( PacketText packet ) {
+    private void handleMobArmorEquipment( PacketMobArmorEquipment packet ) {
+        // TODO implement checks if the client says something correct
+        this.entity.getInventory().setBoots( packet.getBoots() );
+        this.entity.getInventory().setChestplate( packet.getChestplate() );
+        this.entity.getInventory().setHelmet( packet.getHelmet() );
+        this.entity.getInventory().setLeggings( packet.getLeggings() );
+    }
+
+    private void handlePlayerAction( PacketPlayerAction packet ) {
+
+    }
+
+    private void handleChat( PacketText packet ) {
 		if ( packet.getType() != PacketText.Type.PLAYER_CHAT ) {
 			// Players are not allowed to send any other chat messages:
 			return;
@@ -386,7 +402,7 @@ public class PlayerConnection {
     }
 
     private void checkForNewChunks() {
-        WorldAdapter worldAdapter = ( (WorldAdapter) this.entity.getWorld() );
+        WorldAdapter worldAdapter = this.entity.getWorld();
 
         int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
         int currentZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
@@ -425,13 +441,14 @@ public class PlayerConnection {
 
     private void handleLoginPacket( PacketLogin packet ) {
         this.state = PlayerConnectionState.LOGIN;
-        this.lastPerformance = System.currentTimeMillis();
 
         this.sendPlayState( PacketPlayState.PlayState.HANDSHAKE );
 
+        logger.info( "Logging in as " + packet.getUserName() );
+
         // Create entity:
         WorldAdapter world = this.networkManager.getServer().getDefaultWorld();
-        this.entity = new EntityPlayer( world, this, packet.getUsername(), packet.getClientUUID(), packet.getClientSecret() );
+        this.entity = new EntityPlayer( world, this, packet.getUserName(), packet.getUUID() );
 
         this.sendWorldInitialization();
 
@@ -464,9 +481,9 @@ public class PlayerConnection {
     private void sendMovePlayer( Location location ) {
         PacketMovePlayer move = new PacketMovePlayer();
         move.setEntityId( 0 );                      // All packets referencing the local player have entity ID 0
-        move.setX( (float) location.getX() );
-        move.setY( (float) location.getY() );
-        move.setZ( (float) location.getZ() );
+        move.setX( location.getX() );
+        move.setY( location.getY() );
+        move.setZ( location.getZ() );
         move.setYaw( 0.0F );
         move.setPitch( 0.0F );
         move.setTeleport( true );
@@ -499,7 +516,7 @@ public class PlayerConnection {
         init.setSeed( -1 );
         init.setDimension( (byte) 0 );
         init.setGenerator( 1 );
-        init.setGamemode( 1 );
+        init.setGamemode( 0 );
         init.setEntityId( 0L );
 
         Location spawn = world.getSpawnLocation();
@@ -521,7 +538,7 @@ public class PlayerConnection {
      */
     public void close() {
         if ( this.entity.getWorld() != null ) {
-            ( (WorldAdapter) this.entity.getWorld() ).removePlayer( this.entity );
+            this.entity.getWorld().removePlayer( this.entity );
         }
     }
 }

@@ -8,6 +8,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.inventory.PlayerInventory;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.world.WorldAdapter;
@@ -35,8 +36,10 @@ public class EntityPlayer extends EntityLiving {
     // Player Information
     private String username;
     private UUID uuid;
-    private String secretToken;
     private PlayerSkin skin;
+
+	// Inventory
+	private PlayerInventory inventory;
 
 	/**
 	 * Constructs a new player entity which will be spawned inside the specified world.
@@ -47,14 +50,13 @@ public class EntityPlayer extends EntityLiving {
 	public EntityPlayer( WorldAdapter world,
 	                     PlayerConnection connection,
 	                     String username,
-	                     UUID uuid,
-	                     String secretToken ) {
+	                     UUID uuid ) {
 		super( EntityType.PLAYER, world );
 		this.connection = connection;
 		this.username = username;
 		this.uuid = uuid;
-		this.secretToken = secretToken;
 		this.viewDistance = this.world.getServer().getServerConfig().getViewDistance();
+		this.inventory = new PlayerInventory( this );
 	}
 
 	// ==================================== ACCESSORS ==================================== //
@@ -109,16 +111,6 @@ public class EntityPlayer extends EntityLiving {
 		return this.uuid;
 	}
 
-	/**
-	 * Gets the player's secret token. The secret token of a player is a random string sent inside the
-	 * login packet the player identified with.
-	 *
-	 * @return The player's secret token
-	 */
-	public String getSecretToken() {
-		return this.secretToken;
-	}
-
 	@Override
 	public MetadataContainer getMetadata() {
 		MetadataContainer metadata = super.getMetadata();
@@ -142,4 +134,7 @@ public class EntityPlayer extends EntityLiving {
 		super.update( currentTimeMS, dT );
 	}
 
+	public PlayerInventory getInventory() {
+		return inventory;
+	}
 }

@@ -152,29 +152,6 @@ public class PacketCraftingRecipes extends Packet {
 		return new SmeltingRecipe( input, outcome, null );
 	}
 
-	private ItemStack readItemStack( PacketBuffer buffer ) {
-		short id = buffer.readShort();
-		if ( id == 0 ) {
-			return new ItemStack( 0, (short) 0, 0, null );
-		}
 
-		byte  amount = buffer.readByte();
-		short data   = buffer.readShort();
-
-		NBTTagCompound nbt      = null;
-		short          extraLen = buffer.readShort();
-		if ( extraLen > 0 ) {
-			ByteArrayInputStream bin = new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), extraLen );
-			try {
-				nbt = NBTTagCompound.readFrom( bin, false, ByteOrder.LITTLE_ENDIAN );
-			} catch ( IOException e ) {
-				e.printStackTrace();
-			}
-
-			buffer.skip( extraLen );
-		}
-
-		return new ItemStack( id, data, amount, nbt );
-	}
 
 }

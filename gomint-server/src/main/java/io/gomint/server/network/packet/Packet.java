@@ -7,7 +7,14 @@
 
 package io.gomint.server.network.packet;
 
+import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.taglib.NBTTagCompound;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteOrder;
 
 /**
  * @author BlackyPaw
@@ -63,6 +70,53 @@ public abstract class Packet {
 	 */
 	public int orderingChannel() {
 		return 0;
+	}
+
+	protected ItemStack readItemStack( PacketBuffer buffer ) {
+		short id = buffer.readShort();
+		if ( id == 0 ) {
+			return new ItemStack( 0, (short) 0, 0, null );
+		}
+
+		byte  amount = buffer.readByte();
+		short data   = buffer.readShort();
+
+		NBTTagCompound nbt      = null;
+		short          extraLen = buffer.readLShort();
+		if ( extraLen > 0 ) {
+			ByteArrayInputStream bin = new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), extraLen );
+			try {
+				nbt = NBTTagCompound.readFrom( bin, false, ByteOrder.LITTLE_ENDIAN );
+			} catch ( IOException e ) {
+				e.printStackTrace();
+			}
+
+			buffer.skip( extraLen );
+		}
+
+		return new ItemStack( id, data, amount, nbt );
+	}
+
+	protected void writeItemStack( ItemStack itemStack, PacketBuffer buffer ) {
+		buffer.writeShort( itemStack.getId() );
+		if ( itemStack.getId() > 0 ) {
+			buffer.writeByte( itemStack.getAmount() );
+			buffer.writeShort( itemStack.getData() );
+
+			if ( itemStack.getNbtData() == null ) {
+                buffer.writeLShort( (short) 0 );
+			} else {
+                try {
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    itemStack.getNbtData().writeTo( byteArrayOutputStream, false, ByteOrder.LITTLE_ENDIAN );
+                    buffer.writeLShort( (short) byteArrayOutputStream.size() );
+                    buffer.writeBytes( byteArrayOutputStream.toByteArray() );
+                } catch ( IOException e ) {
+                    e.printStackTrace();
+                    buffer.writeLShort( (short) 0 );
+                }
+            }
+		}
 	}
 
 }

@@ -80,7 +80,7 @@ public class ItemStack implements Cloneable {
 	 *
 	 * @return The ID of the item(s) on this stack
 	 */
-	public int getId() {
+	public short getId() {
 		return this.id;
 	}
 
@@ -116,7 +116,7 @@ public class ItemStack implements Cloneable {
 	 *
 	 * @return The number of items on this stack
 	 */
-	public int getAmount() {
+	public byte getAmount() {
 		return this.amount;
 	}
 
@@ -126,7 +126,7 @@ public class ItemStack implements Cloneable {
 	 * @param amount The number of items on this stack
 	 */
 	public void setAmount( int amount ) {
-		this.amount = (byte) ( amount > Byte.MAX_VALUE ? Byte.MAX_VALUE : amount );
+		this.amount = amount > Byte.MAX_VALUE ? Byte.MAX_VALUE : (byte) amount;
 	}
 
 	/**

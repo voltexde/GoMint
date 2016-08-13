@@ -84,8 +84,8 @@ class AnvilChunk extends ChunkAdapter {
 					    byte blockId = this.getBlock( x, y, z );
 					    byte blockData = this.getData( x, y, z );
 
-					    blocks[blockIndex] = AnvilBlockConverter.revertBlockID( blockId, blockData );
-					    data.set( blockIndex, AnvilBlockConverter.revertBlockData( blockId, blockData ) );
+					    blocks[blockIndex] = blockId;
+					    data.set( blockIndex, blockData );
 					    blockLight.set( blockIndex, this.getBlockLight( x, y, z ) );
 					    skyLight.set( blockIndex, this.getSkyLight( x, y, z ) );
 				    }
@@ -233,9 +233,6 @@ class AnvilChunk extends ChunkAdapter {
 
                     int blockId = ( add != null ? add.get( blockIndex ) << 8 : 0 ) | blocks[blockIndex];
                     byte blockData = data.get( blockIndex );
-
-                    blockId = AnvilBlockConverter.convertBlockID( blockId, blockData );
-                    blockData = AnvilBlockConverter.convertBlockData( blockId, blockData );
 
                     // Fix water & lava at the bottom of a chunk
                     if ( y == 0 && ( blockId == 8 || blockId == 9 || blockId == 10 || blockId == 11 ) ) {
