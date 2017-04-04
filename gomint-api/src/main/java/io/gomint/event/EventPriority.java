@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 /**
  * @author Fabian
  * @version 1.0
- *
- * Importance of the {@link EventHandler}. When executing an Event, the handlers
- * are called in order of their Priority.
+ *          <p>
+ *          Importance of the {@link EventHandler}. When executing an Event, the handlers
+ *          are called in order of their Priority.
  */
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 public enum EventPriority {
@@ -26,7 +26,7 @@ public enum EventPriority {
     HIGH( (byte) 32 ),
     HIGHEST( (byte) 64 );
 
-	private byte order;
+    private byte order;
 
     EventPriority( final byte value ) {
         this.order = value;

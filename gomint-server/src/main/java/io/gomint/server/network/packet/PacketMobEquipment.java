@@ -15,6 +15,7 @@ public class PacketMobEquipment extends Packet {
     private ItemStack stack;
     private byte slot;
     private byte selectedSlot;
+    private byte unknown; // TODO: Find out what this is
 
     public PacketMobEquipment() {
         super( Protocol.PACKET_MOB_EQUIPMENT );
@@ -22,18 +23,20 @@ public class PacketMobEquipment extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        buffer.writeLong( this.entityId );
+        buffer.writeUnsignedVarLong( this.entityId );
         writeItemStack( this.stack, buffer );
         buffer.writeByte( this.slot );
         buffer.writeByte( this.selectedSlot );
+        buffer.writeByte( this.unknown );
     }
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        this.entityId = buffer.readLong();
+        this.entityId = buffer.readUnsignedVarLong();
         this.stack = readItemStack( buffer );
         this.slot = buffer.readByte();
         this.selectedSlot = buffer.readByte();
+        this.unknown = buffer.readByte();
     }
 
 }

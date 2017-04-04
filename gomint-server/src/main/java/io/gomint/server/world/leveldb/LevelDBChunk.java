@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,23 +7,16 @@
 
 package io.gomint.server.world.leveldb;
 
-import io.gomint.server.entity.tileentity.TileEntities;
-import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
-import com.google.common.base.Strings;
-
-import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author geNAZt
@@ -31,93 +24,10 @@ import java.util.Map;
  */
 public class LevelDBChunk extends ChunkAdapter {
 
-    public LevelDBChunk( WorldAdapter worldAdapter, int x, int z, byte[] chunkData, byte[] tileEntityData, byte[] entityData ) {
+    public LevelDBChunk( WorldAdapter worldAdapter, int x, int z ) {
         this.world = worldAdapter;
         this.x = x;
         this.z = z;
-
-        // Load chunk
-        this.loadChunk( chunkData );
-
-	    // Load TileEntities
-        if ( tileEntityData != null && tileEntityData.length > 0 ) {
-            this.loadTileEntity( tileEntityData );
-        }
-
-	    // Load Entities
-	    if ( entityData != null && entityData.length > 0 ) {
-		    this.loadEntity( entityData );
-	    }
-
-        this.calculateBiomeColors();
-        this.calculateHeightmap();
-    }
-
-	private void loadEntity( byte[] entityData ) {
-		try ( ByteArrayInputStream inputStream = new ByteArrayInputStream( entityData ) ) {
-			while ( inputStream.available() > 0 ) {
-				NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( inputStream, false, ByteOrder.LITTLE_ENDIAN );
-				// DumpUtil.dumpNBTCompund( nbtTagCompound );
-			}
-		} catch ( IOException e ) {
-			e.printStackTrace();
-		}
-	}
-
-	private void loadTileEntity( byte[] tileEntityData ) {
-        try ( ByteArrayInputStream inputStream = new ByteArrayInputStream( tileEntityData ) ) {
-            while ( inputStream.available() > 0 ) {
-                NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( inputStream, false, ByteOrder.LITTLE_ENDIAN );
-	            TileEntity tileEntity = TileEntities.construct( nbtTagCompound, world );
-	            if ( tileEntity != null ) {
-					tileEntities.add( tileEntity );
-		            // System.out.println( "TileEntity @ " + tileEntity.getLocation() );
-	            } else {
-		            System.out.println( "Found new TileEntity: \n");
-		            DumpUtil.dumpNBTCompund( nbtTagCompound );
-		            System.out.println( "-----------------");
-	            }
-            }
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
-    }
-
-    private void loadChunk( byte[] chunkData ) {
-        // Wrap data and read blocks
-        ByteBuffer buffer = ByteBuffer.wrap( chunkData ).order( ByteOrder.BIG_ENDIAN );
-        buffer.get( this.blocks );
-
-        // Read in data
-        byte[] data = new byte[16384];
-        buffer.get( data );
-        this.data = new NibbleArray( data );
-
-        // Read in skylight
-        byte[] skyLight = new byte[16384];
-        buffer.get( skyLight );
-        this.skyLight = new NibbleArray( skyLight );
-
-        // Read in blocklight
-        byte[] blockLight = new byte[16384];
-        buffer.get( blockLight );
-        this.blockLight = new NibbleArray( blockLight );
-
-        // Read in height
-        for ( int i = 0; i < 256; i++ ) {
-            this.height.set( i, buffer.get() );
-        }
-
-        // Read in color
-        int c = 0;
-        for ( int i = 0; i < 256; i++ ) {
-            int biome = buffer.getInt();
-            Color color = new Color( biome );
-            this.biomes[i] = (byte) ( biome >> 24 );
-            this.biomeColors[c++] = (byte) color.getRed();
-            this.biomeColors[c++] = (byte) color.getGreen();
-            this.biomeColors[c++] = (byte) color.getBlue();
-        }
     }
 
     /**
@@ -126,7 +36,7 @@ public class LevelDBChunk extends ChunkAdapter {
      * @return The data which will be saved in the database for this chunk
      */
     byte[] getSaveData() {
-        ByteBuffer byteBuffer = ByteBuffer.allocate( this.blocks.length +
+       /* ByteBuffer byteBuffer = ByteBuffer.allocate( this.blocks.length +
                 this.data.raw().length +
                 this.skyLight.raw().length +
                 this.blockLight.raw().length +
@@ -140,15 +50,75 @@ public class LevelDBChunk extends ChunkAdapter {
         byteBuffer.put( this.height.toByteArray() );
 
         for ( int i = 0; i < 256; i++ ) {
-            byte r = this.biomeColors[i * 3];
-            byte g = this.biomeColors[i * 3 + 1];
-            byte b = this.biomeColors[i * 3 + 2];
-
-            int color = ( r << 16 ) | ( g << 8 ) | b;
-
-            byteBuffer.putInt( ( this.biomes[i] << 24 ) | ( color & 0x00FFFFFF ) );
+            byteBuffer.putInt( ( this.biomes[i] << 24 ) );
         }
-
-        return byteBuffer.array();
+*/
+        return new byte[]{};
     }
+
+    void loadSection( int sectionY, byte[] chunkData ) {
+        ByteBuffer buf = ByteBuffer.wrap( chunkData );
+
+        // First byte is chunk section version
+        buf.get();
+
+        // Next 4096 bytes are block data
+        byte[] blockData = new byte[4096];
+        buf.get( blockData );
+
+        // Next 2048 bytes are metadata
+        byte[] metaData = new byte[2048];
+        buf.get( metaData );
+        NibbleArray meta = new NibbleArray( metaData );
+
+        // Next 2048 bytes are sky light
+        byte[] skyLight = new byte[2048];
+        buf.get( skyLight );
+        NibbleArray sky = new NibbleArray( skyLight );
+
+        // Final 2048 bytes are block light
+        byte[] blockLight = new byte[2048];
+        buf.get( blockLight );
+        NibbleArray block = new NibbleArray( blockLight );
+
+        for ( int j = 0; j < 16; ++j ) {
+            for ( int i = 0; i < 16; ++i ) {
+                for ( int k = 0; k < 16; ++k ) {
+                    int y = ( sectionY << 4 ) + j;
+                    int blockIndex = k << 8 | i << 4 | j; // j k i - k j i - i k j -
+
+
+                    this.setData( k, y, i, meta.get( blockIndex ) );
+                    this.setBlock( k, y, i, blockData[blockIndex] );
+                    this.setSkyLight( k, y, i, sky.get( blockIndex ) );
+                    this.setBlockLight( k, y, i, block.get( blockIndex ) );
+                }
+            }
+        }
+    }
+
+    void loadTileEntities( byte[] tileEntityData ) {
+        ByteArrayInputStream bais = new ByteArrayInputStream( tileEntityData );
+        while ( bais.available() > 0 ) {
+            try {
+                NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( bais, false, ByteOrder.LITTLE_ENDIAN );
+                DumpUtil.dumpNBTCompund( nbtTagCompound );
+            } catch ( IOException e ) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    void loadEntities( byte[] entityData ) {
+        ByteArrayInputStream bais = new ByteArrayInputStream( entityData );
+        while ( bais.available() > 0 ) {
+            try {
+                NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( bais, false, ByteOrder.LITTLE_ENDIAN );
+                DumpUtil.dumpNBTCompund( nbtTagCompound );
+            } catch ( IOException e ) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }

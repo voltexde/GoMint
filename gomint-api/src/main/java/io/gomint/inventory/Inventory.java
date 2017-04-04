@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -16,7 +16,7 @@ public interface Inventory {
     /**
      * Gets the item out of this inventory
      *
-     * @param slot  The slot which we want to lookup
+     * @param slot The slot which we want to lookup
      * @return The itemstack or null if the slot is empty
      */
     ItemStack getContent( int slot );

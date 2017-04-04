@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -10,8 +10,8 @@ package io.gomint.util;
 /**
  * @author Fabian
  * @version 1.0
- *
- * Interface which should be used to catch Exceptions thrown. This is mainly used in the Scheduler for Exception handling
+ *          <p>
+ *          Interface which should be used to catch Exceptions thrown. This is mainly used in the Scheduler for Exception handling
  */
 public interface ExceptionHandler {
     /**

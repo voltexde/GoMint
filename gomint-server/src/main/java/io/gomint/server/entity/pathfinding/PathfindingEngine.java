@@ -6,11 +6,7 @@ import io.gomint.server.entity.Transformable;
 import io.gomint.server.util.IntTriple;
 import io.gomint.server.world.WorldAdapter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 /**
  * A pathfinding engine instance may be used to navigate an object through the game world.
@@ -21,182 +17,182 @@ import java.util.PriorityQueue;
  */
 public class PathfindingEngine {
 
-	// The transform that holds the current position the object is located at:
-	private final Transformable   transform;
-	// The goal point the pathfinding engine is supposed to navigate to:
-	private       Location        goal;
-	private       boolean         dirty;
-	// The path to the goal if cached:
-	private       List<IntTriple> cachedPath;
+    // The transform that holds the current position the object is located at:
+    private final Transformable transform;
+    // The goal point the pathfinding engine is supposed to navigate to:
+    private Location goal;
+    private boolean dirty;
+    // The path to the goal if cached:
+    private List<IntTriple> cachedPath;
 
-	/**
-	 * Constructs a new pathfinding engine that will make changes to the given transform
-	 * when moving.
-	 *
-	 * @param transform The transform to modify accordingly
-	 */
-	public PathfindingEngine( Transformable transform ) {
-		this.transform = transform;
-		this.dirty = false;
-		this.cachedPath = null;
-	}
+    /**
+     * Constructs a new pathfinding engine that will make changes to the given transform
+     * when moving.
+     *
+     * @param transform The transform to modify accordingly
+     */
+    public PathfindingEngine( Transformable transform ) {
+        this.transform = transform;
+        this.dirty = false;
+        this.cachedPath = null;
+    }
 
-	/**
-	 * Gets the transform attached to the pathfinding engine.
-	 *
-	 * @return The transform attached to the pathfinding engine
-	 */
-	public Transformable getTransform() {
-		return this.transform;
-	}
+    /**
+     * Gets the transform attached to the pathfinding engine.
+     *
+     * @return The transform attached to the pathfinding engine
+     */
+    public Transformable getTransform() {
+        return this.transform;
+    }
 
-	/**
-	 * Gets the goal the pathfinding engine is trying to navigate to.
-	 *
-	 * @return The goal the pathfinding engine is trying to navigate to
-	 */
-	public Location getGoal() {
-		return this.goal;
-	}
+    /**
+     * Gets the goal the pathfinding engine is trying to navigate to.
+     *
+     * @return The goal the pathfinding engine is trying to navigate to
+     */
+    public Location getGoal() {
+        return this.goal;
+    }
 
-	/**
-	 * Sets the goal point the pathfinding engine is trying to reach.
-	 *
-	 * @param goal The goal point to reach
-	 */
-	public void setGoal( Location goal ) {
-		this.goal = goal;
-		this.dirty = true;
-	}
+    /**
+     * Sets the goal point the pathfinding engine is trying to reach.
+     *
+     * @param goal The goal point to reach
+     */
+    public void setGoal( Location goal ) {
+        this.goal = goal;
+        this.dirty = true;
+    }
 
-	/**
-	 * Gets the path the pathfinding engine proposes for reaching the current goal. The
-	 * returned path will only ever be updated if a new goal is set. It will not update
-	 * and / or remove parts depending on a changed position of the transform the
-	 * pathfinding engine is associated with. In order to translate a path which has been
-	 * built into actual movement one will need to move the entity via a MovementController.
-	 * <p>
-	 * The path may be read as an instruction set of block-to-block movements which should
-	 * be followed the exact order they appear inside the returned list.
-	 *
-	 * @return The current path proposed by the pathfinding engine
-	 */
-	public List<IntTriple> getPath() {
-		if ( this.dirty ) {
-			this.cachedPath = this.calculateShortestPath();
-		}
-		return this.cachedPath;
-	}
+    /**
+     * Gets the path the pathfinding engine proposes for reaching the current goal. The
+     * returned path will only ever be updated if a new goal is set. It will not update
+     * and / or remove parts depending on a changed position of the transform the
+     * pathfinding engine is associated with. In order to translate a path which has been
+     * built into actual movement one will need to move the entity via a MovementController.
+     * <p>
+     * The path may be read as an instruction set of block-to-block movements which should
+     * be followed the exact order they appear inside the returned list.
+     *
+     * @return The current path proposed by the pathfinding engine
+     */
+    public List<IntTriple> getPath() {
+        if ( this.dirty ) {
+            this.cachedPath = this.calculateShortestPath();
+        }
+        return this.cachedPath;
+    }
 
-	/**
-	 * Calculates the shortest path from the pathfinding engine's transform to its goal. May
-	 * return null if there is no solution to the problem or a certain threshold has been
-	 * exceeded.
-	 *
-	 * @return The shortest path available or null if no solution was found
-	 */
-	private List<IntTriple> calculateShortestPath() {
-		// Preamble:
-		// Very simple implementation of A* pathfinding. May be optimized in the future.
-		// Concrete implementation classes of collection types are used to aggressively
-		// remind of the data structure actually chosen.
+    /**
+     * Calculates the shortest path from the pathfinding engine's transform to its goal. May
+     * return null if there is no solution to the problem or a certain threshold has been
+     * exceeded.
+     *
+     * @return The shortest path available or null if no solution was found
+     */
+    private List<IntTriple> calculateShortestPath() {
+        // Preamble:
+        // Very simple implementation of A* pathfinding. May be optimized in the future.
+        // Concrete implementation classes of collection types are used to aggressively
+        // remind of the data structure actually chosen.
 
-		if ( this.goal == null ) {
-			return null;
-		}
+        if ( this.goal == null ) {
+            return null;
+        }
 
-		final int          MAXIMUM_NODES_TO_EXPLORE = 5000;
-		final WorldAdapter world                    = (WorldAdapter) this.goal.getWorld();
-		final IntTriple    goalTriple               = new IntTriple( (int) this.goal.getX(), (int) this.goal.getY(), (int) this.goal.getZ() );
+        final int MAXIMUM_NODES_TO_EXPLORE = 5000;
+        final WorldAdapter world = (WorldAdapter) this.goal.getWorld();
+        final IntTriple goalTriple = new IntTriple( (int) this.goal.getX(), (int) this.goal.getY(), (int) this.goal.getZ() );
 
-		HashMap<IntTriple, AStarNode> closedMap       = new HashMap<>();
-		HashMap<IntTriple, AStarNode> discoveredMap   = new HashMap<>();
-		PriorityQueue<AStarNode>      discoveredNodes = new PriorityQueue<>();
+        HashMap<IntTriple, AStarNode> closedMap = new HashMap<>();
+        HashMap<IntTriple, AStarNode> discoveredMap = new HashMap<>();
+        PriorityQueue<AStarNode> discoveredNodes = new PriorityQueue<>();
 
-		AStarNode startNode = new AStarNode( new IntTriple( (int) this.transform.getPositionX(), (int) this.transform.getPositionY(), (int) this.transform.getPositionZ() ) );
-		startNode.setG( 0.0F );
-		startNode.setF( this.estimateDistance( startNode.getBlockPosition(), this.goal ) );
-		startNode.setK( 1 );
-		startNode.setPredecessor( startNode );
+        AStarNode startNode = new AStarNode( new IntTriple( (int) this.transform.getPositionX(), (int) this.transform.getPositionY(), (int) this.transform.getPositionZ() ) );
+        startNode.setG( 0.0F );
+        startNode.setF( this.estimateDistance( startNode.getBlockPosition(), this.goal ) );
+        startNode.setK( 1 );
+        startNode.setPredecessor( startNode );
 
-		discoveredNodes.add( startNode );
-		discoveredMap.put( startNode.getBlockPosition(), startNode );
+        discoveredNodes.add( startNode );
+        discoveredMap.put( startNode.getBlockPosition(), startNode );
 
-		int exploredNodesCount = 0;
+        int exploredNodesCount = 0;
 
-		this.dirty = false;
+        this.dirty = false;
 
-		while ( discoveredNodes.size() > 0 && exploredNodesCount < MAXIMUM_NODES_TO_EXPLORE ) {
-			AStarNode node = discoveredNodes.poll();
-			if ( node.getBlockPosition().equals( goalTriple ) ) {
-				// Goal was reached -> reconstruct path and return:
-				ArrayList<IntTriple> path = new ArrayList<>( node.getK() );
-				while ( true ) {
-					path.add( node.getBlockPosition() );
+        while ( discoveredNodes.size() > 0 && exploredNodesCount < MAXIMUM_NODES_TO_EXPLORE ) {
+            AStarNode node = discoveredNodes.poll();
+            if ( node.getBlockPosition().equals( goalTriple ) ) {
+                // Goal was reached -> reconstruct path and return:
+                ArrayList<IntTriple> path = new ArrayList<>( node.getK() );
+                while ( true ) {
+                    path.add( node.getBlockPosition() );
 
-					if ( node.isStart() ) {
-						break;
-					}
-					node = node.getPredecessor();
-				}
-				Collections.reverse( path );
-				return path;
-			}
+                    if ( node.isStart() ) {
+                        break;
+                    }
+                    node = node.getPredecessor();
+                }
+                Collections.reverse( path );
+                return path;
+            }
 
-			// This node will not be examined any further:
-			discoveredMap.remove( node.getBlockPosition() );
-			closedMap.put( node.getBlockPosition(), node );
+            // This node will not be examined any further:
+            discoveredMap.remove( node.getBlockPosition() );
+            closedMap.put( node.getBlockPosition(), node );
 
-			// Examine neighbour nodes:
-			for ( int i = node.getBlockPosition().getX() - 1; i <= node.getBlockPosition().getX() + 1; ++i ) {
-				for ( int k = node.getBlockPosition().getZ() - 1; k <= node.getBlockPosition().getZ() + 1; ++k ) {
-					IntTriple neighbourTriple = new IntTriple( i, node.getBlockPosition().getY(), k );
-					if ( closedMap.containsKey( neighbourTriple ) ) {
-						continue;
-					}
+            // Examine neighbour nodes:
+            for ( int i = node.getBlockPosition().getX() - 1; i <= node.getBlockPosition().getX() + 1; ++i ) {
+                for ( int k = node.getBlockPosition().getZ() - 1; k <= node.getBlockPosition().getZ() + 1; ++k ) {
+                    IntTriple neighbourTriple = new IntTriple( i, node.getBlockPosition().getY(), k );
+                    if ( closedMap.containsKey( neighbourTriple ) ) {
+                        continue;
+                    }
 
-					// Got to make sure this neighbour is even in reach from this block
-					// TODO: Implement pre-conditions
+                    // Got to make sure this neighbour is even in reach from this block
+                    // TODO: Implement pre-conditions
 
-					// a) does neighbour provide sufficiently free space:
+                    // a) does neighbour provide sufficiently free space:
 
-					// b) is jump required? if so, is it feasible?
+                    // b) is jump required? if so, is it feasible?
 
-					// This block is a valid neighbour:
-					AStarNode neighbourNode = discoveredMap.get( neighbourTriple );
-					if ( neighbourNode != null ) {
-						float g = node.getG() + this.gridDistance( node.getBlockPosition(), neighbourTriple );
-						if ( g < neighbourNode.getG() ) {
-							neighbourNode.setG( g );
-							neighbourNode.setF( g + this.estimateDistance( neighbourTriple, this.goal ) );
-							neighbourNode.setK( node.getK() + 1 );
-							neighbourNode.setPredecessor( node );
-						}
-					} else {
-						neighbourNode = new AStarNode( neighbourTriple );
-						neighbourNode.setG( node.getG() + this.gridDistance( node.getBlockPosition(), neighbourTriple ) );
-						neighbourNode.setF( neighbourNode.getG() + this.estimateDistance( neighbourTriple, this.goal ) );
-						neighbourNode.setK( node.getK() + 1 );
-						neighbourNode.setPredecessor( node );
-						discoveredMap.put( neighbourTriple, neighbourNode );
-						discoveredNodes.add( neighbourNode );
-					}
-				}
-			}
+                    // This block is a valid neighbour:
+                    AStarNode neighbourNode = discoveredMap.get( neighbourTriple );
+                    if ( neighbourNode != null ) {
+                        float g = node.getG() + this.gridDistance( node.getBlockPosition(), neighbourTriple );
+                        if ( g < neighbourNode.getG() ) {
+                            neighbourNode.setG( g );
+                            neighbourNode.setF( g + this.estimateDistance( neighbourTriple, this.goal ) );
+                            neighbourNode.setK( node.getK() + 1 );
+                            neighbourNode.setPredecessor( node );
+                        }
+                    } else {
+                        neighbourNode = new AStarNode( neighbourTriple );
+                        neighbourNode.setG( node.getG() + this.gridDistance( node.getBlockPosition(), neighbourTriple ) );
+                        neighbourNode.setF( neighbourNode.getG() + this.estimateDistance( neighbourTriple, this.goal ) );
+                        neighbourNode.setK( node.getK() + 1 );
+                        neighbourNode.setPredecessor( node );
+                        discoveredMap.put( neighbourTriple, neighbourNode );
+                        discoveredNodes.add( neighbourNode );
+                    }
+                }
+            }
 
-			++exploredNodesCount;
-		}
+            ++exploredNodesCount;
+        }
 
-		// Either has the threshold been exceeded or there is no solution to the problem:
-		return null;
-	}
+        // Either has the threshold been exceeded or there is no solution to the problem:
+        return null;
+    }
 
-	private float gridDistance( IntTriple a, IntTriple b ) {
-		return ( Math.abs( b.getX() - a.getX() ) + Math.abs( b.getZ() - a.getZ() ) );
-	}
+    private float gridDistance( IntTriple a, IntTriple b ) {
+        return ( Math.abs( b.getX() - a.getX() ) + Math.abs( b.getZ() - a.getZ() ) );
+    }
 
-	public float estimateDistance( IntTriple a, Vector b ) {
-		return ( Math.abs( b.getX() - a.getX() ) + Math.abs( b.getY() - a.getY() ) + Math.abs( b.getZ() - a.getZ() ) );
-	}
+    public float estimateDistance( IntTriple a, Vector b ) {
+        return ( Math.abs( b.getX() - a.getX() ) + Math.abs( b.getY() - a.getY() ) + Math.abs( b.getZ() - a.getZ() ) );
+    }
 
 }

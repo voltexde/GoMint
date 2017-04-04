@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -18,63 +18,63 @@ import java.util.Map;
  * @version 1.0
  */
 public class DumpUtil {
-	public static void dumpByteArray( byte[] bytes ) {
-		int count = 0;
-		StringBuilder stringBuilder = new StringBuilder();
+    public static void dumpByteArray( byte[] bytes ) {
+        int count = 0;
+        StringBuilder stringBuilder = new StringBuilder();
 
-		for ( byte aByte : bytes ) {
-			String hex = Integer.toHexString( aByte & 255 );
-			if ( hex.length() == 1 ) {
-				hex = "0" + hex;
-			}
+        for ( byte aByte : bytes ) {
+            String hex = Integer.toHexString( aByte & 255 );
+            if ( hex.length() == 1 ) {
+                hex = "0" + hex;
+            }
 
-			stringBuilder.append( hex ).append( " " );
-			if ( count++ == 16 ) {
-				stringBuilder.append( "\n" );
-				count = 0;
-			}
-		}
+            stringBuilder.append( hex ).append( " " );
+            if ( count++ == 16 ) {
+                stringBuilder.append( "\n" );
+                count = 0;
+            }
+        }
 
-		System.out.println( stringBuilder );
-	}
+        System.out.println( stringBuilder );
+    }
 
-	public static void dumpNBTCompund( NBTTagCompound compound ) {
-		System.out.println( "COMPOUND START");
-		dumpNBTTag( compound, 0 );
-		System.out.println( "COMPOUND END");
-	}
+    public static void dumpNBTCompund( NBTTagCompound compound ) {
+        System.out.println( "COMPOUND START" );
+        dumpNBTTag( compound, 0 );
+        System.out.println( "COMPOUND END" );
+    }
 
-	private static void dumpNBTTag( NBTTagCompound entity, int depth ) {
-		for ( Map.Entry<String, Object> stringObjectEntry : entity.entrySet() ) {
-			Object obj = stringObjectEntry.getValue();
-			if ( obj instanceof List ) {
-				System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": [" );
+    private static void dumpNBTTag( NBTTagCompound entity, int depth ) {
+        for ( Map.Entry<String, Object> stringObjectEntry : entity.entrySet() ) {
+            Object obj = stringObjectEntry.getValue();
+            if ( obj instanceof List ) {
+                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": [" );
 
-				List v = (List) obj;
-				if ( v.size() > 0 ) {
-					System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
-				}
+                List v = (List) obj;
+                if ( v.size() > 0 ) {
+                    System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
+                }
 
-				for ( Object o : v ) {
-					if ( o instanceof NBTTagCompound ) {
-						dumpNBTTag( (NBTTagCompound) o, depth + 1 );
-						System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
-					} else {
-						System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + o );
-					}
-				}
+                for ( Object o : v ) {
+                    if ( o instanceof NBTTagCompound ) {
+                        dumpNBTTag( (NBTTagCompound) o, depth + 1 );
+                        System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
+                    } else {
+                        System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + o );
+                    }
+                }
 
-				if ( v.size() > 0 ) {
-					System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
-				}
+                if ( v.size() > 0 ) {
+                    System.out.println( Strings.repeat( " ", ( depth + 1 ) * 2 ) + "-----------" );
+                }
 
-				System.out.println( Strings.repeat( " ", depth * 2 ) + "]" );
-			} else if ( obj instanceof NBTTagCompound ) {
-				System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": " );
-				dumpNBTTag( (NBTTagCompound) obj, depth + 1 );
-			} else {
-				System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": " + obj );
-			}
-		}
-	}
+                System.out.println( Strings.repeat( " ", depth * 2 ) + "]" );
+            } else if ( obj instanceof NBTTagCompound ) {
+                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": " );
+                dumpNBTTag( (NBTTagCompound) obj, depth + 1 );
+            } else {
+                System.out.println( Strings.repeat( " ", depth * 2 ) + stringObjectEntry.getKey() + ": " + obj + "(" + obj.getClass() + ")" );
+            }
+        }
+    }
 }

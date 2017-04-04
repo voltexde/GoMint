@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -15,11 +15,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Fabian
+ * @author geNAZt
  * @version 1.0
  */
 @RequiredArgsConstructor
 public class CoreScheduler implements Scheduler {
+
     private final ExecutorService executorService;
     private final SyncTaskManager syncTaskManager;
 
@@ -30,7 +31,7 @@ public class CoreScheduler implements Scheduler {
 
     @Override
     public Task scheduleAsync( Runnable runnable, long delay, TimeUnit timeUnit ) {
-        return this.scheduleAsync( runnable, delay, delay, timeUnit );
+        return this.scheduleAsync( runnable, delay, -1, timeUnit );
     }
 
     @Override
@@ -39,4 +40,22 @@ public class CoreScheduler implements Scheduler {
         executorService.execute( task );
         return task;
     }
+
+    @Override
+    public Task execute( Runnable runnable ) {
+        return this.schedule( runnable, 0, TimeUnit.MILLISECONDS );
+    }
+
+    @Override
+    public Task schedule( Runnable runnable, long delay, TimeUnit timeUnit ) {
+        return this.schedule( runnable, delay, -1, timeUnit );
+    }
+
+    @Override
+    public Task schedule( Runnable runnable, long delay, long period, TimeUnit timeUnit ) {
+        SyncScheduledTask task = new SyncScheduledTask( runnable, delay, period, timeUnit );
+        this.syncTaskManager.addTask( task );
+        return task;
+    }
+
 }

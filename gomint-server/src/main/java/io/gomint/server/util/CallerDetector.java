@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,18 +7,21 @@
 
 package io.gomint.server.util;
 
+import io.gomint.plugin.Plugin;
+
 /**
  * @author Fabian
  * @version 1.0
  */
 public interface CallerDetector {
+
     /**
-     * Get the class name of the Caller
+     * Get the plugin which called
      *
-     * @param callDepth depth at which we want to look
-     * @return string of class which called
+     * @return class of plugin
      */
-    String getCallerClassName( int callDepth );
+    Class<? extends Plugin> getCallerPlugin();
+
 }
 
 

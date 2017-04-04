@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -24,8 +24,8 @@ class SignTileEntity extends TileEntity {
     /**
      * Construct new TileEntity from TagCompound
      *
-     * @param tagCompound   The TagCompound which should be used to read data from
-     * @param world         The world in which this TileEntity resides
+     * @param tagCompound The TagCompound which should be used to read data from
+     * @param world       The world in which this TileEntity resides
      */
     public SignTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
         super( tagCompound, world );
@@ -42,8 +42,8 @@ class SignTileEntity extends TileEntity {
     }
 
     @Override
-    public void toCompund( NBTTagCompound compound ) {
-        super.toCompund( compound );
+    public void toCompound( NBTTagCompound compound ) {
+        super.toCompound( compound );
 
         compound.addValue( "id", "Sign" );
         compound.addValue( "Text1", this.lines.get( 0 ) );

@@ -9,12 +9,12 @@ package io.gomint.server.entity.component;
  */
 public interface EntityComponent {
 
-	/**
-	 * Updates the entity component.
-	 *
-	 * @param currentTimeMS The current system time in milliseconds
-	 * @param dT The time that has passed since the last update in seconds
-	 */
-	void update( long currentTimeMS, float dT );
+    /**
+     * Updates the entity component.
+     *
+     * @param currentTimeMS The current system time in milliseconds
+     * @param dT            The time that has passed since the last update in seconds
+     */
+    void update( long currentTimeMS, float dT );
 
 }

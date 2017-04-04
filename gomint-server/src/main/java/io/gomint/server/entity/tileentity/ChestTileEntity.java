@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -56,8 +56,8 @@ class ChestTileEntity extends TileEntity {
     }
 
     @Override
-    public void toCompund( NBTTagCompound compound ) {
-        super.toCompund( compound );
+    public void toCompound( NBTTagCompound compound ) {
+        super.toCompound( compound );
         compound.addValue( "id", "Chest" );
 
         List<NBTTagCompound> nbtTagCompounds = new ArrayList<>();
@@ -66,9 +66,9 @@ class ChestTileEntity extends TileEntity {
             if ( itemStack != null ) {
                 NBTTagCompound nbtTagCompound = new NBTTagCompound( "" );
                 nbtTagCompound.addValue( "Slot", (byte) i );
-                nbtTagCompound.addValue( "id", (short) itemStack.getId() );
+                nbtTagCompound.addValue( "id", itemStack.getId() );
                 nbtTagCompound.addValue( "Damage", itemStack.getData() );
-                nbtTagCompound.addValue( "Count", (byte) itemStack.getAmount() );
+                nbtTagCompound.addValue( "Count", itemStack.getAmount() );
                 nbtTagCompounds.add( nbtTagCompound );
             }
         }

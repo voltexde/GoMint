@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,6 +7,8 @@
 
 package io.gomint.math;
 
+import io.gomint.util.Numbers;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,12 +23,28 @@ import lombok.Setter;
  * @author BlackyPaw
  * @version 1.2
  */
+@EqualsAndHashCode
 public class Vector implements Cloneable {
+
     public static final Vector ZERO = new Vector( 0, 0, 0 );
 
-    @Getter @Setter protected float x;
-    @Getter @Setter protected float y;
-    @Getter @Setter protected float z;
+    public static final Vector UP = new Vector( 0, 1, 0 );
+    public static final Vector DOWN = new Vector( 0, -1, 0 );
+
+    public static final Vector EAST = new Vector( 1, 0, 0 );
+    public static final Vector WEST = new Vector( -1, 0, 0 );
+    public static final Vector NORTH = new Vector( 0, 0, -1 );
+    public static final Vector SOUTH = new Vector( 0, 0, 1 );
+
+    @Getter
+    @Setter
+    protected float x;
+    @Getter
+    @Setter
+    protected float y;
+    @Getter
+    @Setter
+    protected float z;
 
     public Vector() {
 
@@ -110,11 +128,16 @@ public class Vector implements Cloneable {
         return this;
     }
 
+    public float length() {
+        return (float) Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+    }
+
     public Vector normalize() {
-        float mag = (float) Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
-	    if ( mag == 0.0F ) {
-		    return this;
-	    }
+        float mag = this.length();
+        if ( mag == 0.0F ) {
+            return this;
+        }
+
         this.x /= mag;
         this.y /= mag;
         this.z /= mag;
@@ -139,4 +162,9 @@ public class Vector implements Cloneable {
             throw new AssertionError( "Failed to clone vector!" );
         }
     }
+
+    public float distanceSquared( Vector position ) {
+        return Numbers.square( x - position.x ) + Numbers.square( y - position.y ) + Numbers.square( z - position.z );
+    }
+
 }

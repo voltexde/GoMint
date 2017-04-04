@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -15,57 +15,57 @@ import io.gomint.jraknet.PacketBuffer;
  */
 public class MetadataInt extends MetadataValue {
 
-	private int value;
+    private int value;
 
-	/**
-	 * Constructs a new metadata int
-	 */
-	public MetadataInt() {
+    /**
+     * Constructs a new metadata int
+     */
+    MetadataInt() {
 
-	}
+    }
 
-	/**
-	 * Constructs a new metadata int and initializes it with the specified value.
-	 *
-	 * @param value The value to initialize the metadata int with
-	 */
-	public MetadataInt( int value ) {
-		this.value = value;
-	}
+    /**
+     * Constructs a new metadata int and initializes it with the specified value.
+     *
+     * @param value The value to initialize the metadata int with
+     */
+    public MetadataInt( int value ) {
+        this.value = value;
+    }
 
-	/**
-	 * Gets the value of this metadata int.
-	 *
-	 * @return The value of this metadata int
-	 */
-	public int getValue() {
-		return this.value;
-	}
+    /**
+     * Gets the value of this metadata int.
+     *
+     * @return The value of this metadata int
+     */
+    public int getValue() {
+        return this.value;
+    }
 
-	/**
-	 * Sets the value of this metadata int.
-	 *
-	 * @param value The value of this metadata int
-	 */
-	public void setValue( int value ) {
-		this.value = value;
-	}
+    /**
+     * Sets the value of this metadata int.
+     *
+     * @param value The value of this metadata int
+     */
+    public void setValue( int value ) {
+        this.value = value;
+    }
 
-	// ========================== METADATA VALUE ========================== //
-	@Override
-	void serialize( PacketBuffer buffer, int index ) {
-		super.serialize( buffer, index );
-		buffer.writeInt( this.value );
-	}
+    // ========================== METADATA VALUE ========================== //
+    @Override
+    void serialize( PacketBuffer buffer, int index ) {
+        super.serialize( buffer, index );
+        buffer.writeInt( this.value );
+    }
 
-	@Override
-	void deserialize( PacketBuffer buffer ) {
-		this.value = buffer.readInt();
-	}
+    @Override
+    void deserialize( PacketBuffer buffer ) {
+        this.value = buffer.readInt();
+    }
 
-	@Override
-	byte getTypeId() {
-		return MetadataContainer.METADATA_INT;
-	}
+    @Override
+    byte getTypeId() {
+        return MetadataContainer.METADATA_INT;
+    }
 
 }

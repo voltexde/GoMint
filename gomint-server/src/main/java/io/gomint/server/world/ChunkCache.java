@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,8 +8,6 @@
 package io.gomint.server.world;
 
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.util.IntPair;
-
 import net.openhft.koloboke.collect.LongCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
@@ -24,21 +22,21 @@ import java.util.Map;
  */
 public class ChunkCache {
 
-	// CHECKSTYLE:OFF
-	// ==================================== FIELDS ==================================== //
-	private final WorldAdapter              world;
+    // CHECKSTYLE:OFF
+    // ==================================== FIELDS ==================================== //
+    private final WorldAdapter world;
     private final LongObjMap<ChunkAdapter> cachedChunks;
-    private       boolean                enableAutoSave;
-    private       long                   autoSaveInterval;
+    private boolean enableAutoSave;
+    private long autoSaveInterval;
 
 
-	public ChunkCache( WorldAdapter world ) {
-		this.world = world;
-		this.cachedChunks = HashLongObjMaps.newMutableMap();
+    public ChunkCache( WorldAdapter world ) {
+        this.world = world;
+        this.cachedChunks = HashLongObjMaps.newMutableMap();
         this.enableAutoSave = world.getServer().getServerConfig().isAutoSave();
         this.autoSaveInterval = world.getServer().getServerConfig().getAutoSaveInterval();
-	}
-	// CHECKSTYLE:ON
+    }
+    // CHECKSTYLE:ON
 
     /**
      * Ticking for Chunk GC
@@ -55,7 +53,7 @@ public class ChunkCache {
         synchronized ( this.cachedChunks ) {
             // Calculate the hashes which are used by players viewdistances
             LongSet viewDistanceSet = HashLongSets.newMutableSet();
-            for ( Map.Entry<EntityPlayer, ChunkAdapter> playerChunkAdapterEntry : this.world.getPlayers().entrySet() ) {
+            for ( Map.Entry<EntityPlayer, ChunkAdapter> playerChunkAdapterEntry : this.world.getPlayers0().entrySet() ) {
                 int viewDistance = playerChunkAdapterEntry.getKey().getViewDistance();
                 ChunkAdapter chunk = playerChunkAdapterEntry.getValue();
 
@@ -67,9 +65,11 @@ public class ChunkCache {
             }
 
             // Copy over the current loaded chunk hashes
-            LongCursor longs = HashLongSets.newMutableSet( this.cachedChunks.keySet() ).cursor();
-            while ( longs.moveNext() ) {
-                long chunkHash = longs.elem();
+            LongSet toRemoveHashes = null;
+            LongCursor loadedHashes = this.cachedChunks.keySet().cursor();
+
+            while ( loadedHashes.moveNext() ) {
+                long chunkHash = loadedHashes.elem();
 
                 ChunkAdapter chunk = this.cachedChunks.get( chunkHash );
                 if ( chunk == null ) {
@@ -80,9 +80,12 @@ public class ChunkCache {
                 if ( !viewDistanceSet.contains( chunkHash ) ) {
                     // Skip if this chunk is a spawn chunk
                     boolean isSpawnChunk = false;
-                    IntPair intPair = CoordinateUtils.toIntPair( chunkHash );
+
+                    int x = (int) ( chunkHash >> 32 );
+                    int z = (int) ( chunkHash & 0xFFFFFFFF ) + Integer.MIN_VALUE;
+
                     if ( this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea() > 0 ) {
-                        if ( intPair.getX() <= spawnXChunk + spawnAreaSize && intPair.getZ() <= spawnZChunk + spawnAreaSize ) {
+                        if ( x <= spawnXChunk + spawnAreaSize && z <= spawnZChunk + spawnAreaSize ) {
                             isSpawnChunk = true;
                         }
                     }
@@ -100,7 +103,18 @@ public class ChunkCache {
 
                 // Ask this chunk if he wants to be gced
                 if ( readyForGC ) {
-                    this.cachedChunks.remove( chunkHash );
+                    if ( toRemoveHashes == null ) {
+                        toRemoveHashes = HashLongSets.newMutableSet();
+                    }
+
+                    toRemoveHashes.add( chunkHash );
+                }
+            }
+
+            if ( toRemoveHashes != null ) {
+                LongCursor toRemoveCursor = toRemoveHashes.cursor();
+                while ( toRemoveCursor.moveNext() ) {
+                    this.cachedChunks.remove( toRemoveCursor.elem() );
                 }
             }
         }
@@ -135,8 +149,6 @@ public class ChunkCache {
         }
     }
 
-
-
     /**
      * Puts the specified chunk into the cache thus making it available to the outside
      *
@@ -167,4 +179,5 @@ public class ChunkCache {
     public long getAutoSaveInterval() {
         return this.autoSaveInterval;
     }
+
 }

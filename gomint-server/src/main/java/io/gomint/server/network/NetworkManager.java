@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,13 +7,7 @@
 
 package io.gomint.server.network;
 
-import io.gomint.jraknet.Connection;
-import io.gomint.jraknet.PacketBuffer;
-import io.gomint.jraknet.PacketReliability;
-import io.gomint.jraknet.ServerSocket;
-import io.gomint.jraknet.Socket;
-import io.gomint.jraknet.SocketEvent;
-import io.gomint.jraknet.SocketEventHandler;
+import io.gomint.jraknet.*;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
 import net.openhft.koloboke.collect.LongCursor;
@@ -26,14 +20,8 @@ import net.openhft.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.SocketException;
-import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -46,16 +34,12 @@ public class NetworkManager {
 
     private final GoMintServer gomint;
     private final Logger logger = LoggerFactory.getLogger( NetworkManager.class );
-
+    // Connections which were closed and should be removed during next tick:
+    private final LongSet closedConnections = HashLongSets.newMutableSet();
     private ServerSocket socket;
-
     private LongObjMap<PlayerConnection> playersByGuid = HashLongObjMaps.newMutableMap();
-
     // Incoming connections to be added to the player map during next tick:
     private Queue<PlayerConnection> incomingConnections = new ConcurrentLinkedQueue<>();
-    // Connections which were closed and should be removed during next tick:
-    private LongSet closedConnections = HashLongSets.newMutableSet();
-
     // Packet Dumping
     private boolean dump;
     private File dumpDirectory;
@@ -120,7 +104,7 @@ public class NetworkManager {
      * Ticks the network manager, i.e. updates all player connections and handles all incoming
      * data packets.
      */
-    public void tick() {
+    public void update( long currentMillis, float lastTickTime ) {
         // Handle updates to player map:
         while ( !this.incomingConnections.isEmpty() ) {
             PlayerConnection connection = this.incomingConnections.poll();
@@ -147,7 +131,7 @@ public class NetworkManager {
         ObjCursor<PlayerConnection> cursor = this.playersByGuid.values().cursor();
         while ( cursor.moveNext() ) {
             PlayerConnection connection = cursor.elem();
-            connection.tick();
+            connection.update( currentMillis, lastTickTime );
         }
     }
 
@@ -162,6 +146,15 @@ public class NetworkManager {
     }
 
     /**
+     * Gets the MOTD to be sent inside server pongs.
+     *
+     * @return The motd to be sent inside server pongs
+     */
+    public String getMotd() {
+        return this.socket.getMotd();
+    }
+
+    /**
      * Sets the MOTD to be sent inside server pongs.
      *
      * @param motd The motd to be sent inside server pongs
@@ -171,36 +164,27 @@ public class NetworkManager {
     }
 
     /**
-     * Gets the MOTD to be sent inside server pongs.
+     * Broadcasts the given packet to all players. Yields the same effect as invoking
+     * {@link #broadcast(PacketReliability, int, Packet)} with {@link PacketReliability#RELIABLE} and
+     * orderingChannel set to zero.
      *
-     * @return The motd to be sent inside server pongs
+     * @param packet The packet to broadcast
      */
-    public String getMotd() {
-        return this.socket.getMotd();
+    public void broadcast( Packet packet ) {
+        this.broadcast( PacketReliability.RELIABLE, 0, packet );
     }
 
-	/**
-	 * Broadcasts the given packet to all players. Yields the same effect as invoking
-	 * {@link #broadcast(PacketReliability, int, Packet)} with {@link PacketReliability#RELIABLE} and
-	 * orderingChannel set to zero.
-	 *
-	 * @param packet The packet to broadcast
-	 */
-	public void broadcast( Packet packet ) {
-		this.broadcast( PacketReliability.RELIABLE, 0, packet );
-	}
-
-	/**
-	 * Broadcasts the given packet to all players.
-	 *
-	 * @param packet The packet to broadcast
-	 */
-	public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
-		LongObjCursor<PlayerConnection> cursor = this.playersByGuid.cursor();
-		while ( cursor.moveNext() ) {
-			cursor.value().send( reliability, orderingChannel, packet );
-		}
-	}
+    /**
+     * Broadcasts the given packet to all players.
+     *
+     * @param packet The packet to broadcast
+     */
+    public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
+        LongObjCursor<PlayerConnection> cursor = this.playersByGuid.cursor();
+        while ( cursor.moveNext() ) {
+            cursor.value().send( reliability, orderingChannel, packet );
+        }
+    }
 
     // ======================================= INTERNALS ======================================= //
 

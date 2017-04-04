@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -17,12 +17,16 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class SyncTaskManager {
-    @Getter private final GoMintServer goMintServer;
-    @Getter private final long tickLength;
+
+    @Getter
+    private final GoMintServer goMintServer;
+    @Getter
+    private final long tickLength;
     private final TaskList<SyncScheduledTask> taskList = new TaskList<>();
 
     /**
      * Add a new pre configured Task to this scheduler
+     *
      * @param task which should be executed
      */
     public void addTask( SyncScheduledTask task ) {
@@ -36,7 +40,7 @@ public class SyncTaskManager {
     /**
      * Remove a specific task
      *
-     * @param task  The task which should be removed
+     * @param task The task which should be removed
      */
     public void removeTask( SyncScheduledTask task ) {
         synchronized ( this.taskList ) {
@@ -47,8 +51,8 @@ public class SyncTaskManager {
     /**
      * Update and run all tasks which should be run
      *
-     * @param currentMillis     The amount of millis when the update started
-     * @param dt                The delta time from a full second which has already been calculated
+     * @param currentMillis The amount of millis when the update started
+     * @param dt            The delta time from a full second which has already been calculated
      */
     public void update( long currentMillis, float dt ) {
         synchronized ( this.taskList ) {
@@ -73,4 +77,5 @@ public class SyncTaskManager {
             }
         }
     }
+
 }

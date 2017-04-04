@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -18,6 +18,7 @@ import lombok.Getter;
  */
 @Getter
 public enum StartupPriority implements Comparable<StartupPriority> {
+
     /**
      * Load a plugin on startup
      */
@@ -31,11 +32,12 @@ public enum StartupPriority implements Comparable<StartupPriority> {
     private final int order;
 
     /**
-     * Just a enum Construtor
+     * Just a enum Constructor
      *
      * @param order which defines the sort order (ASC)
      */
     StartupPriority( final int order ) {
         this.order = order;
     }
+
 }

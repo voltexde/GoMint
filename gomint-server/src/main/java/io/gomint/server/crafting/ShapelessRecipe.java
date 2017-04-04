@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -12,11 +12,8 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.util.PacketDataOutputStream;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -30,40 +27,40 @@ import java.util.UUID;
  */
 public class ShapelessRecipe extends CraftingRecipe {
 
-	private ItemStack[] ingredients;
-	private ItemStack[]   outcome;
+    private ItemStack[] ingredients;
+    private ItemStack[] outcome;
 
-	public ShapelessRecipe( ItemStack[] ingredients, ItemStack[] outcome, UUID uuid ) {
-		super( outcome, uuid );
-		this.ingredients = ingredients;
-		this.outcome = outcome;
-	}
+    public ShapelessRecipe( ItemStack[] ingredients, ItemStack[] outcome, UUID uuid ) {
+        super( outcome, uuid );
+        this.ingredients = ingredients;
+        this.outcome = outcome;
+    }
 
-	@Override
-	public Collection<ItemStack> getIngredients() {
-		return Arrays.asList( this.ingredients );
-	}
+    @Override
+    public Collection<ItemStack> getIngredients() {
+        return Arrays.asList( this.ingredients );
+    }
 
-	@Override
-	public void serialize( PacketBuffer buffer, PacketDataOutputStream intermediate ) throws IOException {
-		intermediate.writeInt( this.ingredients.length );
-		for ( int i = 0; i < this.ingredients.length; ++i ) {
-			intermediate.writeItemStack( this.ingredients[i] );
-		}
-		intermediate.writeInt( this.outcome.length );
-		for ( int i = 0; i < this.outcome.length; ++i ) {
-			intermediate.writeItemStack( this.outcome[i] );
-		}
-		intermediate.writeUUID( this.getUUID() );
+    @Override
+    public void serialize( PacketBuffer buffer, PacketDataOutputStream intermediate ) throws IOException {
+        intermediate.writeInt( this.ingredients.length );
+        for ( int i = 0; i < this.ingredients.length; ++i ) {
+            intermediate.writeItemStack( this.ingredients[i] );
+        }
+        intermediate.writeInt( this.outcome.length );
+        for ( int i = 0; i < this.outcome.length; ++i ) {
+            intermediate.writeItemStack( this.outcome[i] );
+        }
+        intermediate.writeUUID( this.getUUID() );
 
-		byte[] recipeData = intermediate.toByteArray();
-		buffer.writeInt( 0 );
-		buffer.writeInt( recipeData.length );
-		buffer.writeBytes( recipeData );
-	}
+        byte[] recipeData = intermediate.toByteArray();
+        buffer.writeInt( 0 );
+        buffer.writeInt( recipeData.length );
+        buffer.writeBytes( recipeData );
+    }
 
 	/*                      Left in here for later reference
-	@Override
+    @Override
 	public boolean applies( CraftingContainer container, boolean consume ) {
 		long[] matches = new long[this.ingredients.length];
 		Arrays.fill( matches, -1L );

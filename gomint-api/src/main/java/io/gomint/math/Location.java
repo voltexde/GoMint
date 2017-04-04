@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,6 +8,7 @@
 package io.gomint.math;
 
 import io.gomint.world.World;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,6 +23,7 @@ import lombok.Setter;
  * @author BlackyPaw
  * @version 1.2
  */
+@EqualsAndHashCode( callSuper = true )
 public class Location extends Vector implements Cloneable {
 
     @Getter
@@ -137,4 +139,9 @@ public class Location extends Vector implements Cloneable {
         location.pitch = this.pitch;
         return location;
     }
+
+    public Vector toVector() {
+        return new Vector( this.x, this.y, this.z );
+    }
+
 }

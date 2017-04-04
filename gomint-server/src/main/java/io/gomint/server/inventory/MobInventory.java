@@ -5,8 +5,8 @@ import io.gomint.inventory.ItemStack;
 /**
  * @author geNAZt
  * @version 1.0
- *
- * Inventory for any type of mob. This holds additional Armor Contents
+ *          <p>
+ *          Inventory for any type of mob. This holds additional Armor Contents
  */
 public abstract class MobInventory extends Inventory {
 

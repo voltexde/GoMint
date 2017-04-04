@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -13,15 +13,25 @@ package io.gomint.server.world;
  */
 public class AsyncChunkSaveTask extends AsyncChunkTask {
 
-	private final ChunkAdapter chunk;
+    private final ChunkAdapter chunk;
 
-	public AsyncChunkSaveTask( ChunkAdapter chunk ) {
-		super( Type.SAVE );
-		this.chunk = chunk;
-	}
+    /**
+     * Save the chunk into its on disk format
+     *
+     * @param chunk The chunk which should be saved
+     */
+    AsyncChunkSaveTask( ChunkAdapter chunk ) {
+        super( Type.SAVE );
+        this.chunk = chunk;
+    }
 
-	public ChunkAdapter getChunk() {
-		return this.chunk;
-	}
+    /**
+     * Get the chunk which should be saved
+     *
+     * @return chunk which should be saved
+     */
+    public ChunkAdapter getChunk() {
+        return this.chunk;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -30,15 +30,15 @@ public class AsyncScheduledTask implements Task, Runnable {
     /**
      * Constructs a new AsyncScheduledTask. It needs to be executed via a normal {@link java.util.concurrent.ExecutorService}
      *
-     * @param task runnable which should be executed
-     * @param delay of this execution
+     * @param task   runnable which should be executed
+     * @param delay  of this execution
      * @param period delay after execution to run the runnable again
-     * @param unit of time
+     * @param unit   of time
      */
     public AsyncScheduledTask( Runnable task, long delay, long period, TimeUnit unit ) {
         this.task = task;
-        this.delay = (delay >= 0) ? unit.toMillis( delay ) : -1;
-        this.period = (period >= 0 ) ? unit.toMillis( period ) : -1;
+        this.delay = ( delay >= 0 ) ? unit.toMillis( delay ) : -1;
+        this.period = ( period >= 0 ) ? unit.toMillis( period ) : -1;
     }
 
     @Override
@@ -71,6 +71,7 @@ public class AsyncScheduledTask implements Task, Runnable {
         }
 
         while ( this.running.get() ) {
+            // CHECKSTYLE:OFF
             try {
                 this.task.run();
             } catch ( Exception e ) {
@@ -82,6 +83,7 @@ public class AsyncScheduledTask implements Task, Runnable {
                     e.printStackTrace();
                 }
             }
+            // CHECKSTYLE:ON
 
             // If we have a period of 0 or less, only run once
             if ( this.period <= 0 ) {

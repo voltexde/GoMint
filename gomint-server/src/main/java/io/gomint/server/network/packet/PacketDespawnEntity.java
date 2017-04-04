@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -20,19 +20,19 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode( callSuper = false )
 public class PacketDespawnEntity extends Packet {
 
-	private long entityId;
+    private long entityId;
 
-	public PacketDespawnEntity() {
-		super( Protocol.PACKET_DESPAWN_ENTITY );
-	}
+    public PacketDespawnEntity() {
+        super( Protocol.PACKET_DESPAWN_ENTITY );
+    }
 
-	@Override
-	public void serialize( PacketBuffer buffer ) {
-		buffer.writeLong( this.entityId );
-	}
+    @Override
+    public void serialize( PacketBuffer buffer ) {
+        buffer.writeLong( this.entityId );
+    }
 
-	@Override
-	public void deserialize( PacketBuffer buffer ) {
-		this.entityId = buffer.readLong();
-	}
+    @Override
+    public void deserialize( PacketBuffer buffer ) {
+        this.entityId = buffer.readLong();
+    }
 }

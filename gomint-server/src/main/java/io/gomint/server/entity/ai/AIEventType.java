@@ -8,14 +8,14 @@ package io.gomint.server.entity.ai;
  */
 public enum AIEventType {
 
-	/**
-	 * The entity took damage for some reason.
-	 */
-	DAMAGE,
+    /**
+     * The entity took damage for some reason.
+     */
+    DAMAGE,
 
-	/**
-	 * The entity was attacked and took damage due to this.
-	 */
-	DAMAGE_BY_ATTACK;
+    /**
+     * The entity was attacked and took damage due to this.
+     */
+    DAMAGE_BY_ATTACK;
 
 }

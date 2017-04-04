@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,18 +8,16 @@
 package io.gomint.server;
 
 import io.gomint.GoMint;
-import io.gomint.plugin.PluginManager;
+import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.plugin.SimplePluginManager;
-import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
-
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,213 +40,230 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class GoMintServer implements GoMint {
 
-	private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
+    private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
 
-	// Global tick lock
-	private ReentrantLock tickLock = new ReentrantLock( true );
+    // Global tick lock
+    private ReentrantLock tickLock = new ReentrantLock( true );
 
     // Configuration
-	@Getter
-	private ServerConfig        serverConfig;
+    @Getter
+    private ServerConfig serverConfig;
 
-	// Networking
-	private NetworkManager      networkManager;
+    // Networking
+    private NetworkManager networkManager;
 
-	// World Management
-	private WorldManager 		worldManager;
+    // World Management
+    private WorldManager worldManager;
 
-	// Game Information
-	private RecipeManager       recipeManager;
+    // Game Information
+    private RecipeManager recipeManager;
 
-	// Plugin Management
-	private PluginManager       pluginManager;
+    // Plugin Management
+    @Getter
+    private SimplePluginManager pluginManager;
 
-	// Task Scheduling
-	@Getter
-	private SyncTaskManager     syncTaskManager;
-	private AtomicBoolean       running = new AtomicBoolean( true );
-	@Getter
-	private ExecutorService     executorService;
-	@Getter
-	private ThreadFactory		threadFactory;
+    // Task Scheduling
+    @Getter
+    private SyncTaskManager syncTaskManager;
+    private AtomicBoolean running = new AtomicBoolean( true );
+    @Getter
+    private ExecutorService executorService;
+    @Getter
+    private ThreadFactory threadFactory;
 
-	/**
-	 * Starts the GoMint server
-	 * @param args which should have been given over from the static Bootstrap
-	 */
-	public GoMintServer( String[] args ) {
-		Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
-		Thread.currentThread().setName( "GoMint Main Thread" );
+    /**
+     * Starts the GoMint server
+     *
+     * @param args which should have been given over from the static Bootstrap
+     */
+    public GoMintServer( String[] args ) {
+        Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
+        Thread.currentThread().setName( "GoMint Main Thread" );
 
-		// ------------------------------------ //
-		// Executor Initialization
-		// ------------------------------------ //
-		this.threadFactory = new ThreadFactory() {
-			private AtomicLong counter = new AtomicLong( 0 );
+        // ------------------------------------ //
+        // Executor Initialization
+        // ------------------------------------ //
+        this.threadFactory = new ThreadFactory() {
+            private AtomicLong counter = new AtomicLong( 0 );
 
-			@Override
-			public Thread newThread( Runnable r ) {
-				Thread thread = Executors.defaultThreadFactory().newThread( r );
-				thread.setName( "GoMint Thread #" + counter.getAndIncrement() );
-				return thread;
-			}
-		};
+            @Override
+            public Thread newThread( Runnable r ) {
+                Thread thread = Executors.defaultThreadFactory().newThread( r );
+                thread.setName( "GoMint Thread #" + counter.getAndIncrement() );
+                return thread;
+            }
+        };
 
-		this.executorService = new ThreadPoolExecutor( 0, 512, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), this.threadFactory );
+        this.executorService = new ThreadPoolExecutor( 0, 512, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), this.threadFactory );
 
-		// ------------------------------------ //
-		// Configuration Initialization
-		// ------------------------------------ //
-		this.loadConfig();
+        // ------------------------------------ //
+        // Configuration Initialization
+        // ------------------------------------ //
+        this.loadConfig();
 
-		// Calculate the nanoseconds we need for the tick loop
-		long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
-		logger.debug( "Setting skipNanos to: " + skipNanos );
+        // Calculate the nanoseconds we need for the tick loop
+        long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
+        logger.debug( "Setting skipNanos to: " + skipNanos );
 
-		// ------------------------------------ //
-		// Scheduler + PluginManager Initialization
-		// ------------------------------------ //
-		this.syncTaskManager = new SyncTaskManager( this, skipNanos );
-		this.networkManager = new NetworkManager( this );
-		this.pluginManager = new SimplePluginManager( this );
+        // ------------------------------------ //
+        // Scheduler + PluginManager Initialization
+        // ------------------------------------ //
+        this.syncTaskManager = new SyncTaskManager( this, skipNanos );
 
-		// ------------------------------------ //
-		// Networking Initialization
-		// ------------------------------------ //
-		if ( !this.initNetworking() ) return;
+        this.pluginManager = new SimplePluginManager( this );
+        this.pluginManager.detectPlugins();
+        this.pluginManager.loadPlugins( StartupPriority.STARTUP );
 
-		// ------------------------------------ //
-		// Pre World Initialization
-		// ------------------------------------ //
-		// Load assets from file:
-		this.logger.info( "Loading assets library..." );
-		AssetsLibrary assetsLibrary = new AssetsLibrary( LoggerFactory.getLogger( AssetsLibrary.class ) );
-		try {
-			assetsLibrary.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
-		} catch ( IOException e ) {
-			this.logger.error( "Failed to load assets library", e );
-			return;
-		}
+        // ------------------------------------ //
+        // Networking Initialization
+        // ------------------------------------ //
+        this.networkManager = new NetworkManager( this );
+        if ( !this.initNetworking() ) return;
 
-		this.logger.info( "Initializing recipes..." );
-		this.recipeManager = new RecipeManager( this );
+        // ------------------------------------ //
+        // Pre World Initialization
+        // ------------------------------------ //
+        // Load assets from file:
+        this.logger.info( "Loading assets library..." );
+        AssetsLibrary assetsLibrary = new AssetsLibrary();
+        try {
+            assetsLibrary.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
+        } catch ( IOException e ) {
+            this.logger.error( "Failed to load assets library", e );
+            return;
+        }
 
-		// Add all recipes from asset library:
-		for ( Recipe recipe : assetsLibrary.getRecipes() ) {
-			this.recipeManager.registerRecipe( recipe );
-		}
+        this.logger.info( "Initializing recipes..." );
+        this.recipeManager = new RecipeManager( this );
 
-		// ------------------------------------ //
-		// World Initialization
-		// ------------------------------------ //
-		this.worldManager = new WorldManager( this );
-		try {
-			this.worldManager.loadWorld( this.serverConfig.getWorld() );
-		} catch ( Exception e ) {
-			this.logger.error( "Failed to load default world", e );
-		}
+        // Add all recipes from asset library:
+        for ( Recipe recipe : assetsLibrary.getRecipes() ) {
+            this.recipeManager.registerRecipe( recipe );
+        }
 
-		// ------------------------------------ //
-		// Main Loop
-		// ------------------------------------ //
+        // ------------------------------------ //
+        // World Initialization
+        // ------------------------------------ //
+        this.worldManager = new WorldManager( this );
+        try {
+            this.worldManager.loadWorld( this.serverConfig.getWorld() );
+        } catch ( Exception e ) {
+            this.logger.error( "Failed to load default world", e );
+        }
 
-		// Tick loop
+        // ------------------------------------ //
+        // Load plugins with StartupPriority LOAD
+        // ------------------------------------ //
+        this.pluginManager.loadPlugins( StartupPriority.LOAD );
+        this.pluginManager.installPlugins();
+
+        // ------------------------------------ //
+        // Main Loop
+        // ------------------------------------ //
+
+        // Tick loop
         float lastTickTime = Float.MIN_NORMAL;
         Condition tickCondition = tickLock.newCondition();
 
-		while ( this.running.get() ) {
-			this.tickLock.lock();
-			try {
-				long start = System.nanoTime();
+        while ( this.running.get() ) {
+            this.tickLock.lock();
+            try {
+                long start = System.nanoTime();
+
+                // Tick all major subsystems:
+                long currentMillis = System.currentTimeMillis();
 
                 // Tick networking at every tick
-                this.networkManager.tick();
+                this.networkManager.update( currentMillis, lastTickTime );
 
-				// Tick all major subsystems:
-                long currentMillis = System.currentTimeMillis();
                 this.syncTaskManager.update( currentMillis, lastTickTime );
-				this.worldManager.update( currentMillis, lastTickTime );
+                this.worldManager.update( currentMillis, lastTickTime );
 
-				long diff = System.nanoTime() - start;
+                long diff = System.nanoTime() - start;
                 lastTickTime = (float) diff / 1000000.0F;
 
-				if ( diff < skipNanos ) {
+                if ( diff < skipNanos ) {
                     tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
-				}
-			} catch ( InterruptedException e ) {
-				// Ignored ._.
-			} finally {
-				this.tickLock.unlock();
-			}
-		}
-	}
+                }
+            } catch ( InterruptedException e ) {
+                // Ignored ._.
+            } finally {
+                this.tickLock.unlock();
+            }
+        }
+    }
 
-	private boolean initNetworking() {
-		try {
-			this.networkManager.initialize( this.serverConfig.getMaxPlayers(), this.serverConfig.getListener().getIp(), this.serverConfig.getListener().getPort() );
+    private boolean initNetworking() {
+        try {
+            this.networkManager.initialize( this.serverConfig.getMaxPlayers(), this.serverConfig.getListener().getIp(), this.serverConfig.getListener().getPort() );
 
-			if ( this.serverConfig.isEnablePacketDumping() ) {
-				File dumpDirectory = new File( this.serverConfig.getDumpDirectory() );
-				if ( !dumpDirectory.exists() ) {
-					if ( !dumpDirectory.mkdirs() ) {
-						this.logger.error( "Failed to create dump directory; please double-check your filesystem permissions" );
-						return false;
-					}
-				} else if ( !dumpDirectory.isDirectory() ) {
-					this.logger.error( "Dump directory path does not point to a valid directory" );
-					return false;
-				}
+            if ( this.serverConfig.isEnablePacketDumping() ) {
+                File dumpDirectory = new File( this.serverConfig.getDumpDirectory() );
+                if ( !dumpDirectory.exists() ) {
+                    if ( !dumpDirectory.mkdirs() ) {
+                        this.logger.error( "Failed to create dump directory; please double-check your filesystem permissions" );
+                        return false;
+                    }
+                } else if ( !dumpDirectory.isDirectory() ) {
+                    this.logger.error( "Dump directory path does not point to a valid directory" );
+                    return false;
+                }
 
-				this.networkManager.setDumpingEnabled( true );
-				this.networkManager.setDumpDirectory( dumpDirectory );
-			}
-		} catch ( SocketException e ) {
-			this.logger.error( "Failed to initialize networking", e );
-			return false;
-		}
+                this.networkManager.setDumpingEnabled( true );
+                this.networkManager.setDumpDirectory( dumpDirectory );
+            }
+        } catch ( SocketException e ) {
+            this.logger.error( "Failed to initialize networking", e );
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	public WorldAdapter getDefaultWorld() {
-		return this.worldManager.getWorld( this.serverConfig.getWorld() );
-	}
+    public WorldAdapter getDefaultWorld() {
+        return this.worldManager.getWorld( this.serverConfig.getWorld() );
+    }
 
-	public RecipeManager getRecipeManager() {
-		return this.recipeManager;
-	}
+    public RecipeManager getRecipeManager() {
+        return this.recipeManager;
+    }
 
-	private void loadConfig() {
-		this.serverConfig = new ServerConfig();
+    private void loadConfig() {
+        this.serverConfig = new ServerConfig();
 
-		try {
-			this.serverConfig.initialize( new File( "server.cfg" ) );
-		} catch ( IOException e ) {
-			logger.error( "server.cfg is corrupted: ", e );
-			System.exit( -1 );
-		}
+        try {
+            this.serverConfig.initialize( new File( "server.cfg" ) );
+        } catch ( IOException e ) {
+            logger.error( "server.cfg is corrupted: ", e );
+            System.exit( -1 );
+        }
 
-		try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
-			this.serverConfig.write( fileWriter );
-		} catch ( IOException e ) {
-			logger.warn( "Could not save server.cfg: ", e );
-		}
-	}
+        try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
+            this.serverConfig.write( fileWriter );
+        } catch ( IOException e ) {
+            logger.warn( "Could not save server.cfg: ", e );
+        }
+    }
 
-	@Override
-	public String getMotd() {
-		return this.networkManager.getMotd();
-	}
+    @Override
+    public String getMotd() {
+        return this.networkManager.getMotd();
+    }
 
-	@Override
-	public void setMotd( String motd ) {
-		this.networkManager.setMotd( motd );
-	}
+    @Override
+    public void setMotd( String motd ) {
+        this.networkManager.setMotd( motd );
+    }
 
-	/**
-	 * Nice shutdown pls
-	 */
-	public void shutdown() {
-		this.running.set( false );
-	}
+    /**
+     * Nice shutdown pls
+     */
+    public void shutdown() {
+        this.running.set( false );
+    }
+
+    public String getVersion() {
+        return "GoMint 1.0.0 (MC:PE 1.0.4)";
+    }
+
 }

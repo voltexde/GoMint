@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class PluginVersion implements Comparable<PluginVersion> {
+
     private final int major;
     private final int minor;
 
@@ -41,7 +42,7 @@ public class PluginVersion implements Comparable<PluginVersion> {
         }
 
         PluginVersion v = (PluginVersion) o;
-        return (this.major == v.major && this.minor == v.minor);
+        return ( this.major == v.major && this.minor == v.minor );
     }
 
     @Override
@@ -56,4 +57,5 @@ public class PluginVersion implements Comparable<PluginVersion> {
     public String toString() {
         return this.major + "." + this.minor;
     }
+
 }

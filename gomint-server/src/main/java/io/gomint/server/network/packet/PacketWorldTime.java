@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -20,27 +20,27 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode( callSuper = false )
 public class PacketWorldTime extends Packet {
 
-	private int ticks;
-	private boolean counting;
+    private int ticks;
+    private boolean counting;
 
-	public PacketWorldTime() {
-		super( Protocol.PACKET_WORLD_TIME );
-	}
+    public PacketWorldTime() {
+        super( Protocol.PACKET_WORLD_TIME );
+    }
 
-	@Override
-	public void serialize( PacketBuffer buffer ) {
-		buffer.writeInt( this.ticks );
-		buffer.writeBoolean( this.counting );
-	}
+    @Override
+    public void serialize( PacketBuffer buffer ) {
+        buffer.writeSignedVarInt( this.ticks );
+        buffer.writeBoolean( this.counting );
+    }
 
-	@Override
-	public void deserialize( PacketBuffer buffer ) {
-		this.ticks = buffer.readInt();
-		this.counting = buffer.readBoolean();
-	}
+    @Override
+    public void deserialize( PacketBuffer buffer ) {
+        this.ticks = buffer.readSignedVarInt();
+        this.counting = buffer.readBoolean();
+    }
 
-	@Override
-	public int estimateLength() {
-		return 5;
-	}
+    @Override
+    public int estimateLength() {
+        return 5;
+    }
 }

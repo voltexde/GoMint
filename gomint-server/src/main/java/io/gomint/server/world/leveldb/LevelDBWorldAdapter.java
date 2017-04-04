@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,18 +7,20 @@
 
 package io.gomint.server.world.leveldb;
 
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
+import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCache;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Blocks;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
-
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
+import org.iq80.leveldb.impl.DbImpl;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
@@ -55,6 +57,20 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         // CHECKSTYLE:ON
     }
 
+    /**
+     * Loads an leveldb world given the path to the world's directory. This operation
+     * performs synchronously and will at least load the entire spawn region before
+     * completing.
+     *
+     * @param server      The GoMint Server which runs this
+     * @param pathToWorld The path to the world's directory
+     * @return The leveldb world adapter used to access the world
+     * @throws Exception Thrown in case the world could not be loaded successfully
+     */
+    public static LevelDBWorldAdapter load( GoMintServer server, File pathToWorld ) throws Exception {
+        return new LevelDBWorldAdapter( server, pathToWorld );
+    }
+
     private byte[] getKey( int chunkX, int chunkZ, byte dataType ) {
         return new byte[]{
                 (byte) ( chunkX & 0xFF ),
@@ -67,6 +83,15 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                 (byte) ( ( chunkZ >>> 24 ) & 0xFF ),
                 dataType
         };
+    }
+
+    private byte[] getKeySubChunk( int chunkX, int chunkZ, byte dataType, byte subChunk ) {
+        PacketBuffer packetBuffer = new PacketBuffer( 10 );
+        packetBuffer.writeLInt( chunkX );
+        packetBuffer.writeLInt( chunkZ );
+        packetBuffer.writeByte( dataType );
+        packetBuffer.writeByte( subChunk );
+        return packetBuffer.getBuffer();
     }
 
     private void loadLevelDat() throws Exception {
@@ -87,6 +112,8 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             nbtStream.addListener( new NBTStreamListener() {
                 @Override
                 public void onNBTValue( String path, Object value ) throws Exception {
+                    System.out.println( path + " -> " + value + "(" + value.getClass() + ")" );
+
                     switch ( path ) {
                         case ".LevelName":
                             LevelDBWorldAdapter.this.levelName = (String) value;
@@ -113,21 +140,80 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     protected ChunkAdapter loadChunk( int x, int z, boolean generate ) {
         ChunkAdapter chunk = this.chunkCache.getChunk( x, z );
         if ( chunk == null ) {
-            byte[] chunkData = this.db.get( this.getKey( x, z, (byte) 0x30 ) );
-            byte[] tileEntityData = this.db.get( this.getKey( x, z, (byte) 0x31 ) );
-	        byte[] entityData = this.db.get( this.getKey( x, z, (byte) 0x32 ) );
-	        byte[] extraData = this.db.get( this.getKey( x, z, (byte) 0x34 ) );
+            // Get version bit
+            byte[] version = this.db.get( this.getKey( x, z, (byte) 0x76 ) );
+            if ( version == null ) {
+                // TODO: Generator
+                return null;
+            }
 
-	        if ( extraData != null ) {
-		        DumpUtil.dumpByteArray( extraData );
-	        }
+            LevelDBChunk loadingChunk = new LevelDBChunk( this, x, z );
+
+            if ( version[0] == 3 ) {        // 1.0+ version
+                for ( int sectionY = 0; sectionY < 16; sectionY++ ) {
+                    try {
+                        byte[] chunkData = this.db.get( this.getKeySubChunk( x, z, (byte) 0x2f, (byte) sectionY ) );
+                        if ( chunkData != null ) {
+                            loadingChunk.loadSection( sectionY, chunkData );
+                        } else {
+                            break;
+                        }
+                    } catch ( DbImpl.BackgroundProcessingException ignored ) {
+                        break;
+                    }
+                }
+            }
+
+            // This is needed due to the fact that only the y coordinate is sometimes 32k+
+            int spawnX = (int) this.spawn.getX();
+            int spawnZ = (int) this.spawn.getZ();
+            int y = 255;
+
+            while ( getBlockAt( new Vector( spawnX, y, spawnZ ) ).equals( Blocks.AIR ) ) {
+                y--;
+            }
+
+            this.spawn.setY( y );
+
+            try {
+                byte[] tileEntityData = this.db.get( this.getKey( x, z, (byte) 0x31 ) );
+                if ( tileEntityData != null ) {
+                    loadingChunk.loadTileEntities( tileEntityData );
+                }
+            } catch ( DbImpl.BackgroundProcessingException ignored ) {
+                // TODO: Implement proper error handling here
+            }
+
+            try {
+                byte[] entityData = this.db.get( this.getKey( x, z, (byte) 0x32 ) );
+                if ( entityData != null ) {
+                    loadingChunk.loadEntities( entityData );
+                }
+            } catch ( DbImpl.BackgroundProcessingException ignored ) {
+                // TODO: Implement proper error handling here
+            }
+
+            this.chunkCache.putChunk( loadingChunk );
+            return loadingChunk;
+
+            /*
+                       byte[] extraData = null;
+            try {
+                extraData = this.db.get( this.getKey( x, z, (byte) 0x34 ) );
+            } catch ( DbImpl.BackgroundProcessingException ignored ) {
+                // TODO: Implement proper error handling here
+            }
+
+            if ( extraData != null ) {
+                DumpUtil.dumpByteArray( extraData );
+            }
 
             if ( chunkData != null ) {
                 chunk = new LevelDBChunk( this, x, z, chunkData, tileEntityData, entityData );
                 this.chunkCache.putChunk( chunk );
             } else if ( generate ) {
                 // TODO: Implement chunk generation here
-            }
+            }*/
         }
 
         return chunk;
@@ -145,20 +231,6 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         WriteBatch writeBatch = this.db.createWriteBatch();
         writeBatch.put( this.getKey( chunkX, chunkZ, (byte) 0x30 ), ( (LevelDBChunk) chunk ).getSaveData() );
         this.db.write( writeBatch );
-    }
-
-    /**
-     * Loads an leveldb world given the path to the world's directory. This operation
-     * performs synchronously and will at least load the entire spawn region before
-     * completing.
-     *
-     * @param server      The GoMint Server which runs this
-     * @param pathToWorld The path to the world's directory
-     * @return The leveldb world adapter used to access the world
-     * @throws Exception Thrown in case the world could not be loaded successfully
-     */
-    public static LevelDBWorldAdapter load( GoMintServer server, File pathToWorld ) throws Exception {
-        return new LevelDBWorldAdapter( server, pathToWorld );
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -28,16 +28,17 @@ public class PacketConfirmChunkRadius extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        buffer.writeInt( this.chunkRadius );
+        buffer.writeSignedVarInt( this.chunkRadius );
     }
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        this.chunkRadius = buffer.readInt();
+        this.chunkRadius = buffer.readSignedVarInt();
     }
 
     @Override
     public int estimateLength() {
         return 4;
     }
+
 }

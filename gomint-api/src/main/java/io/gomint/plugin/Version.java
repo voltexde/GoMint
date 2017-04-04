@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -20,5 +20,6 @@ import java.lang.annotation.Target;
 @Retention( RetentionPolicy.RUNTIME )
 public @interface Version {
     int major();
+
     int minor();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,26 +7,49 @@
 
 package io.gomint.server.scheduler;
 
+import io.gomint.server.util.ObjectBuffer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.lang.ref.SoftReference;
+import java.util.concurrent.TimeUnit;
+
 /**
+ * @param <T> type of Task
  * @author geNAZt
  * @version 1.0
- *
- * @param <T> type of Task
  */
 public class TaskList<T> {
+
     private LongElement head;
+    private SoftReference<ObjectBuffer<TaskListNode>> buffer = new SoftReference<>( new ObjectBuffer<>( 10 ) );
+    private long lastRecalc = System.currentTimeMillis();
 
     /**
      * Add a new Element to the tasklist
      *
-     * @param key which should be used to sort the element
+     * @param key     which should be used to sort the element
      * @param element which should be stored
      */
-    public void add( long key, T element ) {
-        TaskListNode taskListNode = new TaskListNode( element, null );
+    public synchronized void add( long key, T element ) {
+        TaskListNode taskListNode = null;
+        ObjectBuffer<TaskListNode> buffer = this.buffer.get();
+        if ( buffer != null ) {
+            // Recalc the buffer
+            if ( key - this.lastRecalc >= TimeUnit.SECONDS.toMillis( 5 ) ) {
+                buffer.recalc();
+                this.lastRecalc = key;
+            }
+
+            taskListNode = buffer.get();
+        }
+
+        if ( taskListNode == null ) {
+            taskListNode = new TaskListNode( element, null );
+        }
+
+        taskListNode.setCurrent( element );
+        taskListNode.setTail( null );
 
         // Check if we have a head state
         if ( this.head == null ) {
@@ -66,11 +89,9 @@ public class TaskList<T> {
     }
 
     /**
-     *
-     *
      * @return
      */
-    public long getNextTaskTime() {
+    public synchronized long getNextTaskTime() {
         return this.head != null ? this.head.getKey() : Long.MAX_VALUE;
     }
 
@@ -80,7 +101,7 @@ public class TaskList<T> {
      * @param key to check against
      * @return true when the next key is the key given, false when not
      */
-    public boolean checkNextKey( long key ) {
+    public synchronized boolean checkNextKey( long key ) {
         return this.head != null && this.head.getKey() == key && this.head.getTaskListHead() != null;
     }
 
@@ -89,7 +110,7 @@ public class TaskList<T> {
      *
      * @return next element out of this list or null when there is none
      */
-    public T getNextElement() {
+    public synchronized T getNextElement() {
         // There is nothing we can reach
         if ( this.head == null ) return null;
 
@@ -114,6 +135,11 @@ public class TaskList<T> {
             if ( this.head == null ) break;
         }
 
+        ObjectBuffer<TaskListNode> buffer = this.buffer.get();
+        if ( buffer != null ) {
+            buffer.push( taskListNode );
+        }
+
         return element;
     }
 
@@ -122,7 +148,7 @@ public class TaskList<T> {
      *
      * @param task which should be removed
      */
-    public void remove( T task ) {
+    public synchronized void remove( T task ) {
         // There is nothing we can reach
         if ( this.head == null ) return;
 
@@ -185,4 +211,5 @@ public class TaskList<T> {
         private T current;
         private TaskListNode tail;
     }
+
 }

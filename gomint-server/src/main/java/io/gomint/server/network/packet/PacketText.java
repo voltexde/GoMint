@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,7 +8,6 @@
 package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.network.Protocol;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -20,158 +19,157 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode( callSuper = false )
 public class PacketText extends Packet {
 
-	public enum Type {
+    private Type type;
+    private String sender;
+    private String message;
+    private String[] arguments;
+    public PacketText() {
+        super( (byte) 0x09 );
+    }
 
-		/**
-		 * Type value for unformatted messages.
-		 */
-		CLIENT_MESSAGE( (byte) 0 ),
+    /**
+     * Shorthand constructor for PLAYER_CHAT messages.
+     *
+     * @param sender  The sender of the chat message
+     * @param message The actual chat message
+     */
+    public PacketText( String sender, String message ) {
+        this();
+        this.type = Type.PLAYER_CHAT;
+        this.sender = sender;
+        this.message = message;
+    }
 
-		/**
-		 * Type value for usual player chat.
-		 */
-		PLAYER_CHAT( (byte) 1 ),
+    public String getSubtitle() {
+        return this.sender;
+    }
 
-		/**
-		 * Type value for localizable messages included in Minecraft's language files.
-		 */
-		LOCALIZABLE_MESSAGE( (byte) 2 ),
+    public void setSubtitle( String subtitle ) {
+        this.sender = subtitle;
+    }
 
-		/**
-		 * Type value for displaying text right above a player's action bar.
-		 */
-		POPUP_NOTICE( (byte) 3 ),
+    @Override
+    public void serialize( PacketBuffer buffer ) {
+        buffer.writeByte( this.type.getId() );
+        switch ( this.type ) {
+            case CLIENT_MESSAGE:
+            case TIP_MESSAGE:
+            case SYSTEM_MESSAGE:
+                buffer.writeString( this.message );
+                break;
 
-		/**
-		 * Type value for displaying text slightly below the center of the screen (similar to title
-		 * text of PC edition).
-		 */
-		TIP_MESSAGE( (byte) 4 ),
+            case PLAYER_CHAT:
+                buffer.writeString( this.sender );
+                buffer.writeString( this.message );
+                break;
 
-		/**
-		 * Type value for unformatted messages. Actual use unknown, same as system, apparently.
-		 */
-		SYSTEM_MESSAGE( (byte) 5 );
+            case LOCALIZABLE_MESSAGE:
+                buffer.writeString( this.message );
+                buffer.writeByte( (byte) this.arguments.length );
+                for ( int i = 0; i < this.arguments.length; ++i ) {
+                    buffer.writeString( this.arguments[i] );
+                }
+                break;
 
-		public static Type getById( byte id ) {
-			switch ( id ) {
-				case 0:
-					return CLIENT_MESSAGE;
-				case 1:
-					return PLAYER_CHAT;
-				case 2:
-					return LOCALIZABLE_MESSAGE;
-				case 3:
-					return POPUP_NOTICE;
-				case 4:
-					return TIP_MESSAGE;
-				case 5:
-					return SYSTEM_MESSAGE;
-				default:
-					return null;
-			}
-		}
+            case POPUP_NOTICE:
+                buffer.writeString( this.message );
+                buffer.writeString( this.sender );
+                break;
+        }
+    }
 
-		private final byte id;
+    @Override
+    public void deserialize( PacketBuffer buffer ) {
+        this.type = Type.getById( buffer.readByte() );
+        switch ( this.type ) {
+            case CLIENT_MESSAGE:
+            case TIP_MESSAGE:
+            case SYSTEM_MESSAGE:
+                this.message = buffer.readString();
+                break;
 
-		Type( byte id ) {
-			this.id = id;
-		}
+            case PLAYER_CHAT:
+                this.sender = buffer.readString();
+                this.message = buffer.readString();
+                break;
 
-		public byte getId() {
-			return this.id;
-		}
+            case LOCALIZABLE_MESSAGE:
+                this.message = buffer.readString();
+                byte count = buffer.readByte();
+                this.arguments = new String[count];
+                for ( byte i = 0; i < count; ++i ) {
+                    arguments[i] = buffer.readString();
+                }
+                break;
 
-	}
+            case POPUP_NOTICE:
+                this.message = buffer.readString();
+                this.sender = buffer.readString();
+                break;
+        }
+    }
 
-	private Type type;
-	private String sender;
-	private String message;
-	private String[] arguments;
+    public enum Type {
 
-	public PacketText() {
-		super( Protocol.PACKET_TEXT );
-	}
+        /**
+         * Type value for unformatted messages.
+         */
+        CLIENT_MESSAGE( (byte) 0 ),
 
-	/**
-	 * Shorthand constructor for PLAYER_CHAT messages.
-	 *
-	 * @param sender The sender of the chat message
-	 * @param message The actual chat message
-	 */
-	public PacketText( String sender, String message ) {
-		this();
-		this.type = Type.PLAYER_CHAT;
-		this.sender = sender;
-		this.message = message;
-	}
+        /**
+         * Type value for usual player chat.
+         */
+        PLAYER_CHAT( (byte) 1 ),
 
-	public void setSubtitle( String subtitle ) {
-		this.sender = subtitle;
-	}
+        /**
+         * Type value for localizable messages included in Minecraft's language files.
+         */
+        LOCALIZABLE_MESSAGE( (byte) 2 ),
 
-	public String getSubtitle() {
-		return this.sender;
-	}
+        /**
+         * Type value for displaying text right above a player's action bar.
+         */
+        POPUP_NOTICE( (byte) 3 ),
 
-	@Override
-	public void serialize( PacketBuffer buffer ) {
-		buffer.writeByte( this.type.getId() );
-		switch ( this.type ) {
-			case CLIENT_MESSAGE:
-			case TIP_MESSAGE:
-			case SYSTEM_MESSAGE:
-				buffer.writeString( this.message );
-				break;
+        /**
+         * Type value for displaying text slightly below the center of the screen (similar to title
+         * text of PC edition).
+         */
+        TIP_MESSAGE( (byte) 4 ),
 
-			case PLAYER_CHAT:
-				buffer.writeString( this.sender );
-				buffer.writeString( this.message );
-				break;
+        /**
+         * Type value for unformatted messages. Actual use unknown, same as system, apparently.
+         */
+        SYSTEM_MESSAGE( (byte) 5 );
 
-			case LOCALIZABLE_MESSAGE:
-				buffer.writeString( this.message );
-				buffer.writeByte( (byte) this.arguments.length );
-				for ( int i = 0; i < this.arguments.length; ++i ) {
-					buffer.writeString( this.arguments[i] );
-				}
-				break;
+        private final byte id;
 
-			case POPUP_NOTICE:
-				buffer.writeString( this.message );
-				buffer.writeString( this.sender );
-				break;
-		}
-	}
+        Type( byte id ) {
+            this.id = id;
+        }
 
-	@Override
-	public void deserialize( PacketBuffer buffer ) {
-		this.type = Type.getById( buffer.readByte() );
-		switch ( this.type ) {
-			case CLIENT_MESSAGE:
-			case TIP_MESSAGE:
-			case SYSTEM_MESSAGE:
-				this.message = buffer.readString();
-				break;
+        public static Type getById( byte id ) {
+            switch ( id ) {
+                case 0:
+                    return CLIENT_MESSAGE;
+                case 1:
+                    return PLAYER_CHAT;
+                case 2:
+                    return LOCALIZABLE_MESSAGE;
+                case 3:
+                    return POPUP_NOTICE;
+                case 4:
+                    return TIP_MESSAGE;
+                case 5:
+                    return SYSTEM_MESSAGE;
+                default:
+                    return null;
+            }
+        }
 
-			case PLAYER_CHAT:
-				this.sender = buffer.readString();
-				this.message = buffer.readString();
-				break;
+        public byte getId() {
+            return this.id;
+        }
 
-			case LOCALIZABLE_MESSAGE:
-				this.message = buffer.readString();
-				byte count = buffer.readByte();
-				this.arguments = new String[count];
-				for ( byte i = 0; i < count; ++i ) {
-					arguments[i] = buffer.readString();
-				}
-				break;
-
-			case POPUP_NOTICE:
-				this.message = buffer.readString();
-				this.sender = buffer.readString();
-				break;
-		}
-	}
+    }
 }

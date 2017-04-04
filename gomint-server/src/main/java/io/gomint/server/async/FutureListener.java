@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -10,10 +10,9 @@ package io.gomint.server.async;
 /**
  * Listener for Futures. It invokes when a Future this has been appended to has been resolved.
  *
+ * @param <T> The type of Future which resolves
  * @author BlackyPaw
  * @version 1.0
- *
- * @param <T> The type of Future which resolves
  */
 public interface FutureListener<T extends Future> {
 
@@ -22,6 +21,6 @@ public interface FutureListener<T extends Future> {
      *
      * @param future The future which has been resolved
      */
-	void onFutureResolved( T future );
+    void onFutureResolved( T future );
 
 }

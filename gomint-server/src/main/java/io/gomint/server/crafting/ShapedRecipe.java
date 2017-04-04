@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -14,13 +14,9 @@ import net.openhft.koloboke.collect.map.IntObjCursor;
 import net.openhft.koloboke.collect.map.IntObjMap;
 import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -33,106 +29,106 @@ import java.util.UUID;
  */
 public class ShapedRecipe extends CraftingRecipe {
 
-	private int width;
-	private int height;
+    private int width;
+    private int height;
 
-	private ItemStack[] arrangement;
-	private ItemStack[]   outcome;
+    private ItemStack[] arrangement;
+    private ItemStack[] outcome;
 
-	private Collection<ItemStack> ingredients;
+    private Collection<ItemStack> ingredients;
 
-	public ShapedRecipe( int width, int height, ItemStack[] ingredients, ItemStack[] outcome, UUID uuid ) {
-		super( outcome, uuid );
-		assert ingredients.length == width * height : "Invalid arrangement: Fill out empty slots with air!";
+    public ShapedRecipe( int width, int height, ItemStack[] ingredients, ItemStack[] outcome, UUID uuid ) {
+        super( outcome, uuid );
+        assert ingredients.length == width * height : "Invalid arrangement: Fill out empty slots with air!";
 
-		this.width = width;
-		this.height = height;
-		this.arrangement = ingredients;
-		this.outcome = outcome;
-	}
+        this.width = width;
+        this.height = height;
+        this.arrangement = ingredients;
+        this.outcome = outcome;
+    }
 
-	/**
-	 * Gets the width of this shaped recipe.
-	 *
-	 * @return The width of this shaped recipe
-	 */
-	public int getWidth() {
-		return this.width;
-	}
+    /**
+     * Gets the width of this shaped recipe.
+     *
+     * @return The width of this shaped recipe
+     */
+    public int getWidth() {
+        return this.width;
+    }
 
-	/**
-	 * Gets the height of this shaped recipe.
-	 *
-	 * @return The height of this shaped recipe
-	 */
-	public int getHeight() {
-		return this.height;
-	}
+    /**
+     * Gets the height of this shaped recipe.
+     *
+     * @return The height of this shaped recipe
+     */
+    public int getHeight() {
+        return this.height;
+    }
 
-	@Override
-	public Collection<ItemStack> getIngredients() {
-		if ( this.ingredients == null ) {
-			// Got to sort out possible AIR slots and combine types:
-			IntObjMap<ItemStack> map = HashIntObjMaps.newMutableMap( this.width * this.height );
-			for ( int j = 0; j < this.height; ++j ) {
-				for ( int i = 0; i < this.width; ++i ) {
-					ItemStack stack = this.arrangement[j * this.width + i];
-					if ( stack.getId() != 0 ) {
-						if ( !map.containsKey( stack.getId() ) ) {
-							// Make sure to keep NBT data:
-							ItemStack clone = stack.clone();
-							clone.setAmount( 0 );
-							map.put( stack.getId(), clone );
-						}
+    @Override
+    public Collection<ItemStack> getIngredients() {
+        if ( this.ingredients == null ) {
+            // Got to sort out possible AIR slots and combine types:
+            IntObjMap<ItemStack> map = HashIntObjMaps.newMutableMap( this.width * this.height );
+            for ( int j = 0; j < this.height; ++j ) {
+                for ( int i = 0; i < this.width; ++i ) {
+                    ItemStack stack = this.arrangement[j * this.width + i];
+                    if ( stack.getId() != 0 ) {
+                        if ( !map.containsKey( stack.getId() ) ) {
+                            // Make sure to keep NBT data:
+                            ItemStack clone = stack.clone();
+                            clone.setAmount( 0 );
+                            map.put( stack.getId(), clone );
+                        }
 
-						ItemStack combined = map.get( stack.getId() );
-						combined.setAmount( combined.getAmount() + stack.getAmount() );
-					}
-				}
-			}
+                        ItemStack combined = map.get( stack.getId() );
+                        combined.setAmount( combined.getAmount() + stack.getAmount() );
+                    }
+                }
+            }
 
-			this.ingredients = new ArrayList<>( map.size() );
-			IntObjCursor<ItemStack> cursor = map.cursor();
-			while ( cursor.moveNext() ) {
-				this.ingredients.add( cursor.value() );
-			}
-		}
-		return this.ingredients;
-	}
+            this.ingredients = new ArrayList<>( map.size() );
+            IntObjCursor<ItemStack> cursor = map.cursor();
+            while ( cursor.moveNext() ) {
+                this.ingredients.add( cursor.value() );
+            }
+        }
+        return this.ingredients;
+    }
 
-	@Override
-	public void serialize( PacketBuffer buffer, PacketDataOutputStream intermediate ) throws IOException {
-		intermediate.writeInt( this.width );
-		intermediate.writeInt( this.height );
+    @Override
+    public void serialize( PacketBuffer buffer, PacketDataOutputStream intermediate ) throws IOException {
+        intermediate.writeInt( this.width );
+        intermediate.writeInt( this.height );
 
-		for ( int i = 0; i < this.arrangement.length; ++i ) {
-			ItemStack stack = this.arrangement[i];
-			if ( stack.getId() == 0 ) {
-				intermediate.writeShort( (short) 0 );
-			} else {
-				intermediate.writeItemStack( stack );
-			}
-		}
+        for ( int i = 0; i < this.arrangement.length; ++i ) {
+            ItemStack stack = this.arrangement[i];
+            if ( stack.getId() == 0 ) {
+                intermediate.writeShort( (short) 0 );
+            } else {
+                intermediate.writeItemStack( stack );
+            }
+        }
 
-		intermediate.writeInt( this.outcome.length );
-		for ( int i = 0; i < this.outcome.length; ++i ) {
-			ItemStack stack = this.outcome[i];
-			if ( stack.getId() == 0 ) {
-				intermediate.writeShort( (short) 0 );
-			} else {
-				intermediate.writeItemStack( stack );
-			}
-		}
-		intermediate.writeUUID( this.getUUID() );
+        intermediate.writeInt( this.outcome.length );
+        for ( int i = 0; i < this.outcome.length; ++i ) {
+            ItemStack stack = this.outcome[i];
+            if ( stack.getId() == 0 ) {
+                intermediate.writeShort( (short) 0 );
+            } else {
+                intermediate.writeItemStack( stack );
+            }
+        }
+        intermediate.writeUUID( this.getUUID() );
 
-		byte[] recipeData = intermediate.toByteArray();
-		buffer.writeInt( 1 );                   // Type
-		buffer.writeInt( recipeData.length );   // Data Length
-		buffer.writeBytes( recipeData );
-	}
+        byte[] recipeData = intermediate.toByteArray();
+        buffer.writeInt( 1 );                   // Type
+        buffer.writeInt( recipeData.length );   // Data Length
+        buffer.writeBytes( recipeData );
+    }
 
 	/*              Left in here because it might get relevant in the future again
-	@Override
+    @Override
 	public boolean applies( CraftingContainer container, boolean consume ) {
 		// Early out:
 		if ( this.width > container.getWidth() || this.height > container.getHeight() ) {

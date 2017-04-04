@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -13,19 +13,19 @@ package io.gomint.world;
  */
 public enum WeatherType {
 
-	/**
-	 * Specifies entirely clear sky and sunshine!
-	 */
-	CLEAR,
+    /**
+     * Specifies entirely clear sky and sunshine!
+     */
+    CLEAR,
 
-	/**
-	 * Rain or (snow) will fall in the respective biomes
-	 */
-	DOWNFALL,
+    /**
+     * Rain or (snow) will fall in the respective biomes
+     */
+    DOWNFALL,
 
-	/**
-	 * A thunderstorm will take place
-	 */
-	THUNDERSTORM;
+    /**
+     * A thunderstorm will take place
+     */
+    THUNDERSTORM;
 
 }

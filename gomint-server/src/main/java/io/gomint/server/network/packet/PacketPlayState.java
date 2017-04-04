@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -20,55 +20,61 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode( callSuper = false )
 public class PacketPlayState extends Packet {
 
-	/**
-	 * Enumeration of play states observed to be sent inside certain packets.
-	 */
-	public enum PlayState {
+    private PlayState state;
 
-		HANDSHAKE( 0 ),
-		SPAWN( 3 );
+    public PacketPlayState() {
+        super( Protocol.PACKET_PLAY_STATE );
+    }
 
-		public static PlayState fromValue( int value ) {
-			switch ( value ) {
-				case 0:
-					return HANDSHAKE;
-				case 3:
-					return SPAWN;
-				default:
-					return null;
-			}
-		}
+    @Override
+    public void serialize( PacketBuffer buffer ) {
+        buffer.writeInt( this.state.getValue() );
+    }
 
-		private int value;
+    @Override
+    public void deserialize( PacketBuffer buffer ) {
+        this.state = PlayState.fromValue( buffer.readInt() );
+    }
 
-		PlayState( int value ) {
-			this.value = value;
-		}
+    @Override
+    public int estimateLength() {
+        return 4;
+    }
 
-		public int getValue() {
-			return this.value;
-		}
+    /**
+     * Enumeration of play states observed to be sent inside certain packets.
+     */
+    public enum PlayState {
 
-	}
+        LOGIN_SUCCESS( 0 ),
+        LOGIN_FAILED_CLIENT( 1 ),
+        LOGIN_FAILED_SERVER( 2 ),
+        SPAWN( 3 );
 
-	private PlayState state;
+        private int value;
 
-	public PacketPlayState() {
-		super( Protocol.PACKET_PLAY_STATE );
-	}
+        PlayState( int value ) {
+            this.value = value;
+        }
 
-	@Override
-	public void serialize( PacketBuffer buffer ) {
-		buffer.writeInt( this.state.getValue() );
-	}
+        public static PlayState fromValue( int value ) {
+            switch ( value ) {
+                case 0:
+                    return LOGIN_SUCCESS;
+                case 1:
+                    return LOGIN_FAILED_CLIENT;
+                case 2:
+                    return LOGIN_FAILED_SERVER;
+                case 3:
+                    return SPAWN;
+                default:
+                    return null;
+            }
+        }
 
-	@Override
-	public void deserialize( PacketBuffer buffer ) {
-		this.state = PlayState.fromValue( buffer.readInt() );
-	}
+        public int getValue() {
+            return this.value;
+        }
 
-	@Override
-	public int estimateLength() {
-		return 4;
-	}
+    }
 }

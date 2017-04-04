@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -21,23 +21,23 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode( callSuper = false )
 public class PacketEntityMetadata extends Packet {
 
-	private long entityId;
-	private MetadataContainer metadata;
+    private long entityId;
+    private MetadataContainer metadata;
 
-	public PacketEntityMetadata() {
-		super( Protocol.PACKET_ENTITY_METADATA );
-	}
+    public PacketEntityMetadata() {
+        super( Protocol.PACKET_ENTITY_METADATA );
+    }
 
-	@Override
-	public void serialize( PacketBuffer buffer ) {
-		buffer.writeLong( this.entityId );
-		this.metadata.serialize( buffer );
-	}
+    @Override
+    public void serialize( PacketBuffer buffer ) {
+        buffer.writeLong( this.entityId );
+        this.metadata.serialize( buffer );
+    }
 
-	@Override
-	public void deserialize( PacketBuffer buffer ) {
-		this.entityId = buffer.readLong();
-		this.metadata = new MetadataContainer();
-		this.metadata.deserialize( buffer );
-	}
+    @Override
+    public void deserialize( PacketBuffer buffer ) {
+        this.entityId = buffer.readLong();
+        this.metadata = new MetadataContainer();
+        this.metadata.deserialize( buffer );
+    }
 }

@@ -2,7 +2,6 @@ package io.gomint.server.network.packet;
 
 import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.network.Protocol;
 import lombok.Data;
 import lombok.Getter;
 
@@ -19,7 +18,7 @@ public class PacketSetSlot extends Packet {
     private ItemStack stack;
 
     public PacketSetSlot() {
-        super( Protocol.PACKET_SET_SLOTS );
+        super( (byte) 0xFF );
     }
 
     @Override

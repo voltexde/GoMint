@@ -1,24 +1,21 @@
 package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.math.Vector;
 import io.gomint.server.network.Protocol;
-import lombok.Getter;
-
-import javax.xml.bind.DatatypeConverter;
+import lombok.Data;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@Data
 public class PacketPlayerAction extends Packet {
 
     private long entityId;
 
     private PlayerAction action;
-
-    private int x;
-    private int y;
-    private int z;
+    private Vector position;
 
     private int face;
 
@@ -35,30 +32,58 @@ public class PacketPlayerAction extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        this.entityId = buffer.readLong();
-        this.action = PlayerAction.getAction( buffer.readInt() );
-        this.x = buffer.readInt();
-        this.y = buffer.readInt();
-        this.z = buffer.readInt();
-        this.face = buffer.readInt();
+        this.entityId = buffer.readUnsignedVarLong();
+        this.action = PlayerAction.valueOf( buffer.readSignedVarInt() );
+        this.position = new Vector( buffer.readSignedVarInt(), buffer.readUnsignedVarInt(), buffer.readSignedVarInt() );
+        this.face = buffer.readSignedVarInt();
     }
 
     public enum PlayerAction {
-        START_BREAK( 1 ),
-        JUMP( 8 );
+        START_BREAK,
+        ABORT_BREAK,
+        STOP_BREAK,
 
-        @Getter
-        private final int actionId;
+        RELEASE_ITEM,
+        STOP_SLEEPING,
+        RESPAWN,
+        JUMP,
 
-        PlayerAction( int actionId ) {
-            this.actionId = actionId;
-        }
+        START_SPRINT,
+        STOP_SPRINT,
+        START_SNEAK,
+        STOP_SNEAK,
 
-        public static PlayerAction getAction( int actionId ) {
-            for ( PlayerAction playerAction : values() ) {
-                if ( playerAction.actionId == actionId ) {
-                    return playerAction;
-                }
+        DIMENSION_CHANGE,
+        ABORT_DIMENSION_CHANGE;
+
+        public static PlayerAction valueOf( int actionId ) {
+            switch ( actionId ) {
+                case 0:
+                    return START_BREAK;
+                case 1:
+                    return ABORT_BREAK;
+                case 2:
+                    return STOP_BREAK;
+                case 5:
+                    return RELEASE_ITEM;
+                case 6:
+                    return STOP_SLEEPING;
+                case 7:
+                    return RESPAWN;
+                case 8:
+                    return JUMP;
+                case 9:
+                    return START_SPRINT;
+                case 10:
+                    return STOP_SPRINT;
+                case 11:
+                    return START_SNEAK;
+                case 12:
+                    return STOP_SNEAK;
+                case 13:
+                    return DIMENSION_CHANGE;
+                case 14:
+                    return ABORT_DIMENSION_CHANGE;
             }
 
             System.out.println( "Unknown action id: " + actionId );

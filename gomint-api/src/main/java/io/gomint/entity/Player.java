@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -24,12 +24,12 @@ public interface Player extends Entity {
      */
     String getName();
 
-	/**
-	 * Gets the player's UUID. It has yet to be researched how unique this
-	 * one is as it may be specified by the player during the login sequence.
-	 *
-	 * @return The player's UUID.
-	 */
-	UUID getUUID();
-    
+    /**
+     * Gets the player's UUID. It has yet to be researched how unique this
+     * one is as it may be specified by the player during the login sequence.
+     *
+     * @return The player's UUID.
+     */
+    UUID getUUID();
+
 }

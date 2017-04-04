@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,29 +7,27 @@
 
 package io.gomint.server.util;
 
+import io.gomint.plugin.Plugin;
+
 /**
- * @author Fabian
+ * @author geNAZt
  * @version 1.0
  */
 public class CallerDetectorUtil {
+
     private static CallerDetector callerDetector;
 
     static {
-        try {
-            Class.forName( "sun.reflect.Reflection" );
-            callerDetector = new SunReflectionCallerDetector();
-        } catch ( ClassNotFoundException e ) {
-            callerDetector = new SecurityManagerCallerDetector();
-        }
+        callerDetector = new SecurityManagerCallerDetector();
     }
 
     /**
-     * Get the class name of the Caller
+     * Get the plugin which called
      *
-     * @param callDepth depth at which we want to look
-     * @return string of class which called
+     * @return class of plugin
      */
-    public static String getCallerClassName( int callDepth ) {
-        return callerDetector.getCallerClassName( callDepth + 3 );
+    public static Class<? extends Plugin> getCallerPlugin() {
+        return callerDetector.getCallerPlugin();
     }
+
 }
