@@ -63,18 +63,23 @@ public abstract class WorldAdapter implements World {
     protected String levelName;
     protected Location spawn;
     protected Map<Gamerule, Object> gamerules = new HashMap<>();
+
     // Chunk Handling
     protected ChunkCache chunkCache;
+
     // Entity Handling
     protected EntityManager entityManager;
+
     // Block ticking
     @Getter
-    protected TaskList<Long> tickQueue = new TaskList<>();
+    protected TickList tickQueue = new TickList();
+
     // I/O
     private Deflater deflater;
     private boolean asyncWorkerRunning;
     private BlockingQueue<AsyncChunkTask> asyncChunkTasks;
     private Queue<AsyncChunkPackageTask> chunkPackageTasks;
+
     // Player handling
     private ObjObjMap<EntityPlayer, ChunkAdapter> players;
 
@@ -213,8 +218,8 @@ public abstract class WorldAdapter implements World {
         // ---------------------------------------
         // Update all blocks
         while ( this.tickQueue.getNextTaskTime() < currentTimeMS ) {
-            Long blockToUpdate = this.tickQueue.getNextElement();
-            if ( blockToUpdate == null ) {
+            long blockToUpdate = this.tickQueue.getNextElement();
+            if ( blockToUpdate == Long.MIN_VALUE ) {
                 break;
             }
 
@@ -475,10 +480,13 @@ public abstract class WorldAdapter implements World {
 
         for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
             for ( int j = minChunkX; j <= maxChunkX; ++j ) {
-                ChunkAdapter chunkAdapter = this.loadChunk( i, j, true );
-                if ( chunkAdapter == null ) {
-                    throw new IOException( "Could not load spawn chunk @ " + i + " " + j );
-                }
+                this.getOrLoadChunk( i, j, true, new Delegate<ChunkAdapter>() {
+                    @Override
+                    public void invoke( ChunkAdapter arg ) {
+
+                    }
+                } );
+
             }
         }
     }

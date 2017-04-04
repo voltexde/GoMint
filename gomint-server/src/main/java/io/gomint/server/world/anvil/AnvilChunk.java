@@ -7,11 +7,14 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.math.Vector;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.NibbleArray;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
 import io.gomint.taglib.NBTTagCompound;
@@ -317,6 +320,10 @@ class AnvilChunk extends ChunkAdapter {
                         continue;
                 }
 
+                if ( x == 9 && z == 10 ) {
+                    DumpUtil.dumpNBTCompund( tileEntity );
+                }
+
                 this.addTileEntity( tileEntity );
             }
         }
@@ -383,7 +390,9 @@ class AnvilChunk extends ChunkAdapter {
                     this.setSkyLight( i, y, k, skyLight.get( blockIndex ) );
 
                     // Tick blocks on loading once to check if they need to be scheduled
-                    this.world.getTickQueue().add( 1L, CoordinateUtils.toLong( ( x * 16 ) + i, y, ( z * 16 ) + k ) );
+                    if ( blockId > 0 ) {
+                        this.world.getTickQueue().add( 1L, CoordinateUtils.toLong( ( x * 16 ) + i, y, ( z * 16 ) + k ) );
+                    }
                 }
             }
         }

@@ -28,7 +28,7 @@ import java.util.zip.Deflater;
  */
 public class RecipeManager {
 
-    private final GoMintServer gomint;
+    private final GoMintServer server;
     private Set<Recipe> recipes;
 
     private Packet batchPacket;
@@ -37,10 +37,10 @@ public class RecipeManager {
     /**
      * Constructs a new recipe manager.
      *
-     * @param gomint The GoMint server instance the recipe manager belongs to
+     * @param server The GoMint server instance the recipe manager belongs to
      */
-    public RecipeManager( GoMintServer gomint ) {
-        this.gomint = gomint;
+    public RecipeManager( GoMintServer server ) {
+        this.server = server;
         this.recipes = new HashSet<>();
         this.dirty = true;
     }

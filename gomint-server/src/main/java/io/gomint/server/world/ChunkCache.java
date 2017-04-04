@@ -13,6 +13,8 @@ import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -22,13 +24,14 @@ import java.util.Map;
  */
 public class ChunkCache {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( ChunkCache.class );
+
     // CHECKSTYLE:OFF
     // ==================================== FIELDS ==================================== //
     private final WorldAdapter world;
     private final LongObjMap<ChunkAdapter> cachedChunks;
     private boolean enableAutoSave;
     private long autoSaveInterval;
-
 
     public ChunkCache( WorldAdapter world ) {
         this.world = world;
@@ -92,6 +95,7 @@ public class ChunkCache {
 
                     // Ask this chunk if he wants to be gced
                     if ( !isSpawnChunk && chunk.canBeGCed() ) {
+                        LOGGER.debug( "Cleaning up chunk @ " + x + " " + z );
                         readyForGC = true;
                     }
                 }

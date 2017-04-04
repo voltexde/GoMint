@@ -22,6 +22,7 @@ class ChunkSlice {
 
     @Getter
     private final ChunkAdapter chunk;
+    @Getter
     private final int sectionY;
 
     private byte[] blocks = new byte[16 * 16 * 16];

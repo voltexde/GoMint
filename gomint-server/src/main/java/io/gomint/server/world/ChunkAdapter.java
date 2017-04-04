@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.NoteblockTileEntity;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
@@ -188,13 +189,13 @@ public abstract class ChunkAdapter implements Chunk {
 
     protected void addTileEntity( NBTTagCompound tileEntity ) {
         int x = tileEntity.getInteger( "x", 0 ) & 0xF;
-        int y = tileEntity.getInteger( "y", -1 ) >> 4;
+        int y = tileEntity.getInteger( "y", -1 );
         int z = tileEntity.getInteger( "z", 0 ) & 0xF;
 
         TileEntity tileEntity1 = TileEntities.construct( tileEntity, this.world );
         if ( tileEntity1 != null ) {
             ChunkSlice slice = ensureSlice( y >> 4 );
-            slice.addTileEntity( x, y, z, tileEntity1 );
+            slice.addTileEntity( x, y - slice.getSectionY() * 16, z, tileEntity1 );
         }
     }
 
