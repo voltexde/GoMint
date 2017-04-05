@@ -9,6 +9,9 @@ a clean and easy-to-use API for creating custom plugins once GoMint sees its fir
 API does not yet exist as the implementation is still under such rapid development that we are not yet able
 to settle on a fixed API layout.
 
+## Contact & Social
+[![Join the Discord](http://i.imgur.com/fzomMAr.png)](https://discord.gg/5v24b)
+
 ## Testing
 
 As the project is still work in progress the only way to launch the application currently is to set up
