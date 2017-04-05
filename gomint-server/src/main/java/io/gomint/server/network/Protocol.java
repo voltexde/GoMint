@@ -43,6 +43,7 @@ public final class Protocol {
     public static final byte PACKET_WORLD_CHUNK = (byte) 0x3B;
     public static final byte PACKET_SET_COMMANDS_ENABLED = (byte) 0x3C;
     public static final byte PACKET_SET_DIFFICULTY = (byte) 0x3D;
+    public static final byte PACKET_SET_GAMEMODE = (byte) 0x3F;
     public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
     public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
 

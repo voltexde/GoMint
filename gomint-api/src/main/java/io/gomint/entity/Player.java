@@ -7,11 +7,14 @@
 
 package io.gomint.entity;
 
+import io.gomint.world.Gamemode;
+
 import java.util.UUID;
 
 /**
  * @author BlackyPaw
  * @author Digot
+ * @version 1.0
  */
 public interface Player extends Entity {
 
@@ -31,5 +34,26 @@ public interface Player extends Entity {
      * @return The player's UUID.
      */
     UUID getUUID();
+
+    /**
+     * Set the new gamemode for this player
+     *
+     * @param gamemode The new gamemode to be used
+     */
+    void setGamemode( Gamemode gamemode );
+
+    /**
+     * Get the current gamemode
+     *
+     * @return The gamemode the player is in
+     */
+    Gamemode getGamemode();
+
+    /**
+     * Is this player op'ed?
+     *
+     * @return true when op'ed, false when not
+     */
+    boolean isOp();
 
 }

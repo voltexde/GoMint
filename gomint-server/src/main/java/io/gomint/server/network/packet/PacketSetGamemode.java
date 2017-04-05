@@ -9,17 +9,17 @@ import lombok.Data;
  * @version 1.0
  */
 @Data
-public class PacketSetDifficulty extends Packet {
+public class PacketSetGamemode extends Packet {
 
-    private int difficulty;
+    private int gameMode;
 
-    public PacketSetDifficulty() {
-        super( Protocol.PACKET_SET_DIFFICULTY );
+    public PacketSetGamemode() {
+        super( Protocol.PACKET_SET_GAMEMODE );
     }
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        buffer.writeUnsignedVarInt( this.difficulty );
+        buffer.writeSignedVarInt( this.gameMode );
     }
 
     @Override

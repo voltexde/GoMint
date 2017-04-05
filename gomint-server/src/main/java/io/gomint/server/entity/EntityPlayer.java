@@ -12,9 +12,13 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.inventory.PlayerInventory;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.packet.PacketSetGamemode;
 import io.gomint.server.network.packet.PacketUpdateAttributes;
 import io.gomint.server.player.PlayerSkin;
+import io.gomint.server.util.EnumConnector;
+import io.gomint.server.world.GamemodeMagicNumbers;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.world.Gamemode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,6 +36,9 @@ import java.util.UUID;
  */
 public class EntityPlayer extends EntityLiving implements Player {
 
+    // Enum converters
+    private static final EnumConnector<Gamemode, GamemodeMagicNumbers> GAMEMODE_CONNECTOR = new EnumConnector<>( Gamemode.class, GamemodeMagicNumbers.class );
+
     private final PlayerConnection connection;
     private int viewDistance;
 
@@ -39,6 +46,9 @@ public class EntityPlayer extends EntityLiving implements Player {
     private String username;
     private UUID uuid;
     private PlayerSkin skin;
+    private Gamemode gamemode;
+    private AdventureSettings adventureSettings;
+    private boolean op;
 
     // Inventory
     private PlayerInventory inventory;
@@ -59,6 +69,8 @@ public class EntityPlayer extends EntityLiving implements Player {
      *
      * @param world      The world the entity should spawn in
      * @param connection The specific player connection associated with this entity
+     * @param username   The name the user has chosen
+     * @param uuid       The uuid which has been sent from the client
      */
     public EntityPlayer( WorldAdapter world,
                          PlayerConnection connection,
@@ -69,6 +81,7 @@ public class EntityPlayer extends EntityLiving implements Player {
         this.username = username;
         this.uuid = uuid;
         this.viewDistance = this.world.getServer().getServerConfig().getViewDistance();
+        this.adventureSettings = new AdventureSettings( this );
         this.inventory = new PlayerInventory( this );
         this.initAttributes();
     }
@@ -99,7 +112,6 @@ public class EntityPlayer extends EntityLiving implements Player {
      */
     public void setViewDistance( int viewDistance ) {
         viewDistance = Math.min( viewDistance, this.getWorld().getServer().getServerConfig().getViewDistance() );
-        System.out.println( viewDistance );
         if ( this.viewDistance != viewDistance ) {
             this.viewDistance = viewDistance;
             this.connection.onViewDistanceChanged();
@@ -123,6 +135,40 @@ public class EntityPlayer extends EntityLiving implements Player {
     @Override
     public UUID getUUID() {
         return this.uuid;
+    }
+
+    @Override
+    public void setGamemode( Gamemode gamemode ) {
+        this.gamemode = gamemode;
+        this.updateGamemode();
+    }
+
+    private void updateGamemode() {
+        int gameModeNumber = GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
+
+        PacketSetGamemode packetSetGamemode = new PacketSetGamemode();
+        packetSetGamemode.setGameMode( gameModeNumber & 0x01 );
+        this.connection.send( packetSetGamemode );
+
+        // Recalc adventure settings
+        // this.adventureSettings.setCanDestroyBlock( ( gameModeNumber & 0x02 ) == 0 );
+        this.adventureSettings.setCanFly( ( gameModeNumber & 0x01 ) > 0 );
+        this.adventureSettings.setNoclip( gameModeNumber == 0x03 );
+        this.adventureSettings.setFlying( gameModeNumber == 0x03 );
+        this.adventureSettings.setNoMvP( gameModeNumber == 0x03 );
+        this.adventureSettings.setNoPvM( gameModeNumber == 0x03 );
+        this.adventureSettings.setNoPvP( gameModeNumber == 0x03 );
+        this.adventureSettings.update();
+    }
+
+    @Override
+    public Gamemode getGamemode() {
+        return this.gamemode;
+    }
+
+    @Override
+    public boolean isOp() {
+        return this.op;
     }
 
     @Override

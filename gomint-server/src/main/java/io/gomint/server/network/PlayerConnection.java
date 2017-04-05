@@ -7,6 +7,7 @@
 
 package io.gomint.server.network;
 
+import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.event.player.PlayerLoginEvent;
 import io.gomint.jraknet.*;
 import io.gomint.math.Location;
@@ -383,6 +384,8 @@ public class PlayerConnection {
     }
 
     private void handlePlayerAction( long currentTimeMillis, PacketPlayerAction packet ) {
+        System.out.println( packet );
+
         switch ( packet.getAction() ) {
             case START_BREAK:
                 if ( this.entity.getStartBreak() == 0 ) {
@@ -550,6 +553,10 @@ public class PlayerConnection {
 
                 // Add player to world (will send world chunk packets):
                 this.entity.getWorld().addPlayer( this.entity );
+
+                // Now its time for the join event since the play is fully loaded
+                this.networkManager.getServer().getPluginManager().callEvent( new PlayerJoinEvent( this.entity ) );
+
                 break;
         }
 
@@ -564,16 +571,7 @@ public class PlayerConnection {
     private void sendAdventureSettings() {
         int flags = 0;
 
-        /*if (IsWorldImmutable || IsAdventure || GameMode == GameMode.Adventure) flags |= 0x01;   // Immutable World (Remove hit markers client-side).
-        if (IsNoPvp || IsSpectator || GameMode == GameMode.Spectator) flags |= 0x02;            // No PvP (Remove hit markers client-side).
-        if (IsNoPvm || IsSpectator || GameMode == GameMode.Spectator) flags |= 0x04;            // No PvM (Remove hit markers client-side).
-        if (IsNoMvp || IsSpectator || GameMode == GameMode.Spectator) flags |= 0x08;
-
-        if (IsAutoJump) flags |= 0x20;
-
-        if (AllowFly || GameMode == GameMode.Creative) flags |= 0x40;
-
-        if (IsNoClip || IsSpectator || GameMode == GameMode.Spectator) flags |= 0x80; // No clip */
+        /* */
 
         PacketAdventureSettings packetAdventureSettings = new PacketAdventureSettings();
         this.send( packetAdventureSettings );

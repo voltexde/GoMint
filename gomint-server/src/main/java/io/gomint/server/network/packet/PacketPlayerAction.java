@@ -54,7 +54,9 @@ public class PacketPlayerAction extends Packet {
         STOP_SNEAK,
 
         DIMENSION_CHANGE,
-        ABORT_DIMENSION_CHANGE;
+        ABORT_DIMENSION_CHANGE,
+
+        INTERACT_BLOCK;
 
         public static PlayerAction valueOf( int actionId ) {
             switch ( actionId ) {
@@ -84,6 +86,8 @@ public class PacketPlayerAction extends Packet {
                     return DIMENSION_CHANGE;
                 case 14:
                     return ABORT_DIMENSION_CHANGE;
+                case 17:
+                    return INTERACT_BLOCK;
             }
 
             System.out.println( "Unknown action id: " + actionId );

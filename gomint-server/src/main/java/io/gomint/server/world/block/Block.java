@@ -60,6 +60,7 @@ public abstract class Block implements io.gomint.world.block.Block {
             worldAdapter.setBlockData( pos, (byte) 0 );
 
             // Update light
+            instance.setLocation( this.location );
             WorldAdapter.getBlockLightCalculator().calculate( worldAdapter, instance );
             worldAdapter.updateBlock( pos );
         }
