@@ -149,15 +149,16 @@ public abstract class ChunkAdapter implements Chunk {
     /**
      * Checks if this chunk can be gced
      *
+     * @param currentTimeMillis The time when this collection cycle started
      * @return true when it can be gced, false when not
      */
-    public boolean canBeGCed() {
+    boolean canBeGCed( long currentTimeMillis ) {
         int secondsAfterLeft = this.world.getServer().getServerConfig().getSecondsUntilGCAfterLastPlayerLeft();
         int waitAfterLoad = this.world.getServer().getServerConfig().getWaitAfterLoadForGCSeconds();
 
-        return System.currentTimeMillis() - this.loadedTime > TimeUnit.SECONDS.toMillis( waitAfterLoad ) &&
+        return currentTimeMillis - this.loadedTime > TimeUnit.SECONDS.toMillis( waitAfterLoad ) &&
                 this.players.isEmpty() &&
-                System.currentTimeMillis() - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( secondsAfterLeft );
+                currentTimeMillis - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( secondsAfterLeft );
     }
 
     /**

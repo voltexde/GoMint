@@ -11,6 +11,8 @@ import io.gomint.server.util.LongList;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -110,6 +112,21 @@ public class TickList {
         }
 
         return element;
+    }
+
+    public int size( long key ) {
+        LongElement element = this.head;
+        if ( element == null ) {
+            return 0;
+        }
+
+        do {
+            if ( element.getKey() == key ) {
+                return element.getValues().size();
+            }
+        } while ( ( element = element.getNext() ) != null );
+
+        return 0;
     }
 
     @AllArgsConstructor

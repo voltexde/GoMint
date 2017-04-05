@@ -39,7 +39,7 @@ import static io.gomint.server.network.Protocol.*;
  */
 public class PlayerConnection {
 
-    private static final Logger logger = LoggerFactory.getLogger( PlayerConnection.class );
+    private static final Logger LOGGER = LoggerFactory.getLogger( PlayerConnection.class );
 
     // Network manager that created this connection:
     private final NetworkManager networkManager;
@@ -232,7 +232,7 @@ public class PlayerConnection {
                 login.deserialize( buffer );
                 this.handleLoginPacket( login );
             } else {
-                System.out.println( "Received odd packet" );
+                LOGGER.error( "Received odd packet" );
             }
 
             // Don't allow for any other packets if we are in HANDSHAKE state:
@@ -248,7 +248,7 @@ public class PlayerConnection {
                 resourcepackResponse.deserialize( buffer );
                 this.handleResourceResponse( resourcepackResponse );
             } else {
-                System.out.println( "Received odd packet" );
+                LOGGER.error( "Received odd packet" );
             }
 
             // Don't allow for any other packets if we are in RESOURCE_PACK state:
@@ -279,7 +279,7 @@ public class PlayerConnection {
      */
     private void handleBatchPacket( long currentTimeMillis, PacketBuffer buffer, boolean batch ) {
         if ( batch ) {
-            this.networkManager.getLogger().error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
+            LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
             return;
         }
 
@@ -296,7 +296,7 @@ public class PlayerConnection {
                 bout.write( batchIntermediate, 0, read );
             }
         } catch ( IOException e ) {
-            this.networkManager.getLogger().error( "Failed to decompress batch packet", e );
+            LOGGER.error( "Failed to decompress batch packet", e );
             return;
         }
 
@@ -312,7 +312,7 @@ public class PlayerConnection {
             this.handleSocketData( currentTimeMillis, pktBuf, true );
 
             if ( pktBuf.getRemaining() > 0 ) {
-                this.networkManager.getLogger().error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x" + Integer.toHexString( payData[0] ) );
+                LOGGER.error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x" + Integer.toHexString( payData[0] ) );
                 return;
             }
         }
@@ -370,11 +370,7 @@ public class PlayerConnection {
         if ( this.entity.getLocation().distanceSquared( packet.getPosition() ) < 24 ) {
             // Get block to interact with
             Block block = this.entity.getWorld().getBlockAt( packet.getPosition() );
-            if ( block instanceof io.gomint.server.world.block.Block ) {
-                ( (io.gomint.server.world.block.Block) block ).interact( this.entity, packet.getFace(), packet.getFacePosition(), packet.getItem() );
-            }
-
-            System.out.println( packet );
+            ( (io.gomint.server.world.block.Block) block ).interact( this.entity, packet.getFace(), packet.getFacePosition(), packet.getItem() );
         }
     }
 
@@ -458,9 +454,11 @@ public class PlayerConnection {
         synchronized ( this.playerChunks ) {
             for ( int sendXChunk = currentXChunk - viewDistance; sendXChunk < currentXChunk + viewDistance; sendXChunk++ ) {
                 for ( int sendZChunk = currentZChunk - viewDistance; sendZChunk < currentZChunk + viewDistance; sendZChunk++ ) {
-                    if ( !this.playerChunks.contains( CoordinateUtils.toLong( sendXChunk, sendZChunk ) ) &&
-                            !this.currentlySendingPlayerChunks.contains( CoordinateUtils.toLong( sendXChunk, sendZChunk ) ) ) {
-                        this.currentlySendingPlayerChunks.add( CoordinateUtils.toLong( sendXChunk, sendZChunk ) );
+                    long hash = CoordinateUtils.toLong( sendXChunk, sendZChunk );
+
+                    if ( !this.playerChunks.contains( hash ) &&
+                            !this.currentlySendingPlayerChunks.contains( hash ) ) {
+                        this.currentlySendingPlayerChunks.add( hash );
                         worldAdapter.sendChunk( sendXChunk, sendZChunk, this.entity );
                     }
                 }
@@ -475,7 +473,7 @@ public class PlayerConnection {
             LongCursor longCursor = this.playerChunks.cursor();
             while ( longCursor.moveNext() ) {
                 int x = (int) ( longCursor.elem() >> 32 );
-                int z = (int) ( longCursor.elem() & 0xFFFFFFFF ) + Integer.MIN_VALUE;
+                int z = (int) ( longCursor.elem() ) + Integer.MIN_VALUE;
 
                 if ( x > currentXChunk + viewDistance ||
                         x < currentXChunk - viewDistance ||
@@ -539,7 +537,7 @@ public class PlayerConnection {
             case COMPLETED:
                 // Proceed with login
                 this.state = PlayerConnectionState.LOGIN;
-                logger.info( "Logging in as " + this.entity.getName() );
+                LOGGER.info( "Logging in as " + this.entity.getName() );
 
                 this.sendWorldTime( 0, false );
                 this.sendWorldInitialization();
@@ -608,9 +606,9 @@ public class PlayerConnection {
             }
 
             if ( this.entity != null ) {
-                logger.info( "Player " + this.entity.getName() + " left the game" );
+                LOGGER.info( "Player " + this.entity.getName() + " left the game" );
             } else {
-                logger.info( "Player has been disconnected whilst logging in" );
+                LOGGER.info( "Player has been disconnected whilst logging in" );
             }
 
             this.connection.disconnect( message );

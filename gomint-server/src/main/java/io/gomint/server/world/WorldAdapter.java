@@ -463,30 +463,22 @@ public abstract class WorldAdapter implements World {
      * @throws IOException Throws in case the spawn region could not be loaded nor generated
      */
     protected void prepareSpawnRegion() throws IOException {
-        final int spawnRadius = this.server.getServerConfig().getAmountOfChunksForSpawnArea() * 16;
+        final int spawnRadius = this.server.getServerConfig().getAmountOfChunksForSpawnArea();
         if ( spawnRadius == 0 ) {
             return;
         }
 
-        final int minBlockX = (int) ( this.spawn.getX() - spawnRadius );
-        final int minBlockZ = (int) ( this.spawn.getZ() - spawnRadius );
-        final int maxBlockX = (int) ( this.spawn.getX() + spawnRadius );
-        final int maxBlockZ = (int) ( this.spawn.getZ() + spawnRadius );
+        final int chunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() );
+        final int chunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() );
 
-        final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
-        final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );
-        final int maxChunkX = CoordinateUtils.fromBlockToChunk( maxBlockX );
-        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( maxBlockZ );
-
-        for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
-            for ( int j = minChunkX; j <= maxChunkX; ++j ) {
+        for ( int i = chunkX - spawnRadius; i <= chunkX + spawnRadius; i++ ) {
+            for ( int j = chunkZ - spawnRadius; j <= chunkZ + spawnRadius; j++ ) {
                 this.getOrLoadChunk( i, j, true, new Delegate<ChunkAdapter>() {
                     @Override
                     public void invoke( ChunkAdapter arg ) {
 
                     }
                 } );
-
             }
         }
     }

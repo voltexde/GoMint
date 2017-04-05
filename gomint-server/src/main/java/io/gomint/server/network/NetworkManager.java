@@ -11,12 +11,12 @@ import io.gomint.jraknet.*;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
 import net.openhft.koloboke.collect.LongCursor;
-import net.openhft.koloboke.collect.ObjCursor;
 import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
+import net.openhft.koloboke.function.LongObjConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,25 +32,38 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class NetworkManager {
 
-    private final GoMintServer gomint;
+    private final GoMintServer server;
     private final Logger logger = LoggerFactory.getLogger( NetworkManager.class );
+
     // Connections which were closed and should be removed during next tick:
     private final LongSet closedConnections = HashLongSets.newMutableSet();
     private ServerSocket socket;
     private LongObjMap<PlayerConnection> playersByGuid = HashLongObjMaps.newMutableMap();
+
     // Incoming connections to be added to the player map during next tick:
     private Queue<PlayerConnection> incomingConnections = new ConcurrentLinkedQueue<>();
+
     // Packet Dumping
     private boolean dump;
     private File dumpDirectory;
 
+    // Internal ticking
+    private long currentTickMillis;
+    private float lastTickTime;
+    private final LongObjConsumer<PlayerConnection> connectionConsumer = new LongObjConsumer<PlayerConnection>() {
+        @Override
+        public void accept( long l, PlayerConnection connection ) {
+            connection.update( currentTickMillis, lastTickTime );
+        }
+    };
+
     /**
      * Init a new NetworkManager for accepting new connections and read incoming data
      *
-     * @param gomint server instance which should be used
+     * @param server server instance which should be used
      */
-    public NetworkManager( GoMintServer gomint ) {
-        this.gomint = gomint;
+    public NetworkManager( GoMintServer server ) {
+        this.server = server;
     }
 
     // ======================================= PUBLIC API ======================================= //
@@ -69,7 +82,7 @@ public class NetworkManager {
         }
 
         this.socket = new ServerSocket( maxConnections );
-        this.socket.setEventLoopFactory( this.gomint.getThreadFactory() );
+        this.socket.setEventLoopFactory( this.server.getThreadFactory() );
         this.socket.setEventHandler( new SocketEventHandler() {
             @Override
             public void onSocketEvent( Socket socket, SocketEvent socketEvent ) {
@@ -103,6 +116,9 @@ public class NetworkManager {
     /**
      * Ticks the network manager, i.e. updates all player connections and handles all incoming
      * data packets.
+     *
+     * @param currentMillis The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
+     * @param lastTickTime  The delta from the full second which has been calculated in the last tick
      */
     public void update( long currentMillis, float lastTickTime ) {
         // Handle updates to player map:
@@ -128,11 +144,9 @@ public class NetworkManager {
         }
 
         // Tick all player connections in order to receive all incoming packets:
-        ObjCursor<PlayerConnection> cursor = this.playersByGuid.values().cursor();
-        while ( cursor.moveNext() ) {
-            PlayerConnection connection = cursor.elem();
-            connection.update( currentMillis, lastTickTime );
-        }
+        this.currentTickMillis = currentMillis;
+        this.lastTickTime = lastTickTime;
+        this.playersByGuid.forEach( this.connectionConsumer );
     }
 
     /**
@@ -177,7 +191,9 @@ public class NetworkManager {
     /**
      * Broadcasts the given packet to all players.
      *
-     * @param packet The packet to broadcast
+     * @param reliability     Raknet Reliability with which this packet should be send
+     * @param orderingChannel In which channel should this packet be send
+     * @param packet          The packet to broadcast
      */
     public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
         LongObjCursor<PlayerConnection> cursor = this.playersByGuid.cursor();
@@ -203,7 +219,7 @@ public class NetworkManager {
      * @return The GoMint server instance that created this network manager
      */
     GoMintServer getServer() {
-        return this.gomint;
+        return this.server;
     }
 
     /**

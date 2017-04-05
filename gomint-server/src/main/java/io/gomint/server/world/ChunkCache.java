@@ -16,7 +16,8 @@ import net.openhft.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 
 /**
  * @author BlackyPaw
@@ -32,6 +33,22 @@ public class ChunkCache {
     private final LongObjMap<ChunkAdapter> cachedChunks;
     private boolean enableAutoSave;
     private long autoSaveInterval;
+
+    // Internals for the GC
+    private final BiConsumer<EntityPlayer, ChunkAdapter> viewDistanceCOnsumer = new BiConsumer<EntityPlayer, ChunkAdapter>() {
+        @Override
+        public void accept( EntityPlayer entityPlayer, ChunkAdapter chunkAdapter ) {
+            int viewDistance = entityPlayer.getViewDistance();
+
+            if ( currentX >= chunkAdapter.getX() - viewDistance && currentX <= chunkAdapter.getX() + viewDistance &&
+                    currentZ >= chunkAdapter.getZ() - viewDistance && currentZ <= chunkAdapter.getZ() + viewDistance ) {
+                skip.set( true );
+            }
+        }
+    };
+    private AtomicBoolean skip = new AtomicBoolean( false );
+    private int currentX;
+    private int currentZ;
 
     public ChunkCache( WorldAdapter world ) {
         this.world = world;
@@ -54,19 +71,6 @@ public class ChunkCache {
 
         // Check for gc
         synchronized ( this.cachedChunks ) {
-            // Calculate the hashes which are used by players viewdistances
-            LongSet viewDistanceSet = HashLongSets.newMutableSet();
-            for ( Map.Entry<EntityPlayer, ChunkAdapter> playerChunkAdapterEntry : this.world.getPlayers0().entrySet() ) {
-                int viewDistance = playerChunkAdapterEntry.getKey().getViewDistance();
-                ChunkAdapter chunk = playerChunkAdapterEntry.getValue();
-
-                for ( int x = chunk.getX() - viewDistance; x < chunk.getX() + viewDistance; x++ ) {
-                    for ( int z = chunk.getZ() - viewDistance; z < chunk.getZ() + viewDistance; z++ ) {
-                        viewDistanceSet.add( CoordinateUtils.toLong( x, z ) );
-                    }
-                }
-            }
-
             // Copy over the current loaded chunk hashes
             LongSet toRemoveHashes = null;
             LongCursor loadedHashes = this.cachedChunks.keySet().cursor();
@@ -79,40 +83,42 @@ public class ChunkCache {
                     continue;
                 }
 
-                boolean readyForGC = false;
-                if ( !viewDistanceSet.contains( chunkHash ) ) {
-                    // Skip if this chunk is a spawn chunk
-                    boolean isSpawnChunk = false;
+                this.currentX = (int) ( chunkHash >> 32 );
+                this.currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
 
-                    int x = (int) ( chunkHash >> 32 );
-                    int z = (int) ( chunkHash & 0xFFFFFFFF ) + Integer.MIN_VALUE;
-
-                    if ( this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea() > 0 ) {
-                        if ( x <= spawnXChunk + spawnAreaSize && z <= spawnZChunk + spawnAreaSize ) {
-                            isSpawnChunk = true;
-                        }
-                    }
-
-                    // Ask this chunk if he wants to be gced
-                    if ( !isSpawnChunk && chunk.canBeGCed() ) {
-                        LOGGER.debug( "Cleaning up chunk @ " + x + " " + z );
-                        readyForGC = true;
+                // Check if this is part of the spawn
+                if ( spawnAreaSize > 0 ) {
+                    if ( this.currentX >= spawnXChunk - spawnAreaSize && this.currentX <= spawnXChunk + spawnAreaSize &&
+                            this.currentZ >= spawnZChunk - spawnAreaSize && this.currentZ <= spawnZChunk + spawnAreaSize ) {
+                        continue;
                     }
                 }
 
-                if ( readyForGC || chunk.getLastSavedTimestamp() + this.autoSaveInterval < currentTimeMS ) {
+                // Ask this chunk if he wants to be gced
+                if ( !chunk.canBeGCed( currentTimeMS ) ) {
+                    continue;
+                }
+
+                // Calculate the hashes which are used by players view distances
+                this.world.getPlayers0().forEach( viewDistanceCOnsumer );
+                if ( skip.get() ) {
+                    skip.set( false );
+                    continue;
+                }
+
+                LOGGER.debug( "Cleaning up chunk @ " + this.currentX + " " + this.currentZ );
+
+                if ( chunk.getLastSavedTimestamp() + this.autoSaveInterval < currentTimeMS ) {
                     this.world.saveChunkAsynchronously( chunk );
                     chunk.setLastSavedTimestamp( currentTimeMS );
                 }
 
                 // Ask this chunk if he wants to be gced
-                if ( readyForGC ) {
-                    if ( toRemoveHashes == null ) {
-                        toRemoveHashes = HashLongSets.newMutableSet();
-                    }
-
-                    toRemoveHashes.add( chunkHash );
+                if ( toRemoveHashes == null ) {
+                    toRemoveHashes = HashLongSets.newMutableSet();
                 }
+
+                toRemoveHashes.add( chunkHash );
             }
 
             if ( toRemoveHashes != null ) {

@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author BlackyPaw
@@ -29,6 +30,16 @@ public class WorldManager {
     private static final Logger logger = LoggerFactory.getLogger( WorldManager.class );
     private final GoMintServer server;
     private List<WorldAdapter> loadedWorlds;
+
+    // Internal ticking
+    private long currentTickTime;
+    private float lastTickDiff;
+    private final Consumer<WorldAdapter> worldAdapterConsumer = new Consumer<WorldAdapter>() {
+        @Override
+        public void accept( WorldAdapter worldAdapter ) {
+            worldAdapter.update( currentTickTime, lastTickDiff );
+        }
+    };
 
     /**
      * Constructs a new world manager that does not yet hold any worlds.
@@ -47,9 +58,9 @@ public class WorldManager {
      * @param dT            The delta from the full second which has been calculated in the last tick
      */
     public void update( long currentTimeMS, float dT ) {
-        for ( WorldAdapter worldAdapter : this.loadedWorlds ) {
-            worldAdapter.update( currentTimeMS, dT );
-        }
+        this.currentTickTime = currentTimeMS;
+        this.lastTickDiff = dT;
+        this.loadedWorlds.forEach( this.worldAdapterConsumer );
     }
 
     /**
