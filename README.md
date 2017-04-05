@@ -10,7 +10,7 @@ API does not yet exist as the implementation is still under such rapid developme
 to settle on a fixed API layout.
 
 ## Contact & Social
-[![Join the Discord](http://puu.sh/v9UB9/944431c790.png)](https://discord.gg/5v24b) [![Twitter](http://puu.sh/v9UQq/be8642232c.png)](https://twitter.com/GomintPe)
+[![Join the Discord](http://puu.sh/v9UB9/944431c790.png)](https://discord.gg/5v24b) [![Twitter](http://puu.sh/v9UYI/f399ab07b5.png)](https://twitter.com/GomintPe)
 
 ## Testing
 
