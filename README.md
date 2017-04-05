@@ -3,21 +3,38 @@
 GoMint is a Minecraft PocketEdition server implementation that is still work in progress. The goal is
 to provide a full, modifiable server with plugin support for Java.
 
-The project itself is divided into two modules: gomint-api and gomint-server. The latter one contains the
-server-side implementation and is not to be used by other software directly whereas gomint-api will offer
-a clean and easy-to-use API for creating custom plugins once GoMint sees its first release. Currently the
-API does not yet exist as the implementation is still under such rapid development that we are not yet able
-to settle on a fixed API layout.
+The project is divided into four modules:
+
+##### gomint-api
+The API for plugin developers. This is currently not stable and will not be developed in this stage
+of the project. It will be finalized once all core components inside the server work.
+
+##### gomint-server
+This is the implementation of the server. Fiddling with this is not supported but we will help you if we can.
+This part of the project is developing the fastest. If you want to contribute to the software watch this module the
+most.
+
+##### gomint-helper
+Holds generator helpers for all type of things. Currently this only holds a class generator for Blocks.
+
+##### gomint-testplugin
+A plugin to test and see the API design. 
 
 ## Contact & Social
 [![Join the Discord](http://puu.sh/v9UB9/944431c790.png)](https://discord.gg/5v24b)
 [![Twitter](http://puu.sh/v9V9H/ad70c8acf7.png)](https://twitter.com/GomintPe)
 
+## Todo
+* Implement all Tile Entity types
+* Implement all block interfaces for the API
+* Implement basic events for Movement and join / leave
+* Add more adventure settings and gamemodes
+
 ## Testing
 
 As the project is still work in progress the only way to launch the application currently is to set up
 your respective IDE and provide a working directory that contains a regular Minecraft PC Anvil World.
-Afterwards you may join the server using your version of MCPE.
+Afterwards you may join the server using your version of MC:PE.
 
 ## License
 
