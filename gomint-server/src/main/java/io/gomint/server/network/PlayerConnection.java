@@ -18,6 +18,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.world.Gamemode;
 import io.gomint.world.World;
 import io.gomint.world.block.Air;
 import io.gomint.world.block.Block;
@@ -47,13 +48,17 @@ public class PlayerConnection {
 
     // Actual connection for wire transfer:
     private final Connection connection;
+
     // World data
     private final LongSet playerChunks;
+
     // Commonly used delegates:
     private Delegate<Packet> sendDelegate;
+
     // Connection State:
     private PlayerConnectionState state;
     private int sentChunks;
+
     // Entity
     private EntityPlayer entity;
     private LongSet currentlySendingPlayerChunks;
@@ -133,8 +138,10 @@ public class PlayerConnection {
     /**
      * Performs a network tick on this player connection. All incoming packets are received and handled
      * accordingly.
+     *
+     * @param currentMillis Time when the tick started
      */
-    public void update( long currentMillis, float lastTickTime ) {
+    public void update( long currentMillis ) {
         // Receive all waiting packets:
         EncapsulatedPacket packetData;
         while ( ( packetData = this.connection.receive() ) != null ) {
@@ -345,12 +352,21 @@ public class PlayerConnection {
             case PACKET_REMOVE_BLOCK:
                 this.handleRemoveBlock( (PacketRemoveBlock) packet );
                 break;
+            default:
+                LOGGER.warn( "No handler for " + packet.getClass() );
+                break;
         }
     }
 
     private void handleRemoveBlock( PacketRemoveBlock packet ) {
         io.gomint.server.world.block.Block block = this.entity.getWorld().getBlockAt( packet.getPosition() );
         if ( block != null ) {
+            // Check for special break rights (creative)
+            if ( this.entity.getGamemode() == Gamemode.CREATIVE ) {
+                block.setType( Air.class );
+                return;
+            }
+
             if ( this.entity.getBreakTime() < block.getBreakTime() - 50 ) { // The client can lag one tick behind (yes the client has 20 TPS)
                 // Reset block
                 PacketUpdateBlock updateBlock = new PacketUpdateBlock();
@@ -399,8 +415,18 @@ public class PlayerConnection {
                 this.entity.setBreakVector( null );
 
             case STOP_BREAK:
+                if ( this.entity.getBreakVector() == null ) {
+                    // This happens when instant break is enabled
+                    this.entity.setBreakTime( 0 );
+                    this.entity.setStartBreak( 0 );
+                    return;
+                }
+
                 this.entity.setBreakTime( ( currentTimeMillis - this.entity.getStartBreak() ) );
                 this.entity.setStartBreak( 0 );
+                break;
+            default:
+                LOGGER.warn( "Unhandled action: " + packet );
                 break;
         }
     }
@@ -548,7 +574,7 @@ public class PlayerConnection {
                 this.sendWorldTime( 0, false );
                 this.sendDifficulty();
                 this.sendCommandsEnabled();
-                this.sendAdventureSettings();
+                this.entity.getAdventureSettings().update();
                 this.entity.updateAttributes();
 
                 // Add player to world (will send world chunk packets):
@@ -566,15 +592,6 @@ public class PlayerConnection {
         // We have the chance of forcing resource and behaviour packs here
         PacketResourcePacksInfo packetResourcePacksInfo = new PacketResourcePacksInfo();
         this.send( packetResourcePacksInfo );
-    }
-
-    private void sendAdventureSettings() {
-        int flags = 0;
-
-        /* */
-
-        PacketAdventureSettings packetAdventureSettings = new PacketAdventureSettings();
-        this.send( packetAdventureSettings );
     }
 
     private void sendCommandsEnabled() {

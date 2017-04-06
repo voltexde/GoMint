@@ -49,11 +49,10 @@ public class NetworkManager {
 
     // Internal ticking
     private long currentTickMillis;
-    private float lastTickTime;
     private final LongObjConsumer<PlayerConnection> connectionConsumer = new LongObjConsumer<PlayerConnection>() {
         @Override
         public void accept( long l, PlayerConnection connection ) {
-            connection.update( currentTickMillis, lastTickTime );
+            connection.update( currentTickMillis );
         }
     };
 
@@ -145,7 +144,6 @@ public class NetworkManager {
 
         // Tick all player connections in order to receive all incoming packets:
         this.currentTickMillis = currentMillis;
-        this.lastTickTime = lastTickTime;
         this.playersByGuid.forEach( this.connectionConsumer );
     }
 
@@ -251,6 +249,9 @@ public class NetworkManager {
             case CONNECTION_CLOSED:
             case CONNECTION_DISCONNECTED:
                 this.handleConnectionClosed( event.getConnection() );
+                break;
+
+            default:
                 break;
         }
     }

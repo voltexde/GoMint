@@ -47,22 +47,16 @@ public class EntityPlayer extends EntityLiving implements Player {
     private UUID uuid;
     private PlayerSkin skin;
     private Gamemode gamemode;
-    private AdventureSettings adventureSettings;
+    @Getter private AdventureSettings adventureSettings;
     private boolean op;
 
     // Inventory
     private PlayerInventory inventory;
 
     // Block break data
-    @Setter
-    @Getter
-    private Vector breakVector;
-    @Setter
-    @Getter
-    private long startBreak;
-    @Setter
-    @Getter
-    private long breakTime;
+    @Setter @Getter private Vector breakVector;
+    @Setter @Getter private long startBreak;
+    @Setter @Getter private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -151,7 +145,7 @@ public class EntityPlayer extends EntityLiving implements Player {
         this.connection.send( packetSetGamemode );
 
         // Recalc adventure settings
-        // this.adventureSettings.setCanDestroyBlock( ( gameModeNumber & 0x02 ) == 0 );
+        this.adventureSettings.setCanDestroyBlock( ( gameModeNumber & 0x02 ) == 0 );
         this.adventureSettings.setCanFly( ( gameModeNumber & 0x01 ) > 0 );
         this.adventureSettings.setNoclip( gameModeNumber == 0x03 );
         this.adventureSettings.setFlying( gameModeNumber == 0x03 );

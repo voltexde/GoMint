@@ -1,7 +1,6 @@
 package io.gomint.server.entity;
 
 import io.gomint.server.network.packet.PacketAdventureSettings;
-import io.gomint.world.Gamemode;
 import lombok.Data;
 
 /**
@@ -10,12 +9,6 @@ import lombok.Data;
  */
 @Data
 public class AdventureSettings {
-
-    public static final int PERMISSION_NORMAL = 0;
-    public static final int PERMISSION_OPERATOR = 1;
-    public static final int PERMISSION_HOST = 2;
-    public static final int PERMISSION_AUTOMATION = 3;
-    public static final int PERMISSION_ADMIN = 4;
 
     private boolean canDestroyBlock = true;
     private boolean autoJump = true;
@@ -28,13 +21,19 @@ public class AdventureSettings {
 
     private EntityPlayer player;
 
-    public AdventureSettings( EntityPlayer entityPlayer ) {
+    /**
+     * Adventure settings which control client behaviour
+     *
+     * @param entityPlayer The player for which this settings are
+     */
+    AdventureSettings( EntityPlayer entityPlayer ) {
         this.player = entityPlayer;
     }
 
+    /**
+     * Send the setting to the client
+     */
     public void update() {
-        System.out.println( this );
-
         PacketAdventureSettings adventureSettingsPacket = new PacketAdventureSettings();
 
         int flags = 0;
@@ -71,7 +70,7 @@ public class AdventureSettings {
         }
 
         adventureSettingsPacket.setFlags( flags );
-        adventureSettingsPacket.setUserPermission( this.player.isOp() ? PERMISSION_OPERATOR : PERMISSION_NORMAL );
+        adventureSettingsPacket.setUserPermission( this.player.isOp() ? 1 : 0 );
         this.player.getConnection().send( adventureSettingsPacket );
     }
 
