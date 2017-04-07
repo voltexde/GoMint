@@ -1,5 +1,6 @@
 package io.gomint.server.inventory;
 
+import io.gomint.inventory.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
 
 /**
@@ -20,6 +21,10 @@ public class PlayerInventory extends MobInventory {
     @Override
     protected void sendArmor( int slot ) {
 
+    }
+
+    public ItemStack getItemInHand() {
+        return new ItemStack( 0 );
     }
 
 }

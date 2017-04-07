@@ -8,16 +8,20 @@
 package io.gomint.server.scheduler;
 
 import io.gomint.scheduler.Task;
+import io.gomint.util.CompleteHandler;
 import io.gomint.util.ExceptionHandler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @author Fabian
+ * @author geNAZt
  * @version 1.0
  */
 public class AsyncScheduledTask implements Task, Runnable {
+
     private final Runnable task;
 
     private final long delay;   // -1 means no execution
@@ -25,6 +29,7 @@ public class AsyncScheduledTask implements Task, Runnable {
     private final AtomicBoolean running = new AtomicBoolean( true );
 
     private ExceptionHandler exceptionHandler;
+    private List<CompleteHandler> completeHandlerList;
     private Thread executingThread;
 
     /**
@@ -35,7 +40,7 @@ public class AsyncScheduledTask implements Task, Runnable {
      * @param period delay after execution to run the runnable again
      * @param unit   of time
      */
-    public AsyncScheduledTask( Runnable task, long delay, long period, TimeUnit unit ) {
+    AsyncScheduledTask( Runnable task, long delay, long period, TimeUnit unit ) {
         this.task = task;
         this.delay = ( delay >= 0 ) ? unit.toMillis( delay ) : -1;
         this.period = ( period >= 0 ) ? unit.toMillis( period ) : -1;
@@ -53,9 +58,19 @@ public class AsyncScheduledTask implements Task, Runnable {
     }
 
     @Override
+    public void onComplete( CompleteHandler completeHandler ) {
+        if ( this.completeHandlerList == null ) {
+            this.completeHandlerList = new ArrayList<>();
+        }
+
+        this.completeHandlerList.add( completeHandler );
+    }
+
+    @Override
     public void run() {
         // Fast path to failout
         if ( this.delay == -1 ) {
+            this.fireCompleteHandlers();
             return;
         }
 
@@ -77,6 +92,7 @@ public class AsyncScheduledTask implements Task, Runnable {
             } catch ( Exception e ) {
                 if ( this.exceptionHandler != null ) {
                     if ( !this.exceptionHandler.onException( e ) ) {
+                        this.fireCompleteHandlers();
                         return;
                     }
                 } else {
@@ -87,6 +103,7 @@ public class AsyncScheduledTask implements Task, Runnable {
 
             // If we have a period of 0 or less, only run once
             if ( this.period <= 0 ) {
+                this.fireCompleteHandlers();
                 break;
             }
 
@@ -97,4 +114,15 @@ public class AsyncScheduledTask implements Task, Runnable {
             }
         }
     }
+
+    private void fireCompleteHandlers() {
+        if ( this.completeHandlerList != null ) {
+            for ( CompleteHandler completeHandler : this.completeHandlerList ) {
+                completeHandler.onComplete();
+            }
+
+            this.completeHandlerList = null;
+        }
+    }
+
 }

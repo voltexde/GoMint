@@ -8,6 +8,7 @@
 package io.gomint.server;
 
 import io.gomint.GoMint;
+import io.gomint.entity.Player;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
@@ -27,11 +28,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
 import java.security.Security;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /**
  * @author BlackyPaw
@@ -77,6 +82,8 @@ public class GoMintServer implements GoMint {
      * @param args which should have been given over from the static Bootstrap
      */
     public GoMintServer( String[] args ) {
+        logger.info( "Starting " + getVersion() );
+
         Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
@@ -264,6 +271,19 @@ public class GoMintServer implements GoMint {
 
     public String getVersion() {
         return "GoMint 1.0.0 (MC:PE 1.0.4)";
+    }
+
+    public Collection<Player> getPlayers() {
+        List<Player> playerList = new ArrayList<>();
+
+        worldManager.getWorlds().forEach( new Consumer<WorldAdapter>() {
+            @Override
+            public void accept( WorldAdapter worldAdapter ) {
+                playerList.addAll( worldAdapter.getPlayers() );
+            }
+        } );
+
+        return playerList;
     }
 
 }

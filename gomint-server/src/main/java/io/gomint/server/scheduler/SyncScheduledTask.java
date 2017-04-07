@@ -8,9 +8,12 @@
 package io.gomint.server.scheduler;
 
 import io.gomint.scheduler.Task;
+import io.gomint.util.CompleteHandler;
 import io.gomint.util.ExceptionHandler;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -24,6 +27,7 @@ public class SyncScheduledTask implements Task, Runnable {
     @Getter
     private long nextExecution; // -1 is cancelled
     private ExceptionHandler exceptionHandler;
+    private List<CompleteHandler> completeHandlerList;
 
     /**
      * Constructs a new SyncScheduledTask. It needs to be executed via a normal {@link java.util.concurrent.ExecutorService}
@@ -65,11 +69,31 @@ public class SyncScheduledTask implements Task, Runnable {
     @Override
     public void cancel() {
         this.nextExecution = -1;
+        this.fireCompleteHandlers();
     }
 
     @Override
     public void onException( ExceptionHandler exceptionHandler ) {
         this.exceptionHandler = exceptionHandler;
+    }
+
+    @Override
+    public void onComplete( CompleteHandler completeHandler ) {
+        if ( this.completeHandlerList == null ) {
+            this.completeHandlerList = new ArrayList<>();
+        }
+
+        this.completeHandlerList.add( completeHandler );
+    }
+
+    private void fireCompleteHandlers() {
+        if ( this.completeHandlerList != null ) {
+            for ( CompleteHandler completeHandler : this.completeHandlerList ) {
+                completeHandler.onComplete();
+            }
+
+            this.completeHandlerList = null;
+        }
     }
 
 }

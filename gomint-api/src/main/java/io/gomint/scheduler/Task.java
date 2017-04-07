@@ -7,6 +7,7 @@
 
 package io.gomint.scheduler;
 
+import io.gomint.util.CompleteHandler;
 import io.gomint.util.ExceptionHandler;
 
 /**
@@ -26,5 +27,12 @@ public interface Task {
      * @param exceptionHandler which should be used to handle Exceptions
      */
     void onException( ExceptionHandler exceptionHandler );
+
+    /**
+     * Register a new complete handler to fetch completion of tasks
+     *
+     * @param completeHandler which should be added to the completion execution list
+     */
+    void onComplete( CompleteHandler completeHandler );
 
 }

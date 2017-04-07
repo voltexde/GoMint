@@ -24,16 +24,25 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class Entity implements io.gomint.entity.Entity {
 
+    private static final int FLAG_CAN_SHOW_NAMETAG = 14;
+    private static final int FLAG_ALWAYS_SHOW_NAMETAG = 15;
+
     private static final AtomicLong ENTITY_ID = new AtomicLong( 0 );
 
     /**
      * The id of this entity
      */
     protected final long id;
+
     /**
      * Type of the entity
      */
     protected final EntityType type;
+
+    /**
+     * Metadata
+     */
+    protected final MetadataContainer metadataContainer;
 
     protected WorldAdapter world;
     private TransformComponent transform;
@@ -48,6 +57,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.id = ENTITY_ID.incrementAndGet();
         this.type = type;
         this.world = world;
+        this.metadataContainer = new MetadataContainer();
+        this.metadataContainer.putLong( MetadataContainer.DATA_INDEX, 0 );
         this.transform = new TransformComponent();
     }
 
@@ -86,7 +97,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * @return This entity's metadata
      */
     public MetadataContainer getMetadata() {
-        return new MetadataContainer();
+        return this.metadataContainer;
     }
 
     /**
@@ -313,6 +324,26 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     public void rotatePitch( float pitch ) {
         this.transform.rotatePitch( pitch );
+    }
+
+    @Override
+    public void setNameTagAlwaysVisible( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_ALWAYS_SHOW_NAMETAG, value );
+    }
+
+    @Override
+    public boolean isNameTagAlwaysVisible() {
+        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, FLAG_ALWAYS_SHOW_NAMETAG );
+    }
+
+    @Override
+    public void setNameTagVisible( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_SHOW_NAMETAG, value );
+    }
+
+    @Override
+    public boolean isNameTagVisible() {
+        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_SHOW_NAMETAG );
     }
 
 }

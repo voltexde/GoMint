@@ -14,19 +14,22 @@ import lombok.EqualsAndHashCode;
 
 /**
  * @author BlackyPaw
- * @version 1.0
+ * @author geNAZt
+ * @version 2.0
  */
 @Data
 @EqualsAndHashCode( callSuper = false )
 public class PacketEntityMovement extends Packet {
 
-    private long[] entityId;
-    private float[] x;
-    private float[] y;
-    private float[] z;
-    private float[] yaw;
-    private float[] headYaw;
-    private float[] pitch;
+    private static final float DIVIDOR = 256f / 360f;
+
+    private long entityId;
+    private float x;
+    private float y;
+    private float z;
+    private float yaw;
+    private float headYaw;
+    private float pitch;
 
     public PacketEntityMovement() {
         super( Protocol.PACKET_ENTITY_MOVEMENT );
@@ -34,51 +37,20 @@ public class PacketEntityMovement extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        // Assert pre-condition:
-        assert this.entityId.length == this.x.length &&
-                this.entityId.length == this.y.length &&
-                this.entityId.length == this.z.length &&
-                this.entityId.length == this.yaw.length &&
-                this.entityId.length == this.headYaw.length &&
-                this.entityId.length == this.pitch.length : "Entity Movement batch arrays must not have different sizes";
+        buffer.writeUnsignedVarLong( this.entityId );
 
-        buffer.writeInt( this.entityId.length );
-        for ( int i = 0; i < this.entityId.length; ++i ) {
-            buffer.writeLong( this.entityId[i] );
-            buffer.writeFloat( this.x[i] );
-            buffer.writeFloat( this.y[i] );
-            buffer.writeFloat( this.z[i] );
-            buffer.writeFloat( this.yaw[i] );
-            buffer.writeFloat( this.headYaw[i] );
-            buffer.writeFloat( this.pitch[i] );
-        }
+        buffer.writeLFloat( this.x );
+        buffer.writeLFloat( this.y );
+        buffer.writeLFloat( this.z );
+
+        buffer.writeByte( (byte) Math.round( this.pitch * DIVIDOR ) );
+        buffer.writeByte( (byte) Math.round( this.headYaw * DIVIDOR ) );
+        buffer.writeByte( (byte) Math.round( this.yaw * DIVIDOR ) );
     }
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        int count = buffer.readInt();
 
-        this.entityId = new long[count];
-        this.x = new float[count];
-        this.y = new float[count];
-        this.z = new float[count];
-        this.yaw = new float[count];
-        this.headYaw = new float[count];
-        this.pitch = new float[count];
-
-        for ( int i = 0; i < count; ++i ) {
-            this.entityId[i] = buffer.readLong();
-            this.x[i] = buffer.readFloat();
-            this.y[i] = buffer.readFloat();
-            this.z[i] = buffer.readFloat();
-            this.yaw[i] = buffer.readFloat();
-            this.headYaw[i] = buffer.readFloat();
-            this.pitch[i] = buffer.readFloat();
-        }
     }
 
-    @Override
-    public int estimateLength() {
-        return ( this.entityId.length << 5 ); // Count * 32 bytes
-    }
 }

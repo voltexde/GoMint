@@ -38,4 +38,12 @@ public interface Entity {
      */
     Location getLocation();
 
+    void setNameTagAlwaysVisible( boolean value );
+
+    boolean isNameTagAlwaysVisible();
+
+    void setNameTagVisible( boolean value );
+
+    boolean isNameTagVisible();
+
 }

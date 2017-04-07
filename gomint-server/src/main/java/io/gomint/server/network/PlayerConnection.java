@@ -7,6 +7,7 @@
 
 package io.gomint.server.network;
 
+import io.gomint.entity.Player;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.event.player.PlayerLoginEvent;
 import io.gomint.jraknet.*;
@@ -16,6 +17,8 @@ import io.gomint.server.async.Delegate;
 import io.gomint.server.entity.EntityCow;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
+import io.gomint.server.util.BatchUtil;
+import io.gomint.server.util.ByteUtil;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.Gamemode;
@@ -30,7 +33,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import static io.gomint.server.network.Protocol.*;
@@ -58,6 +69,8 @@ public class PlayerConnection {
     // Connection State:
     private PlayerConnectionState state;
     private int sentChunks;
+    private BlockingQueue<Packet> sendQueue;
+    private long lastQueueSend = System.currentTimeMillis();
 
     // Entity
     private EntityPlayer entity;
@@ -86,6 +99,14 @@ public class PlayerConnection {
                 }
             }
         };
+    }
+
+    public void addToSendQueue( Packet packet ) {
+        if ( this.sendQueue == null ) {
+            this.sendQueue = new LinkedBlockingQueue<>();
+        }
+
+        this.sendQueue.offer( packet );
     }
 
     /**
@@ -146,6 +167,24 @@ public class PlayerConnection {
         EncapsulatedPacket packetData;
         while ( ( packetData = this.connection.receive() ) != null ) {
             this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
+        }
+
+        // Send all queued packets
+        if ( this.sendQueue != null && this.sendQueue.size() > 0 ) {
+            List<Packet> drainedPackets = new ArrayList<>();
+            this.sendQueue.drainTo( drainedPackets );
+            this.lastQueueSend = currentMillis;
+
+            this.networkManager.getServer().getExecutorService().execute( new Runnable() {
+                @Override
+                public void run() {
+                    PacketBatch batch = BatchUtil.batch( drainedPackets );
+
+                    if ( connection.isConnected() ) {
+                        send( batch );
+                    }
+                }
+            } );
         }
     }
 
@@ -352,10 +391,17 @@ public class PlayerConnection {
             case PACKET_REMOVE_BLOCK:
                 this.handleRemoveBlock( (PacketRemoveBlock) packet );
                 break;
+            case PACKET_INTERACT:
+                this.handleInteract( (PacketInteract) packet );
+                break;
             default:
                 LOGGER.warn( "No handler for " + packet.getClass() );
                 break;
         }
+    }
+
+    private void handleInteract( PacketInteract packet ) {
+        System.out.println( packet );
     }
 
     private void handleRemoveBlock( PacketRemoveBlock packet ) {
@@ -470,7 +516,10 @@ public class PlayerConnection {
             this.checkForNewChunks();
         }
 
-        this.entity.setPosition( packet.getX(), packet.getY() - 1.62f, packet.getZ() );
+        this.entity.setPosition( packet.getX(), packet.getY(), packet.getZ() );
+        this.entity.setPitch( packet.getPitch() );
+        this.entity.setYaw( packet.getYaw() );
+        this.entity.setHeadYaw( packet.getHeadYaw() );
     }
 
     private void checkForNewChunks() {
@@ -540,6 +589,9 @@ public class PlayerConnection {
         // Create entity:
         WorldAdapter world = this.networkManager.getServer().getDefaultWorld();
         this.entity = new EntityPlayer( world, this, loginHandler.getUserName(), loginHandler.getUuid() );
+        this.entity.setSkin( loginHandler.getSkin() );
+        this.entity.setNameTagVisible( true );
+        this.entity.setNameTagAlwaysVisible( true );
 
         // Post login event
         PlayerLoginEvent event = this.networkManager.getServer().getPluginManager().callEvent( new PlayerLoginEvent( this.entity ) );
@@ -577,11 +629,69 @@ public class PlayerConnection {
                 this.entity.getAdventureSettings().update();
                 this.entity.updateAttributes();
 
+                // Now its time for the join event since the play is fully loaded
+                this.networkManager.getServer().getPluginManager().callEvent( new PlayerJoinEvent( this.entity ) );
+
                 // Add player to world (will send world chunk packets):
                 this.entity.getWorld().addPlayer( this.entity );
 
-                // Now its time for the join event since the play is fully loaded
-                this.networkManager.getServer().getPluginManager().callEvent( new PlayerJoinEvent( this.entity ) );
+                PacketPlayerlist playerlist = null;
+
+                // Remap all current living entities
+                List<PacketPlayerlist.Entry> listEntry = null;
+                for ( Player player : this.getEntity().getWorld().getServer().getPlayers() ) {
+                    if ( !player.isHidden( this.entity ) && !player.equals( this.entity ) ) {
+                        if ( playerlist == null ) {
+                            playerlist = new PacketPlayerlist();
+                            playerlist.setMode( (byte) 0 );
+                            playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+                                add( new PacketPlayerlist.Entry( entity.getUUID(), entity.getEntityId(), entity.getName(), entity.getSkin() ) );
+                            }} );
+                        }
+
+                        ( (EntityPlayer) player ).getConnection().send( playerlist );
+                    }
+
+                    if ( !this.entity.isHidden( player ) && !this.entity.equals( player ) ) {
+                        if ( listEntry == null ) {
+                            listEntry = new ArrayList<>();
+                        }
+
+                        listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(), player.getName(), player.getSkin() ) );
+
+                        EntityPlayer entityPlayer = (EntityPlayer) player;
+                        PacketSpawnPlayer spawnPlayer = new PacketSpawnPlayer();
+                        spawnPlayer.setUuid( entityPlayer.getUUID() );
+                        spawnPlayer.setName( entityPlayer.getName() );
+                        spawnPlayer.setEntityId( entityPlayer.getEntityId() );
+                        spawnPlayer.setRuntimeEntityId( entityPlayer.getEntityId() );
+
+                        spawnPlayer.setX( entityPlayer.getPositionX() );
+                        spawnPlayer.setY( entityPlayer.getPositionY() );
+                        spawnPlayer.setZ( entityPlayer.getPositionZ() );
+
+                        spawnPlayer.setVelocityX( 0.0F );
+                        spawnPlayer.setVelocityY( 0.0F );
+                        spawnPlayer.setVelocityZ( 0.0F );
+
+                        spawnPlayer.setPitch( entityPlayer.getPitch() );
+                        spawnPlayer.setYaw( entityPlayer.getYaw() );
+                        spawnPlayer.setHeadYaw( entityPlayer.getHeadYaw() );
+
+                        spawnPlayer.setItemInHand( entityPlayer.getInventory().getItemInHand() );
+                        spawnPlayer.setMetadataContainer( entityPlayer.getMetadata() );
+
+                        addToSendQueue( spawnPlayer );
+                    }
+                }
+
+                if ( listEntry != null ) {
+                    // Send player list
+                    PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+                    packetPlayerlist.setMode( (byte) 0 );
+                    packetPlayerlist.setEntries( listEntry );
+                    send( packetPlayerlist );
+                }
 
                 break;
         }
@@ -710,6 +820,7 @@ public class PlayerConnection {
      */
     public void close() {
         if ( this.entity != null && this.entity.getWorld() != null ) {
+            this.entity.despawn();
             this.entity.getWorld().removePlayer( this.entity );
             this.entity = null;
         }

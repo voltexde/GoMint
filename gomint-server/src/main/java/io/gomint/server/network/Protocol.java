@@ -26,7 +26,8 @@ public final class Protocol {
     public static final byte PACKET_RESOURCEPACK_RESPONSE = (byte) 0x09;
     public static final byte PACKET_WORLD_TIME = (byte) 0x0b;
     public static final byte PACKET_START_GAME = (byte) 0x0c;
-    public static final byte PACKET_ENTITY_MOVEMENT = (byte) 0x0f;
+    public static final byte PACKET_SPAWN_PLAYER = (byte) 0x0d;
+    public static final byte PACKET_ENTITY_MOVEMENT = (byte) 0x13;
     public static final byte PACKET_MOVE_PLAYER = (byte) 0x14;
     public static final byte PACKET_REMOVE_BLOCK = (byte) 0x16;
     public static final byte PACKET_UPDATE_BLOCK = (byte) 0x17;
@@ -34,6 +35,7 @@ public final class Protocol {
     public static final byte PACKET_MOB_ARMOR_EQUIPMENT = (byte) 0x1C;
     public static final byte PACKET_UPDATE_ATTRIBUTES = (byte) 0x1F;
     public static final byte PACKET_MOB_EQUIPMENT = (byte) 0x20;
+    public static final byte PACKET_INTERACT = (byte) 0x22;
     public static final byte PACKET_USE_ITEM = (byte) 0x24;
     public static final byte PACKET_PLAYER_ACTION = (byte) 0x25;
     public static final byte PACKET_MOB_ANIMATION = (byte) 0x28;
@@ -44,6 +46,7 @@ public final class Protocol {
     public static final byte PACKET_SET_COMMANDS_ENABLED = (byte) 0x3C;
     public static final byte PACKET_SET_DIFFICULTY = (byte) 0x3D;
     public static final byte PACKET_SET_GAMEMODE = (byte) 0x3F;
+    public static final byte PACKET_PLAYER_LIST = (byte) 0x40;
     public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
     public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
 
@@ -116,6 +119,9 @@ public final class Protocol {
 
             case PACKET_MOB_EQUIPMENT:
                 return new PacketMobEquipment();
+
+            case PACKET_INTERACT:
+                return new PacketInteract();
 
             case PACKET_USE_ITEM:
                 return new PacketUseItem();

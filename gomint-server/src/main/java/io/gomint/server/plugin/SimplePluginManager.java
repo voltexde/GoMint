@@ -325,10 +325,19 @@ public class SimplePluginManager implements PluginManager {
         } );
 
         try {
+            PluginScheduler scheduler = (PluginScheduler) this.schedulerField.get( plugin );
+            scheduler.cleanup();
+        } catch ( IllegalAccessException e ) {
+            e.printStackTrace();
+        }
+
+        // CHECKSTYLE:OFF
+        try {
             plugin.onUninstall();
         } catch ( Exception e ) {
             LOGGER.warn( "Plugin throw an exception whilst uninstalling: " + plugin.getName(), e );
         }
+        // CHECKSTYLE:ON
 
         LOGGER.info( "Uninstalled plugin " + plugin.getName() );
         this.installedPlugins.remove( plugin.getName() );

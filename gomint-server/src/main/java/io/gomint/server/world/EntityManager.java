@@ -7,12 +7,11 @@
 
 package io.gomint.server.world;
 
+import io.gomint.entity.Player;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.server.entity.Entity;
-import io.gomint.server.network.packet.PacketDespawnEntity;
-import io.gomint.server.network.packet.PacketEntityMotion;
-import io.gomint.server.network.packet.PacketEntityMovement;
-import io.gomint.server.network.packet.PacketSpawnEntity;
+import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.network.packet.*;
 import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
@@ -62,53 +61,28 @@ public class EntityManager {
         // --------------------------------------
         // Create movement batches:
         if ( movedEntities != null && movedEntities.size() > 0 ) {
-            PacketEntityMovement movement = new PacketEntityMovement();
-            PacketEntityMotion motion = new PacketEntityMotion();
+            for ( Entity movedEntity : movedEntities ) {
+                PacketEntityMovement packetEntityMovement = new PacketEntityMovement();
+                packetEntityMovement.setEntityId( movedEntity.getEntityId() );
 
-            long[] entityId = new long[movedEntities.size()];
-            float[] x = new float[movedEntities.size()];
-            float[] y = new float[movedEntities.size()];
-            float[] z = new float[movedEntities.size()];
-            float[] yaw = new float[movedEntities.size()];
-            float[] headYaw = new float[movedEntities.size()];
-            float[] pitch = new float[movedEntities.size()];
+                packetEntityMovement.setX( movedEntity.getPositionX() );
+                packetEntityMovement.setY( movedEntity.getPositionY() );
+                packetEntityMovement.setZ( movedEntity.getPositionZ() );
 
-            float[] velocityX = new float[movedEntities.size()];
-            float[] velocityY = new float[movedEntities.size()];
-            float[] velocityZ = new float[movedEntities.size()];
+                packetEntityMovement.setYaw( movedEntity.getYaw() );
+                packetEntityMovement.setHeadYaw( movedEntity.getHeadYaw() );
+                packetEntityMovement.setPitch( movedEntity.getPitch() );
 
-            int position = 0;
-            for ( Entity entity : movedEntities ) {
-                entityId[position] = entity.getEntityId();
-                x[position] = entity.getPositionX();
-                y[position] = entity.getPositionY();
-                z[position] = entity.getPositionZ();
-                yaw[position] = entity.getYaw();
-                headYaw[position] = entity.getHeadYaw();
-                pitch[position] = entity.getPitch();
+                for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
+                    if ( movedEntity instanceof EntityPlayer ) {
+                        if ( entityPlayer.isHidden( (Player) movedEntity ) || entityPlayer.equals( movedEntity )) {
+                            continue;
+                        }
+                    }
 
-                velocityX[position] = 0.0F;
-                velocityY[position] = 0.0F;
-                velocityZ[position] = 0.0F;
-
-                position++;
+                    entityPlayer.getConnection().addToSendQueue( packetEntityMovement );
+                }
             }
-
-            movement.setEntityId( entityId );
-            movement.setX( x );
-            movement.setY( y );
-            movement.setZ( z );
-            movement.setYaw( yaw );
-            movement.setHeadYaw( headYaw );
-            movement.setPitch( pitch );
-
-            motion.setEntityId( entityId );
-            motion.setVelocityX( velocityX );
-            motion.setVelocityY( velocityY );
-            motion.setVelocityZ( velocityZ );
-
-            this.world.broadcast( PacketReliability.RELIABLE_SEQUENCED, 0, movement );
-            this.world.broadcast( PacketReliability.RELIABLE_SEQUENCED, 0, motion );
         }
     }
 
@@ -151,20 +125,52 @@ public class EntityManager {
         entity.setPitch( pitch );
         this.entitiesById.put( entity.getEntityId(), entity );
 
-        // Broadcast spawn entity packet:
-        PacketSpawnEntity packet = new PacketSpawnEntity();
-        packet.setEntityId( entity.getEntityId() );
-        packet.setEntityType( entity.getType() );
-        packet.setX( positionX );
-        packet.setY( positionY );
-        packet.setZ( positionZ );
-        packet.setVelocityX( 0.0F );
-        packet.setVelocityY( 0.0F );
-        packet.setVelocityZ( 0.0F );
-        packet.setYaw( yaw );
-        packet.setHeadYaw( yaw );
-        packet.setMetadata( entity.getMetadata() );
-        this.world.broadcast( PacketReliability.RELIABLE, 0, packet );
+        // Special case for players
+        if ( entity instanceof EntityPlayer ) {
+            EntityPlayer player = (EntityPlayer) entity;
+
+            PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
+            packetSpawnPlayer.setUuid( player.getUUID() );
+            packetSpawnPlayer.setName( player.getName() );
+            packetSpawnPlayer.setEntityId( entity.getEntityId() );
+            packetSpawnPlayer.setRuntimeEntityId( entity.getEntityId() );
+
+            packetSpawnPlayer.setX( entity.getPositionX() );
+            packetSpawnPlayer.setY( entity.getPositionY() );
+            packetSpawnPlayer.setZ( entity.getPositionZ() );
+
+            packetSpawnPlayer.setVelocityX( 0.0F );
+            packetSpawnPlayer.setVelocityY( 0.0F );
+            packetSpawnPlayer.setVelocityZ( 0.0F );
+
+            packetSpawnPlayer.setPitch( entity.getPitch() );
+            packetSpawnPlayer.setYaw( entity.getYaw() );
+            packetSpawnPlayer.setHeadYaw( entity.getHeadYaw() );
+
+            packetSpawnPlayer.setItemInHand( player.getInventory().getItemInHand() );
+            packetSpawnPlayer.setMetadataContainer( player.getMetadata() );
+
+            for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
+                if ( !entityPlayer.isHidden( player ) && !entityPlayer.equals( player ) ) {
+                    entityPlayer.getConnection().send( packetSpawnPlayer );
+                }
+            }
+        } else {
+            // Broadcast spawn entity packet:
+            PacketSpawnEntity packet = new PacketSpawnEntity();
+            packet.setEntityId( entity.getEntityId() );
+            packet.setEntityType( entity.getType() );
+            packet.setX( positionX );
+            packet.setY( positionY );
+            packet.setZ( positionZ );
+            packet.setVelocityX( 0.0F );
+            packet.setVelocityY( 0.0F );
+            packet.setVelocityZ( 0.0F );
+            packet.setYaw( yaw );
+            packet.setHeadYaw( yaw );
+            packet.setMetadata( entity.getMetadata() );
+            this.world.broadcast( PacketReliability.RELIABLE, 0, packet );
+        }
     }
 
     /**

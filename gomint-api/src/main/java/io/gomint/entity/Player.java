@@ -7,6 +7,7 @@
 
 package io.gomint.entity;
 
+import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
 
 import java.util.UUID;
@@ -55,5 +56,34 @@ public interface Player extends Entity {
      * @return true when op'ed, false when not
      */
     boolean isOp();
+
+    /**
+     * Hide another player from this player
+     *
+     * @param player The player which should be hidden
+     */
+    void hidePlayer( Player player );
+
+    /**
+     * Show a hidden player again
+     *
+     * @param player The player which should be shown again
+     */
+    void showPlayer( Player player );
+
+    /**
+     * Check if given player is hidden to this player
+     *
+     * @param player The player which should be checked for
+     * @return true if this player can't see the player given, false it it can
+     */
+    boolean isHidden( Player player );
+
+    /**
+     * Get the skin of a player. This is readonly access currently since we figure out how to change the skin.
+     *
+     * @return skin which the client has sent on login
+     */
+    PlayerSkin getSkin();
 
 }

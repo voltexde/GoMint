@@ -13,41 +13,41 @@ import io.gomint.jraknet.PacketBuffer;
  * @author BlackyPaw
  * @version 1.0
  */
-public class MetadataInt extends MetadataValue {
+public class MetadataFloat extends MetadataValue {
 
-    private int value;
+    private float value;
 
     /**
-     * Constructs a new metadata int
+     * Constructs a new metadata float
      */
-    MetadataInt() {
+    public MetadataFloat() {
 
     }
 
     /**
-     * Constructs a new metadata int and initializes it with the specified value.
+     * Constructs a new metadata float and initializes it with the specified value.
      *
-     * @param value The value to initialize the metadata int with
+     * @param value The value to initialize the metadata float with
      */
-    public MetadataInt( int value ) {
+    public MetadataFloat( float value ) {
         this.value = value;
     }
 
     /**
-     * Gets the value of this metadata int.
+     * Gets the value of this metadata float.
      *
-     * @return The value of this metadata int
+     * @return The value of this metadata float
      */
-    public int getValue() {
+    public float getValue() {
         return this.value;
     }
 
     /**
-     * Sets the value of this metadata int.
+     * Sets the value of this metadata float.
      *
-     * @param value The value of this metadata int
+     * @param value The value of this metadata float
      */
-    public void setValue( int value ) {
+    public void setValue( float value ) {
         this.value = value;
     }
 
@@ -55,17 +55,17 @@ public class MetadataInt extends MetadataValue {
     @Override
     void serialize( PacketBuffer buffer, int index ) {
         super.serialize( buffer, index );
-        buffer.writeSignedVarInt( this.value );
+        buffer.writeLFloat( this.value );
     }
 
     @Override
     void deserialize( PacketBuffer buffer ) {
-        this.value = buffer.readSignedVarInt();
+        this.value = buffer.readLFloat();
     }
 
     @Override
     byte getTypeId() {
-        return MetadataContainer.METADATA_INT;
+        return MetadataContainer.METADATA_FLOAT;
     }
 
 }

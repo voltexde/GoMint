@@ -19,6 +19,7 @@ import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.scheduler.TaskList;
+import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.ByteUtil;
 import io.gomint.server.util.EnumConnector;
 import io.gomint.world.Gamerule;
@@ -120,7 +121,10 @@ public abstract class WorldAdapter implements World {
         soundPacket.setPitch( pitch );
         soundPacket.setExtraData( extraData );
         soundPacket.setPosition( location );
-        broadcast( PacketReliability.RELIABLE, 0, soundPacket );
+
+        for ( EntityPlayer entityPlayer : this.getPlayers0().keySet() ) {
+            entityPlayer.getConnection().addToSendQueue( soundPacket );
+        }
     }
 
     @Override
@@ -311,6 +315,9 @@ public abstract class WorldAdapter implements World {
                 this.sendChunk( j, i, player );
             }
         }
+
+        // Spawn for others
+        spawnEntityAt( player, player.getPositionX(), player.getPositionY(), player.getPositionZ(), player.getYaw(), player.getPitch() );
     }
 
     /**
@@ -532,43 +539,7 @@ public abstract class WorldAdapter implements World {
      */
     void packageChunk( ChunkAdapter chunk, Delegate2<Long, Packet> callback ) {
         PacketWorldChunk packet = chunk.createPackagedData();
-
-        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() + 1 );
-        buffer.writeByte( packet.getId() );
-        packet.serialize( buffer );
-
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        DataOutputStream dout = new DataOutputStream( bout );
-
-        try {
-            ByteUtil.writeVarInt( buffer.getPosition(), dout );
-            dout.write( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
-            dout.flush();
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
-
-        this.deflater.reset();
-        this.deflater.setInput( bout.toByteArray() );
-        this.deflater.finish();
-
-        bout.reset();
-        byte[] intermediate = new byte[1024];
-        while ( !this.deflater.finished() ) {
-            int read = this.deflater.deflate( intermediate );
-            bout.write( intermediate, 0, read );
-        }
-
-        PacketBatch batch = new PacketBatch();
-        batch.setPayload( bout.toByteArray() );
-
-        try {
-            dout.close();
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
-
-        this.deflater.reset();
+        PacketBatch batch = BatchUtil.batch( packet );
 
         chunk.setCachedPacket( batch );
         callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), batch );

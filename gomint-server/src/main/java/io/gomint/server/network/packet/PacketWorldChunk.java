@@ -43,7 +43,7 @@ public class PacketWorldChunk extends Packet {
 
     @Override
     public int estimateLength() {
-        return 13 + ( this.data == null ? 0 : this.data.length );
+        return 13 + this.data.length;
     }
 
     @Override

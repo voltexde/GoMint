@@ -7,14 +7,17 @@
 
 package io.gomint.server.entity.metadata;
 
+import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
-import net.openhft.koloboke.collect.map.ByteObjCursor;
+import io.gomint.math.Vector;
 import net.openhft.koloboke.collect.map.ByteObjMap;
 import net.openhft.koloboke.collect.map.hash.HashByteObjMaps;
+import net.openhft.koloboke.function.ByteObjConsumer;
 
 /**
  * @author BlackyPaw
- * @version 1.0
+ * @author geNAZt
+ * @version 2.0
  */
 public class MetadataContainer {
 
@@ -22,22 +25,49 @@ public class MetadataContainer {
      * Internal byte representation for a byte meta
      */
     static final byte METADATA_BYTE = 0;
+
     /**
      * Internal byte representation for a short meta
      */
     static final byte METADATA_SHORT = 1;
+
     /**
      * Internal byte representation for a int meta
      */
     static final byte METADATA_INT = 2;
+
+    /**
+     * Internal byte representation for a float meta
+     */
+    static final byte METADATA_FLOAT = 3;
+
     /**
      * Internal byte representation for a string meta
      */
     static final byte METADATA_STRING = 4;
+
     /**
-     * Internal byte representation for a int triple meta
+     * Internal byte representation for a item meta
      */
-    static final byte METADATA_INT_TRIPLE = 6;
+    static final byte METADATA_ITEM = 5;
+
+    /**
+     * Internal byte representation for a position meta
+     */
+    static final byte METADATA_POSITION = 6;
+
+    /**
+     * Internal byte representation for a long meta
+     */
+    static final byte METADATA_LONG = 7;
+
+    /**
+     * Internal byte representation for a vector meta
+     */
+    static final byte METADATA_VECTOR = 8;
+
+    public static final byte DATA_INDEX = 0;
+    public static final byte DATA_PLAYER_INDEX = 27;
 
     private ByteObjMap<MetadataValue> entries;
 
@@ -59,20 +89,51 @@ public class MetadataContainer {
     }
 
     /**
+     * Get the flag stored under the given index and flag id
+     *
+     * @param indexId The index of the value
+     * @param flagId  The flag id used to encrypt the boolean
+     * @return true when the flag has been set, false when not
+     */
+    public boolean getDataFlag( int indexId, int flagId ) {
+        return ( ( ( indexId == DATA_PLAYER_INDEX ? this.getByte( indexId ) & 0xff : this.getLong( indexId ) ) ) & ( 1 << flagId ) ) > 0;
+    }
+
+    /**
+     * Set the flag to the index given
+     *
+     * @param indexId The index of the value
+     * @param flagId  The flag id used to encrypt the boolean
+     * @param value   The boolean to encrypt
+     */
+    public void setDataFlag( int indexId, int flagId, boolean value ) {
+        if ( this.getDataFlag( indexId, flagId ) != value ) {
+            if ( indexId == DATA_PLAYER_INDEX ) {
+                byte flags = this.getByte( indexId );
+                flags ^= 1 << flagId;
+                this.putByte( indexId, flags );
+            } else {
+                long flags = this.getLong( indexId );
+                flags ^= 1 << flagId;
+                this.putLong( indexId, flags );
+            }
+        }
+    }
+
+    /**
      * Puts the specified metadata value into the container.
      *
-     * @param index The index to put the value into (must be in the range of 0-31)
+     * @param index The index to put the value into
      * @param value The value to put into the container
      */
     public void put( int index, MetadataValue value ) {
-        assert ( index >= 0 && index < 32 ) : "Index out of valid range";
         this.entries.put( (byte) index, value );
     }
 
     /**
      * Checks whether or not the container holds a value at the specified index.
      *
-     * @param index The index of the value (must be in the range of 0-31)
+     * @param index The index of the value
      * @return Whether or not the container holds a value at the specified index
      */
     public boolean has( int index ) {
@@ -201,6 +262,36 @@ public class MetadataContainer {
     }
 
     /**
+     * Puts an float value into the container.
+     *
+     * @param index The index to put the value into
+     * @param value The value to put into the container
+     */
+    public void putFloat( int index, float value ) {
+        this.entries.put( (byte) index, new MetadataFloat( value ) );
+    }
+
+    /**
+     * Gets an float stored inside the specified index.
+     *
+     * @param index The index of the value
+     * @return The value stored at the specified index
+     * @throws IllegalArgumentException Thrown in case no value is stored at the specified index or the value is not an float
+     */
+    public float getFloat( int index ) {
+        MetadataValue value = this.get( index );
+        if ( value == null ) {
+            throw new IllegalArgumentException( "No value stored at index " + index );
+        }
+
+        if ( value.getTypeId() != METADATA_FLOAT ) {
+            throw new IllegalArgumentException( "Value of different type stored at index " + index );
+        }
+
+        return ( (MetadataFloat) value ).getValue();
+    }
+
+    /**
      * Puts a string value into the container.
      *
      * @param index The index to put the value into
@@ -231,35 +322,126 @@ public class MetadataContainer {
     }
 
     /**
-     * Puts an int triple value into the container.
+     * Put a item value into the container.
      *
      * @param index The index to put the value into
-     * @param x     The x-value of the int triple to put into the container
-     * @param y     The y-value of the int triple to put into the container
-     * @param z     The z-value of the int triple to put into the container
+     * @param value The value to put into the container
      */
-    public void putIntTriple( int index, int x, int y, int z ) {
-        this.entries.put( (byte) index, new MetadataIntTriple( x, y, z ) );
+    public void putItem( int index, ItemStack value ) {
+        this.entries.put( (byte) index, new MetadataItem( value ) );
     }
 
     /**
-     * Gets an int triple stored inside the specified index.
+     * Gets a item stored inside the specified index.
      *
      * @param index The index of the value
      * @return The value stored at the specified index
-     * @throws IllegalArgumentException Thrown in case no value is stored at the specified index or the value is not an int triple
+     * @throws IllegalArgumentException Thrown in case no value is stored at the specified index or the value is not a item
      */
-    public MetadataIntTriple getIntTriple( int index ) {
+    public ItemStack getItem( int index ) {
         MetadataValue value = this.get( index );
         if ( value == null ) {
             throw new IllegalArgumentException( "No value stored at index " + index );
         }
 
-        if ( value.getTypeId() != METADATA_INT_TRIPLE ) {
+        if ( value.getTypeId() != METADATA_ITEM ) {
             throw new IllegalArgumentException( "Value of different type stored at index " + index );
         }
 
-        return ( (MetadataIntTriple) value );
+        return ( (MetadataItem) value ).getValue();
+    }
+
+    /**
+     * Puts an position value into the container.
+     *
+     * @param index The index to put the value into
+     * @param x     The x-value of the position to put into the container
+     * @param y     The y-value of the position to put into the container
+     * @param z     The z-value of the position to put into the container
+     */
+    public void putPosition( int index, int x, int y, int z ) {
+        this.entries.put( (byte) index, new MetadataPosition( x, y, z ) );
+    }
+
+    /**
+     * Gets an position stored inside the specified index.
+     *
+     * @param index The index of the value
+     * @return The value stored at the specified index
+     * @throws IllegalArgumentException Thrown in case no value is stored at the specified index or the value is not an position
+     */
+    public Vector getPosition( int index ) {
+        MetadataValue value = this.get( index );
+        if ( value == null ) {
+            throw new IllegalArgumentException( "No value stored at index " + index );
+        }
+
+        if ( value.getTypeId() != METADATA_POSITION ) {
+            throw new IllegalArgumentException( "Value of different type stored at index " + index );
+        }
+
+        MetadataPosition position = (MetadataPosition) value;
+        return new Vector( position.getX(), position.getY(), position.getZ() );
+    }
+
+    /**
+     * Puts an long value into the container.
+     *
+     * @param index The index to put the value into
+     * @param value The value to put into the container
+     */
+    public void putLong( int index, long value ) {
+        this.entries.put( (byte) index, new MetadataLong( value ) );
+    }
+
+    /**
+     * Gets an long stored inside the specified index.
+     *
+     * @param index The index of the value
+     * @return The value stored at the specified index
+     * @throws IllegalArgumentException Thrown in case no value is stored at the specified index or the value is not an long
+     */
+    public long getLong( int index ) {
+        MetadataValue value = this.get( index );
+        if ( value == null ) {
+            throw new IllegalArgumentException( "No value stored at index " + index );
+        }
+
+        if ( value.getTypeId() != METADATA_LONG ) {
+            throw new IllegalArgumentException( "Value of different type stored at index " + index );
+        }
+
+        return ( (MetadataLong) value ).getValue();
+    }
+
+    /**
+     * Puts an vector value into the container.
+     *
+     * @param index The index to put the value into
+     * @param value The value to put into the container
+     */
+    public void putVector( int index, Vector value ) {
+        this.entries.put( (byte) index, new MetadataVector( value ) );
+    }
+
+    /**
+     * Gets an vector stored inside the specified index.
+     *
+     * @param index The index of the value
+     * @return The value stored at the specified index
+     * @throws IllegalArgumentException Thrown in case no value is stored at the specified index or the value is not an vector
+     */
+    public Vector getVector( int index ) {
+        MetadataValue value = this.get( index );
+        if ( value == null ) {
+            throw new IllegalArgumentException( "No value stored at index " + index );
+        }
+
+        if ( value.getTypeId() != METADATA_VECTOR ) {
+            throw new IllegalArgumentException( "Value of different type stored at index " + index );
+        }
+
+        return ( (MetadataVector) value ).getValue();
     }
 
     /**
@@ -268,15 +450,13 @@ public class MetadataContainer {
      * @param buffer The buffer to serialize this metadata container into
      */
     public void serialize( PacketBuffer buffer ) {
-        ByteObjCursor<MetadataValue> cursor = this.entries.cursor();
-
-        while ( cursor.moveNext() ) {
-            byte index = cursor.key();
-            MetadataValue value = cursor.value();
-            value.serialize( buffer, index );
-        }
-
-        buffer.writeByte( (byte) 0x7F ); // End identifier
+        buffer.writeUnsignedVarInt( this.entries.size() );
+        this.entries.forEach( new ByteObjConsumer<MetadataValue>() {
+            @Override
+            public void accept( byte id, MetadataValue metadataValue ) {
+                metadataValue.serialize( buffer, id );
+            }
+        } );
     }
 
     /**
@@ -288,10 +468,10 @@ public class MetadataContainer {
     public boolean deserialize( PacketBuffer buffer ) {
         this.entries.clear();
 
-        byte flags = buffer.readByte();
-        while ( flags != (byte) 0x7F ) {
-            byte type = (byte) ( ( flags & 0xE0 ) >> 5 );
-            byte index = (byte) ( flags & 0x1F );
+        int size = buffer.readUnsignedVarInt();
+        for ( int i = 0; i < size; i++ ) {
+            int index = buffer.readUnsignedVarInt();
+            int type = buffer.readUnsignedVarInt();
 
             MetadataValue value = null;
             switch ( type ) {
@@ -304,11 +484,23 @@ public class MetadataContainer {
                 case METADATA_INT:
                     value = new MetadataInt();
                     break;
+                case METADATA_FLOAT:
+                    value = new MetadataFloat();
+                    break;
                 case METADATA_STRING:
                     value = new MetadataString();
                     break;
-                case METADATA_INT_TRIPLE:
-                    value = new MetadataIntTriple();
+                case METADATA_ITEM:
+                    value = new MetadataItem();
+                    break;
+                case METADATA_POSITION:
+                    value = new MetadataPosition();
+                    break;
+                case METADATA_LONG:
+                    value = new MetadataLong();
+                    break;
+                case METADATA_VECTOR:
+                    value = new MetadataVector();
                     break;
             }
 
@@ -317,8 +509,7 @@ public class MetadataContainer {
             }
 
             value.deserialize( buffer );
-            this.entries.put( index, value );
-            flags = buffer.readByte();
+            this.entries.put( (byte) index, value );
         }
 
         return true;

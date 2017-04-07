@@ -34,4 +34,10 @@ public class AttributeInstance {
         this.dirty = true;
     }
 
+    public boolean isDirty() {
+        boolean val = this.dirty;
+        this.dirty = false;
+        return val;
+    }
+
 }

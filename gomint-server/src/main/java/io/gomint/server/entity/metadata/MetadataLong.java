@@ -13,14 +13,14 @@ import io.gomint.jraknet.PacketBuffer;
  * @author BlackyPaw
  * @version 1.0
  */
-public class MetadataInt extends MetadataValue {
+public class MetadataLong extends MetadataValue {
 
-    private int value;
+    private long value;
 
     /**
      * Constructs a new metadata int
      */
-    MetadataInt() {
+    MetadataLong() {
 
     }
 
@@ -29,7 +29,7 @@ public class MetadataInt extends MetadataValue {
      *
      * @param value The value to initialize the metadata int with
      */
-    public MetadataInt( int value ) {
+    public MetadataLong( long value ) {
         this.value = value;
     }
 
@@ -38,7 +38,7 @@ public class MetadataInt extends MetadataValue {
      *
      * @return The value of this metadata int
      */
-    public int getValue() {
+    public long getValue() {
         return this.value;
     }
 
@@ -47,7 +47,7 @@ public class MetadataInt extends MetadataValue {
      *
      * @param value The value of this metadata int
      */
-    public void setValue( int value ) {
+    public void setValue( long value ) {
         this.value = value;
     }
 
@@ -55,17 +55,17 @@ public class MetadataInt extends MetadataValue {
     @Override
     void serialize( PacketBuffer buffer, int index ) {
         super.serialize( buffer, index );
-        buffer.writeSignedVarInt( this.value );
+        buffer.writeSignedVarLong( this.value );
     }
 
     @Override
     void deserialize( PacketBuffer buffer ) {
-        this.value = buffer.readSignedVarInt();
+        this.value = buffer.readInt();
     }
 
     @Override
     byte getTypeId() {
-        return MetadataContainer.METADATA_INT;
+        return MetadataContainer.METADATA_LONG;
     }
 
 }

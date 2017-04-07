@@ -17,7 +17,7 @@ public class ObjectBuffer<T> {
         this.initialSize = initialSize;
     }
 
-    public T get() {
+    public synchronized T get() {
         this.elementsOut++;
 
         // Fast out when buffer is empty
@@ -29,7 +29,7 @@ public class ObjectBuffer<T> {
         return this.internalBuffer[this.currentIndex--];
     }
 
-    public void push( T elem ) {
+    public synchronized void push( T elem ) {
         // Is buffer full? When it is we don't need this object
         if ( this.internalBuffer.length - 1 == this.currentIndex ) {
             return;
@@ -39,7 +39,7 @@ public class ObjectBuffer<T> {
         this.elementsIn++;
     }
 
-    public void recalc() {
+    public synchronized void recalc() {
         double diff = this.elementsOut / (double) this.elementsIn;
         if ( diff >= 1.4 ) {
             // Maybe we need to raise this

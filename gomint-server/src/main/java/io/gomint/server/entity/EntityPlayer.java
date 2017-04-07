@@ -19,8 +19,11 @@ import io.gomint.server.util.EnumConnector;
 import io.gomint.server.world.GamemodeMagicNumbers;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.Gamemode;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import net.openhft.koloboke.collect.set.LongSet;
+import net.openhft.koloboke.collect.set.hash.HashLongSets;
 
 import java.util.UUID;
 
@@ -34,6 +37,7 @@ import java.util.UUID;
  * @author BlackyPaw
  * @version 1.0
  */
+@EqualsAndHashCode( callSuper = false, of = { "uuid" } )
 public class EntityPlayer extends EntityLiving implements Player {
 
     // Enum converters
@@ -45,10 +49,13 @@ public class EntityPlayer extends EntityLiving implements Player {
     // Player Information
     private String username;
     private UUID uuid;
-    private PlayerSkin skin;
+    @Setter private PlayerSkin skin;
     private Gamemode gamemode;
     @Getter private AdventureSettings adventureSettings;
     private boolean op;
+
+    // Hidden players
+    private LongSet hiddenPlayers;
 
     // Inventory
     private PlayerInventory inventory;
@@ -166,19 +173,39 @@ public class EntityPlayer extends EntityLiving implements Player {
     }
 
     @Override
-    public MetadataContainer getMetadata() {
-        MetadataContainer metadata = super.getMetadata();
-        metadata.putBoolean( 0, false );
-        metadata.putShort( 1, (short) 0x2c01 );
-        metadata.putString( 2, this.getName() );
-        metadata.putBoolean( 3, true );
-        metadata.putBoolean( 4, false );
-        metadata.putInt( 7, 0 );
-        metadata.putBoolean( 8, false );
-        metadata.putBoolean( 15, false );
-        metadata.putBoolean( 16, false );
-        metadata.putIntTriple( 17, 0, 0, 0 );
-        return metadata;
+    public void hidePlayer( Player player ) {
+        EntityPlayer other = (EntityPlayer) player;
+        if ( other.getWorld().equals( this.getWorld() ) ) {
+            if ( this.hiddenPlayers == null ) {
+                this.hiddenPlayers = HashLongSets.newMutableSet();
+            }
+
+            this.hiddenPlayers.add( other.getEntityId() );
+
+            // Remove player from tablist and from ingame
+
+        }
+    }
+
+    @Override
+    public void showPlayer( Player player ) {
+        if ( this.hiddenPlayers == null ) {
+            return;
+        }
+
+        if ( this.hiddenPlayers.removeLong( player.getEntityId() ) ) {
+            // Send tablist and spawn packet
+        }
+    }
+
+    @Override
+    public boolean isHidden( Player player ) {
+        return this.hiddenPlayers != null && this.hiddenPlayers.contains( player.getEntityId() );
+    }
+
+    @Override
+    public io.gomint.player.PlayerSkin getSkin() {
+        return this.skin;
     }
 
     // ==================================== UPDATING ==================================== //

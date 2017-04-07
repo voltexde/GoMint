@@ -10,6 +10,7 @@ package io.gomint.server.scheduler;
 import io.gomint.plugin.Plugin;
 import io.gomint.scheduler.Scheduler;
 import io.gomint.scheduler.Task;
+import io.gomint.util.CompleteHandler;
 import io.gomint.util.ExceptionHandler;
 
 import java.util.HashSet;
@@ -52,6 +53,18 @@ public class PluginScheduler implements Scheduler {
                 }
             } );
 
+            task.onComplete( new CompleteHandler() {
+                @Override
+                public void onComplete() {
+                    lock.lock();
+                    try {
+                        runningTasks.remove( task );
+                    } finally {
+                        lock.unlock();
+                    }
+                }
+            } );
+
             this.runningTasks.add( task );
             return task;
         } finally {
@@ -74,6 +87,18 @@ public class PluginScheduler implements Scheduler {
                 public boolean onException( Exception e ) {
                     plugin.getLogger().warn( "A task thrown a Exception", e );
                     return true;
+                }
+            } );
+
+            task.onComplete( new CompleteHandler() {
+                @Override
+                public void onComplete() {
+                    lock.lock();
+                    try {
+                        runningTasks.remove( task );
+                    } finally {
+                        lock.unlock();
+                    }
                 }
             } );
 
@@ -102,6 +127,18 @@ public class PluginScheduler implements Scheduler {
                 }
             } );
 
+            task.onComplete( new CompleteHandler() {
+                @Override
+                public void onComplete() {
+                    lock.lock();
+                    try {
+                        runningTasks.remove( task );
+                    } finally {
+                        lock.unlock();
+                    }
+                }
+            } );
+
             this.runningTasks.add( task );
             return task;
         } finally {
@@ -124,6 +161,18 @@ public class PluginScheduler implements Scheduler {
                 public boolean onException( Exception e ) {
                     plugin.getLogger().warn( "A task thrown a Exception", e );
                     return true;
+                }
+            } );
+
+            task.onComplete( new CompleteHandler() {
+                @Override
+                public void onComplete() {
+                    lock.lock();
+                    try {
+                        runningTasks.remove( task );
+                    } finally {
+                        lock.unlock();
+                    }
                 }
             } );
 
@@ -152,6 +201,18 @@ public class PluginScheduler implements Scheduler {
                 }
             } );
 
+            task.onComplete( new CompleteHandler() {
+                @Override
+                public void onComplete() {
+                    lock.lock();
+                    try {
+                        runningTasks.remove( task );
+                    } finally {
+                        lock.unlock();
+                    }
+                }
+            } );
+
             this.runningTasks.add( task );
             return task;
         } finally {
@@ -174,6 +235,18 @@ public class PluginScheduler implements Scheduler {
                 public boolean onException( Exception e ) {
                     plugin.getLogger().warn( "A task thrown a Exception", e );
                     return true;
+                }
+            } );
+
+            task.onComplete( new CompleteHandler() {
+                @Override
+                public void onComplete() {
+                    lock.lock();
+                    try {
+                        runningTasks.remove( task );
+                    } finally {
+                        lock.unlock();
+                    }
                 }
             } );
 

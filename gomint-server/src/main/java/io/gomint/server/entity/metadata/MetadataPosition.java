@@ -13,7 +13,7 @@ import io.gomint.jraknet.PacketBuffer;
  * @author BlackyPaw
  * @version 1.0
  */
-public class MetadataIntTriple extends MetadataValue {
+public class MetadataPosition extends MetadataValue {
 
     private int x;
     private int y;
@@ -22,7 +22,7 @@ public class MetadataIntTriple extends MetadataValue {
     /**
      * Constructs a new metadata int triple
      */
-    public MetadataIntTriple() {
+    MetadataPosition() {
 
     }
 
@@ -33,7 +33,7 @@ public class MetadataIntTriple extends MetadataValue {
      * @param y The y-value to set
      * @param z The z-value to set
      */
-    public MetadataIntTriple( int x, int y, int z ) {
+    public MetadataPosition( int x, int y, int z ) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -110,21 +110,21 @@ public class MetadataIntTriple extends MetadataValue {
     @Override
     void serialize( PacketBuffer buffer, int index ) {
         super.serialize( buffer, index );
-        buffer.writeInt( this.x );
-        buffer.writeInt( this.y );
-        buffer.writeInt( this.z );
+        buffer.writeSignedVarInt( this.x );
+        buffer.writeByte( (byte) this.y );
+        buffer.writeSignedVarInt( this.z );
     }
 
     @Override
     void deserialize( PacketBuffer buffer ) {
-        this.x = buffer.readInt();
-        this.y = buffer.readInt();
-        this.z = buffer.readInt();
+        this.x = buffer.readSignedVarInt();
+        this.y = buffer.readByte() & 0xFF;
+        this.z = buffer.readSignedVarInt();
     }
 
     @Override
     byte getTypeId() {
-        return MetadataContainer.METADATA_INT_TRIPLE;
+        return MetadataContainer.METADATA_POSITION;
     }
 
 }

@@ -40,9 +40,9 @@ public class PacketMovePlayer extends Packet {
         buffer.writeLFloat( this.x );
         buffer.writeLFloat( this.y );
         buffer.writeLFloat( this.z );
-        buffer.writeLFloat( this.yaw );
-        buffer.writeLFloat( this.headYaw );
         buffer.writeLFloat( this.pitch );
+        buffer.writeLFloat( this.headYaw );
+        buffer.writeLFloat( this.yaw );
         buffer.writeByte( this.mode );
         buffer.writeBoolean( this.onGround );
     }
@@ -53,9 +53,9 @@ public class PacketMovePlayer extends Packet {
         this.x = buffer.readLFloat();
         this.y = buffer.readLFloat();
         this.z = buffer.readLFloat();
-        this.yaw = buffer.readLFloat();
-        this.headYaw = buffer.readLFloat();
         this.pitch = buffer.readLFloat();
+        this.headYaw = buffer.readLFloat();
+        this.yaw = buffer.readLFloat();
         this.mode = buffer.readByte();
         this.onGround = buffer.readBoolean();
     }
