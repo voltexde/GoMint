@@ -117,6 +117,9 @@ public final class Protocol {
             case PACKET_ANIMATE:
                 return new PacketAnimate();
 
+            case PACKET_ADVENTURE_SETTINGS:
+                return new PacketAdventureSettings();
+
             case PACKET_MOB_EQUIPMENT:
                 return new PacketMobEquipment();
 

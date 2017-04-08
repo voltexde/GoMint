@@ -20,15 +20,15 @@ class ChunkSlice {
 
     private static final ThreadLocal<Location> LOCATION_CACHE = new ThreadLocal<>();
 
-    @Getter
-    private final ChunkAdapter chunk;
-    @Getter
-    private final int sectionY;
+    @Getter private final ChunkAdapter chunk;
+    @Getter private final int sectionY;
 
-    private byte[] blocks = new byte[16 * 16 * 16];
-    private NibbleArray data = new NibbleArray( 16 * 16 * 16 );
-    private NibbleArray blockLight = new NibbleArray( 16 * 16 * 16 );
-    private NibbleArray skyLight = new NibbleArray( 16 * 16 * 16 );
+    private boolean isAllAir = true;
+
+    private byte[] blocks = null;
+    private NibbleArray data = null;
+    private NibbleArray blockLight = new NibbleArray( 4096 );
+    private NibbleArray skyLight = new NibbleArray( 4096 );
 
     private IntObjMap<TileEntity> tileEntities = HashIntObjMaps.newMutableMap();
 
@@ -37,6 +37,10 @@ class ChunkSlice {
     }
 
     byte getBlock( int x, int y, int z ) {
+        if ( this.isAllAir ) {
+            return 0;
+        }
+
         return this.blocks[getIndex( x, y, z )];
     }
 
@@ -57,7 +61,11 @@ class ChunkSlice {
         loc.setY( fullY );
         loc.setZ( fullZ );
 
-        return (T) Blocks.get( this.blocks[index] & 0xFF, this.data.get( index ), this.skyLight.get( index ),
+        if ( isAllAir ) {
+            return (T) Blocks.get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, loc );
+        }
+
+        return (T) Blocks.get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
                 this.blockLight.get( index ), this.tileEntities.get( index ), loc );
     }
 
@@ -72,11 +80,28 @@ class ChunkSlice {
 
     void setBlock( int x, int y, int z, byte blockId ) {
         int index = getIndex( x, y, z );
-        this.blocks[index] = blockId;
+
+        if ( blockId != 0 ) {
+            if ( this.blocks == null ) {
+                this.blocks = new byte[4096];
+                this.isAllAir = false;
+            }
+        }
+
+        if ( this.blocks != null ) {
+            this.blocks[index] = blockId;
+        }
     }
 
     void setData( int x, int y, int z, byte data ) {
         int index = getIndex( x, y, z );
+
+        if ( !this.isAllAir ) {
+            if ( this.data == null ) {
+                this.data = new NibbleArray( 4096 );
+            }
+        }
+
         this.data.set( index, data );
     }
 
@@ -101,21 +126,15 @@ class ChunkSlice {
     }
 
     boolean isAllAir() {
-        for ( byte block : this.blocks ) {
-            if ( block != 0 ) {
-                return false;
-            }
-        }
-
-        return true;
+        return this.isAllAir;
     }
 
     byte[] getBytes() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try {
-            baos.write( this.blocks );
-            baos.write( this.data.raw() );
+            baos.write( this.blocks == null ? new byte[4096] : this.blocks );
+            baos.write( this.data == null ? new byte[2048] : this.data.raw() );
             baos.write( this.skyLight.raw() );
             baos.write( this.blockLight.raw() );
         } catch ( Exception ignored ) {

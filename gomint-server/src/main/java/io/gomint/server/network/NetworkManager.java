@@ -131,10 +131,9 @@ public class NetworkManager {
                 LongCursor cursor = this.closedConnections.cursor();
                 while ( cursor.moveNext() ) {
                     long guid = cursor.elem();
-                    PlayerConnection connection = this.playersByGuid.get( guid );
+                    PlayerConnection connection = this.playersByGuid.remove( guid );
                     if ( connection != null ) {
                         connection.close();
-                        this.playersByGuid.remove( guid );
                     }
                 }
 

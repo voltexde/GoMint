@@ -26,8 +26,20 @@ public class AdventureSettings {
      *
      * @param entityPlayer The player for which this settings are
      */
-    AdventureSettings( EntityPlayer entityPlayer ) {
+    public AdventureSettings( EntityPlayer entityPlayer ) {
         this.player = entityPlayer;
+    }
+
+    public AdventureSettings( int flags ) {
+        this.canDestroyBlock = ( flags & 1 ) != 0;
+        this.noPvP = ( flags & ( 1 << 1 ) ) != 0;
+        this.noPvM = (flags & (1 << 2)) != 0;
+        this.noMvP = (flags & (1 << 3)) != 0;
+
+        this.autoJump = (flags & (1 << 5)) != 0;
+        this.canFly = (flags & (1 << 6)) != 0;
+        this.noclip = (flags & (1 << 7)) != 0;
+        this.flying = (flags & (1 << 9)) != 0;
     }
 
     /**

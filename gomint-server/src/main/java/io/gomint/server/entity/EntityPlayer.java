@@ -53,6 +53,7 @@ public class EntityPlayer extends EntityLiving implements Player {
     private Gamemode gamemode;
     @Getter private AdventureSettings adventureSettings;
     private boolean op;
+    @Getter private Vector velocity = new Vector( 0, 0, 0 );
 
     // Hidden players
     private LongSet hiddenPlayers;
@@ -154,7 +155,7 @@ public class EntityPlayer extends EntityLiving implements Player {
         // Recalc adventure settings
         this.adventureSettings.setCanDestroyBlock( ( gameModeNumber & 0x02 ) == 0 );
         this.adventureSettings.setCanFly( ( gameModeNumber & 0x01 ) > 0 );
-        this.adventureSettings.setNoclip( gameModeNumber == 0x03 );
+        // this.adventureSettings.setNoclip( gameModeNumber == 0x03 );
         this.adventureSettings.setFlying( gameModeNumber == 0x03 );
         this.adventureSettings.setNoMvP( gameModeNumber == 0x03 );
         this.adventureSettings.setNoPvM( gameModeNumber == 0x03 );

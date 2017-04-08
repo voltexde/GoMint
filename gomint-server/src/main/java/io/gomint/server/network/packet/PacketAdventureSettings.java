@@ -25,6 +25,8 @@ public class PacketAdventureSettings extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-
+        this.flags = buffer.readUnsignedVarInt();
+        this.userPermission = buffer.readUnsignedVarInt();
     }
+
 }

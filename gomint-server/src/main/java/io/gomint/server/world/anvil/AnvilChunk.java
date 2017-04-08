@@ -270,6 +270,8 @@ class AnvilChunk extends ChunkAdapter {
             e.printStackTrace();
         }
 
+        sections.add( currentSectionCache[0] );
+
         // Load sections
         for ( SectionCache section : sections ) {
             this.loadSection( section );
@@ -316,10 +318,6 @@ class AnvilChunk extends ChunkAdapter {
                     case "Banner":
                     case "Airportal":
                         continue;
-                }
-
-                if ( x == 9 && z == 10 ) {
-                    DumpUtil.dumpNBTCompund( tileEntity );
                 }
 
                 this.addTileEntity( tileEntity );

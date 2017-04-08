@@ -2,11 +2,13 @@ package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
+import lombok.Data;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@Data
 public class PacketAnimate extends Packet {
 
     private int actionId;

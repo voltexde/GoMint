@@ -657,7 +657,7 @@ public abstract class WorldAdapter implements World {
             } catch ( Throwable cause ) {
                 // Catching throwable in order to make sure no uncaught exceptions puts
                 // the asynchronous worker into nirvana:
-
+                logger.error( "Error whilst doing async work: ", cause );
             }
         }
     }

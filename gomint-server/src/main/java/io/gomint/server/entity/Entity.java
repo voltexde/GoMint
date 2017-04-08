@@ -11,6 +11,7 @@ import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.network.packet.Packet;
 import io.gomint.server.world.WorldAdapter;
 
 import java.util.concurrent.atomic.AtomicLong;

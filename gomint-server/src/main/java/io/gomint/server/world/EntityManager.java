@@ -139,9 +139,9 @@ public class EntityManager {
             packetSpawnPlayer.setY( entity.getPositionY() );
             packetSpawnPlayer.setZ( entity.getPositionZ() );
 
-            packetSpawnPlayer.setVelocityX( 0.0F );
-            packetSpawnPlayer.setVelocityY( 0.0F );
-            packetSpawnPlayer.setVelocityZ( 0.0F );
+            packetSpawnPlayer.setVelocityX( player.getVelocity().getX() );
+            packetSpawnPlayer.setVelocityY( player.getVelocity().getY() );
+            packetSpawnPlayer.setVelocityZ( player.getVelocity().getZ() );
 
             packetSpawnPlayer.setPitch( entity.getPitch() );
             packetSpawnPlayer.setYaw( entity.getYaw() );

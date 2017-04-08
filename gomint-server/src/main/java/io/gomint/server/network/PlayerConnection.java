@@ -8,17 +8,16 @@
 package io.gomint.server.network;
 
 import io.gomint.entity.Player;
-import io.gomint.event.player.PlayerJoinEvent;
-import io.gomint.event.player.PlayerLoginEvent;
+import io.gomint.event.player.*;
 import io.gomint.jraknet.*;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.async.Delegate;
+import io.gomint.server.entity.AdventureSettings;
 import io.gomint.server.entity.EntityCow;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
-import io.gomint.server.util.ByteUtil;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.Gamemode;
@@ -33,15 +32,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import static io.gomint.server.network.Protocol.*;
@@ -70,7 +65,6 @@ public class PlayerConnection {
     private PlayerConnectionState state;
     private int sentChunks;
     private BlockingQueue<Packet> sendQueue;
-    private long lastQueueSend = System.currentTimeMillis();
 
     // Entity
     private EntityPlayer entity;
@@ -101,6 +95,11 @@ public class PlayerConnection {
         };
     }
 
+    /**
+     * Add a packet to the queue to be batched in the next tick
+     *
+     * @param packet The packet which should be queued
+     */
     public void addToSendQueue( Packet packet ) {
         if ( this.sendQueue == null ) {
             this.sendQueue = new LinkedBlockingQueue<>();
@@ -173,7 +172,6 @@ public class PlayerConnection {
         if ( this.sendQueue != null && this.sendQueue.size() > 0 ) {
             List<Packet> drainedPackets = new ArrayList<>();
             this.sendQueue.drainTo( drainedPackets );
-            this.lastQueueSend = currentMillis;
 
             this.networkManager.getServer().getExecutorService().execute( new Runnable() {
                 @Override
@@ -394,10 +392,40 @@ public class PlayerConnection {
             case PACKET_INTERACT:
                 this.handleInteract( (PacketInteract) packet );
                 break;
+            case PACKET_ANIMATE:
+                this.handleAnimate( (PacketAnimate) packet );
+                break;
+            case PACKET_WORLD_SOUND_EVENT:
+                this.handleWorldSoundEvent( (PacketWorldSoundEvent) packet );
+                break;
+            case PACKET_ADVENTURE_SETTINGS:
+                this.handleAdventureSettings( (PacketAdventureSettings) packet );
+                break;
             default:
                 LOGGER.warn( "No handler for " + packet.getClass() );
                 break;
         }
+    }
+
+    private void handleAdventureSettings( PacketAdventureSettings packet ) {
+        // This is sent when the client wants a change to its flying status
+        AdventureSettings adventureSettings = new AdventureSettings( packet.getFlags() );
+
+        if ( this.entity.getAdventureSettings().isCanFly() ) {
+            if ( this.entity.getAdventureSettings().isFlying() != adventureSettings.isFlying() ) {
+                // Just accept what the client tells
+                this.entity.getAdventureSettings().setFlying( adventureSettings.isFlying() );
+                this.entity.getAdventureSettings().update();
+            }
+        }
+    }
+
+    private void handleWorldSoundEvent( PacketWorldSoundEvent packet ) {
+        System.out.println( packet );
+    }
+
+    private void handleAnimate( PacketAnimate packet ) {
+        System.out.println( packet );
     }
 
     private void handleInteract( PacketInteract packet ) {
@@ -565,6 +593,14 @@ public class PlayerConnection {
     }
 
     private void handleLoginPacket( PacketLogin packet ) {
+        PlayerPreLoginEvent playerPreLoginEvent = this.networkManager.getServer().getPluginManager().callEvent( new PlayerPreLoginEvent( this.connection.getAddress() ) );
+        if ( playerPreLoginEvent.isCancelled() ) {
+            // Since the user has not gotten any packets we are not able to be sure if we can send him a disconnect notification
+            // so we decide to close the raknet connection without any notice
+            this.disconnect( null );
+            return;
+        }
+
         // Check versions
         if ( packet.getProtocol() != RakNetConstraints.MINECRAFT_PE_PROTOCOL_VERSION ) {
             String message;
@@ -670,9 +706,9 @@ public class PlayerConnection {
                         spawnPlayer.setY( entityPlayer.getPositionY() );
                         spawnPlayer.setZ( entityPlayer.getPositionZ() );
 
-                        spawnPlayer.setVelocityX( 0.0F );
-                        spawnPlayer.setVelocityY( 0.0F );
-                        spawnPlayer.setVelocityZ( 0.0F );
+                        spawnPlayer.setVelocityX( entityPlayer.getVelocity().getX() );
+                        spawnPlayer.setVelocityY( entityPlayer.getVelocity().getY() );
+                        spawnPlayer.setVelocityZ( entityPlayer.getVelocity().getZ() );
 
                         spawnPlayer.setPitch( entityPlayer.getPitch() );
                         spawnPlayer.setYaw( entityPlayer.getYaw() );
@@ -695,7 +731,6 @@ public class PlayerConnection {
 
                 break;
         }
-
     }
 
     private void sendResourcePacks() {
@@ -722,8 +757,15 @@ public class PlayerConnection {
         this.send( packetConfirmChunkRadius );
     }
 
+    /**
+     * Disconnect (kick) the player with a custom message
+     *
+     * @param message The message with which the player is going to be kicked
+     */
     public void disconnect( String message ) {
         if ( this.connection.isConnected() && !this.connection.isDisconnecting() ) {
+            this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );
+
             if ( message != null && message.length() > 0 ) {
                 PacketDisconnect packet = new PacketDisconnect();
                 packet.setMessage( message );
@@ -737,8 +779,6 @@ public class PlayerConnection {
             }
 
             this.connection.disconnect( message );
-
-            // TODO: Player quit event
         }
     }
 
@@ -767,8 +807,8 @@ public class PlayerConnection {
         move.setX( location.getX() );
         move.setY( location.getY() );
         move.setZ( location.getZ() );
-        move.setYaw( 0.0F );
-        move.setPitch( 0.0F );
+        move.setYaw( location.getYaw() );
+        move.setPitch( location.getPitch() );
         move.setMode( (byte) 1 );
         move.setOnGround( false );
         this.send( move );
@@ -818,11 +858,13 @@ public class PlayerConnection {
     /**
      * The underlying RakNet Connection closed. Cleanup
      */
-    public void close() {
+    void close() {
         if ( this.entity != null && this.entity.getWorld() != null ) {
-            this.entity.despawn();
+            this.networkManager.getServer().getPluginManager().callEvent( new PlayerQuitEvent( this.entity ) );
             this.entity.getWorld().removePlayer( this.entity );
+            this.entity.despawn();
             this.entity = null;
         }
     }
+
 }
