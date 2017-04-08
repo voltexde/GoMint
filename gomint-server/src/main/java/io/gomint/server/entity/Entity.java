@@ -13,6 +13,7 @@ import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.world.WorldAdapter;
+import lombok.Setter;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -45,6 +46,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     protected final MetadataContainer metadataContainer;
 
+    @Setter
     protected WorldAdapter world;
     private TransformComponent transform;
 

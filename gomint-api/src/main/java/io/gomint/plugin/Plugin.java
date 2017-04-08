@@ -7,6 +7,7 @@
 
 package io.gomint.plugin;
 
+import io.gomint.GoMint;
 import io.gomint.event.EventListener;
 import io.gomint.scheduler.Scheduler;
 import lombok.Getter;
@@ -85,6 +86,12 @@ public class Plugin {
      */
     @Getter
     Scheduler scheduler;
+
+    /**
+     * Server which is running
+     */
+    @Getter
+    GoMint server;
 
     /**
      * List which contains all listeners this plugin has registered

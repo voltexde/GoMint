@@ -16,7 +16,7 @@ import lombok.ToString;
  */
 @EqualsAndHashCode( callSuper = false )
 @ToString( callSuper = true )
-public class CancelableEvent extends Event {
+public class CancellableEvent extends Event {
 
     private boolean cancelled = false;
 

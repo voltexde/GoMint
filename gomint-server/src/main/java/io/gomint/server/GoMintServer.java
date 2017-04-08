@@ -19,6 +19,7 @@ import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
+import io.gomint.world.World;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -262,6 +263,25 @@ public class GoMintServer implements GoMint {
         this.networkManager.setMotd( motd );
     }
 
+    @Override
+    public World getWorld( String name ) {
+        World world = this.worldManager.getWorld( name );
+        if ( world == null ) {
+            // Try to load the world
+
+            // CHECKSTYLE:OFF
+            try {
+                return this.worldManager.loadWorld( name );
+            } catch ( Exception e ) {
+                logger.warn( "Failed to load world: " + name, e );
+                return null;
+            }
+            // CHECKSTYLE:ON
+        }
+
+        return world;
+    }
+
     /**
      * Nice shutdown pls
      */
@@ -269,10 +289,20 @@ public class GoMintServer implements GoMint {
         this.running.set( false );
     }
 
+    /**
+     * Get the current version string
+     *
+     * @return the version of gomint
+     */
     public String getVersion() {
-        return "GoMint 1.0.0 (MC:PE 1.0.4)";
+        return "GoMint 1.0.0 (MC:PE 1.0.5)";
     }
 
+    /**
+     * Get all online players
+     *
+     * @return all online players
+     */
     public Collection<Player> getPlayers() {
         List<Player> playerList = new ArrayList<>();
 

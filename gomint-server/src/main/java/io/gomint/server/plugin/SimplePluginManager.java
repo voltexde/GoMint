@@ -43,6 +43,7 @@ public class SimplePluginManager implements PluginManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( SimplePluginManager.class );
 
+    private final GoMintServer server;
     private final CoreScheduler scheduler;
     private final File pluginFolder;
 
@@ -58,10 +59,13 @@ public class SimplePluginManager implements PluginManager {
     private Field pluginManagerField;
     private Field versionField;
     private Field schedulerField;
+    private Field serverField;
 
     public SimplePluginManager( GoMintServer server ) {
+        this.server = server;
         this.scheduler = new CoreScheduler( server.getExecutorService(), server.getSyncTaskManager() );
         this.pluginFolder = new File( "plugins" );
+
         if ( !this.pluginFolder.exists() ) {
             this.pluginFolder.mkdirs();
         }
@@ -82,10 +86,12 @@ public class SimplePluginManager implements PluginManager {
 
             this.schedulerField = Plugin.class.getDeclaredField( "scheduler" );
             this.schedulerField.setAccessible( true );
+
+            this.serverField = Plugin.class.getDeclaredField( "server" );
+            this.serverField.setAccessible( true );
         } catch ( NoSuchFieldException e ) {
             e.printStackTrace();
         }
-
     }
 
     public void detectPlugins() {
@@ -182,6 +188,7 @@ public class SimplePluginManager implements PluginManager {
             this.schedulerField.set( clazz, new PluginScheduler( clazz, this.scheduler ) );
             this.nameField.set( clazz, pluginMeta.getName() );
             this.versionField.set( clazz, pluginMeta.getVersion() );
+            this.serverField.set( clazz, this.server );
 
             clazz.onStartup();
 

@@ -8,7 +8,7 @@
 package io.gomint.server.event;
 
 import com.google.common.base.Preconditions;
-import io.gomint.event.CancelableEvent;
+import io.gomint.event.CancellableEvent;
 import io.gomint.event.Event;
 
 import java.util.*;
@@ -70,8 +70,8 @@ public class EventHandlerList {
             Collections.sort( this.sortedHandlerList );
         }
 
-        if ( event instanceof CancelableEvent ) {
-            CancelableEvent cancelableEvent = (CancelableEvent) event;
+        if ( event instanceof CancellableEvent ) {
+            CancellableEvent cancelableEvent = (CancellableEvent) event;
             for ( EventHandlerMethod handler : this.sortedHandlerList ) {
                 if ( cancelableEvent.isCancelled() && handler.ignoreCancelled() ) {
                     continue;

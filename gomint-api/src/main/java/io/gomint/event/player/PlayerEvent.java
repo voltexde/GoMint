@@ -8,7 +8,7 @@
 package io.gomint.event.player;
 
 import io.gomint.entity.Player;
-import io.gomint.event.CancelableEvent;
+import io.gomint.event.CancellableEvent;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -18,7 +18,7 @@ import lombok.ToString;
  */
 @EqualsAndHashCode( callSuper = false )
 @ToString( callSuper = true )
-public class PlayerEvent extends CancelableEvent {
+public class PlayerEvent extends CancellableEvent {
 
     private final Player player;
 

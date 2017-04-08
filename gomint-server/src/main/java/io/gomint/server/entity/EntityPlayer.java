@@ -8,6 +8,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.entity.Player;
+import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.inventory.PlayerInventory;
@@ -207,6 +208,11 @@ public class EntityPlayer extends EntityLiving implements Player {
     @Override
     public io.gomint.player.PlayerSkin getSkin() {
         return this.skin;
+    }
+
+    @Override
+    public void teleport( Location to ) {
+        this.connection.teleport( to );
     }
 
     // ==================================== UPDATING ==================================== //

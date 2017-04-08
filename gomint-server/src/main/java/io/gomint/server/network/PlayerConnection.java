@@ -538,16 +538,63 @@ public class PlayerConnection {
     }
 
     private void handleMovePacket( PacketMovePlayer packet ) {
-        // TODO: Send some sort of movement event
-        if ( (int) this.entity.getLocation().getX() != (int) packet.getX() ||
-                (int) this.entity.getLocation().getZ() != (int) packet.getZ() ) {
-            this.checkForNewChunks();
+        Location to = this.entity.getLocation();
+        to.setX( packet.getX() );
+        to.setY( packet.getY() );
+        to.setZ( packet.getZ() );
+        to.setHeadYaw( packet.getHeadYaw() );
+        to.setYaw( packet.getYaw() );
+        to.setPitch( packet.getPitch() );
+
+        Location from = this.entity.getLocation();
+
+        PlayerMoveEvent playerMoveEvent = this.networkManager.getServer().getPluginManager().callEvent(
+                new PlayerMoveEvent( this.entity, from, to )
+        );
+
+        if ( playerMoveEvent.isCancelled() ) {
+            playerMoveEvent.setTo( playerMoveEvent.getFrom() );
         }
 
-        this.entity.setPosition( packet.getX(), packet.getY(), packet.getZ() );
-        this.entity.setPitch( packet.getPitch() );
-        this.entity.setYaw( packet.getYaw() );
-        this.entity.setHeadYaw( packet.getHeadYaw() );
+        to = playerMoveEvent.getTo();
+        if ( to.getX() != packet.getX() || to.getY() != packet.getY() || to.getZ() != packet.getZ() ||
+                !to.getWorld().equals( this.entity.getWorld() ) || to.getYaw() != packet.getYaw() ||
+                to.getPitch() != packet.getPitch() || to.getHeadYaw() != packet.getHeadYaw() ) {
+            teleport( to );
+        }
+
+        this.entity.setPosition( to.getX(), to.getY(), to.getZ() );
+        this.entity.setPitch( to.getPitch() );
+        this.entity.setYaw( to.getYaw() );
+        this.entity.setHeadYaw( to.getHeadYaw() );
+
+        if ( (int) from.getX() != (int) to.getX() ||
+                (int) from.getZ() != (int) to.getZ() ||
+                !to.getWorld().equals( from.getWorld() ) ) {
+            this.checkForNewChunks();
+        }
+    }
+
+    public void teleport( Location location ) {
+        // Check if we need to change worlds
+        if ( !location.getWorld().equals( this.entity.getWorld() ) ) {
+            // Change worlds first
+            sendMovePlayer( new Location( location.getWorld(), this.entity.getPositionX() + 1000000, 4000, this.entity.getPositionZ() + 1000000 ) );
+            this.entity.getWorld().removePlayer( this.entity );
+            this.entity.despawn();
+
+            this.entity.setWorld( (WorldAdapter) location.getWorld() );
+            this.playerChunks.clear();
+        }
+
+        sendMovePlayer( location );
+
+        this.entity.setPosition( location );
+        this.entity.setPitch( location.getPitch() );
+        this.entity.setYaw( location.getYaw() );
+        this.entity.setHeadYaw( location.getHeadYaw() );
+
+        checkForNewChunks();
     }
 
     private void checkForNewChunks() {

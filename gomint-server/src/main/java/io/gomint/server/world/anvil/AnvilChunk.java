@@ -8,7 +8,6 @@
 package io.gomint.server.world.anvil;
 
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
@@ -387,14 +386,6 @@ class AnvilChunk extends ChunkAdapter {
 
                     // Tick blocks on loading once to check if they need to be scheduled
                     if ( blockId > 0 ) {
-                        while ( this.world.getTickQueue().size( 1L ) > 250_000 ) {
-                            try {
-                                Thread.sleep( 1 );
-                            } catch ( InterruptedException e ) {
-                                e.printStackTrace();
-                            }
-                        }
-
                         this.world.getTickQueue().add( 1L, CoordinateUtils.toLong( ( x * 16 ) + i, y, ( z * 16 ) + k ) );
                     }
                 }

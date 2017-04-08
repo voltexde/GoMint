@@ -1,6 +1,7 @@
 package io.gomint.plugin;
 
 import io.gomint.plugin.listener.PlayerJoinListener;
+import io.gomint.plugin.listener.PlayerMoveListener;
 
 /**
  * @author geNAZt
@@ -17,6 +18,7 @@ public class TestPlugin extends Plugin {
 
     @Override
     public void onInstall() {
+        registerListener( new PlayerMoveListener() );
         registerListener( new PlayerJoinListener( this ) );
     }
 

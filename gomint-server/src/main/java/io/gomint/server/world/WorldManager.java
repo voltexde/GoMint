@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
+import io.gomint.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,9 +106,10 @@ public class WorldManager {
      * world manage immediately.
      *
      * @param path The path of the world
+     * @return the world which has been loaded
      * @throws Exception Thrown in case the world could not be loaded
      */
-    public void loadWorld( String path ) throws Exception {
+    public World loadWorld( String path ) throws Exception {
         logger.info( "Attempting to load world '" + path + "'" );
 
         File file = new File( path );
@@ -120,32 +122,32 @@ public class WorldManager {
             File regionFolder = new File( file, "region" );
             if ( regionFolder.exists() && regionFolder.isDirectory() ) {
                 logger.info( "Detected anvil world '" + path + "'" );
-                this.loadAnvilWorld( file );
-                return;
+                return this.loadAnvilWorld( file );
             }
 
             // LevelDB world:
             File dbFolder = new File( file, "db" );
             if ( dbFolder.exists() && dbFolder.isDirectory() ) {
                 logger.info( "Detected leveldb world '" + path + "'" );
-                this.loadLevelDBWorld( file );
-                return;
+                return this.loadLevelDBWorld( file );
             }
         }
 
         throw new IOException( "Could not detect world format" );
     }
 
-    private void loadLevelDBWorld( File path ) throws Exception {
+    private World loadLevelDBWorld( File path ) throws Exception {
         LevelDBWorldAdapter world = LevelDBWorldAdapter.load( this.server, path );
         this.addWorld( world );
         logger.info( "Successfully loaded world '" + path.getName() + "'" );
+        return world;
     }
 
-    private void loadAnvilWorld( File path ) throws Exception {
+    private World loadAnvilWorld( File path ) throws Exception {
         AnvilWorldAdapter world = AnvilWorldAdapter.load( this.server, path );
         this.addWorld( world );
         logger.info( "Successfully loaded world '" + path.getName() + "'" );
+        return world;
     }
 
 }

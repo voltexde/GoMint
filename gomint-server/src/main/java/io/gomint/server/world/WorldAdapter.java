@@ -480,12 +480,7 @@ public abstract class WorldAdapter implements World {
 
         for ( int i = chunkX - spawnRadius; i <= chunkX + spawnRadius; i++ ) {
             for ( int j = chunkZ - spawnRadius; j <= chunkZ + spawnRadius; j++ ) {
-                this.getOrLoadChunk( i, j, true, new Delegate<ChunkAdapter>() {
-                    @Override
-                    public void invoke( ChunkAdapter arg ) {
-
-                    }
-                } );
+                this.loadChunk( i, j, true );
             }
         }
     }

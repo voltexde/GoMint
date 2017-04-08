@@ -7,6 +7,7 @@
 
 package io.gomint.entity;
 
+import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
 
@@ -85,5 +86,12 @@ public interface Player extends Entity {
      * @return skin which the client has sent on login
      */
     PlayerSkin getSkin();
+
+    /**
+     * Teleport to the given location
+     *
+     * @param to The location where the player should be teleported to
+     */
+    void teleport( Location to );
 
 }

@@ -23,6 +23,7 @@ public class PlayerJoinListener implements EventListener {
         this.testPlugin.getScheduler().schedule( new Runnable() {
             @Override
             public void run() {
+                event.getPlayer().teleport( testPlugin.getServer().getWorld( "world1" ).getSpawnLocation() );
                 event.getPlayer().setGamemode( Gamemode.SPECTATOR );
             }
         }, 5, TimeUnit.SECONDS );

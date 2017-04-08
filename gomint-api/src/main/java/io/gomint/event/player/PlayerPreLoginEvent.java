@@ -1,6 +1,6 @@
 package io.gomint.event.player;
 
-import io.gomint.event.CancelableEvent;
+import io.gomint.event.CancellableEvent;
 
 import java.net.InetSocketAddress;
 
@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
  * @author geNAZt
  * @version 1.0
  */
-public class PlayerPreLoginEvent extends CancelableEvent {
+public class PlayerPreLoginEvent extends CancellableEvent {
 
     private final InetSocketAddress clientAddress;
 

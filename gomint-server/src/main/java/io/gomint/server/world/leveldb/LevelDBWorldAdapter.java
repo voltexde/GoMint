@@ -51,6 +51,17 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             this.loadLevelDat();
             this.db = Iq80DBFactory.factory.open( new File( this.worldDir, "db" ), new Options().createIfMissing( true ) );
             this.prepareSpawnRegion();
+
+            // This is needed due to the fact that only the y coordinate is sometimes 32k+
+            int spawnX = (int) this.spawn.getX();
+            int spawnZ = (int) this.spawn.getZ();
+            int y = 255;
+
+            while ( getBlockAt( new Vector( spawnX, y, spawnZ ) ).equals( Blocks.AIR ) ) {
+                y--;
+            }
+
+            this.spawn.setY( y );
         } catch ( Exception e ) {
             e.printStackTrace();
         }
@@ -163,17 +174,6 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                     }
                 }
             }
-
-            // This is needed due to the fact that only the y coordinate is sometimes 32k+
-            int spawnX = (int) this.spawn.getX();
-            int spawnZ = (int) this.spawn.getZ();
-            int y = 255;
-
-            while ( getBlockAt( new Vector( spawnX, y, spawnZ ) ).equals( Blocks.AIR ) ) {
-                y--;
-            }
-
-            this.spawn.setY( y );
 
             try {
                 byte[] tileEntityData = this.db.get( this.getKey( x, z, (byte) 0x31 ) );

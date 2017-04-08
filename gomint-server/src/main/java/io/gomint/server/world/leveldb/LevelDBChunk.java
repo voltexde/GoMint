@@ -88,8 +88,12 @@ public class LevelDBChunk extends ChunkAdapter {
                     int blockIndex = k << 8 | i << 4 | j; // j k i - k j i - i k j -
 
 
-                    this.setData( k, y, i, meta.get( blockIndex ) );
                     this.setBlock( k, y, i, blockData[blockIndex] );
+
+                    if ( meta.get( blockIndex ) != 0 ) {
+                        this.setData( k, y, i, meta.get( blockIndex ) );
+                    }
+
                     this.setSkyLight( k, y, i, sky.get( blockIndex ) );
                     this.setBlockLight( k, y, i, block.get( blockIndex ) );
                 }
@@ -102,7 +106,7 @@ public class LevelDBChunk extends ChunkAdapter {
         while ( bais.available() > 0 ) {
             try {
                 NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( bais, false, ByteOrder.LITTLE_ENDIAN );
-                DumpUtil.dumpNBTCompund( nbtTagCompound );
+                // DumpUtil.dumpNBTCompund( nbtTagCompound );
             } catch ( IOException e ) {
                 e.printStackTrace();
             }
@@ -114,7 +118,7 @@ public class LevelDBChunk extends ChunkAdapter {
         while ( bais.available() > 0 ) {
             try {
                 NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( bais, false, ByteOrder.LITTLE_ENDIAN );
-                DumpUtil.dumpNBTCompund( nbtTagCompound );
+                // DumpUtil.dumpNBTCompund( nbtTagCompound );
             } catch ( IOException e ) {
                 e.printStackTrace();
             }

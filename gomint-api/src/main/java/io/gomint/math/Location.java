@@ -35,6 +35,10 @@ public class Location extends Vector implements Cloneable {
 
     @Getter
     @Setter
+    private float headYaw;
+
+    @Getter
+    @Setter
     private float pitch;
 
     public Location( World world ) {
