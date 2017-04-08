@@ -28,7 +28,6 @@ A plugin to test and see the API design.
 * Implement all Tile Entity types
 * Implement all block interfaces for the API
 * Implement basic events for Movement and join / leave
-* Add more adventure settings and gamemodes
 
 ## Testing
 
