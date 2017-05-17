@@ -9,12 +9,15 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.entity.Player;
+import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.Material;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
 import io.gomint.server.network.NetworkManager;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
@@ -123,12 +126,6 @@ public class GoMintServer implements GoMint {
         this.pluginManager.loadPlugins( StartupPriority.STARTUP );
 
         // ------------------------------------ //
-        // Networking Initialization
-        // ------------------------------------ //
-        this.networkManager = new NetworkManager( this );
-        if ( !this.initNetworking() ) return;
-
-        // ------------------------------------ //
         // Pre World Initialization
         // ------------------------------------ //
         // Load assets from file:
@@ -147,6 +144,10 @@ public class GoMintServer implements GoMint {
         // Add all recipes from asset library:
         for ( Recipe recipe : assetsLibrary.getRecipes() ) {
             this.recipeManager.registerRecipe( recipe );
+
+            if ( recipe.createResult().contains( new ItemStack( Material.CRAFTING_TABLE ) ) ) {
+                System.out.println( recipe.getUUID() );
+            }
         }
 
         // ------------------------------------ //
@@ -164,6 +165,13 @@ public class GoMintServer implements GoMint {
         // ------------------------------------ //
         this.pluginManager.loadPlugins( StartupPriority.LOAD );
         this.pluginManager.installPlugins();
+
+        // ------------------------------------ //
+        // Networking Initialization
+        // ------------------------------------ //
+        this.networkManager = new NetworkManager( this );
+        if ( !this.initNetworking() ) return;
+        setMotd( this.getServerConfig().getMotd() );
 
         // ------------------------------------ //
         // Main Loop
@@ -295,7 +303,7 @@ public class GoMintServer implements GoMint {
      * @return the version of gomint
      */
     public String getVersion() {
-        return "GoMint 1.0.0 (MC:PE 1.0.5)";
+        return "GoMint 1.0.0 (MC:PE " + Protocol.MINECRAFT_PE_NETWORK_VERSION + ")";
     }
 
     /**
@@ -314,6 +322,21 @@ public class GoMintServer implements GoMint {
         } );
 
         return playerList;
+    }
+
+    /**
+     * Get the amount of players currently online
+     *
+     * @return amount of players online
+     */
+    public int getAmountOfPlayers() {
+        int amount = 0;
+
+        for ( WorldAdapter worldAdapter : worldManager.getWorlds() ) {
+            amount += worldAdapter.getAmountOfPlayers();
+        }
+
+        return amount;
     }
 
 }

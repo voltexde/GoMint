@@ -9,13 +9,22 @@ package io.gomint.server.network;
 
 import io.gomint.entity.Player;
 import io.gomint.event.player.*;
-import io.gomint.jraknet.*;
+import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.Material;
+import io.gomint.jraknet.Connection;
+import io.gomint.jraknet.EncapsulatedPacket;
+import io.gomint.jraknet.PacketBuffer;
+import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.async.Delegate;
+import io.gomint.server.crafting.Recipe;
 import io.gomint.server.entity.AdventureSettings;
 import io.gomint.server.entity.EntityCow;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.inventory.Inventory;
+import io.gomint.server.inventory.transaction.Transaction;
+import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.world.CoordinateUtils;
@@ -37,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.InflaterInputStream;
 
 import static io.gomint.server.network.Protocol.*;
@@ -401,9 +411,97 @@ public class PlayerConnection {
             case PACKET_ADVENTURE_SETTINGS:
                 this.handleAdventureSettings( (PacketAdventureSettings) packet );
                 break;
+            case PACKET_CONTAINER_SET_SLOT:
+                this.handleSetSlot( currentTimeMillis, (PacketContainerSetSlot) packet );
+                break;
+            case PACKET_CRAFTING_EVENT:
+                this.handleCraftingEvent( (PacketCraftingEvent) packet );
+                break;
             default:
                 LOGGER.warn( "No handler for " + packet.getClass() );
                 break;
+        }
+    }
+
+    private void handleCraftingEvent( PacketCraftingEvent packet ) {
+        // Get the recipe based on its id
+        Recipe recipe = this.entity.getWorld().getServer().getRecipeManager().getRecipe( packet.getRecipeId() );
+        if ( recipe == null ) {
+            // Resend inventory and call it a day
+            this.entity.getInventory().sendContents( this );
+            return;
+        }
+
+        // Try to abort the crafting for good
+        System.out.println( "Input" );
+        for ( ItemStack itemStack : packet.getInput() ) {
+            System.out.println( itemStack );
+        }
+
+        this.entity.getInventory().sendContents( this );
+    }
+
+    private void handleSetSlot( long currentTimeInMS, PacketContainerSetSlot packet ) {
+        LOGGER.debug( "0x" + Integer.toHexString( packet.getWindowId() ) + ": " + packet.getSlot() + " -> " + packet.getItemStack() + " / " + packet.getUnknown() );
+
+        // Exception safety
+        if ( packet.getSlot() < 0 ) {
+            return;
+        }
+
+        // Begin transaction
+        Transaction transaction;
+        if ( packet.getWindowId() == 0 ) { // Player inventory
+            // The client wanted to set a slot which is outside of the inventory size
+            if ( packet.getSlot() >= this.entity.getInventory().getSize() ) {
+                return;
+            }
+
+            transaction = new Transaction( this.entity.getInventory(), packet.getSlot(), this.entity.getInventory().getItem( packet.getSlot() ).clone(), packet.getItemStack().clone(), System.currentTimeMillis() );
+        } else if ( packet.getWindowId() == 0x78 ) { // Armor inventory
+            // The client wanted to set a slot which is outside of the inventory size
+            if ( packet.getSlot() >= 4 ) {
+                return;
+            }
+
+            transaction = new Transaction( this.entity.getInventory(), packet.getSlot() + this.entity.getInventory().getSize(), this.entity.getInventory().getItem( packet.getSlot() + this.entity.getInventory().getSize() ), packet.getItemStack().clone(), System.currentTimeMillis() );
+        } else {
+            return;
+        }
+
+        // Check if the client changed something
+        if ( transaction.getSourceItem().deepEquals( transaction.getTargetItem() ) && transaction.getTargetItem().getAmount() == transaction.getSourceItem().getAmount() ) {
+            return;
+        }
+
+        // Check if we need a new transaction and auto cancel transactions which are open for at least 8 seconds
+        if ( this.entity.getTransactions() == null || currentTimeInMS - this.entity.getTransactions().getCreationTime() > TimeUnit.SECONDS.toMillis( 8 ) ) {
+            if ( this.entity.getTransactions() != null ) {
+                for ( Inventory inventory : this.entity.getTransactions().getInventories() ) {
+                    inventory.sendContents( this );
+                }
+            }
+
+            this.entity.setTransactions( new TransactionGroup() );
+        }
+
+        // Check if we consume a item
+        boolean didConsume = this.entity.getTransactions().predictConsume( packet.getItemStack() );
+        this.entity.getTransactions().addTransaction( transaction );
+
+        // Can we execute now?
+        if ( this.entity.getTransactions().canExecute() || this.entity.getGamemode() == Gamemode.CREATIVE ) {
+            if ( !this.entity.getTransactions().execute( this.entity.getGamemode() == Gamemode.CREATIVE ) ) {
+                // Revert inventory
+                for ( Inventory inventory : this.entity.getTransactions().getInventories() ) {
+                    inventory.sendContents( this.entity.getConnection() );
+                }
+            }
+
+            this.entity.setTransactions( null );
+        } else if ( !didConsume && packet.getItemStack().getMaterial() != Material.AIR ) {   // We have needed items but we never picked up some?
+            transaction.getInventory().sendContents( packet.getSlot(), this );
+            transaction.getInventory().sendContents( packet.getHotbarSlot(), this );
         }
     }
 
@@ -474,8 +572,6 @@ public class PlayerConnection {
     }
 
     private void handlePlayerAction( long currentTimeMillis, PacketPlayerAction packet ) {
-        System.out.println( packet );
-
         switch ( packet.getAction() ) {
             case START_BREAK:
                 if ( this.entity.getStartBreak() == 0 ) {
@@ -649,9 +745,9 @@ public class PlayerConnection {
         }
 
         // Check versions
-        if ( packet.getProtocol() != RakNetConstraints.MINECRAFT_PE_PROTOCOL_VERSION ) {
+        if ( packet.getProtocol() != Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {
             String message;
-            if ( packet.getProtocol() < RakNetConstraints.MINECRAFT_PE_PROTOCOL_VERSION ) {
+            if ( packet.getProtocol() < Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {
                 message = "disconnectionScreen.outdatedClient";
                 this.sendPlayState( PacketPlayState.PlayState.LOGIN_FAILED_CLIENT );
             } else {
@@ -716,6 +812,7 @@ public class PlayerConnection {
                 this.networkManager.getServer().getPluginManager().callEvent( new PlayerJoinEvent( this.entity ) );
 
                 // Add player to world (will send world chunk packets):
+                this.entity.fullyInit();
                 this.entity.getWorld().addPlayer( this.entity );
 
                 PacketPlayerlist playerlist = null;
@@ -727,7 +824,7 @@ public class PlayerConnection {
                         if ( playerlist == null ) {
                             playerlist = new PacketPlayerlist();
                             playerlist.setMode( (byte) 0 );
-                            playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+                            playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
                                 add( new PacketPlayerlist.Entry( entity.getUUID(), entity.getEntityId(), entity.getName(), entity.getSkin() ) );
                             }} );
                         }
@@ -810,6 +907,8 @@ public class PlayerConnection {
      * @param message The message with which the player is going to be kicked
      */
     public void disconnect( String message ) {
+        new Exception().printStackTrace();
+
         if ( this.connection.isConnected() && !this.connection.isDisconnecting() ) {
             this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );
 

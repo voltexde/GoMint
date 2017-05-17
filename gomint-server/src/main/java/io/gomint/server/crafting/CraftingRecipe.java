@@ -24,6 +24,7 @@ public abstract class CraftingRecipe extends Recipe {
 
     protected CraftingRecipe( ItemStack[] outcome, UUID uuid ) {
         super( uuid );
+        this.outcome = outcome;
     }
 
     @Override

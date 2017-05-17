@@ -3,6 +3,8 @@ package io.gomint.server.util;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,6 +19,8 @@ import java.util.zip.Deflater;
  * @version 1.0
  */
 public class BatchUtil {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( BatchUtil.class );
 
     public static class BatchStreamHolder {
 
@@ -75,7 +79,12 @@ public class BatchUtil {
         }
 
         for ( Packet packet : packets ) {
-            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() );
+            int estimate = packet.estimateLength();
+            if ( estimate == -1 ) {
+                LOGGER.warn( "Packet " + packet.getClass().getSimpleName() + " has returned negative estimation" );
+            }
+
+            PacketBuffer buffer = new PacketBuffer( estimate == -1 ? 64 : estimate );
             buffer.writeByte( packet.getId() );
             packet.serialize( buffer );
 

@@ -9,9 +9,7 @@ package io.gomint.server.crafting;
 
 import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.util.PacketDataOutputStream;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -63,9 +61,7 @@ public abstract class Recipe {
      * Serializes the recipe into the given packet buffer.
      *
      * @param buffer       The buffer to serialize the recipe into
-     * @param intermediate Packet data output stream for intermediate data (internal optimization)
-     * @throws IOException Thrown if an I/O error occurs whilst serializing the recipe
      */
-    public abstract void serialize( PacketBuffer buffer, PacketDataOutputStream intermediate ) throws IOException;
+    public abstract void serialize( PacketBuffer buffer );
 
 }

@@ -7,18 +7,12 @@
 
 package io.gomint.server.crafting;
 
-import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
-import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketCraftingRecipes;
+import io.gomint.server.util.BatchUtil;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.zip.Deflater;
+import java.util.*;
 
 /**
  * Helper class used to manage all available crafting recipes.
@@ -30,6 +24,7 @@ public class RecipeManager {
 
     private final GoMintServer server;
     private Set<Recipe> recipes;
+    private Map<UUID, Recipe> lookup;
 
     private Packet batchPacket;
     private boolean dirty;
@@ -42,6 +37,7 @@ public class RecipeManager {
     public RecipeManager( GoMintServer server ) {
         this.server = server;
         this.recipes = new HashSet<>();
+        this.lookup = new HashMap<>();
         this.dirty = true;
     }
 
@@ -55,38 +51,8 @@ public class RecipeManager {
         if ( this.dirty ) {
             PacketCraftingRecipes recipes = new PacketCraftingRecipes();
             recipes.setRecipes( this.recipes );
-            PacketBuffer buffer = new PacketBuffer( 16384 );
-            buffer.writeByte( recipes.getId() );
-            recipes.serialize( buffer );
 
-            byte[] rawData;
-
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            try ( DataOutputStream dout = new DataOutputStream( bout ) ) {
-                dout.writeInt( buffer.getPosition() - buffer.getBufferOffset() );
-                dout.write( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
-                dout.flush();
-
-                rawData = bout.toByteArray();
-            } catch ( IOException e ) {
-                throw new RuntimeException( "Failed to batch crafting recipes!" );
-            }
-
-            Deflater deflater = new Deflater();
-            deflater.setInput( rawData );
-            deflater.finish();
-
-            bout.reset();
-            byte[] intermediate = new byte[1024];
-            while ( !deflater.finished() ) {
-                int read = deflater.deflate( intermediate );
-                bout.write( intermediate, 0, read );
-            }
-
-            PacketBatch batch = new PacketBatch();
-            batch.setPayload( bout.toByteArray() );
-
-            this.batchPacket = batch;
+            this.batchPacket = BatchUtil.batch( recipes );
             this.dirty = false;
         }
 
@@ -101,7 +67,22 @@ public class RecipeManager {
      */
     public void registerRecipe( Recipe recipe ) {
         this.recipes.add( recipe );
+
+        if ( recipe.getUUID() != null ) {
+            this.lookup.put( recipe.getUUID(), recipe );
+        }
+
         this.dirty = true;
+    }
+
+    /**
+     * Get the stored recipe by its id
+     *
+     * @param recipeId  The id we should lookup
+     * @return either null when no recipe was found or the recipe
+     */
+    public Recipe getRecipe( UUID recipeId ) {
+        return this.lookup.get( recipeId );
     }
 
 }

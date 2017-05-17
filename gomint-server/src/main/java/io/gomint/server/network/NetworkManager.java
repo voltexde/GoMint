@@ -7,9 +7,12 @@
 
 package io.gomint.server.network;
 
+import io.gomint.event.network.PingEvent;
 import io.gomint.jraknet.*;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
+import lombok.Getter;
+import lombok.Setter;
 import net.openhft.koloboke.collect.LongCursor;
 import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
@@ -46,6 +49,10 @@ public class NetworkManager {
     // Packet Dumping
     private boolean dump;
     private File dumpDirectory;
+
+    // Motd
+    @Getter @Setter
+    private String motd;
 
     // Internal ticking
     private long currentTickMillis;
@@ -157,24 +164,6 @@ public class NetworkManager {
     }
 
     /**
-     * Gets the MOTD to be sent inside server pongs.
-     *
-     * @return The motd to be sent inside server pongs
-     */
-    public String getMotd() {
-        return this.socket.getMotd();
-    }
-
-    /**
-     * Sets the MOTD to be sent inside server pongs.
-     *
-     * @param motd The motd to be sent inside server pongs
-     */
-    public void setMotd( String motd ) {
-        this.socket.setMotd( motd );
-    }
-
-    /**
      * Broadcasts the given packet to all players. Yields the same effect as invoking
      * {@link #broadcast(PacketReliability, int, Packet)} with {@link PacketReliability#RELIABLE} and
      * orderingChannel set to zero.
@@ -250,9 +239,22 @@ public class NetworkManager {
                 this.handleConnectionClosed( event.getConnection() );
                 break;
 
+            case UNCONNECTED_PING:
+                this.handleUnconnectedPing( event );
+                break;
+
             default:
                 break;
         }
+    }
+
+    private void handleUnconnectedPing( SocketEvent event ) {
+        // Fire ping event so plugins can modify the motd and player amounts
+        PingEvent pingEvent = this.server.getPluginManager().callEvent(
+                new PingEvent( this.server.getMotd(), this.server.getAmountOfPlayers(), this.server.getServerConfig().getMaxPlayers() )
+        );
+
+        event.getPingPongInfo().setMotd( "MCPE;" + pingEvent.getMotd() + ";" + Protocol.MINECRAFT_PE_PROTOCOL_VERSION + ";" + Protocol.MINECRAFT_PE_NETWORK_VERSION + ";" + pingEvent.getOnlinePlayers() + ";" + pingEvent.getMaxPlayers() );
     }
 
     /**

@@ -24,7 +24,7 @@ public class PacketMobEquipment extends Packet {
     @Override
     public void serialize( PacketBuffer buffer ) {
         buffer.writeUnsignedVarLong( this.entityId );
-        writeItemStack( this.stack, buffer );
+        writeItemStack( this.stack, buffer, false );
         buffer.writeByte( this.slot );
         buffer.writeByte( this.selectedSlot );
         buffer.writeByte( this.unknown );

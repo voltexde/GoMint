@@ -33,6 +33,9 @@ public class ServerConfig extends SimpleConfig {
     @Comment( "If you want to allow non XBOX logged in users to join this server set this to false" )
     private boolean onlyXBOXLogin = true;
 
+    @Comment( "Motd of this server" )
+    private String motd = "§aGoMint §7Development Build";
+
     // ------------------------ Packet Dumping
     @Comment( "Enables packet dumping for development purposes; not to be used for production" )
     private boolean enablePacketDumping = false;

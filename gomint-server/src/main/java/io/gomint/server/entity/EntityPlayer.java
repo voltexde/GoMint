@@ -8,16 +8,18 @@
 package io.gomint.server.entity;
 
 import io.gomint.entity.Player;
+import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.Material;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
-import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.PlayerInventory;
+import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketSetGamemode;
 import io.gomint.server.network.packet.PacketUpdateAttributes;
 import io.gomint.server.player.PlayerSkin;
-import io.gomint.server.util.EnumConnector;
-import io.gomint.server.world.GamemodeMagicNumbers;
+import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
@@ -39,10 +41,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @EqualsAndHashCode( callSuper = false, of = { "uuid" } )
-public class EntityPlayer extends EntityLiving implements Player {
-
-    // Enum converters
-    private static final EnumConnector<Gamemode, GamemodeMagicNumbers> GAMEMODE_CONNECTOR = new EnumConnector<>( Gamemode.class, GamemodeMagicNumbers.class );
+public class EntityPlayer extends EntityLiving implements Player, InventoryHolder {
 
     private final PlayerConnection connection;
     private int viewDistance;
@@ -61,6 +60,7 @@ public class EntityPlayer extends EntityLiving implements Player {
 
     // Inventory
     private PlayerInventory inventory;
+    @Setter @Getter private TransactionGroup transactions;
 
     // Block break data
     @Setter @Getter private Vector breakVector;
@@ -85,7 +85,6 @@ public class EntityPlayer extends EntityLiving implements Player {
         this.uuid = uuid;
         this.viewDistance = this.world.getServer().getServerConfig().getViewDistance();
         this.adventureSettings = new AdventureSettings( this );
-        this.inventory = new PlayerInventory( this );
         this.initAttributes();
     }
 
@@ -147,7 +146,7 @@ public class EntityPlayer extends EntityLiving implements Player {
     }
 
     private void updateGamemode() {
-        int gameModeNumber = GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
+        int gameModeNumber = EnumConnectors.GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
 
         PacketSetGamemode packetSetGamemode = new PacketSetGamemode();
         packetSetGamemode.setGameMode( gameModeNumber & 0x01 );
@@ -246,6 +245,18 @@ public class EntityPlayer extends EntityLiving implements Player {
         if ( updateAttributes != null ) {
             this.connection.send( updateAttributes );
         }
+    }
+
+    public void fullyInit() {
+        this.inventory = new PlayerInventory( this );
+
+        // Testing items
+        this.inventory.setItem( 0, new ItemStack( Material.WOOD_PLANKS, 12 ) );
+        this.inventory.setItem( 1, new ItemStack( Material.ACACIA_DOOR ) );
+        this.inventory.setItem( 2, new ItemStack( Material.DIAMOND_CHESTPLATE ) );
+
+        // Send crafting recipes
+        this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
     }
 
 }

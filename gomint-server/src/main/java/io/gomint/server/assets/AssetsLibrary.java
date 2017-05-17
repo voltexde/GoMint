@@ -8,11 +8,14 @@
 package io.gomint.server.assets;
 
 import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.Material;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.ShapedRecipe;
 import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.crafting.SmeltingRecipe;
+import io.gomint.server.inventory.MaterialMagicNumbers;
+import io.gomint.server.util.EnumConnectors;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,7 +171,7 @@ public class AssetsLibrary {
     private ItemStack loadItemStack( PacketBuffer buffer ) throws IOException {
         short id = buffer.readShort();
         if ( id == 0 ) {
-            return new ItemStack( 0, (short) 0, 0, null );
+            return new ItemStack( Material.AIR, (short) 0, 0, null );
         }
         byte amount = buffer.readByte();
         short data = buffer.readShort();
@@ -181,7 +184,7 @@ public class AssetsLibrary {
             bin.close();
         }
 
-        return new ItemStack( id, data, amount, compound );
+        return new ItemStack( EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( id ) ), data, amount, compound );
     }
 
 }

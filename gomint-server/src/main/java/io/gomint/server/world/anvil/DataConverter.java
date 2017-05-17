@@ -13,6 +13,7 @@ import java.util.Map;
 public class DataConverter {
 
     private Map<Integer, Pair<Integer, Converter>> converter = new HashMap<>();
+    private Pair<Integer, Byte> convertedValue = new Pair<>( 0, (byte) 1 );
 
     public DataConverter() {
         addConverter( 36, 250, ( b, m ) -> m );                                                                                 // Piston extension
@@ -91,9 +92,13 @@ public class DataConverter {
     Pair<Integer, Byte> convert( int blockId, byte metaData ) {
         Pair<Integer, Converter> converterPair = this.converter.get( blockId );
         if ( converterPair == null ) {
-            return new Pair<>( blockId, metaData );
+            this.convertedValue.setFirst( blockId );
+            this.convertedValue.setSecond( metaData );
+            return this.convertedValue;
         } else {
-            return new Pair<>( converterPair.getFirst(), converterPair.getSecond().convert( blockId, metaData ) );
+            this.convertedValue.setFirst( converterPair.getFirst() );
+            this.convertedValue.setSecond( converterPair.getSecond().convert( blockId, metaData ) );
+            return this.convertedValue;
         }
     }
 

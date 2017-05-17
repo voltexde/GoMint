@@ -9,9 +9,8 @@ package io.gomint.server.crafting;
 
 import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.util.PacketDataOutputStream;
+import io.gomint.server.network.packet.Packet;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
@@ -42,21 +41,20 @@ public class ShapelessRecipe extends CraftingRecipe {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer, PacketDataOutputStream intermediate ) throws IOException {
-        intermediate.writeInt( this.ingredients.length );
-        for ( int i = 0; i < this.ingredients.length; ++i ) {
-            intermediate.writeItemStack( this.ingredients[i] );
-        }
-        intermediate.writeInt( this.outcome.length );
-        for ( int i = 0; i < this.outcome.length; ++i ) {
-            intermediate.writeItemStack( this.outcome[i] );
-        }
-        intermediate.writeUUID( this.getUUID() );
+    public void serialize( PacketBuffer buffer ) {
+        buffer.writeSignedVarInt( 0 );
 
-        byte[] recipeData = intermediate.toByteArray();
-        buffer.writeInt( 0 );
-        buffer.writeInt( recipeData.length );
-        buffer.writeBytes( recipeData );
+        buffer.writeUnsignedVarInt( this.ingredients.length );
+        for ( ItemStack ingredient : this.ingredients ) {
+            Packet.writeItemStack( ingredient, buffer, false );
+        }
+
+        buffer.writeUnsignedVarInt( this.outcome.length );
+        for ( ItemStack itemStack : this.outcome ) {
+            Packet.writeItemStack( itemStack, buffer, false );
+        }
+
+        buffer.writeUUID( this.getUUID() );
     }
 
 	/*                      Left in here for later reference

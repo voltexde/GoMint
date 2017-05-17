@@ -22,6 +22,9 @@ public class EnumConnector<E1 extends Enum<E1>, E2 extends Enum<E2>> {
     }
 
     public E2 convert( E1 e1 ) {
+        // Null safety
+        if ( e1 == null ) return null;
+
         String name = e1.name();
 
         for ( E2 enumTwoConstant : this.enumTwoConstants ) {
@@ -34,6 +37,9 @@ public class EnumConnector<E1 extends Enum<E1>, E2 extends Enum<E2>> {
     }
 
     public E1 revert( E2 e2 ) {
+        // Null safety
+        if ( e2 == null ) return null;
+
         String name = e2.name();
 
         for ( E1 enumOneConstant : this.enumOneConstants ) {

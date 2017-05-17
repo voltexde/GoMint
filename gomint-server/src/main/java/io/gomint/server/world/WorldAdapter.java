@@ -18,10 +18,8 @@ import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
-import io.gomint.server.scheduler.TaskList;
 import io.gomint.server.util.BatchUtil;
-import io.gomint.server.util.ByteUtil;
-import io.gomint.server.util.EnumConnector;
+import io.gomint.server.util.EnumConnectors;
 import io.gomint.world.Gamerule;
 import io.gomint.world.Sound;
 import io.gomint.world.World;
@@ -32,13 +30,10 @@ import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.zip.Deflater;
 
 /**
  * @author BlackyPaw
@@ -47,9 +42,6 @@ import java.util.zip.Deflater;
 public abstract class WorldAdapter implements World {
 
     // CHECKSTYLE:OFF
-    // Static enum converters
-    private static final EnumConnector<Sound, SoundMagicNumbers> soundEnumConverter = new EnumConnector<>( Sound.class, SoundMagicNumbers.class );
-
     // Calculators for light
     @Getter
     private static final BlocklightCalculator blockLightCalculator = new BlocklightCalculator();
@@ -76,7 +68,6 @@ public abstract class WorldAdapter implements World {
     protected TickList tickQueue = new TickList();
 
     // I/O
-    private Deflater deflater;
     private boolean asyncWorkerRunning;
     private BlockingQueue<AsyncChunkTask> asyncChunkTasks;
     private Queue<AsyncChunkPackageTask> chunkPackageTasks;
@@ -90,7 +81,6 @@ public abstract class WorldAdapter implements World {
         this.worldDir = worldDir;
         this.entityManager = new EntityManager( this );
         this.players = HashObjObjMaps.newMutableMap();
-        this.deflater = new Deflater( Deflater.DEFAULT_COMPRESSION );
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
         this.startAsyncWorker( server.getExecutorService() );
@@ -108,6 +98,11 @@ public abstract class WorldAdapter implements World {
         return players;
     }
 
+    /**
+     * Get a collection (set) of all players online on this world
+     *
+     * @return collection of all players online on this world
+     */
     public Collection<Player> getPlayers() {
         Collection<Player> playerReturn = new HashSet<>();
         playerReturn.addAll( players.keySet() );
@@ -117,7 +112,7 @@ public abstract class WorldAdapter implements World {
     @Override
     public void playSound( Location location, Sound sound, byte pitch, int extraData ) {
         PacketWorldSoundEvent soundPacket = new PacketWorldSoundEvent();
-        soundPacket.setType( soundEnumConverter.convert( sound ) );
+        soundPacket.setType( EnumConnectors.SOUND_CONNECTOR.convert( sound ) );
         soundPacket.setPitch( pitch );
         soundPacket.setExtraData( extraData );
         soundPacket.setPosition( location );
@@ -158,6 +153,12 @@ public abstract class WorldAdapter implements World {
         return chunk.getBlockAt( x & 0xF, y, z & 0xF );
     }
 
+    /**
+     * Set the block light of the block given by the vector
+     *
+     * @param vector     The position of the block
+     * @param lightLevel The new block light level to set
+     */
     public void setBlockLight( Vector vector, byte lightLevel ) {
         int x = (int) vector.getX();
         int y = (int) vector.getY();
@@ -172,6 +173,12 @@ public abstract class WorldAdapter implements World {
         chunk.setBlockLight( x & 0xF, y, z & 0xF, lightLevel );
     }
 
+    /**
+     * Set the block id for the given location
+     *
+     * @param vector  Position of the block
+     * @param blockId The new block id
+     */
     public void setBlockId( Vector vector, int blockId ) {
         int x = (int) vector.getX();
         int y = (int) vector.getY();
@@ -186,6 +193,12 @@ public abstract class WorldAdapter implements World {
         chunk.setBlock( x & 0xF, y, z & 0xF, blockId );
     }
 
+    /**
+     * Set the data byte for the given block
+     *
+     * @param vector Position of the block
+     * @param data   The new data of the block
+     */
     public void setBlockData( Vector vector, byte data ) {
         int x = (int) vector.getX();
         int y = (int) vector.getY();
@@ -230,6 +243,7 @@ public abstract class WorldAdapter implements World {
             // Get the block
             Block block = getBlockAt( CoordinateUtils.fromLong( blockToUpdate ) );
             if ( block != null ) {
+                // CHECKSTYLE:OFF
                 try {
                     io.gomint.server.world.block.Block block1 = (io.gomint.server.world.block.Block) block;
                     long next = block1.update( currentTimeMS, dT );
@@ -246,6 +260,7 @@ public abstract class WorldAdapter implements World {
                 } catch ( Exception e ) {
                     logger.error( "Error whilst ticking block @ " + blockToUpdate, e );
                 }
+                // CHECKSTYLE:ON
             }
         }
 
@@ -572,30 +587,6 @@ public abstract class WorldAdapter implements World {
         }
     }
 
-    public void broadCastToChunk( int chunkX, int chunkZ, PacketReliability reliability, int orderingChannel, Packet packet ) {
-        // Avoid duplicate arrays containing the very same data:
-        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-        buffer.writeByte( (byte) 0xFE );
-        buffer.writeByte( packet.getId() );
-        packet.serialize( buffer );
-
-        // Avoid duplicate array copies:
-        byte[] payload;
-
-        if ( buffer.getRemaining() == 0 ) {
-            payload = buffer.getBuffer();
-        } else {
-            payload = new byte[buffer.getPosition() - buffer.getBufferOffset()];
-            System.arraycopy( buffer.getBuffer(), buffer.getBufferOffset(), payload, 0, buffer.getPosition() - buffer.getBufferOffset() );
-        }
-
-        // Send directly:
-        ChunkAdapter adapter = getChunk( chunkX, chunkZ );
-        for ( EntityPlayer player : adapter.getPlayers() ) {
-            player.getConnection().getConnection().send( reliability, orderingChannel, payload );
-        }
-    }
-
     // ==================================== ASYNCHRONOUS WORKER ==================================== //
 
     /**
@@ -665,12 +656,31 @@ public abstract class WorldAdapter implements World {
     public void updateBlock( Vector pos ) {
         io.gomint.server.world.block.Block block = getBlockAt( pos );
 
+        // Update the block
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( pos );
         updateBlock.setBlockId( block.getBlockId() );
         updateBlock.setPrioAndMetadata( (byte) ( 0xb << 4 | ( block.getBlockData() & 0xf ) ) );
 
-        broadCastToChunk( CoordinateUtils.fromBlockToChunk( (int) pos.getX() ), CoordinateUtils.fromBlockToChunk( (int) pos.getZ() ), PacketReliability.RELIABLE, 0, updateBlock );
+        broadcast( PacketReliability.RELIABLE, 0, updateBlock );
+
+        // Check for tile entity
+        if ( block.getTileEntity() != null ) {
+            PacketTileEntityData tileEntityData = new PacketTileEntityData();
+            tileEntityData.setPosition( pos );
+            tileEntityData.setTileEntity( block.getTileEntity() );
+
+            broadcast( PacketReliability.RELIABLE, 0, tileEntityData );
+        }
+    }
+
+    /**
+     * Get the amount of players online on this world
+     *
+     * @return amount of players online on this world
+     */
+    public int getAmountOfPlayers() {
+        return players.size();
     }
 
 }

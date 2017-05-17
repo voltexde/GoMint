@@ -7,6 +7,8 @@
 
 package io.gomint.server.util;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,9 +16,9 @@ import lombok.RequiredArgsConstructor;
  * @author geNAZt
  * @version 1.0
  */
-@RequiredArgsConstructor
-@Getter
+@AllArgsConstructor
+@Data
 public class Pair<A, B> {
-    private final A first;
-    private final B second;
+    private A first;
+    private B second;
 }

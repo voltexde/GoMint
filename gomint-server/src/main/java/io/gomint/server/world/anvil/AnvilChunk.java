@@ -269,7 +269,9 @@ class AnvilChunk extends ChunkAdapter {
             e.printStackTrace();
         }
 
-        sections.add( currentSectionCache[0] );
+        if ( currentSectionCache[0].getBlocks() != null ) {
+            sections.add( currentSectionCache[0] );
+        }
 
         // Load sections
         for ( SectionCache section : sections ) {

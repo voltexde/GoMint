@@ -1,6 +1,11 @@
 package io.gomint.server.inventory;
 
 import io.gomint.inventory.ItemStack;
+import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.packet.PacketMobArmorEquipment;
+import lombok.Getter;
+
+import java.util.Arrays;
 
 /**
  * @author geNAZt
@@ -8,35 +13,71 @@ import io.gomint.inventory.ItemStack;
  *          <p>
  *          Inventory for any type of mob. This holds additional Armor Contents
  */
-public abstract class MobInventory extends Inventory {
+public class MobInventory extends Inventory {
 
-    protected ItemStack[] armorContents;
+    @Getter
+    protected int originalSize;
 
-    protected MobInventory( int size ) {
-        super( size );
-        this.armorContents = new ItemStack[4];
+    public MobInventory( InventoryHolder inventoryHolder, int size ) {
+        super( inventoryHolder, size + 4 );
+        this.originalSize = size;
     }
 
     public void setHelmet( ItemStack itemStack ) {
-        this.armorContents[0] = itemStack;
-        this.sendArmor( 0 );
+        this.setItem( originalSize, itemStack );
     }
 
     public void setChestplate( ItemStack itemStack ) {
-        this.armorContents[1] = itemStack;
-        this.sendArmor( 1 );
+        this.setItem( originalSize + 1, itemStack );
     }
 
     public void setLeggings( ItemStack itemStack ) {
-        this.armorContents[2] = itemStack;
-        this.sendArmor( 2 );
+        this.setItem( originalSize + 2, itemStack );
     }
 
     public void setBoots( ItemStack itemStack ) {
-        this.armorContents[3] = itemStack;
-        this.sendArmor( 3 );
+        this.setItem( originalSize + 3, itemStack );
     }
 
-    protected abstract void sendArmor( int slot );
+    public ItemStack[] getContents() {
+        return Arrays.copyOf( this.contents, this.originalSize );
+    }
+
+    @Override
+    public int getSize() {
+        return this.originalSize;
+    }
+
+    public void setItem( int index, ItemStack item ) {
+        this.contents[index] = item;
+
+        if ( index < this.originalSize ) {
+            for ( PlayerConnection playerConnection : this.viewer ) {
+                this.sendContents( index, playerConnection );
+            }
+        }
+    }
+
+    @Override
+    public void sendContents( PlayerConnection playerConnection ) {
+        PacketMobArmorEquipment armorEquipment = new PacketMobArmorEquipment();
+        armorEquipment.setHelmet( this.contents[originalSize] );
+        armorEquipment.setChestplate( this.contents[originalSize + 1] );
+        armorEquipment.setLeggings( this.contents[originalSize + 2] );
+        armorEquipment.setBoots( this.contents[originalSize + 3] );
+        playerConnection.addToSendQueue( armorEquipment );
+    }
+
+    @Override
+    public void sendContents( int slot, PlayerConnection playerConnection ) {
+        if ( slot > originalSize ) {
+            PacketMobArmorEquipment armorEquipment = new PacketMobArmorEquipment();
+            armorEquipment.setHelmet( this.contents[originalSize] );
+            armorEquipment.setChestplate( this.contents[originalSize + 1] );
+            armorEquipment.setLeggings( this.contents[originalSize + 2] );
+            armorEquipment.setBoots( this.contents[originalSize + 3] );
+            playerConnection.addToSendQueue( armorEquipment );
+        }
+    }
 
 }

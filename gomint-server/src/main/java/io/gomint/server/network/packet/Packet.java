@@ -8,13 +8,18 @@
 package io.gomint.server.network.packet;
 
 import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.Material;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.inventory.MaterialMagicNumbers;
+import io.gomint.server.util.EnumConnectors;
 import io.gomint.taglib.NBTTagCompound;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author BlackyPaw
@@ -72,10 +77,10 @@ public abstract class Packet {
         return 0;
     }
 
-    protected ItemStack readItemStack( PacketBuffer buffer ) {
+    public static ItemStack readItemStack( PacketBuffer buffer ) {
         int id = buffer.readSignedVarInt();
         if ( id == 0 ) {
-            return new ItemStack( 0, (short) 0, 0, null );
+            return new ItemStack( Material.AIR, (short) 0, 0, null );
         }
 
         int temp = buffer.readSignedVarInt();
@@ -95,24 +100,25 @@ public abstract class Packet {
             buffer.skip( extraLen );
         }
 
-        return new ItemStack( id, data, amount, nbt );
+        return new ItemStack( EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( id ) ), data, amount, nbt );
     }
 
-    protected void writeItemStack( ItemStack itemStack, PacketBuffer buffer ) {
-        if ( itemStack == null || itemStack.getId() <= 0 ) {
+    public static void writeItemStack( ItemStack itemStack, PacketBuffer buffer, boolean secure ) {
+        if ( itemStack == null || itemStack.getMaterial() == Material.AIR ) {
             buffer.writeSignedVarInt( 0 );
             return;
         }
 
-        buffer.writeSignedVarInt( itemStack.getId() );
+        buffer.writeSignedVarInt( EnumConnectors.MATERIAL_CONNECTOR.convert( itemStack.getMaterial() ).getOldId() );
         buffer.writeSignedVarInt( ( itemStack.getData() << 8 ) + ( itemStack.getAmount() & 0xff ) );
 
-        if ( itemStack.getNbtData() == null ) {
+        NBTTagCompound compound = itemStack.getNbtData();
+        if ( compound == null ) {
             buffer.writeLShort( (short) 0 );
         } else {
             try {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                itemStack.getNbtData().writeTo( byteArrayOutputStream, false, ByteOrder.LITTLE_ENDIAN );
+                compound.writeTo( byteArrayOutputStream, false, ByteOrder.LITTLE_ENDIAN );
                 buffer.writeLShort( (short) byteArrayOutputStream.size() );
                 buffer.writeBytes( byteArrayOutputStream.toByteArray() );
             } catch ( IOException e ) {
@@ -120,6 +126,107 @@ public abstract class Packet {
                 buffer.writeLShort( (short) 0 );
             }
         }
+    }
+
+    public static void writeItemStacks( ItemStack[] itemStacks, PacketBuffer buffer, boolean secure ) {
+        if ( itemStacks == null || itemStacks.length == 0 ) {
+            buffer.writeUnsignedVarInt( 0 );
+            return;
+        }
+
+        buffer.writeUnsignedVarInt( itemStacks.length );
+
+        for ( ItemStack itemStack : itemStacks ) {
+            writeItemStack( itemStack, buffer, secure );
+        }
+    }
+
+    public static List<ItemStack> readItemStacks( PacketBuffer buffer ) {
+        int count = buffer.readUnsignedVarInt();
+        List<ItemStack> itemStacks = new ArrayList<>( count );
+
+        for ( int i = 0; i < count; i++ ) {
+            itemStacks.add( readItemStack( buffer ) );
+        }
+
+        return itemStacks;
+    }
+
+    public static void writeIntList( int[] integers, PacketBuffer buffer ) {
+        if ( integers == null || integers.length == 0 ) {
+            buffer.writeUnsignedVarInt( 0 );
+            return;
+        }
+
+        buffer.writeUnsignedVarInt( integers.length );
+
+        for ( Integer integer : integers ) {
+            buffer.writeSignedVarInt( integer );
+        }
+    }
+
+    public static int predictItemStack( ItemStack itemStack ) {
+        if ( itemStack == null || itemStack.getMaterial() == Material.AIR ) {
+            return predictSignedVarInt( 0 );
+        }
+
+        int idSize = predictSignedVarInt( EnumConnectors.MATERIAL_CONNECTOR.convert( itemStack.getMaterial() ).getOldId() );
+        int dataSize = predictSignedVarInt( ( itemStack.getData() << 8 ) + ( itemStack.getAmount() & 0xff ) );
+
+        NBTTagCompound compound = itemStack.getNbtData();
+        if ( compound == null ) {
+            return idSize + dataSize + 2;
+        } else {
+            try {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                compound.writeTo( byteArrayOutputStream, false, ByteOrder.LITTLE_ENDIAN );
+
+                return idSize + dataSize + 2 + byteArrayOutputStream.size();
+            } catch ( IOException e ) {
+                return idSize + dataSize + 2;
+            }
+        }
+    }
+
+    public static int predictSignedVarInt( int v ) {
+        long val = (long) ( v << 1 ^ v >> 31 );
+        return predictVarLongSize( val );
+    }
+
+    /**
+     * Predict the byte size of the variable number representation
+     *
+     * @param input the number to predict
+     * @return the amount of bytes
+     */
+    public static int predictVarIntSize( int input ) {
+        int size = 1;
+        int value = input;
+
+        while ( ( value & -128 ) != 0 ) {
+            value >>>= 7;
+            size++;
+        }
+
+        return size;
+    }
+
+    /**
+     * Predict the byte size of the variable number representation
+     *
+     * @param input the number to predict
+     * @return the amount of bytes
+     */
+    public static int predictVarLongSize( long input ) {
+        int size = 1;
+        long value = input;
+
+        while ( ( value & -128 ) != 0 ) {
+            value >>>= 7;
+            size++;
+        }
+
+        return size;
     }
 
 }

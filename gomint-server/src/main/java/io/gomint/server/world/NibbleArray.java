@@ -43,11 +43,9 @@ public class NibbleArray {
      * @param value The value to set
      */
     public void set( int index, byte value ) {
-        if ( index % 2 == 0 ) {
-            this.data[index / 2] = (byte) ( ( value & 0x0F ) | this.data[index / 2] );
-        } else {
-            this.data[index / 2] = (byte) ( ( ( value << 4 ) & 0xF0 ) | this.data[index / 2] );
-        }
+        value &= 0xF;
+        this.data[index / 2] &= (byte) ( 0xF << ( ( index + 1 ) % 2 * 4 ) );
+        this.data[index / 2] |= (byte) ( value << ( index % 2 * 4 ) );
     }
 
     /**
@@ -57,7 +55,7 @@ public class NibbleArray {
      * @return The nibble's value
      */
     public byte get( int index ) {
-        return (byte) ( index % 2 == 0 ? this.data[index / 2] & 0x0F : ( this.data[index / 2] >> 4 ) & 0x0F );
+        return (byte) ( this.data[index / 2] >> ( ( index ) % 2 * 4 ) & 0xF );
     }
 
     /**

@@ -106,6 +106,10 @@ class ChunkSlice {
     }
 
     byte getData( int x, int y, int z ) {
+        if ( this.data == null ) {
+            return 0;
+        }
+
         return this.data.get( getIndex( x, y, z ) );
     }
 

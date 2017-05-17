@@ -13,14 +13,14 @@ import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.ShapedRecipe;
 import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.crafting.SmeltingRecipe;
+import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.network.Protocol;
-import io.gomint.server.util.PacketDataOutputStream;
+import io.gomint.server.util.EnumConnectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.UUID;
 
 /**
@@ -39,115 +39,107 @@ public class PacketCraftingRecipes extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        PacketDataOutputStream pout = new PacketDataOutputStream();
-        buffer.writeInt( this.recipes.size() );
-        try {
-            for ( Recipe recipe : this.recipes ) {
-                recipe.serialize( buffer, pout );
-                pout.reset();
-            }
-            pout.close();
-        } catch ( IOException e ) {
-            e.printStackTrace();
+        buffer.writeUnsignedVarInt( this.recipes.size() );
+
+        for ( Recipe recipe : this.recipes ) {
+            recipe.serialize( buffer );
         }
+
         buffer.writeByte( (byte) 1 ); // Unknown use
     }
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        int count = buffer.readInt();
-        this.recipes = new HashSet<>( count );
-        for ( int i = 0; i < count; ++i ) {
-            int type = buffer.readInt();
-            int length = buffer.readInt();
+        this.recipes = new ArrayList<>();
 
-            switch ( type ) {
+        int count = buffer.readUnsignedVarInt();
+        for ( int i = 0; i < count; i++ ) {
+            int recipeType = buffer.readSignedVarInt();
+            if ( recipeType < 0 ) {
+                continue;
+            }
+
+            switch ( recipeType ) {
                 case 0:
-                    // Shapeless Recipe:
-                    this.recipes.add( this.readShapelessRecipe( buffer ) );
-                    break;
+                    // Shapeless
 
+                    // Read input side
+                    int inputCount = buffer.readUnsignedVarInt();
+                    ItemStack[] input = new ItemStack[inputCount];
+                    for ( int i1 = 0; i1 < inputCount; i1++ ) {
+                        input[i1] = Packet.readItemStack( buffer );
+                    }
+
+                    // Read output side
+                    int outputCount = buffer.readUnsignedVarInt();
+                    ItemStack[] output = new ItemStack[outputCount];
+                    for ( int i1 = 0; i1 < outputCount; i1++ ) {
+                        output[i1] = Packet.readItemStack( buffer );
+                    }
+
+                    // Read uuid
+                    UUID uuid = buffer.readUUID();
+                    this.recipes.add( new ShapelessRecipe( input, output, uuid ) );
+                    break;
                 case 1:
-                    // Shaped Recipe:
-                    this.recipes.add( this.readShapedRecipe( buffer ) );
+                    // Shaped
+
+                    // Read size of shape
+                    int width = buffer.readSignedVarInt();
+                    int height = buffer.readSignedVarInt();
+
+                    // Read input side
+                    input = new ItemStack[width * height];
+                    for ( int w = 0; w < width; w++ ) {
+                        for ( int h = 0; h < height; h++ ) {
+                            input[ h * width + w] = Packet.readItemStack( buffer );
+                        }
+                    }
+
+                    // Read output side
+                    outputCount = buffer.readUnsignedVarInt();
+                    output = new ItemStack[outputCount];
+                    for ( int i1 = 0; i1 < outputCount; i1++ ) {
+                        output[i1] = Packet.readItemStack( buffer );
+                    }
+
+                    // Read uuid
+                    uuid = buffer.readUUID();
+                    this.recipes.add( new ShapedRecipe( width, height, input, output, uuid ) );
                     break;
 
                 case 2:
-                    // Smelting Recipe:
-                    this.recipes.add( this.readSmeltingRecipe2( buffer ) );
+                    // Smelting with metadata
+
+                    int id = buffer.readSignedVarInt();
+                    short data = (short) buffer.readSignedVarInt();
+                    ItemStack result = Packet.readItemStack( buffer );
+
+                    this.recipes.add( new SmeltingRecipe( new ItemStack( EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( id ) ), data, -1 ), result, null ) );
                     break;
 
                 case 3:
-                    // Smelting Recipe:
-                    this.recipes.add( this.readSmeltingRecipe3( buffer ) );
-                    break;
+                    // Smelting without metadata
 
-                default:
-                    // Whatever:
-                    buffer.skip( length );
+                    id = buffer.readSignedVarInt();
+                    result = Packet.readItemStack( buffer );
+
+                    this.recipes.add( new SmeltingRecipe( new ItemStack( EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( id ) ), -1 ), result, null ) );
                     break;
             }
         }
-        buffer.skip( 1 ); // Unknown use
-    }
 
-    private ShapelessRecipe readShapelessRecipe( PacketBuffer buffer ) {
-        int count = buffer.readInt();
+        for ( Recipe recipe : this.recipes ) {
+            System.out.println( "Input" );
+            for ( ItemStack itemStack : recipe.getIngredients() ) {
+                System.out.println( itemStack );
+            }
 
-        ItemStack[] ingredients = new ItemStack[count];
-        for ( int i = 0; i < count; ++i ) {
-            ingredients[i] = this.readItemStack( buffer );
+            System.out.println( "Output" );
+            for ( ItemStack itemStack : recipe.createResult() ) {
+                System.out.println( itemStack );
+            }
         }
-
-        count = buffer.readInt();
-        ItemStack[] outcome = new ItemStack[count];
-        for ( int i = 0; i < count; ++i ) {
-            outcome[i] = this.readItemStack( buffer );
-        }
-        UUID uuid = buffer.readUUID();
-
-        return new ShapelessRecipe( ingredients, outcome, uuid );
     }
-
-    private ShapedRecipe readShapedRecipe( PacketBuffer buffer ) {
-        int width = buffer.readInt();
-        int height = buffer.readInt();
-
-        ItemStack[] arrangement = new ItemStack[width * height];
-        for ( int i = 0; i < width * height; ++i ) {
-            arrangement[i] = this.readItemStack( buffer );
-        }
-
-        int count = buffer.readInt();
-        ItemStack[] outcome = new ItemStack[count];
-        for ( int i = 0; i < count; ++i ) {
-            outcome[i] = this.readItemStack( buffer );
-        }
-        UUID uuid = buffer.readUUID();
-
-        return new ShapedRecipe( width, height, arrangement, outcome, uuid );
-    }
-
-    private SmeltingRecipe readSmeltingRecipe2( PacketBuffer buffer ) {
-        // Read metadata first:
-        short metadata = buffer.readShort();
-        short id = buffer.readShort();
-        return this.readSmeltingRecipeBase( buffer, id, metadata );
-    }
-
-    private SmeltingRecipe readSmeltingRecipe3( PacketBuffer buffer ) {
-        // Read ID first:
-        short id = buffer.readShort();
-        short metadata = buffer.readShort();
-        return this.readSmeltingRecipeBase( buffer, id, metadata );
-    }
-
-    private SmeltingRecipe readSmeltingRecipeBase( PacketBuffer buffer, short id, short metadata ) {
-        ItemStack input = new ItemStack( id, metadata, 1 );
-        ItemStack outcome = this.readItemStack( buffer );
-
-        return new SmeltingRecipe( input, outcome, null );
-    }
-
 
 }

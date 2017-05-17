@@ -46,4 +46,8 @@ public class PacketWorldSoundEvent extends Packet {
         this.unknownBool2 = buffer.readBoolean();
     }
 
+    @Override
+    public int estimateLength() {
+        return 1 + 4 + 4 + 4 + predictSignedVarInt( this.extraData ) + predictSignedVarInt( this.pitch ) + 2;
+    }
 }

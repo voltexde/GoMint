@@ -46,7 +46,7 @@ public class PacketUseItem extends Packet {
         buffer.writeLFloat( this.playerPosition.getZ() );
 
         buffer.writeSignedVarInt( this.slot );
-        writeItemStack( this.item, buffer );
+        writeItemStack( this.item, buffer, false );
     }
 
     @Override

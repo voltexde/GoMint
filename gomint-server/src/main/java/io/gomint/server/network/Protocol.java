@@ -15,8 +15,12 @@ import io.gomint.server.network.packet.*;
  */
 public final class Protocol {
 
-    // ========================================= PACKET IDS ========================================= //
     // CHECKSTYLE:OFF
+    // MC:PE Protocol ID
+    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 107;
+    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.0.5";
+
+    // ========================================= PACKET IDS ========================================= //
     public static final byte PACKET_LOGIN = (byte) 0x01;
     public static final byte PACKET_PLAY_STATE = (byte) 0x02;
     public static final byte PACKET_DISCONNECT = (byte) 0x05;
@@ -40,8 +44,12 @@ public final class Protocol {
     public static final byte PACKET_PLAYER_ACTION = (byte) 0x25;
     public static final byte PACKET_MOB_ANIMATION = (byte) 0x28;
     public static final byte PACKET_ANIMATE = (byte) 0x2D;
-    public static final byte PACKET_CRAFTING_RECIPES = (byte) 0x2F;
+    public static final byte PACKET_CONTAINER_SET_SLOT = (byte) 0x33;
+    public static final byte PACKET_CONTAINER_SET_CONTENT = (byte) 0x35;
+    public static final byte PACKET_CRAFTING_RECIPES = (byte) 0x36;
+    public static final byte PACKET_CRAFTING_EVENT = (byte) 0x37;
     public static final byte PACKET_ADVENTURE_SETTINGS = (byte) 0x38;
+    public static final byte PACKET_TILE_ENTITY_DATA = (byte) 0x39;
     public static final byte PACKET_WORLD_CHUNK = (byte) 0x3B;
     public static final byte PACKET_SET_COMMANDS_ENABLED = (byte) 0x3C;
     public static final byte PACKET_SET_DIFFICULTY = (byte) 0x3D;
@@ -116,6 +124,12 @@ public final class Protocol {
 
             case PACKET_ANIMATE:
                 return new PacketAnimate();
+
+            case PACKET_CONTAINER_SET_SLOT:
+                return new PacketContainerSetSlot();
+
+            case PACKET_CRAFTING_EVENT:
+                return new PacketCraftingEvent();
 
             case PACKET_ADVENTURE_SETTINGS:
                 return new PacketAdventureSettings();

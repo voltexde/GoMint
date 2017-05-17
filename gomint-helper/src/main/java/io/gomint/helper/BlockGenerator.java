@@ -73,7 +73,8 @@ public class BlockGenerator {
                 }
 
                 String constantName = ( (String) blockObj.get( "name" ) ).toUpperCase();
-                System.out.println( "public static final " + className + " " + constantName + " = createBlock( " + String.valueOf( blockObj.get( "id" ) ) + ", " + className + ".class );" );
+                System.out.println( constantName + "(" + String.valueOf( blockObj.get( "id" ) ) + ", \"minecraft:" + blockObj.get( "name" ) + "\")," );
+                // System.out.println( "public static final " + className + " " + constantName + " = createBlock( " + String.valueOf( blockObj.get( "id" ) ) + ", " + className + ".class );" );
             }
         } catch ( IOException | ParseException e ) {
             e.printStackTrace();

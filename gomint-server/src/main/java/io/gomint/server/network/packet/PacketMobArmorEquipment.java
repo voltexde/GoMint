@@ -25,10 +25,10 @@ public class PacketMobArmorEquipment extends Packet {
     @Override
     public void serialize( PacketBuffer buffer ) {
         buffer.writeLong( this.entityId );
-        writeItemStack( this.helmet, buffer );
-        writeItemStack( this.chestplate, buffer );
-        writeItemStack( this.leggings, buffer );
-        writeItemStack( this.boots, buffer );
+        writeItemStack( this.helmet, buffer, false );
+        writeItemStack( this.chestplate, buffer, false );
+        writeItemStack( this.leggings, buffer, false );
+        writeItemStack( this.boots, buffer, false );
     }
 
     @Override
