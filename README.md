@@ -21,7 +21,7 @@ Holds generator helpers for all type of things. Currently this only holds a clas
 A plugin to test and see the API design. 
 
 ## Contact & Social
-[![Join the Discord](http://puu.sh/v9UB9/944431c790.png)](https://discord.gg/5v24b)
+[![Join the Discord](http://puu.sh/v9UB9/944431c790.png)](https://discord.gg/qC4nJVN)
 [![Twitter](http://puu.sh/v9V9H/ad70c8acf7.png)](https://twitter.com/GomintPe)
 
 ## Todo
