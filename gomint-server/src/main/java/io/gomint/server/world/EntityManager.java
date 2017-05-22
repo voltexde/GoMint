@@ -8,13 +8,19 @@
 package io.gomint.server.world;
 
 import io.gomint.entity.Player;
-import io.gomint.jraknet.PacketReliability;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.packet.*;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketDespawnEntity;
+import io.gomint.server.network.packet.PacketEntityMovement;
+import io.gomint.world.Chunk;
 import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
+import net.openhft.koloboke.collect.set.LongSet;
+import net.openhft.koloboke.collect.set.hash.HashLongSets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -27,9 +33,16 @@ import java.util.Set;
  */
 public class EntityManager {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( EntityManager.class );
+
     private final WorldAdapter world;
     private LongObjMap<Entity> entitiesById;
 
+    /**
+     * Construct a new Entity manager for the given world
+     *
+     * @param world the world for which this manager is
+     */
     public EntityManager( WorldAdapter world ) {
         this.world = world;
         this.entitiesById = HashLongObjMaps.newMutableMap();
@@ -45,16 +58,38 @@ public class EntityManager {
         // --------------------------------------
         // Update all entities:
         Set<Entity> movedEntities = null;
+        LongSet deadEntities = null;
+
         LongObjCursor<Entity> cursor = this.entitiesById.cursor();
         while ( cursor.moveNext() ) {
             Entity entity = cursor.value();
             entity.update( currentTimeMS, dT );
-            if ( entity.getTransform().isDirty() ) {
-                if ( movedEntities == null ) {
-                    movedEntities = new HashSet<>();
+
+            if ( entity.isDead() ) {
+                if ( deadEntities == null ) {
+                    deadEntities = HashLongSets.newMutableSet();
                 }
 
-                movedEntities.add( entity );
+                deadEntities.add( entity.getEntityId() );
+            } else {
+                if ( entity.getTransform().isDirty() ) {
+                    if ( movedEntities == null ) {
+                        movedEntities = new HashSet<>();
+                    }
+
+                    movedEntities.add( entity );
+                }
+            }
+        }
+
+        // --------------------------------------
+        // Remove dead entities from world
+        cursor = this.entitiesById.cursor();
+        while ( cursor.moveNext() ) {
+            Entity entity = cursor.value();
+            if ( entity.isDead() ) {
+                cursor.remove();
+                despawnEntity( entity );
             }
         }
 
@@ -62,25 +97,78 @@ public class EntityManager {
         // Create movement batches:
         if ( movedEntities != null && movedEntities.size() > 0 ) {
             for ( Entity movedEntity : movedEntities ) {
+                // Check if we need to move chunks
+                Chunk chunk = movedEntity.getChunk();
+                if ( chunk == null ) {
+                    int chunkX = CoordinateUtils.fromBlockToChunk( (int) movedEntity.getPositionX() );
+                    int chunkZ = CoordinateUtils.fromBlockToChunk( (int) movedEntity.getPositionZ() );
+
+                    // The entity moved in a not loaded chunk. We have two options now:
+                    // 1. Load the chunk
+                    // 2. Don't move the entity
+                    if ( this.world.getServer().getServerConfig().isLoadChunksForEntities() ) {
+                        chunk = this.world.loadChunk( chunkX, chunkZ, true );
+                    } else {
+                        // "Revert" movement
+                        int maxX = CoordinateUtils.getChunkMax( chunkX );
+                        int minX = CoordinateUtils.getChunkMin( chunkX );
+                        int maxZ = CoordinateUtils.getChunkMax( chunkZ );
+                        int minZ = CoordinateUtils.getChunkMin( chunkZ );
+
+                        // Clamp X
+                        float x = movedEntity.getPositionX();
+                        if ( x > maxX ) {
+                            x = maxX;
+                        } else if ( x < minX ) {
+                            x = minX;
+                        }
+
+                        // Clamp Z
+                        float z = movedEntity.getPositionX();
+                        if ( z > maxZ ) {
+                            z = maxZ;
+                        } else if ( z < minZ ) {
+                            z = minZ;
+                        }
+
+                        movedEntity.setPosition( x, movedEntity.getPositionY(), z );
+                        continue;
+                    }
+                }
+
+                // Set the new entity
+                if ( chunk instanceof ChunkAdapter ) {
+                    ChunkAdapter castedChunk = (ChunkAdapter) chunk;
+                    if ( !castedChunk.knowsEntity( movedEntity ) ) {
+                        castedChunk.addEntity( movedEntity );
+                    }
+                }
+
+                // Prepare movement packet
                 PacketEntityMovement packetEntityMovement = new PacketEntityMovement();
                 packetEntityMovement.setEntityId( movedEntity.getEntityId() );
 
                 packetEntityMovement.setX( movedEntity.getPositionX() );
-                packetEntityMovement.setY( movedEntity.getPositionY() );
+                packetEntityMovement.setY( movedEntity.getPositionY() + movedEntity.getEyeHeight() );
                 packetEntityMovement.setZ( movedEntity.getPositionZ() );
 
                 packetEntityMovement.setYaw( movedEntity.getYaw() );
                 packetEntityMovement.setHeadYaw( movedEntity.getHeadYaw() );
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
 
+                // Check which player we need to inform about this movement
                 for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
                     if ( movedEntity instanceof EntityPlayer ) {
-                        if ( entityPlayer.isHidden( (Player) movedEntity ) || entityPlayer.equals( movedEntity )) {
+                        if ( entityPlayer.isHidden( (Player) movedEntity ) || entityPlayer.equals( movedEntity ) ) {
                             continue;
                         }
                     }
 
-                    entityPlayer.getConnection().addToSendQueue( packetEntityMovement );
+                    Chunk playerChunk = entityPlayer.getChunk();
+                    if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
+                            Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
+                        entityPlayer.getConnection().addToSendQueue( packetEntityMovement );
+                    }
                 }
             }
         }
@@ -119,72 +207,67 @@ public class EntityManager {
      * @param pitch     The pitch value of the entity
      */
     public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
+        // Set the position and yaw
         entity.setPosition( positionX, positionY, positionZ );
         entity.setYaw( yaw );
         entity.setHeadYaw( yaw );
         entity.setPitch( pitch );
         this.entitiesById.put( entity.getEntityId(), entity );
 
-        // Special case for players
-        if ( entity instanceof EntityPlayer ) {
-            EntityPlayer player = (EntityPlayer) entity;
+        // Register to the correct chunk
+        Chunk chunk = entity.getChunk();
+        if ( chunk == null ) {
+            int chunkX = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionX() );
+            int chunkZ = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionZ() );
+            chunk = this.world.loadChunk( chunkX, chunkZ, true );
+        }
 
-            PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
-            packetSpawnPlayer.setUuid( player.getUUID() );
-            packetSpawnPlayer.setName( player.getName() );
-            packetSpawnPlayer.setEntityId( entity.getEntityId() );
-            packetSpawnPlayer.setRuntimeEntityId( entity.getEntityId() );
+        // Set the new entity
+        if ( chunk instanceof ChunkAdapter ) {
+            ChunkAdapter castedChunk = (ChunkAdapter) chunk;
+            if ( !castedChunk.knowsEntity( entity ) ) {
+                castedChunk.addEntity( entity );
+            }
+        }
 
-            packetSpawnPlayer.setX( entity.getPositionX() );
-            packetSpawnPlayer.setY( entity.getPositionY() );
-            packetSpawnPlayer.setZ( entity.getPositionZ() );
+        Packet spawnPacket = entity.createSpawnPacket();
 
-            packetSpawnPlayer.setVelocityX( player.getVelocity().getX() );
-            packetSpawnPlayer.setVelocityY( player.getVelocity().getY() );
-            packetSpawnPlayer.setVelocityZ( player.getVelocity().getZ() );
-
-            packetSpawnPlayer.setPitch( entity.getPitch() );
-            packetSpawnPlayer.setYaw( entity.getYaw() );
-            packetSpawnPlayer.setHeadYaw( entity.getHeadYaw() );
-
-            packetSpawnPlayer.setItemInHand( player.getInventory().getItemInHand() );
-            packetSpawnPlayer.setMetadataContainer( player.getMetadata() );
-
-            for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-                if ( !entityPlayer.isHidden( player ) && !entityPlayer.equals( player ) ) {
-                    entityPlayer.getConnection().send( packetSpawnPlayer );
+        // Check which player we need to inform about this movement
+        for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
+            if ( entity instanceof EntityPlayer ) {
+                if ( entityPlayer.isHidden( (Player) entity ) || entityPlayer.equals( entity ) ) {
+                    continue;
                 }
             }
-        } else {
-            // Broadcast spawn entity packet:
-            PacketSpawnEntity packet = new PacketSpawnEntity();
-            packet.setEntityId( entity.getEntityId() );
-            packet.setEntityType( entity.getType() );
-            packet.setX( positionX );
-            packet.setY( positionY );
-            packet.setZ( positionZ );
-            packet.setVelocityX( 0.0F );
-            packet.setVelocityY( 0.0F );
-            packet.setVelocityZ( 0.0F );
-            packet.setYaw( yaw );
-            packet.setHeadYaw( yaw );
-            packet.setMetadata( entity.getMetadata() );
-            this.world.broadcast( PacketReliability.RELIABLE, 0, packet );
+
+            Chunk playerChunk = entityPlayer.getChunk();
+            if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
+                    Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
+                entityPlayer.getConnection().send( spawnPacket );
+            }
         }
     }
 
     /**
-     * Despawns an entity given its unique ID.
+     * Despawns an entity
      *
-     * @param entityId The unique ID of the entity
+     * @param entity The entity which should be despawned
      */
-    public void despawnEntity( long entityId ) {
-        Entity entity = this.entitiesById.remove( entityId );
-        if ( entity != null ) {
-            // Broadcast despawn entity packet:
-            PacketDespawnEntity packet = new PacketDespawnEntity();
-            packet.setEntityId( entityId );
-            this.world.broadcast( PacketReliability.RELIABLE, 0, packet );
+    public void despawnEntity( Entity entity ) {
+        // Remove from chunk
+        Chunk chunk = entity.getChunk();
+        if ( chunk instanceof ChunkAdapter ) {
+            ( (ChunkAdapter) chunk ).removeEntity( entity );
+        }
+
+        // Broadcast despawn entity packet:
+        PacketDespawnEntity packet = new PacketDespawnEntity();
+        packet.setEntityId( entity.getEntityId() );
+
+        for ( Player player : this.world.getPlayers() ) {
+            if ( player instanceof EntityPlayer ) {
+                ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
+            }
         }
     }
 

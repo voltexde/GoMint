@@ -13,7 +13,7 @@ package io.gomint.util;
  */
 public class Numbers {
 
-    public static float square( float in ) {
+    public static double square( double in ) {
         return in * in;
     }
 

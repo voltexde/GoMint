@@ -13,6 +13,27 @@ import io.gomint.server.world.WorldAdapter;
 public interface Transformable {
 
     /**
+     * Gets the motion of the object on the x axis.
+     *
+     * @return The motion of the object on the x axis
+     */
+    float getMotionX();
+
+    /**
+     * Gets the motion of the object on the y axis.
+     *
+     * @return The motion of the object on the y axis
+     */
+    float getMotionY();
+
+    /**
+     * Gets the motion of the object on the z axis.
+     *
+     * @return The motion of the object on the z axis
+     */
+    float getMotionZ();
+
+    /**
      * Gets the position of the object on the x axis.
      *
      * @return The position of the object on the x axis
@@ -104,6 +125,24 @@ public interface Transformable {
      * @return The direction vector the object's head is facing
      */
     Vector getHeadDirection();
+
+    /**
+     * Manipulate the motion set by offsets
+     *
+     * @param x the x offset for the motion
+     * @param y the y offset for the motion
+     * @param z the z offset for the motion
+     */
+    void manipulateMotion( float x, float y, float z );
+
+    /**
+     * Sets the object's motion given the respective coordinates on the 3 axes.
+     *
+     * @param motionX The x coordinate of the motion
+     * @param motionY The y coordinate of the motion
+     * @param motionZ The z coordinate of the motion
+     */
+    void setMotion( float motionX, float motionY, float motionZ );
 
     /**
      * Sets the object's position given the respective coordinates on the 3 axes.

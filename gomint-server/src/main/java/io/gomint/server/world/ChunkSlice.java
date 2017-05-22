@@ -1,5 +1,6 @@
 package io.gomint.server.world;
 
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.world.block.Blocks;

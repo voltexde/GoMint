@@ -46,12 +46,12 @@ public class ShapelessRecipe extends CraftingRecipe {
 
         buffer.writeUnsignedVarInt( this.ingredients.length );
         for ( ItemStack ingredient : this.ingredients ) {
-            Packet.writeItemStack( ingredient, buffer, false );
+            Packet.writeItemStack( ingredient, buffer );
         }
 
         buffer.writeUnsignedVarInt( this.outcome.length );
         for ( ItemStack itemStack : this.outcome ) {
-            Packet.writeItemStack( itemStack, buffer, false );
+            Packet.writeItemStack( itemStack, buffer );
         }
 
         buffer.writeUUID( this.getUUID() );

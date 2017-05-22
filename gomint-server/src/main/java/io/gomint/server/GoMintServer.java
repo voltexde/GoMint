@@ -16,6 +16,7 @@ import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
+import io.gomint.server.crafting.ShapedRecipe;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.plugin.SimplePluginManager;
@@ -146,7 +147,10 @@ public class GoMintServer implements GoMint {
             this.recipeManager.registerRecipe( recipe );
 
             if ( recipe.createResult().contains( new ItemStack( Material.CRAFTING_TABLE ) ) ) {
+                ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
                 System.out.println( recipe.getUUID() );
+                System.out.println( shapedRecipe.getHeight() );
+                System.out.println( shapedRecipe.getWidth() );
             }
         }
 
@@ -196,10 +200,11 @@ public class GoMintServer implements GoMint {
                 this.worldManager.update( currentMillis, lastTickTime );
 
                 long diff = System.nanoTime() - start;
-                lastTickTime = (float) diff / 1000000.0F;
-
                 if ( diff < skipNanos ) {
                     tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
+                    lastTickTime = (float) skipNanos / 1000000000.0F;
+                } else {
+                    lastTickTime = (float) diff / 1000000000.0F;
                 }
             } catch ( InterruptedException e ) {
                 // Ignored ._.

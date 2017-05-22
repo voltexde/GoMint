@@ -37,16 +37,16 @@ public class PacketUseItem extends Packet {
         buffer.writeUnsignedVarInt( this.interactBlockId );
         buffer.writeSignedVarInt( this.face );
 
-        buffer.writeLFloat( this.facePosition.getX() );
-        buffer.writeLFloat( this.facePosition.getY() );
-        buffer.writeLFloat( this.facePosition.getZ() );
+        buffer.writeLFloat( (float) this.facePosition.getX() );
+        buffer.writeLFloat( (float) this.facePosition.getY() );
+        buffer.writeLFloat( (float) this.facePosition.getZ() );
 
-        buffer.writeLFloat( this.playerPosition.getX() );
-        buffer.writeLFloat( this.playerPosition.getY() );
-        buffer.writeLFloat( this.playerPosition.getZ() );
+        buffer.writeLFloat( (float) this.playerPosition.getX() );
+        buffer.writeLFloat( (float) this.playerPosition.getY() );
+        buffer.writeLFloat( (float) this.playerPosition.getZ() );
 
         buffer.writeSignedVarInt( this.slot );
-        writeItemStack( this.item, buffer, false );
+        writeItemStack( this.item, buffer );
     }
 
     @Override

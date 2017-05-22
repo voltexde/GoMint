@@ -22,7 +22,7 @@ import java.util.UUID;
  */
 public abstract class Recipe {
 
-    private UUID uuid;
+    private final UUID uuid;
 
     protected Recipe( UUID uuid ) {
         this.uuid = ( uuid != null ? uuid : UUID.randomUUID() );

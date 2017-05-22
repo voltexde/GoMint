@@ -8,11 +8,13 @@
 package io.gomint.world;
 
 import io.gomint.entity.Player;
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.world.block.Block;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -51,6 +53,16 @@ public interface World {
     <T extends Block> T getBlockAt( Vector vector );
 
     /**
+     * Get the block at that position or null if the position is not loaded in the world.
+     *
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param z z coordinate
+     * @return block which has been found at that position or null
+     */
+    <T extends Block> T getBlockAt( int x, int y, int z );
+
+    /**
      * Gets the value of the given gamerule set for this world.
      *
      * @param gamerule The gamerule to get a value for
@@ -75,5 +87,15 @@ public interface World {
      * @param extraData Any extra data for the client to select the correct sound
      */
     void playSound( Location location, Sound sound, byte pitch, int extraData );
+
+    /**
+     * Get a list of bounding boxes which collide with the given box
+     *
+     * @param entity          When includeEntities is true this is the entity which will be exempted
+     * @param bb              The bounding box which should be used to check for collision with
+     * @param includeEntities Should we return blocks only or also entities? True for entities, false without entities
+     * @return either a list of collisions or null
+     */
+    List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb, boolean includeEntities );
 
 }

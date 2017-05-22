@@ -73,4 +73,7 @@ public class ServerConfig extends SimpleConfig {
     @Comment( "Amount of Ticks per second which should be used to drive this server." )
     private int targetTPS = 64;
 
+    @Comment( "Control wether we want to load chunks when entites step over borders or not." )
+    private boolean loadChunksForEntities = true;
+
 }

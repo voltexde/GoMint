@@ -12,8 +12,8 @@ import io.gomint.server.util.IntTriple;
 class AStarNode implements Comparable<AStarNode> {
 
     private final IntTriple blockPosition;
-    private float g;
-    private float f;
+    private double g;
+    private double f;
     private int k;
     private AStarNode predecessor;
 
@@ -52,7 +52,7 @@ class AStarNode implements Comparable<AStarNode> {
      *
      * @return The node's g value
      */
-    public float getG() {
+    public double getG() {
         return this.g;
     }
 
@@ -61,7 +61,7 @@ class AStarNode implements Comparable<AStarNode> {
      *
      * @param g The g value to assign
      */
-    public void setG( float g ) {
+    public void setG( double g ) {
         this.g = g;
     }
 
@@ -70,7 +70,7 @@ class AStarNode implements Comparable<AStarNode> {
      *
      * @return The node's f value
      */
-    public float getF() {
+    public double getF() {
         return this.f;
     }
 
@@ -79,7 +79,7 @@ class AStarNode implements Comparable<AStarNode> {
      *
      * @param f The f value to assign
      */
-    public void setF( float f ) {
+    public void setF( double f ) {
         this.f = f;
     }
 
@@ -158,7 +158,7 @@ class AStarNode implements Comparable<AStarNode> {
     @Override
     public int compareTo( AStarNode other ) {
         // Natural sorting order depends on f value instead of block position:
-        return Float.compare( this.f, other.f );
+        return Double.compare( this.f, other.f );
     }
 
 }

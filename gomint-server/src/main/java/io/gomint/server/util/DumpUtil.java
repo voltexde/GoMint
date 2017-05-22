@@ -8,6 +8,7 @@
 package io.gomint.server.util;
 
 import com.google.common.base.Strings;
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.taglib.NBTTagCompound;
 
 import java.util.List;
@@ -18,6 +19,28 @@ import java.util.Map;
  * @version 1.0
  */
 public class DumpUtil {
+
+    public static void dumpPacketbuffer( PacketBuffer buffer ) {
+        StringBuilder lineBuilder = new StringBuilder();
+        while ( buffer.getRemaining() > 0 ) {
+            for ( int i = 0; i < 16 && buffer.getRemaining() > 0; ++i ) {
+                String hex = Integer.toHexString( ( (int) buffer.readByte() ) & 0xFF );
+                if ( hex.length() < 2 ) {
+                    hex = "0" + hex;
+                }
+                lineBuilder.append( hex );
+                if ( i + 1 < 16 && buffer.getRemaining() > 0 ) {
+                    lineBuilder.append( " " );
+                }
+            }
+
+            lineBuilder.append( "\n" );
+
+            System.out.print( lineBuilder.toString() );
+            lineBuilder = new StringBuilder();
+        }
+    }
+
     public static void dumpByteArray( byte[] bytes ) {
         int count = 0;
         StringBuilder stringBuilder = new StringBuilder();

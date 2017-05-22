@@ -1,11 +1,10 @@
 package io.gomint.server.entity;
 
+import io.gomint.entity.DamageCause;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
 import io.gomint.server.inventory.InventoryHolder;
-import io.gomint.server.inventory.MobInventory;
 import io.gomint.server.world.WorldAdapter;
-import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,6 +58,18 @@ public abstract class EntityLiving extends Entity implements InventoryHolder {
         if ( instance != null ) {
             instance.setValue( value );
         }
+    }
+
+    @Override
+    protected void fall() {
+        double damage = Math.floor( this.fallDistance - 3 );
+        if ( damage > 0 ) {
+            this.attack( damage, DamageCause.FALL );
+        }
+    }
+
+    public void attack( double damage, DamageCause cause ) {
+        // TODO: Implement damage handling
     }
 
     // ==================================== UPDATING ==================================== //

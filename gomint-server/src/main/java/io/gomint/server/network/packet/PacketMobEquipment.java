@@ -3,11 +3,13 @@ package io.gomint.server.network.packet;
 import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
+import lombok.Data;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@Data
 public class PacketMobEquipment extends Packet {
 
     private long entityId;
@@ -24,7 +26,7 @@ public class PacketMobEquipment extends Packet {
     @Override
     public void serialize( PacketBuffer buffer ) {
         buffer.writeUnsignedVarLong( this.entityId );
-        writeItemStack( this.stack, buffer, false );
+        writeItemStack( this.stack, buffer );
         buffer.writeByte( this.slot );
         buffer.writeByte( this.selectedSlot );
         buffer.writeByte( this.unknown );

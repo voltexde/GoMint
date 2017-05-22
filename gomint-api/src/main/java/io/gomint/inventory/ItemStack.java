@@ -112,6 +112,15 @@ public class ItemStack implements Cloneable {
     }
 
     /**
+     * Get the maximum amount of items which can be stored in this stack
+     *
+     * @return maximum amount of items which can be stored in this stack
+     */
+    public byte getMaximumAmount() {
+        return this.material.getMaximumAmount();
+    }
+
+    /**
      * Gets the number of items on this stack.
      *
      * @return The number of items on this stack
@@ -126,7 +135,7 @@ public class ItemStack implements Cloneable {
      * @param amount The number of items on this stack
      */
     public void setAmount( int amount ) {
-        this.amount = amount > Byte.MAX_VALUE ? Byte.MAX_VALUE : (byte) amount;
+        this.amount = amount > getMaximumAmount() ? getMaximumAmount() : (byte) amount;
     }
 
     /**
@@ -177,35 +186,11 @@ public class ItemStack implements Cloneable {
 
     @Override
     public final boolean equals( Object other ) {
-        return other instanceof ItemStack && this.equals( (ItemStack) other, true );
-    }
-
-    public final boolean equals( ItemStack other, boolean checkDamage ) {
-        return equals( other, checkDamage, true );
-    }
-
-    public final boolean equals( ItemStack other, boolean checkDamage, boolean checkCompound ) {
-        return this.getMaterial() == other.getMaterial() && ( !checkDamage || this.getData() == other.getData() ) && ( !checkCompound || this.nbt == other.nbt || this.nbt.equals( other.nbt ) );
-    }
-
-    public boolean deepEquals( ItemStack other ) {
-        return deepEquals( other, true );
-    }
-
-    public final boolean deepEquals( ItemStack other, boolean checkDamage ) {
-        return deepEquals( other, checkDamage, true );
-    }
-
-    public final boolean deepEquals( ItemStack other, boolean checkDamage, boolean checkCompound ) {
-        if ( this.equals( other, checkDamage, checkCompound ) ) {
-            return true;
-        } else if ( other.nbt != null ) {
-            return other.nbt.equals( this.nbt );
-        } else if ( this.nbt != null ) {
-            return this.nbt.equals( other.nbt );
-        }
-
-        return false;
+        if ( !( other instanceof ItemStack ) ) return false;
+        ItemStack otherItemStack = (ItemStack) other;
+        return this.getMaterial() == otherItemStack.getMaterial() &&
+                this.getData() == otherItemStack.getData() &&
+                ( this.nbt == otherItemStack.nbt || this.nbt.equals( otherItemStack.nbt ) );
     }
 
 }

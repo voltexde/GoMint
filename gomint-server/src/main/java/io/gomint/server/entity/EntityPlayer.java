@@ -7,17 +7,20 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.entity.Entity;
 import io.gomint.entity.Player;
 import io.gomint.inventory.ItemStack;
 import io.gomint.inventory.Material;
+import io.gomint.jraknet.PacketReliability;
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.PlayerInventory;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.packet.PacketSetGamemode;
-import io.gomint.server.network.packet.PacketUpdateAttributes;
+import io.gomint.server.network.packet.*;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.WorldAdapter;
@@ -27,7 +30,10 @@ import lombok.Getter;
 import lombok.Setter;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -43,29 +49,43 @@ import java.util.UUID;
 @EqualsAndHashCode( callSuper = false, of = { "uuid" } )
 public class EntityPlayer extends EntityLiving implements Player, InventoryHolder {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
+
     private final PlayerConnection connection;
     private int viewDistance;
 
     // Player Information
     private String username;
     private UUID uuid;
-    @Setter private PlayerSkin skin;
+    @Setter
+    private PlayerSkin skin;
     private Gamemode gamemode;
-    @Getter private AdventureSettings adventureSettings;
+    @Getter
+    private AdventureSettings adventureSettings;
     private boolean op;
-    @Getter private Vector velocity = new Vector( 0, 0, 0 );
 
     // Hidden players
     private LongSet hiddenPlayers;
 
     // Inventory
     private PlayerInventory inventory;
-    @Setter @Getter private TransactionGroup transactions;
+    @Setter
+    @Getter
+    private TransactionGroup transactions;
+    @Setter
+    @Getter
+    private EntityItem queuedItemDrop;
 
     // Block break data
-    @Setter @Getter private Vector breakVector;
-    @Setter @Getter private long startBreak;
-    @Setter @Getter private long breakTime;
+    @Setter
+    @Getter
+    private Vector breakVector;
+    @Setter
+    @Getter
+    private long startBreak;
+    @Setter
+    @Getter
+    private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -85,6 +105,9 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
         this.uuid = uuid;
         this.viewDistance = this.world.getServer().getServerConfig().getViewDistance();
         this.adventureSettings = new AdventureSettings( this );
+        this.setSize( 0.6f, 1.8f );
+        this.eyeHeight = 1.62f;
+        this.stepHeight = 0.6f;
         this.initAttributes();
     }
 
@@ -113,9 +136,9 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
      * @param viewDistance The view distance to set
      */
     public void setViewDistance( int viewDistance ) {
-        viewDistance = Math.min( viewDistance, this.getWorld().getServer().getServerConfig().getViewDistance() );
-        if ( this.viewDistance != viewDistance ) {
-            this.viewDistance = viewDistance;
+        int tempViewDistance = Math.min( viewDistance, this.getWorld().getServer().getServerConfig().getViewDistance() );
+        if ( this.viewDistance != tempViewDistance ) {
+            this.viewDistance = tempViewDistance;
             this.connection.onViewDistanceChanged();
         }
     }
@@ -211,7 +234,24 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
 
     @Override
     public void teleport( Location to ) {
-        this.connection.teleport( to );
+        // Check if we need to change worlds
+        if ( !to.getWorld().equals( getWorld() ) ) {
+            // Change worlds first
+            this.connection.sendMovePlayer( new Location( to.getWorld(), getPositionX() + 1000000, 4000, getPositionZ() + 1000000 ) );
+            getWorld().removePlayer( this );
+            despawn();
+            setWorld( (WorldAdapter) to.getWorld() );
+            this.connection.resetPlayerChunks();
+        }
+
+        this.connection.sendMovePlayer( to );
+
+        setPosition( to );
+        setPitch( to.getPitch() );
+        setYaw( to.getYaw() );
+        setHeadYaw( to.getHeadYaw() );
+
+        this.connection.checkForNewChunks();
     }
 
     // ==================================== UPDATING ==================================== //
@@ -220,14 +260,60 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
 
+        // Look around
+        List<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
+        if ( nearbyEntities != null ) {
+            for ( Entity nearbyEntity : nearbyEntities ) {
+                if ( nearbyEntity instanceof EntityItem ) {
+                    EntityItem entityItem = (EntityItem) nearbyEntity;
+
+                    // Check if we can pick it up
+                    if ( entityItem.isUnlocked() && currentTimeMS > entityItem.getPickupTime() ) {
+                        // Check if we have place in out inventory to store this item
+                        if ( !this.inventory.hasPlaceFor( entityItem.getItemStack() ) ) {
+                            continue;
+                        }
+
+                        // Consume the item
+                        PacketPickupItemEntity packet = new PacketPickupItemEntity();
+                        packet.setItemEntityId( entityItem.getEntityId() );
+                        packet.setPlayerEntityId( this.getEntityId() );
+
+                        for ( Player player : this.world.getPlayers() ) {
+                            if ( player instanceof EntityPlayer ) {
+                                ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
+                            }
+                        }
+
+                        // Manipulate inventory
+                        this.inventory.addItem( entityItem.getItemStack() );
+                        entityItem.despawn();
+                    }
+                }
+            }
+        }
+
         // Update attributes which are flagged as dirty
         this.updateAttributes();
     }
 
+    @Override
+    public AxisAlignedBB getBoundingBox() {
+        return this.boundingBox;
+    }
+
+    /**
+     * Get the players inventory
+     *
+     * @return the players inventory
+     */
     public PlayerInventory getInventory() {
         return inventory;
     }
 
+    /**
+     * Check for attribute updates and send them to the player if needed
+     */
     public void updateAttributes() {
         PacketUpdateAttributes updateAttributes = null;
 
@@ -247,6 +333,9 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
         }
     }
 
+    /**
+     * Fully init inventory and recipes and other stuff which we need to have a full loaded player
+     */
     public void fullyInit() {
         this.inventory = new PlayerInventory( this );
 
@@ -257,6 +346,31 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
 
         // Send crafting recipes
         this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
+    }
+
+    @Override
+    public Packet createSpawnPacket() {
+        PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
+        packetSpawnPlayer.setUuid( this.getUUID() );
+        packetSpawnPlayer.setName( this.getName() );
+        packetSpawnPlayer.setEntityId( this.getEntityId() );
+        packetSpawnPlayer.setRuntimeEntityId( this.getEntityId() );
+
+        packetSpawnPlayer.setX( this.getPositionX() );
+        packetSpawnPlayer.setY( this.getPositionY() );
+        packetSpawnPlayer.setZ( this.getPositionZ() );
+
+        packetSpawnPlayer.setVelocityX( this.getMotionX() );
+        packetSpawnPlayer.setVelocityY( this.getMotionY() );
+        packetSpawnPlayer.setVelocityZ( this.getMotionZ() );
+
+        packetSpawnPlayer.setPitch( this.getPitch() );
+        packetSpawnPlayer.setYaw( this.getYaw() );
+        packetSpawnPlayer.setHeadYaw( this.getHeadYaw() );
+
+        packetSpawnPlayer.setItemInHand( this.getInventory().getItemInHand() );
+        packetSpawnPlayer.setMetadataContainer( this.getMetadata() );
+        return packetSpawnPlayer;
     }
 
 }

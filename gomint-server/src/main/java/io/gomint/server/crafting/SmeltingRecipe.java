@@ -52,7 +52,7 @@ public class SmeltingRecipe extends Recipe {
         buffer.writeSignedVarInt( EnumConnectors.MATERIAL_CONNECTOR.convert( this.input.getMaterial() ).getOldId() );
         if ( this.input.getData() != 0 ) buffer.writeSignedVarInt( this.input.getData() );
 
-        Packet.writeItemStack( this.outcome, buffer, false );
+        Packet.writeItemStack( this.outcome, buffer );
     }
 
 }

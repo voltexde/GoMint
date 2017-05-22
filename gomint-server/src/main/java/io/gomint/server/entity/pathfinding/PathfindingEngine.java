@@ -102,11 +102,10 @@ public class PathfindingEngine {
         }
 
         final int MAXIMUM_NODES_TO_EXPLORE = 5000;
-        final WorldAdapter world = (WorldAdapter) this.goal.getWorld();
         final IntTriple goalTriple = new IntTriple( (int) this.goal.getX(), (int) this.goal.getY(), (int) this.goal.getZ() );
 
-        HashMap<IntTriple, AStarNode> closedMap = new HashMap<>();
-        HashMap<IntTriple, AStarNode> discoveredMap = new HashMap<>();
+        Map<IntTriple, AStarNode> closedMap = new HashMap<>();
+        Map<IntTriple, AStarNode> discoveredMap = new HashMap<>();
         PriorityQueue<AStarNode> discoveredNodes = new PriorityQueue<>();
 
         AStarNode startNode = new AStarNode( new IntTriple( (int) this.transform.getPositionX(), (int) this.transform.getPositionY(), (int) this.transform.getPositionZ() ) );
@@ -161,7 +160,7 @@ public class PathfindingEngine {
                     // This block is a valid neighbour:
                     AStarNode neighbourNode = discoveredMap.get( neighbourTriple );
                     if ( neighbourNode != null ) {
-                        float g = node.getG() + this.gridDistance( node.getBlockPosition(), neighbourTriple );
+                        double g = node.getG() + this.gridDistance( node.getBlockPosition(), neighbourTriple );
                         if ( g < neighbourNode.getG() ) {
                             neighbourNode.setG( g );
                             neighbourNode.setF( g + this.estimateDistance( neighbourTriple, this.goal ) );
@@ -187,11 +186,11 @@ public class PathfindingEngine {
         return null;
     }
 
-    private float gridDistance( IntTriple a, IntTriple b ) {
+    private double gridDistance( IntTriple a, IntTriple b ) {
         return ( Math.abs( b.getX() - a.getX() ) + Math.abs( b.getZ() - a.getZ() ) );
     }
 
-    public float estimateDistance( IntTriple a, Vector b ) {
+    public double estimateDistance( IntTriple a, Vector b ) {
         return ( Math.abs( b.getX() - a.getX() ) + Math.abs( b.getY() - a.getY() ) + Math.abs( b.getZ() - a.getZ() ) );
     }
 

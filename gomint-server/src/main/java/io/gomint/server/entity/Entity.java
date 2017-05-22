@@ -7,14 +7,24 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketSpawnEntity;
+import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.util.Numbers;
+import io.gomint.world.Chunk;
+import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -26,8 +36,15 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class Entity implements io.gomint.entity.Entity {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( Entity.class );
+    protected static final float CLIENT_TICK_RATE = TimeUnit.MILLISECONDS.toNanos( 50 ) / (float) TimeUnit.SECONDS.toNanos( 1 );
+
     private static final int FLAG_CAN_SHOW_NAMETAG = 14;
     private static final int FLAG_ALWAYS_SHOW_NAMETAG = 15;
+
+    // Useful stuff for movement. Those are values for per client tick
+    protected static final float GRAVITY = 0.04f;
+    protected static final float DRAG = 0.02f;
 
     private static final AtomicLong ENTITY_ID = new AtomicLong( 0 );
 
@@ -46,9 +63,49 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     protected final MetadataContainer metadataContainer;
 
+    /**
+     * Bounding Box
+     */
+    protected AxisAlignedBB boundingBox;
+    private float width;
+    private float height;
+
+    /**
+     * How high can this entity "climb" in one movement?
+     */
+    protected float stepHeight = 0;
+
+    protected boolean onGround;
+    private float yOffset; // This offset is needed for jumping blocks up
+
+    /**
+     * Collision states
+     */
+    private boolean isCollidedVertically;
+    private boolean isCollidedHorizontally;
+    private boolean isCollided;
+
+    /**
+     * Fall distance tracking
+     */
+    protected float fallDistance = 0;
+
+    /**
+     * Since MC:PE movements are eye instead of foot based we need to offset by this amount
+     */
+    @Getter
+    protected float eyeHeight;
+
+    /**
+     * Dead status
+     */
+    @Getter
+    private boolean dead;
+
     @Setter
     protected WorldAdapter world;
     private TransformComponent transform;
+    private float lastUpdateDt;
 
     /**
      * Construct a new Entity
@@ -63,15 +120,12 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.metadataContainer = new MetadataContainer();
         this.metadataContainer.putLong( MetadataContainer.DATA_INDEX, 0 );
         this.transform = new TransformComponent();
+        this.boundingBox = new AxisAlignedBB( 0, 0, 0, 0, 0, 0 );
     }
 
     // ==================================== ACCESSORS ==================================== //
 
-    /**
-     * Gets this entity's unique ID.
-     *
-     * @return The entitiy's unique ID
-     */
+    @Override
     public long getEntityId() {
         return this.id;
     }
@@ -85,11 +139,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.type;
     }
 
-    /**
-     * Gets the world of this entity.
-     *
-     * @return The world of this entity
-     */
+    @Override
     public WorldAdapter getWorld() {
         return this.world;
     }
@@ -107,7 +157,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Despawns this entity if it is currently spawned into any world.
      */
     public void despawn() {
-        this.world.despawnEntity( this.id );
+        this.dead = true;
     }
 
     // ==================================== UPDATING ==================================== //
@@ -120,6 +170,276 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     public void update( long currentTimeMS, float dT ) {
         this.transform.update( currentTimeMS, dT );
+
+        // Check if we need to calc motion
+        this.lastUpdateDt += dT;
+        if ( this.lastUpdateDt >= CLIENT_TICK_RATE ) {
+            // Calc motion
+            this.transform.manipulateMotion( 0, -Entity.GRAVITY, 0 );
+
+            // Check if we are stuck in a block
+            this.checkInsideBlock();
+
+            // Move by motion amount
+            float movX = this.transform.getMotionX();
+            float movY = this.transform.getMotionY();
+            float movZ = this.transform.getMotionZ();
+
+            // Security check so we don't move and collect bounding boxes like crazy
+            if ( Math.abs( movX ) > 20 || Math.abs( movZ ) > 20 || Math.abs( movY ) > 20 ) {
+                return;
+            }
+
+            float dX = this.transform.getMotionX();
+            float dY = this.transform.getMotionY();
+            float dZ = this.transform.getMotionZ();
+
+            AxisAlignedBB oldBoundingBox = this.boundingBox.clone();
+
+            // Check if we collide with some blocks when we would move that fast
+            List<AxisAlignedBB> collisionList = this.world.getCollisionCubes( this, this.boundingBox.getOffsetBoundingBox( dX, dY, dZ ), false );
+            if ( collisionList != null ) {
+                // Check if we would hit a y border block
+                for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                    dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
+                }
+
+                this.boundingBox.offset( 0, dY, 0 );
+
+                // Check if we would hit a x border block
+                for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                    dX = axisAlignedBB.calculateXOffset( this.boundingBox, dX );
+                }
+
+                this.boundingBox.offset( dX, 0, 0 );
+
+                // Check if we would hit a z border block
+                for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                    dZ = axisAlignedBB.calculateZOffset( this.boundingBox, dZ );
+                }
+
+                this.boundingBox.offset( 0, 0, dZ );
+            } else {
+                this.boundingBox.offset( dX, dY, dZ );
+            }
+
+            // Check if we can jump
+            boolean notFallingFlag = ( this.onGround || ( dY != movY && movY < 0 ) );
+            if ( this.stepHeight > 0 && notFallingFlag && this.yOffset < 0.05 && ( movX != dX || movZ != dZ ) ) {
+                float oldDX = dX;
+                float oldDY = dY;
+                float oldDZ = dZ;
+
+                dX = movX;
+                dY = this.stepHeight;
+                dZ = movZ;
+
+                // Save and restore old bounding box
+                AxisAlignedBB oldBoundingBox1 = this.boundingBox.clone();
+                this.boundingBox.setBounds( oldBoundingBox );
+
+                // Check for collision
+                collisionList = this.world.getCollisionCubes( this, this.boundingBox.addCoordinates( dX, dY, dZ ), false );
+                if ( collisionList != null ) {
+                    // Check if we would hit a y border block
+                    for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                        dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
+                    }
+
+                    this.boundingBox.offset( 0, dY, 0 );
+
+                    // Check if we would hit a x border block
+                    for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                        dX = axisAlignedBB.calculateXOffset( this.boundingBox, dX );
+                    }
+
+                    this.boundingBox.offset( dX, 0, 0 );
+
+                    // Check if we would hit a z border block
+                    for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                        dZ = axisAlignedBB.calculateZOffset( this.boundingBox, dZ );
+                    }
+
+                    this.boundingBox.offset( 0, 0, dZ );
+                }
+
+                // Check if we moved left or right
+                if ( Numbers.square( oldDX ) + Numbers.square( oldDZ ) >= Numbers.square( dX ) + Numbers.square( dZ ) ) {
+                    // Revert this decision of moving the bounding box up
+                    dX = oldDX;
+                    dY = oldDY;
+                    dZ = oldDZ;
+                    this.boundingBox.setBounds( oldBoundingBox1 );
+                } else {
+                    // Move the bounding box up by .5
+                    this.yOffset += 0.5;
+                }
+            }
+
+            // Move by new bounding box
+            if ( dX != 0.0 || dY != 0.0 || dZ != 0.0 ) {
+                this.transform.setPosition(
+                        ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
+                        this.boundingBox.getMinY() + this.yOffset,
+                        ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
+                );
+            }
+
+            // Check for grounding states
+            this.checkIfCollided( movX, movY, movZ, dX, dY, dZ );
+            this.updateFallState( dY );
+
+            // We did not move so we collided, set motion to 0 to escape hell
+            if ( movX != dX ) {
+                this.transform.setMotionX( 0 );
+            }
+
+            if ( movY != dY ) {
+                this.transform.setMotionY( 0 );
+            }
+
+            if ( movZ != dZ ) {
+                this.transform.setMotionZ( 0 );
+            }
+
+            // Reset last update
+            this.lastUpdateDt = 0;
+        }
+
+        // Check if we need to update the bounding box
+        if ( this.transform.isDirty() ) {
+            this.boundingBox.setBounds(
+                    this.getPositionX() - ( this.width / 2 ),
+                    this.getPositionY(),
+                    this.getPositionZ() - ( this.width / 2 ),
+                    this.getPositionX() + ( this.width / 2 ),
+                    this.getPositionY() + this.height,
+                    this.getPositionZ() + ( this.width / 2 )
+            );
+
+            this.transform.move( 0, 0, 0 );
+        }
+    }
+
+    private void updateFallState( float dY ) {
+        // When we are onground again we need to deal damage
+        if ( this.onGround ) {
+            if ( this.fallDistance > 0 ) {
+                this.fall();
+            }
+
+            this.fallDistance = 0;
+        } else if ( dY < 0 ) {
+            this.fallDistance -= dY;
+        }
+    }
+
+    /**
+     * Handle falling of entities
+     */
+    protected abstract void fall();
+
+    private void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
+        // Check if we collided with something
+        this.isCollidedVertically = movY != dY;
+        this.isCollidedHorizontally = ( movX != dX || movZ != dZ );
+        this.isCollided = ( this.isCollidedHorizontally || this.isCollidedVertically );
+        this.onGround = ( movY != dY && movY < 0 );
+    }
+
+    private void checkInsideBlock() {
+        // Check in which block we are
+        int fullBlockX = (int) Math.floor( this.transform.getPositionX() );
+        int fullBlockY = (int) Math.floor( this.transform.getPositionY() );
+        int fullBlockZ = (int) Math.floor( this.transform.getPositionZ() );
+
+        // Are we stuck inside a block?
+        if ( this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ ).isSolid() ) {
+            // Calc with how much force we can get out of here, this depends on how far we are in
+            float diffX = this.transform.getPositionX() - fullBlockX;
+            float diffY = this.transform.getPositionY() - fullBlockY;
+            float diffZ = this.transform.getPositionZ() - fullBlockZ;
+
+            // Random out the force
+            double force = Math.random() * 0.2 + 0.1;
+
+            // Check for free blocks
+            boolean freeMinusX = !this.world.getBlockAt( fullBlockX - 1, fullBlockY, fullBlockZ ).isSolid();
+            boolean freePlusX = !this.world.getBlockAt( fullBlockX + 1, fullBlockY, fullBlockZ ).isSolid();
+            boolean freeMinusY = !this.world.getBlockAt( fullBlockX, fullBlockY - 1, fullBlockZ ).isSolid();
+            boolean freePlusY = !this.world.getBlockAt( fullBlockX, fullBlockY + 1, fullBlockZ ).isSolid();
+            boolean freeMinusZ = !this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ - 1 ).isSolid();
+            boolean freePlusZ = !this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ + 1 ).isSolid();
+
+            // Since we want the lowest amount of push we have to select the smallest side
+            byte direction = -1;
+            float lowest = 9999;
+
+            // The -X side is free, use it for now
+            if ( freeMinusX ) {
+                direction = 0;
+                lowest = diffX;
+            }
+
+            // Choose +X side only when free and we need to move less
+            if ( freePlusX && 1 - diffX < lowest ) {
+                direction = 1;
+                lowest = 1 - diffX;
+            }
+
+            // Choose -Y side only when free and we need to move less
+            if ( freeMinusY && diffY < lowest ) {
+                direction = 2;
+                lowest = diffY;
+            }
+
+            // Choose +Y side only when free and we need to move less
+            if ( freePlusY && 1 - diffY < lowest ) {
+                direction = 3;
+                lowest = 1 - diffY;
+            }
+
+            // Choose -Z side only when free and we need to move less
+            if ( freeMinusZ && diffZ < lowest ) {
+                direction = 4;
+                lowest = diffZ;
+            }
+
+            // Choose +Z side only when free and we need to move less
+            if ( freePlusZ && 1 - diffZ < lowest ) {
+                direction = 5;
+            }
+
+            // Push to the side we selected
+            if ( direction == 0 ) {
+                this.transform.manipulateMotion( (float) -force, 0, 0 );
+                return;
+            }
+
+            if ( direction == 1 ) {
+                this.transform.manipulateMotion( (float) force, 0, 0 );
+                return;
+            }
+
+            if ( direction == 2 ) {
+                this.transform.manipulateMotion( 0, (float) -force, 0 );
+                return;
+            }
+
+            if ( direction == 3 ) {
+                this.transform.manipulateMotion( 0, (float) force, 0 );
+                return;
+            }
+
+            if ( direction == 4 ) {
+                this.transform.manipulateMotion( 0, 0, (float) -force );
+                return;
+            }
+
+            if ( direction == 5 ) {
+                this.transform.manipulateMotion( 0, 0, (float) force );
+            }
+        }
     }
 
     // ==================================== TRANSFORMATION ==================================== //
@@ -133,13 +453,41 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.transform;
     }
 
-    /**
-     * Gets the location of this entity.
-     *
-     * @return The location of this entity
-     */
+    @Override
     public Location getLocation() {
         return this.transform.toLocation( this.world );
+    }
+
+    @Override
+    public void setVelocity( Vector velocity ) {
+        this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
+    }
+
+    /**
+     * Gets the motion of the entity on the x axis.
+     *
+     * @return The motion of the entity on the x axis
+     */
+    public float getMotionX() {
+        return this.transform.getMotionX();
+    }
+
+    /**
+     * Gets the motion of the entity on the y axis.
+     *
+     * @return The motion of the entity on the y axis
+     */
+    public float getMotionY() {
+        return this.transform.getMotionY();
+    }
+
+    /**
+     * Gets the motion of the entity on the z axis.
+     *
+     * @return The motion of the entity on the z axis
+     */
+    public float getMotionZ() {
+        return this.transform.getMotionZ();
     }
 
     /**
@@ -329,6 +677,39 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.transform.rotatePitch( pitch );
     }
 
+    /**
+     * Get the chunk this entity is currently in
+     *
+     * @return the chunk in which the entity is
+     */
+    public Chunk getChunk() {
+        int chunkX = CoordinateUtils.fromBlockToChunk( (int) this.getPositionX() );
+        int chunkZ = CoordinateUtils.fromBlockToChunk( (int) this.getPositionZ() );
+
+        return this.world.getChunk( chunkX, chunkZ );
+    }
+
+    /**
+     * Get the bounding box of the entity
+     *
+     * @return the current bounding box of this entity
+     */
+    public AxisAlignedBB getBoundingBox() {
+        return this.boundingBox;
+    }
+
+    /**
+     * Change the size of the entity
+     *
+     * @param width  the new width of the entity
+     * @param height the new height of the entity
+     */
+    protected void setSize( float width, float height ) {
+        this.width = width;
+        this.height = height;
+        this.eyeHeight = (float) (height / 2 + 0.1);
+    }
+
     @Override
     public void setNameTagAlwaysVisible( boolean value ) {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_ALWAYS_SHOW_NAMETAG, value );
@@ -347,6 +728,28 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Override
     public boolean isNameTagVisible() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_SHOW_NAMETAG );
+    }
+
+    /**
+     * Construct a spawn packet for this entity
+     *
+     * @return the spawn packet of this entity, ready to be sent to the client
+     */
+    public Packet createSpawnPacket() {
+        // Broadcast spawn entity packet:
+        PacketSpawnEntity packet = new PacketSpawnEntity();
+        packet.setEntityId( this.id );
+        packet.setEntityType( this.type );
+        packet.setX( (float) this.getPositionX() );
+        packet.setY( (float) this.getPositionY() );
+        packet.setZ( (float) this.getPositionZ() );
+        packet.setVelocityX( 0.0F );
+        packet.setVelocityY( 0.0F );
+        packet.setVelocityZ( 0.0F );
+        packet.setYaw( this.getYaw() );
+        packet.setHeadYaw( this.getHeadYaw() );
+        packet.setMetadata( this.getMetadata() );
+        return packet;
     }
 
 }

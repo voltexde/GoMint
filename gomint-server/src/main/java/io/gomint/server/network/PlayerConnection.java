@@ -7,32 +7,22 @@
 
 package io.gomint.server.network;
 
-import io.gomint.entity.Player;
-import io.gomint.event.player.*;
-import io.gomint.inventory.ItemStack;
-import io.gomint.inventory.Material;
+import io.gomint.event.player.PlayerKickEvent;
+import io.gomint.event.player.PlayerQuitEvent;
 import io.gomint.jraknet.Connection;
 import io.gomint.jraknet.EncapsulatedPacket;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.Location;
-import io.gomint.math.Vector;
-import io.gomint.server.async.Delegate;
-import io.gomint.server.crafting.Recipe;
-import io.gomint.server.entity.AdventureSettings;
-import io.gomint.server.entity.EntityCow;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.inventory.Inventory;
-import io.gomint.server.inventory.transaction.Transaction;
-import io.gomint.server.inventory.transaction.TransactionGroup;
+import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.world.Gamemode;
 import io.gomint.world.World;
-import io.gomint.world.block.Air;
-import io.gomint.world.block.Block;
+import lombok.Getter;
+import lombok.Setter;
 import net.openhft.koloboke.collect.LongCursor;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
@@ -43,10 +33,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.InflaterInputStream;
 
 import static io.gomint.server.network.Protocol.*;
@@ -58,26 +49,41 @@ import static io.gomint.server.network.Protocol.*;
 public class PlayerConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PlayerConnection.class );
+    private static final Map<Class<? extends Packet>, PacketHandler> PACKET_HANDLERS = new HashMap<>();
+
+    static {
+        // Register all packet handlers we need
+        PACKET_HANDLERS.put( PacketUseItem.class, new PacketUseItemHandler() );
+        PACKET_HANDLERS.put( PacketMovePlayer.class, new PacketMovePlayerHandler() );
+        PACKET_HANDLERS.put( PacketSetChunkRadius.class, new PacketSetChunkRadiusHandler() );
+        PACKET_HANDLERS.put( PacketPlayerAction.class, new PacketPlayerActionHandler() );
+        PACKET_HANDLERS.put( PacketRemoveBlock.class, new PacketRemoveBlockHandler() );
+        PACKET_HANDLERS.put( PacketMobArmorEquipment.class, new PacketMobArmorEquipmentHandler() );
+        PACKET_HANDLERS.put( PacketAdventureSettings.class, new PacketAdventureSettingsHandler() );
+        PACKET_HANDLERS.put( PacketContainerSetSlot.class, new PacketContainerSetSlotHandler() );
+        PACKET_HANDLERS.put( PacketResourcePackResponse.class, new PacketResourcePackResponseHandler() );
+        PACKET_HANDLERS.put( PacketCraftingEvent.class, new PacketCraftingEventHandler() );
+        PACKET_HANDLERS.put( PacketLogin.class, new PacketLoginHandler() );
+        PACKET_HANDLERS.put( PacketDropItem.class, new PacketDropItemHandler() );
+        PACKET_HANDLERS.put( PacketMobEquipment.class, new PacketMobEquipmentHandler() );
+    }
 
     // Network manager that created this connection:
-    private final NetworkManager networkManager;
+    @Getter private final NetworkManager networkManager;
 
     // Actual connection for wire transfer:
-    private final Connection connection;
+    @Getter private final Connection connection;
 
     // World data
     private final LongSet playerChunks;
 
-    // Commonly used delegates:
-    private Delegate<Packet> sendDelegate;
-
     // Connection State:
-    private PlayerConnectionState state;
+    @Getter @Setter private PlayerConnectionState state;
     private int sentChunks;
     private BlockingQueue<Packet> sendQueue;
 
     // Entity
-    private EntityPlayer entity;
+    @Getter @Setter private EntityPlayer entity;
     private LongSet currentlySendingPlayerChunks;
 
     /**
@@ -94,15 +100,6 @@ public class PlayerConnection {
 
         this.playerChunks = HashLongSets.newMutableSet();
         this.currentlySendingPlayerChunks = HashLongSets.newMutableSet();
-
-        this.sendDelegate = new Delegate<Packet>() {
-            @Override
-            public void invoke( Packet arg ) {
-                if ( arg != null ) {
-                    PlayerConnection.this.send( arg );
-                }
-            }
-        };
     }
 
     /**
@@ -116,44 +113,6 @@ public class PlayerConnection {
         }
 
         this.sendQueue.offer( packet );
-    }
-
-    /**
-     * Gets the player connection's current state.
-     *
-     * @return The player connection's current state
-     */
-    public PlayerConnectionState getState() {
-        return this.state;
-    }
-
-    /**
-     * Gets the player's actual jRakNet connection.
-     *
-     * @return The player's actual jRakNet connection
-     */
-    public Connection getConnection() {
-        return this.connection;
-    }
-
-    /**
-     * Gets the delegate to be used whenever a packet is to be sent once an asynchronous
-     * operation completes.
-     *
-     * @return The delegate to be used for sending packets asynchronously
-     */
-    public Delegate<Packet> getSendDelegate() {
-        return this.sendDelegate;
-    }
-
-    /**
-     * Gets the EntityPlayer associated with this player connection. This might return null if
-     * the player has not logged in yet.
-     *
-     * @return The entity associated with this player connection
-     */
-    public EntityPlayer getEntity() {
-        return this.entity;
     }
 
     /**
@@ -283,9 +242,9 @@ public class PlayerConnection {
             if ( packetId == PACKET_BATCH ) {
                 this.handleBatchPacket( currentTimeMillis, buffer, batch );
             } else if ( packetId == PACKET_LOGIN ) {
-                PacketLogin login = new PacketLogin();
-                login.deserialize( buffer );
-                this.handleLoginPacket( login );
+                PacketLogin packet = new PacketLogin();
+                packet.deserialize( buffer );
+                this.handlePacket( currentTimeMillis, packet );
             } else {
                 LOGGER.error( "Received odd packet" );
             }
@@ -299,9 +258,9 @@ public class PlayerConnection {
             if ( packetId == PACKET_BATCH ) {
                 this.handleBatchPacket( currentTimeMillis, buffer, batch );
             } else if ( packetId == PACKET_RESOURCEPACK_RESPONSE ) {
-                PacketResourcePackResponse resourcepackResponse = new PacketResourcePackResponse();
-                resourcepackResponse.deserialize( buffer );
-                this.handleResourceResponse( resourcepackResponse );
+                PacketResourcePackResponse packet = new PacketResourcePackResponse();
+                packet.deserialize( buffer );
+                this.handlePacket( currentTimeMillis, packet );
             } else {
                 LOGGER.error( "Received odd packet" );
             }
@@ -380,320 +339,19 @@ public class PlayerConnection {
      * @param packet            The packet to handle
      */
     private void handlePacket( long currentTimeMillis, Packet packet ) {
-        switch ( packet.getId() ) {
-            case PACKET_USE_ITEM:
-                this.handleUseItem( (PacketUseItem) packet );
-                break;
-            case PACKET_MOVE_PLAYER:
-                this.handleMovePacket( (PacketMovePlayer) packet );
-                break;
-            case PACKET_SET_CHUNK_RADIUS:
-                this.handleSetChunkRadius( (PacketSetChunkRadius) packet );
-                break;
-            case PACKET_PLAYER_ACTION:
-                this.handlePlayerAction( currentTimeMillis, (PacketPlayerAction) packet );
-                break;
-            case PACKET_MOB_ARMOR_EQUIPMENT:
-                this.handleMobArmorEquipment( (PacketMobArmorEquipment) packet );
-                break;
-            case PACKET_REMOVE_BLOCK:
-                this.handleRemoveBlock( (PacketRemoveBlock) packet );
-                break;
-            case PACKET_INTERACT:
-                this.handleInteract( (PacketInteract) packet );
-                break;
-            case PACKET_ANIMATE:
-                this.handleAnimate( (PacketAnimate) packet );
-                break;
-            case PACKET_WORLD_SOUND_EVENT:
-                this.handleWorldSoundEvent( (PacketWorldSoundEvent) packet );
-                break;
-            case PACKET_ADVENTURE_SETTINGS:
-                this.handleAdventureSettings( (PacketAdventureSettings) packet );
-                break;
-            case PACKET_CONTAINER_SET_SLOT:
-                this.handleSetSlot( currentTimeMillis, (PacketContainerSetSlot) packet );
-                break;
-            case PACKET_CRAFTING_EVENT:
-                this.handleCraftingEvent( (PacketCraftingEvent) packet );
-                break;
-            default:
-                LOGGER.warn( "No handler for " + packet.getClass() );
-                break;
-        }
-    }
-
-    private void handleCraftingEvent( PacketCraftingEvent packet ) {
-        // Get the recipe based on its id
-        Recipe recipe = this.entity.getWorld().getServer().getRecipeManager().getRecipe( packet.getRecipeId() );
-        if ( recipe == null ) {
-            // Resend inventory and call it a day
-            this.entity.getInventory().sendContents( this );
+        PacketHandler handler = PACKET_HANDLERS.get( packet.getClass() );
+        if ( handler != null ) {
+            handler.handle( packet, currentTimeMillis, this );
             return;
         }
 
-        // Try to abort the crafting for good
-        System.out.println( "Input" );
-        for ( ItemStack itemStack : packet.getInput() ) {
-            System.out.println( itemStack );
-        }
-
-        this.entity.getInventory().sendContents( this );
+        LOGGER.warn( "No handler for " + packet.getClass() );
     }
 
-    private void handleSetSlot( long currentTimeInMS, PacketContainerSetSlot packet ) {
-        LOGGER.debug( "0x" + Integer.toHexString( packet.getWindowId() ) + ": " + packet.getSlot() + " -> " + packet.getItemStack() + " / " + packet.getUnknown() );
-
-        // Exception safety
-        if ( packet.getSlot() < 0 ) {
-            return;
-        }
-
-        // Begin transaction
-        Transaction transaction;
-        if ( packet.getWindowId() == 0 ) { // Player inventory
-            // The client wanted to set a slot which is outside of the inventory size
-            if ( packet.getSlot() >= this.entity.getInventory().getSize() ) {
-                return;
-            }
-
-            transaction = new Transaction( this.entity.getInventory(), packet.getSlot(), this.entity.getInventory().getItem( packet.getSlot() ).clone(), packet.getItemStack().clone(), System.currentTimeMillis() );
-        } else if ( packet.getWindowId() == 0x78 ) { // Armor inventory
-            // The client wanted to set a slot which is outside of the inventory size
-            if ( packet.getSlot() >= 4 ) {
-                return;
-            }
-
-            transaction = new Transaction( this.entity.getInventory(), packet.getSlot() + this.entity.getInventory().getSize(), this.entity.getInventory().getItem( packet.getSlot() + this.entity.getInventory().getSize() ), packet.getItemStack().clone(), System.currentTimeMillis() );
-        } else {
-            return;
-        }
-
-        // Check if the client changed something
-        if ( transaction.getSourceItem().deepEquals( transaction.getTargetItem() ) && transaction.getTargetItem().getAmount() == transaction.getSourceItem().getAmount() ) {
-            return;
-        }
-
-        // Check if we need a new transaction and auto cancel transactions which are open for at least 8 seconds
-        if ( this.entity.getTransactions() == null || currentTimeInMS - this.entity.getTransactions().getCreationTime() > TimeUnit.SECONDS.toMillis( 8 ) ) {
-            if ( this.entity.getTransactions() != null ) {
-                for ( Inventory inventory : this.entity.getTransactions().getInventories() ) {
-                    inventory.sendContents( this );
-                }
-            }
-
-            this.entity.setTransactions( new TransactionGroup() );
-        }
-
-        // Check if we consume a item
-        boolean didConsume = this.entity.getTransactions().predictConsume( packet.getItemStack() );
-        this.entity.getTransactions().addTransaction( transaction );
-
-        // Can we execute now?
-        if ( this.entity.getTransactions().canExecute() || this.entity.getGamemode() == Gamemode.CREATIVE ) {
-            if ( !this.entity.getTransactions().execute( this.entity.getGamemode() == Gamemode.CREATIVE ) ) {
-                // Revert inventory
-                for ( Inventory inventory : this.entity.getTransactions().getInventories() ) {
-                    inventory.sendContents( this.entity.getConnection() );
-                }
-            }
-
-            this.entity.setTransactions( null );
-        } else if ( !didConsume && packet.getItemStack().getMaterial() != Material.AIR ) {   // We have needed items but we never picked up some?
-            transaction.getInventory().sendContents( packet.getSlot(), this );
-            transaction.getInventory().sendContents( packet.getHotbarSlot(), this );
-        }
-    }
-
-    private void handleAdventureSettings( PacketAdventureSettings packet ) {
-        // This is sent when the client wants a change to its flying status
-        AdventureSettings adventureSettings = new AdventureSettings( packet.getFlags() );
-
-        if ( this.entity.getAdventureSettings().isCanFly() ) {
-            if ( this.entity.getAdventureSettings().isFlying() != adventureSettings.isFlying() ) {
-                // Just accept what the client tells
-                this.entity.getAdventureSettings().setFlying( adventureSettings.isFlying() );
-                this.entity.getAdventureSettings().update();
-            }
-        }
-    }
-
-    private void handleWorldSoundEvent( PacketWorldSoundEvent packet ) {
-        System.out.println( packet );
-    }
-
-    private void handleAnimate( PacketAnimate packet ) {
-        System.out.println( packet );
-    }
-
-    private void handleInteract( PacketInteract packet ) {
-        System.out.println( packet );
-    }
-
-    private void handleRemoveBlock( PacketRemoveBlock packet ) {
-        io.gomint.server.world.block.Block block = this.entity.getWorld().getBlockAt( packet.getPosition() );
-        if ( block != null ) {
-            // Check for special break rights (creative)
-            if ( this.entity.getGamemode() == Gamemode.CREATIVE ) {
-                block.setType( Air.class );
-                return;
-            }
-
-            if ( this.entity.getBreakTime() < block.getBreakTime() - 50 ) { // The client can lag one tick behind (yes the client has 20 TPS)
-                // Reset block
-                PacketUpdateBlock updateBlock = new PacketUpdateBlock();
-                updateBlock.setBlockId( block.getBlockId() );
-                updateBlock.setPosition( packet.getPosition() );
-                updateBlock.setPrioAndMetadata( (byte) ( 0xb << 4 | ( block.getBlockData() & 0xf ) ) );
-                send( updateBlock );
-            } else {
-                // TODO: Add drops
-
-                block.setType( Air.class );
-            }
-        }
-    }
-
-    private void handleUseItem( PacketUseItem packet ) {
-        // Only check if distance is under 12 block ( for security )
-        if ( this.entity.getLocation().distanceSquared( packet.getPosition() ) < 24 ) {
-            // Get block to interact with
-            Block block = this.entity.getWorld().getBlockAt( packet.getPosition() );
-            ( (io.gomint.server.world.block.Block) block ).interact( this.entity, packet.getFace(), packet.getFacePosition(), packet.getItem() );
-        }
-    }
-
-    private void handleMobArmorEquipment( PacketMobArmorEquipment packet ) {
-        // TODO implement checks if the client says something correct
-        this.entity.getInventory().setBoots( packet.getBoots() );
-        this.entity.getInventory().setChestplate( packet.getChestplate() );
-        this.entity.getInventory().setHelmet( packet.getHelmet() );
-        this.entity.getInventory().setLeggings( packet.getLeggings() );
-    }
-
-    private void handlePlayerAction( long currentTimeMillis, PacketPlayerAction packet ) {
-        switch ( packet.getAction() ) {
-            case START_BREAK:
-                if ( this.entity.getStartBreak() == 0 ) {
-                    this.entity.setBreakVector( packet.getPosition() );
-                    this.entity.setStartBreak( currentTimeMillis );
-                }
-
-                break;
-
-            case ABORT_BREAK:
-                this.entity.setBreakVector( null );
-
-            case STOP_BREAK:
-                if ( this.entity.getBreakVector() == null ) {
-                    // This happens when instant break is enabled
-                    this.entity.setBreakTime( 0 );
-                    this.entity.setStartBreak( 0 );
-                    return;
-                }
-
-                this.entity.setBreakTime( ( currentTimeMillis - this.entity.getStartBreak() ) );
-                this.entity.setStartBreak( 0 );
-                break;
-            default:
-                LOGGER.warn( "Unhandled action: " + packet );
-                break;
-        }
-    }
-
-    private void handleChat( PacketText packet ) {
-        if ( packet.getType() != PacketText.Type.PLAYER_CHAT ) {
-            // Players are not allowed to send any other chat messages:
-            return;
-        }
-
-        // Verify sender:
-        if ( !packet.getSender().equals( this.entity.getName() ) ) {
-            // Player is trying to fake messages:
-            return;
-        }
-
-        // TODO: Trigger chat event here
-        this.networkManager.broadcast( PacketReliability.RELIABLE, 0, packet );
-
-        Vector position = this.entity.getPosition();
-        WorldAdapter world = this.entity.getWorld();
-        world.spawnEntityAt( new EntityCow( world ), position.getX(), position.getY(), position.getZ() );
-    }
-
-    private void handleSetChunkRadius( PacketSetChunkRadius packet ) {
-        // Check if the wanted View distance is under the servers setting
-        int oldViewdistance = this.entity.getViewDistance();
-        this.entity.setViewDistance( packet.getChunkRadius() );
-        if ( oldViewdistance == this.entity.getViewDistance() ) {
-            // Got to send confirmation anyways:
-            PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
-            packetConfirmChunkRadius.setChunkRadius( this.entity.getViewDistance() );
-            this.send( packetConfirmChunkRadius );
-        }
-    }
-
-    private void handleMovePacket( PacketMovePlayer packet ) {
-        Location to = this.entity.getLocation();
-        to.setX( packet.getX() );
-        to.setY( packet.getY() );
-        to.setZ( packet.getZ() );
-        to.setHeadYaw( packet.getHeadYaw() );
-        to.setYaw( packet.getYaw() );
-        to.setPitch( packet.getPitch() );
-
-        Location from = this.entity.getLocation();
-
-        PlayerMoveEvent playerMoveEvent = this.networkManager.getServer().getPluginManager().callEvent(
-                new PlayerMoveEvent( this.entity, from, to )
-        );
-
-        if ( playerMoveEvent.isCancelled() ) {
-            playerMoveEvent.setTo( playerMoveEvent.getFrom() );
-        }
-
-        to = playerMoveEvent.getTo();
-        if ( to.getX() != packet.getX() || to.getY() != packet.getY() || to.getZ() != packet.getZ() ||
-                !to.getWorld().equals( this.entity.getWorld() ) || to.getYaw() != packet.getYaw() ||
-                to.getPitch() != packet.getPitch() || to.getHeadYaw() != packet.getHeadYaw() ) {
-            teleport( to );
-        }
-
-        this.entity.setPosition( to.getX(), to.getY(), to.getZ() );
-        this.entity.setPitch( to.getPitch() );
-        this.entity.setYaw( to.getYaw() );
-        this.entity.setHeadYaw( to.getHeadYaw() );
-
-        if ( (int) from.getX() != (int) to.getX() ||
-                (int) from.getZ() != (int) to.getZ() ||
-                !to.getWorld().equals( from.getWorld() ) ) {
-            this.checkForNewChunks();
-        }
-    }
-
-    public void teleport( Location location ) {
-        // Check if we need to change worlds
-        if ( !location.getWorld().equals( this.entity.getWorld() ) ) {
-            // Change worlds first
-            sendMovePlayer( new Location( location.getWorld(), this.entity.getPositionX() + 1000000, 4000, this.entity.getPositionZ() + 1000000 ) );
-            this.entity.getWorld().removePlayer( this.entity );
-            this.entity.despawn();
-
-            this.entity.setWorld( (WorldAdapter) location.getWorld() );
-            this.playerChunks.clear();
-        }
-
-        sendMovePlayer( location );
-
-        this.entity.setPosition( location );
-        this.entity.setPitch( location.getPitch() );
-        this.entity.setYaw( location.getYaw() );
-        this.entity.setHeadYaw( location.getHeadYaw() );
-
-        checkForNewChunks();
-    }
-
-    private void checkForNewChunks() {
+    /**
+     * Check if we need to send new chunks to the player
+     */
+    public void checkForNewChunks() {
         WorldAdapter worldAdapter = this.entity.getWorld();
 
         int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
@@ -735,167 +393,25 @@ public class PlayerConnection {
         }
     }
 
-    private void handleLoginPacket( PacketLogin packet ) {
-        PlayerPreLoginEvent playerPreLoginEvent = this.networkManager.getServer().getPluginManager().callEvent( new PlayerPreLoginEvent( this.connection.getAddress() ) );
-        if ( playerPreLoginEvent.isCancelled() ) {
-            // Since the user has not gotten any packets we are not able to be sure if we can send him a disconnect notification
-            // so we decide to close the raknet connection without any notice
-            this.disconnect( null );
-            return;
-        }
-
-        // Check versions
-        if ( packet.getProtocol() != Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {
-            String message;
-            if ( packet.getProtocol() < Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {
-                message = "disconnectionScreen.outdatedClient";
-                this.sendPlayState( PacketPlayState.PlayState.LOGIN_FAILED_CLIENT );
-            } else {
-                message = "disconnectionScreen.outdatedServer";
-                this.sendPlayState( PacketPlayState.PlayState.LOGIN_FAILED_SERVER );
-            }
-
-            this.disconnect( message );
-            return;
-        }
-
-        LoginHandler loginHandler = new LoginHandler( packet );
-        if ( !loginHandler.isValid() && this.networkManager.getServer().getServerConfig().isOnlyXBOXLogin() ) {
-            this.disconnect( "Only valid XBOX Logins are allowed" );
-            return;
-        }
-
-        // Create entity:
-        WorldAdapter world = this.networkManager.getServer().getDefaultWorld();
-        this.entity = new EntityPlayer( world, this, loginHandler.getUserName(), loginHandler.getUuid() );
-        this.entity.setSkin( loginHandler.getSkin() );
-        this.entity.setNameTagVisible( true );
-        this.entity.setNameTagAlwaysVisible( true );
-
-        // Post login event
-        PlayerLoginEvent event = this.networkManager.getServer().getPluginManager().callEvent( new PlayerLoginEvent( this.entity ) );
-        if ( event.isCancelled() ) {
-            this.disconnect( event.getKickMessage() );
-            return;
-        }
-
-        this.state = PlayerConnectionState.RESOURCE_PACK;
-        this.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
-        this.sendResourcePacks();
-    }
-
-    private void handleResourceResponse( PacketResourcePackResponse resourcepackResponse ) {
-        // TODO: Implement resource pack sending
-        System.out.println( resourcepackResponse );
-
-        switch ( resourcepackResponse.getStatus() ) {
-            case HAVE_ALL_PACKS:
-                PacketResourcePackStack packetResourcePackStack = new PacketResourcePackStack();
-                this.send( packetResourcePackStack );
-                break;
-
-            case COMPLETED:
-                // Proceed with login
-                this.state = PlayerConnectionState.LOGIN;
-                LOGGER.info( "Logging in as " + this.entity.getName() );
-
-                this.sendWorldTime( 0, false );
-                this.sendWorldInitialization();
-                this.sendChunkRadiusUpdate();
-                this.sendWorldTime( 0, false );
-                this.sendDifficulty();
-                this.sendCommandsEnabled();
-                this.entity.getAdventureSettings().update();
-                this.entity.updateAttributes();
-
-                // Now its time for the join event since the play is fully loaded
-                this.networkManager.getServer().getPluginManager().callEvent( new PlayerJoinEvent( this.entity ) );
-
-                // Add player to world (will send world chunk packets):
-                this.entity.fullyInit();
-                this.entity.getWorld().addPlayer( this.entity );
-
-                PacketPlayerlist playerlist = null;
-
-                // Remap all current living entities
-                List<PacketPlayerlist.Entry> listEntry = null;
-                for ( Player player : this.getEntity().getWorld().getServer().getPlayers() ) {
-                    if ( !player.isHidden( this.entity ) && !player.equals( this.entity ) ) {
-                        if ( playerlist == null ) {
-                            playerlist = new PacketPlayerlist();
-                            playerlist.setMode( (byte) 0 );
-                            playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-                                add( new PacketPlayerlist.Entry( entity.getUUID(), entity.getEntityId(), entity.getName(), entity.getSkin() ) );
-                            }} );
-                        }
-
-                        ( (EntityPlayer) player ).getConnection().send( playerlist );
-                    }
-
-                    if ( !this.entity.isHidden( player ) && !this.entity.equals( player ) ) {
-                        if ( listEntry == null ) {
-                            listEntry = new ArrayList<>();
-                        }
-
-                        listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(), player.getName(), player.getSkin() ) );
-
-                        EntityPlayer entityPlayer = (EntityPlayer) player;
-                        PacketSpawnPlayer spawnPlayer = new PacketSpawnPlayer();
-                        spawnPlayer.setUuid( entityPlayer.getUUID() );
-                        spawnPlayer.setName( entityPlayer.getName() );
-                        spawnPlayer.setEntityId( entityPlayer.getEntityId() );
-                        spawnPlayer.setRuntimeEntityId( entityPlayer.getEntityId() );
-
-                        spawnPlayer.setX( entityPlayer.getPositionX() );
-                        spawnPlayer.setY( entityPlayer.getPositionY() );
-                        spawnPlayer.setZ( entityPlayer.getPositionZ() );
-
-                        spawnPlayer.setVelocityX( entityPlayer.getVelocity().getX() );
-                        spawnPlayer.setVelocityY( entityPlayer.getVelocity().getY() );
-                        spawnPlayer.setVelocityZ( entityPlayer.getVelocity().getZ() );
-
-                        spawnPlayer.setPitch( entityPlayer.getPitch() );
-                        spawnPlayer.setYaw( entityPlayer.getYaw() );
-                        spawnPlayer.setHeadYaw( entityPlayer.getHeadYaw() );
-
-                        spawnPlayer.setItemInHand( entityPlayer.getInventory().getItemInHand() );
-                        spawnPlayer.setMetadataContainer( entityPlayer.getMetadata() );
-
-                        addToSendQueue( spawnPlayer );
-                    }
-                }
-
-                if ( listEntry != null ) {
-                    // Send player list
-                    PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
-                    packetPlayerlist.setMode( (byte) 0 );
-                    packetPlayerlist.setEntries( listEntry );
-                    send( packetPlayerlist );
-                }
-
-                break;
-        }
-    }
-
-    private void sendResourcePacks() {
+    public void sendResourcePacks() {
         // We have the chance of forcing resource and behaviour packs here
         PacketResourcePacksInfo packetResourcePacksInfo = new PacketResourcePacksInfo();
         this.send( packetResourcePacksInfo );
     }
 
-    private void sendCommandsEnabled() {
+    public void sendCommandsEnabled() {
         PacketSetCommandsEnabled packetSetCommandsEnabled = new PacketSetCommandsEnabled();
         packetSetCommandsEnabled.setEnabled( false );   // TODO: Change after command system is there
         this.send( packetSetCommandsEnabled );
     }
 
-    private void sendDifficulty() {
+    public void sendDifficulty() {
         PacketSetDifficulty packetSetDifficulty = new PacketSetDifficulty();
         packetSetDifficulty.setDifficulty( 1 );
         this.send( packetSetDifficulty );
     }
 
-    private void sendChunkRadiusUpdate() {
+    public void sendChunkRadiusUpdate() {
         PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
         packetConfirmChunkRadius.setChunkRadius( this.entity.getViewDistance() );
         this.send( packetConfirmChunkRadius );
@@ -907,8 +423,6 @@ public class PlayerConnection {
      * @param message The message with which the player is going to be kicked
      */
     public void disconnect( String message ) {
-        new Exception().printStackTrace();
-
         if ( this.connection.isConnected() && !this.connection.isDisconnecting() ) {
             this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );
 
@@ -935,7 +449,7 @@ public class PlayerConnection {
      *
      * @param state The state to send
      */
-    private void sendPlayState( PacketPlayState.PlayState state ) {
+    public void sendPlayState( PacketPlayState.PlayState state ) {
         PacketPlayState packet = new PacketPlayState();
         packet.setState( state );
         this.send( packet );
@@ -947,12 +461,12 @@ public class PlayerConnection {
      *
      * @param location The location to teleport the player to
      */
-    private void sendMovePlayer( Location location ) {
+    public void sendMovePlayer( Location location ) {
         PacketMovePlayer move = new PacketMovePlayer();
         move.setEntityId( 0 );                      // All packets referencing the local player have entity ID 0
-        move.setX( location.getX() );
-        move.setY( location.getY() );
-        move.setZ( location.getZ() );
+        move.setX( (float) location.getX() );
+        move.setY( (float) ( location.getY() + 1.62 ) );
+        move.setZ( (float) location.getZ() );
         move.setYaw( location.getYaw() );
         move.setPitch( location.getPitch() );
         move.setMode( (byte) 1 );
@@ -968,7 +482,7 @@ public class PlayerConnection {
      * @param ticks    The current number of ticks of the world time
      * @param counting Whether or not the world time is counting upwards
      */
-    private void sendWorldTime( int ticks, boolean counting ) {
+    public void sendWorldTime( int ticks, boolean counting ) {
         PacketWorldTime time = new PacketWorldTime();
         time.setTicks( ticks );
         time.setCounting( counting );
@@ -979,7 +493,7 @@ public class PlayerConnection {
      * Sends a world initialization packet of the world the entity associated with this
      * connection is currently in to this player.
      */
-    private void sendWorldInitialization() {
+    public void sendWorldInitialization() {
         World world = this.entity.getWorld();
 
         PacketStartGame packet = new PacketStartGame();
@@ -1011,6 +525,13 @@ public class PlayerConnection {
             this.entity.despawn();
             this.entity = null;
         }
+    }
+
+    /**
+     * Clear the chunks which we know the player has gotten
+     */
+    public void resetPlayerChunks() {
+        this.playerChunks.clear();
     }
 
 }

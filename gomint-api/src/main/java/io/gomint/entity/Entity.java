@@ -7,7 +7,9 @@
 
 package io.gomint.entity;
 
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
+import io.gomint.math.Vector;
 import io.gomint.world.World;
 
 /**
@@ -38,6 +40,8 @@ public interface Entity {
      */
     Location getLocation();
 
+    void setVelocity( Vector velocity );
+
     void setNameTagAlwaysVisible( boolean value );
 
     boolean isNameTagAlwaysVisible();
@@ -45,5 +49,7 @@ public interface Entity {
     void setNameTagVisible( boolean value );
 
     boolean isNameTagVisible();
+
+    AxisAlignedBB getBoundingBox();
 
 }

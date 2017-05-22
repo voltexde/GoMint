@@ -58,7 +58,7 @@ public class PacketSpawnPlayer extends Packet {
         buffer.writeLFloat( this.headYaw );
         buffer.writeLFloat( this.yaw );
 
-        writeItemStack( this.itemInHand, buffer, false );
+        writeItemStack( this.itemInHand, buffer );
         this.metadataContainer.serialize( buffer );
     }
 

@@ -9,8 +9,8 @@ package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.async.Delegate2;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.entity.tileentity.NoteblockTileEntity;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
@@ -21,6 +21,9 @@ import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
 import io.gomint.world.Chunk;
 import io.gomint.world.block.Block;
+import net.openhft.koloboke.collect.map.LongObjMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,6 +37,8 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  */
 public abstract class ChunkAdapter implements Chunk {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( ChunkAdapter.class );
 
     // CHECKSTYLE:OFF
     // World
@@ -60,6 +65,9 @@ public abstract class ChunkAdapter implements Chunk {
     protected long lastPlayerOnThisChunk;
     protected long loadedTime;
     protected long lastSavedTimestamp;
+
+    // Entities
+    protected LongObjMap<io.gomint.entity.Entity> entities;
 
     // CHECKSTYLE:ON
 
@@ -90,6 +98,24 @@ public abstract class ChunkAdapter implements Chunk {
     public void removePlayer( EntityPlayer player ) {
         this.players.remove( player );
         this.lastPlayerOnThisChunk = System.currentTimeMillis();
+    }
+
+    /**
+     * Add a entity to this chunk
+     *
+     * @param entity The entity which should be added
+     */
+    public void addEntity( Entity entity ) {
+        this.entities.put( entity.getEntityId(), entity );
+    }
+
+    /**
+     * Remove a entity from this chunk
+     *
+     * @param entity The entity which should be removed
+     */
+    public void removeEntity( Entity entity ) {
+        this.entities.remove( entity.getEntityId() );
     }
 
     /**
@@ -188,6 +214,11 @@ public abstract class ChunkAdapter implements Chunk {
         return this.z;
     }
 
+    /**
+     * Add a new tile entity to the chunk
+     *
+     * @param tileEntity The NBT tag of the tile entity which should be added
+     */
     protected void addTileEntity( NBTTagCompound tileEntity ) {
         int x = tileEntity.getInteger( "x", 0 ) & 0xF;
         int y = tileEntity.getInteger( "y", -1 );
@@ -437,6 +468,11 @@ public abstract class ChunkAdapter implements Chunk {
         return packet;
     }
 
+    /**
+     * Get all tiles in this chunk for saving the data
+     *
+     * @return collection of all tiles in this chunks
+     */
     public Collection<TileEntity> getTileEntities() {
         List<TileEntity> tileEntities = new ArrayList<>();
 
@@ -447,6 +483,21 @@ public abstract class ChunkAdapter implements Chunk {
         }
 
         return tileEntities;
+    }
+
+    /**
+     * Check if this chunk contains the given entity
+     *
+     * @param entity The entity which should be checked for
+     * @return true if the chunk contains that entity, false if not
+     */
+    public boolean knowsEntity( Entity entity ) {
+        return this.entities.containsKey( entity.getEntityId() );
+    }
+
+    @Override
+    public Collection<io.gomint.entity.Entity> getEntities() {
+        return this.entities.size() == 0 ? null : this.entities.values();
     }
 
 }

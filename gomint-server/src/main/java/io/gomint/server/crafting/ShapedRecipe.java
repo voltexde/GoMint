@@ -12,7 +12,9 @@ import io.gomint.inventory.Material;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.packet.Packet;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Resembles a shaped crafting recipe, i.e. a recipe that requires its
@@ -24,11 +26,11 @@ import java.util.*;
  */
 public class ShapedRecipe extends CraftingRecipe {
 
-    private int width;
-    private int height;
+    private final int width;
+    private final int height;
 
-    private ItemStack[] arrangement;
-    private ItemStack[] outcome;
+    private final ItemStack[] arrangement;
+    private final ItemStack[] outcome;
 
     private Collection<ItemStack> ingredients;
 
@@ -73,26 +75,16 @@ public class ShapedRecipe extends CraftingRecipe {
     public Collection<ItemStack> getIngredients() {
         if ( this.ingredients == null ) {
             // Got to sort out possible AIR slots and combine types:
-            Map<Material, ItemStack> map = new HashMap<>( this.width * this.height );
+            this.ingredients = new ArrayList<>();
+
             for ( int j = 0; j < this.height; ++j ) {
                 for ( int i = 0; i < this.width; ++i ) {
                     ItemStack stack = this.arrangement[j * this.width + i];
                     if ( stack.getMaterial() != Material.AIR ) {
-                        if ( !map.containsKey( stack.getMaterial() ) ) {
-                            // Make sure to keep NBT data:
-                            ItemStack clone = stack.clone();
-                            clone.setAmount( 0 );
-                            map.put( stack.getMaterial(), clone );
-                        }
-
-                        ItemStack combined = map.get( stack.getMaterial() );
-                        combined.setAmount( combined.getAmount() + stack.getAmount() );
+                        this.ingredients.add( stack );
                     }
                 }
             }
-
-            this.ingredients = new ArrayList<>( map.size() );
-            this.ingredients.addAll( map.values() );
         }
 
         return this.ingredients;
@@ -110,7 +102,7 @@ public class ShapedRecipe extends CraftingRecipe {
         // Input items
         for ( int j = 0; j < this.height; ++j ) {
             for ( int i = 0; i < this.width; ++i ) {
-                Packet.writeItemStack( this.arrangement[j * this.width + i], buffer, false );
+                Packet.writeItemStack( this.arrangement[j * this.width + i], buffer );
             }
         }
 
@@ -118,7 +110,7 @@ public class ShapedRecipe extends CraftingRecipe {
         buffer.writeUnsignedVarInt( this.outcome.length );
 
         for ( ItemStack itemStack : this.outcome ) {
-            Packet.writeItemStack( itemStack, buffer, false );
+            Packet.writeItemStack( itemStack, buffer );
         }
 
         // Write recipe UUID

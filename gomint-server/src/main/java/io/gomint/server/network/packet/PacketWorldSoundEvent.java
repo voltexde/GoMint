@@ -27,9 +27,9 @@ public class PacketWorldSoundEvent extends Packet {
     @Override
     public void serialize( PacketBuffer buffer ) {
         buffer.writeByte( this.type.getSoundId() );
-        buffer.writeLFloat( this.position.getX() );
-        buffer.writeLFloat( this.position.getY() );
-        buffer.writeLFloat( this.position.getZ() );
+        buffer.writeLFloat( (float) this.position.getX() );
+        buffer.writeLFloat( (float) this.position.getY() );
+        buffer.writeLFloat( (float) this.position.getZ() );
         buffer.writeSignedVarInt( this.extraData );
         buffer.writeSignedVarInt( this.pitch );
         buffer.writeBoolean( this.unknownBool );

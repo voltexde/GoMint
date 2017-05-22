@@ -21,4 +21,9 @@ public class Air extends Block implements io.gomint.world.block.Air {
         return false;
     }
 
+    @Override
+    public boolean canPassThrough() {
+        return true;
+    }
+
 }

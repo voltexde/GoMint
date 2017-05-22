@@ -1,24 +1,56 @@
 package io.gomint.server.inventory.transaction;
 
+
 import io.gomint.inventory.ItemStack;
 import io.gomint.server.inventory.Inventory;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-@AllArgsConstructor
-@Getter
-@ToString
-public class Transaction {
+public interface Transaction {
 
-    private final Inventory inventory;
-    private final int slot;
-    private final ItemStack sourceItem;
-    private final ItemStack targetItem;
-    private final long creationTime;
+    /**
+     * Does this transaction have a source inventory?
+     *
+     * @return true if source item has a inventory to base on, false if not
+     */
+    boolean hasInventory();
+
+    /**
+     * Get the source item from the transaction. Mostly this is the old itemstack from the source inventory.
+     * Can also be null when there is no source (like crafting)
+     *
+     * @return the item source or null if there is none
+     */
+    ItemStack getSourceItem();
+
+    /**
+     * Get the target (consuming) item of this transaction
+     *
+     * @return the target of this transaction
+     */
+    ItemStack getTargetItem();
+
+    /**
+     * Get the source inventory. This is null when {@link #hasInventory()} is false
+     *
+     * @return the source inventory or null
+     */
+    Inventory getInventory();
+
+    /**
+     * Get the source slot from the source inventory. This will be -1 if {@link #hasInventory()} is false
+     *
+     * @return the slot number or -1
+     */
+    int getSlot();
+
+    /**
+     * The time when this transaction was created
+     *
+     * @return time in millis of the creation of this transaction
+     */
+    long getCreationTime();
 
 }

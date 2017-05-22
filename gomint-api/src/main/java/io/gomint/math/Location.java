@@ -11,6 +11,7 @@ import io.gomint.world.World;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -24,22 +25,14 @@ import lombok.Setter;
  * @version 1.2
  */
 @EqualsAndHashCode( callSuper = true )
+@ToString
 public class Location extends Vector implements Cloneable {
 
-    @Getter
-    private World world;
+    @Getter private World world;
 
-    @Getter
-    @Setter
-    private float yaw;
-
-    @Getter
-    @Setter
-    private float headYaw;
-
-    @Getter
-    @Setter
-    private float pitch;
+    @Getter @Setter private float yaw;
+    @Getter @Setter private float headYaw;
+    @Getter @Setter private float pitch;
 
     public Location( World world ) {
         this.setWorld( world );
@@ -67,6 +60,11 @@ public class Location extends Vector implements Cloneable {
         this.setWorld( world );
         this.yaw = yaw;
         this.pitch = pitch;
+    }
+
+    public Location( World world, float x, float y, float z, float headYaw, float yaw, float pitch ) {
+        this( world, x, y, z, yaw, pitch );
+        this.headYaw = headYaw;
     }
 
     public void setWorld( World world ) {

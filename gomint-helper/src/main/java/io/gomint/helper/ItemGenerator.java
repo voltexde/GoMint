@@ -33,7 +33,9 @@ public class ItemGenerator {
                 JSONObject itemObj = (JSONObject) item;
 
                 String constantName = ( (String) itemObj.get( "name" ) ).toUpperCase();
-                System.out.println( constantName + "," );
+                if ( 64 != (long) itemObj.get( "stackSize" ) ) {
+                    System.out.println( constantName + " => " + itemObj.get( "stackSize" ) );
+                }
                 // System.out.println( "case \"minecraft:" + itemObj.get( "name" ) + "\": \n  return " + constantName + ";");
             }
         } catch ( IOException | ParseException e ) {

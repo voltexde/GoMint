@@ -196,82 +196,82 @@ public enum Material {
     ALLOW,
     DENY,
     BORDER_BLOCK,
-    IRON_SHOVEL,
-    IRON_PICKAXE,
-    IRON_AXE,
-    FLINT_AND_STEEL,
+    IRON_SHOVEL( (byte) 1, (short) 251 ),
+    IRON_PICKAXE( (byte) 1, (short) 251 ),
+    IRON_AXE( (byte) 1, (short) 251 ),
+    FLINT_AND_STEEL( (byte) 1, (short) 65 ),
     APPLE,
-    BOW,
+    BOW( (byte) 1, (short) 385 ),
     ARROW,
     COAL,
     DIAMOND,
     IRON_INGOT,
     GOLD_INGOT,
-    IRON_SWORD,
-    WOODEN_SWORD,
-    WOODEN_SHOVEL,
-    WOODEN_PICKAXE,
-    WOODEN_AXE,
-    STONE_SWORD,
-    STONE_SHOVEL,
-    STONE_PICKAXE,
-    STONE_AXE,
-    DIAMOND_SWORD,
-    DIAMOND_SHOVEL,
-    DIAMOND_PICKAXE,
-    DIAMOND_AXE,
+    IRON_SWORD( (byte) 1, (short) 251 ),
+    WOODEN_SWORD( (byte) 1, (short) 60 ),
+    WOODEN_SHOVEL( (byte) 1, (short) 60 ),
+    WOODEN_PICKAXE( (byte) 1, (short) 60 ),
+    WOODEN_AXE( (byte) 1, (short) 60 ),
+    STONE_SWORD( (byte) 1, (short) 132 ),
+    STONE_SHOVEL( (byte) 1, (short) 132 ),
+    STONE_PICKAXE( (byte) 1, (short) 132 ),
+    STONE_AXE( (byte) 1, (short) 132 ),
+    DIAMOND_SWORD( (byte) 1, (short) 1562 ),
+    DIAMOND_SHOVEL( (byte) 1, (short) 1562 ),
+    DIAMOND_PICKAXE( (byte) 1, (short) 1562 ),
+    DIAMOND_AXE( (byte) 1, (short) 1562 ),
     STICK,
     BOWL,
-    MUSHROOM_STEW,
-    GOLDEN_SWORD,
-    GOLDEN_SHOVEL,
-    GOLDEN_PICKAXE,
-    GOLDEN_AXE,
+    MUSHROOM_STEW( (byte) 1),
+    GOLDEN_SWORD( (byte) 1, (short) 33 ),
+    GOLDEN_SHOVEL( (byte) 1, (short) 33 ),
+    GOLDEN_PICKAXE( (byte) 1, (short) 33 ),
+    GOLDEN_AXE( (byte) 1, (short) 33 ),
     STRING,
     FEATHER,
     GUNPOWDER,
-    WOODEN_HOE,
-    STONE_HOE,
-    IRON_HOE,
-    DIAMOND_HOE,
-    GOLDEN_HOE,
+    WOODEN_HOE( (byte) 1, (short) 60 ),
+    STONE_HOE( (byte) 1, (short) 132 ),
+    IRON_HOE( (byte) 1, (short) 251 ),
+    DIAMOND_HOE( (byte) 1, (short) 1562 ),
+    GOLDEN_HOE( (byte) 1, (short) 33 ),
     SEEDS,
     WHEAT,
     BREAD,
-    LEATHER_CAP,
-    LEATHER_TUNIC,
-    LEATHER_PANTS,
-    LEATHER_BOOTS,
-    CHAIN_HELMET,
-    CHAIN_CHESTPLATE,
-    CHAIN_LEGGINGS,
-    CHAIN_BOOTS,
-    IRON_HELMET,
-    IRON_CHESTPLATE,
-    IRON_LEGGINGS,
-    IRON_BOOTS,
-    DIAMOND_HELMET,
-    DIAMOND_CHESTPLATE,
-    DIAMOND_LEGGINGS,
-    DIAMOND_BOOTS,
-    GOLDEN_HELMET,
-    GOLDEN_CHESTPLATE,
-    GOLDEN_LEGGINGS,
-    GOLDEN_BOOTS,
+    LEATHER_CAP( (byte) 1, (short) 56 ),
+    LEATHER_TUNIC( (byte) 1, (short) 81 ),
+    LEATHER_PANTS( (byte) 1, (short) 76 ),
+    LEATHER_BOOTS( (byte) 1, (short) 56 ),
+    CHAIN_HELMET( (byte) 1, (short) 166 ),
+    CHAIN_CHESTPLATE( (byte) 1, (short) 241 ),
+    CHAIN_LEGGINGS( (byte) 1, (short) 106 ),
+    CHAIN_BOOTS( (byte) 1, (short) 196 ),
+    IRON_HELMET( (byte) 1, (short) 166 ),
+    IRON_CHESTPLATE( (byte) 1, (short) 241 ),
+    IRON_LEGGINGS( (byte) 1, (short) 226 ),
+    IRON_BOOTS( (byte) 1, (short) 196 ),
+    DIAMOND_HELMET( (byte) 1, (short) 364 ),
+    DIAMOND_CHESTPLATE( (byte) 1, (short) 529 ),
+    DIAMOND_LEGGINGS( (byte) 1, (short) 496 ),
+    DIAMOND_BOOTS( (byte) 1, (short) 430 ),
+    GOLDEN_HELMET( (byte) 1, (short) 78 ),
+    GOLDEN_CHESTPLATE( (byte) 1, (short) 113 ),
+    GOLDEN_LEGGINGS( (byte) 1, (short) 106 ),
+    GOLDEN_BOOTS( (byte) 1, (short) 92 ),
     FLINT,
     RAW_PORKCHOP,
     COOKED_PORKCHOP,
     PAINTING,
     GOLDEN_APPLE,
-    SIGN,
+    SIGN( (byte) 16 ),
     WOODEN_DOOR,
-    BUCKET,
-    MINECART,
-    SADDLE,
+    BUCKET( (byte) 16 ),
+    MINECART( (byte) 1 ),
+    SADDLE( (byte) 1 ),
     IRON_DOOR,
     REDSTONE,
-    SNOWBALL,
-    BOAT,
+    SNOWBALL( (byte) 16 ),
+    BOAT( (byte) 1 ),
     LEATHER,
     BRICK,
     CLAY_BALL,
@@ -279,10 +279,10 @@ public enum Material {
     PAPER,
     BOOK,
     SLIMEBALL,
-    MINECART_WITH_CHEST,
-    EGG,
+    MINECART_WITH_CHEST( (byte) 1 ),
+    EGG( (byte) 16 ),
     COMPASS,
-    FISHING_ROD,
+    FISHING_ROD( (byte) 1, (short) 65 ),
     CLOCK,
     GLOWSTONE_DUST,
     RAW_FISH,
@@ -290,12 +290,12 @@ public enum Material {
     DYE,
     BONE,
     SUGAR,
-    CAKE,
-    BED,
+    CAKE( (byte) 1 ),
+    BED( (byte) 1 ),
     REDSTONE_REPEATER,
     COOKIE,
     FILLED_MAP,
-    SHEARS,
+    SHEARS( (byte) 1, (short) 238 ),
     MELON,
     PUMPKIN_SEEDS,
     MELON_SEEDS,
@@ -304,12 +304,12 @@ public enum Material {
     RAW_CHICKEN,
     COOKED_CHICKEN,
     ROTTEN_FLESH,
-    ENDER_PEARL,
+    ENDER_PEARL( (byte) 16 ),
     BLAZE_ROD,
     GHAST_TEAR,
     GOLD_NUGGET,
     NETHER_WART,
-    POTION,
+    POTION( (byte) 1 ),
     GLASS_BOTTLE,
     SPIDER_EYE,
     FERMENTED_SPIDER_EYE,
@@ -332,26 +332,26 @@ public enum Material {
     MAP,
     GOLDEN_CARROT,
     MOB_HEAD,
-    CARROT_ON_A_STICK,
+    CARROT_ON_A_STICK( (byte) 1 ),
     NETHER_STAR,
     PUMPKIN_PIE,
-    ENCHANTED_BOOK,
+    ENCHANTED_BOOK( (byte) 1 ),
     COMPARATOR,
     NETHER_BRICK,
     NETHER_QUARTZ,
-    MINECART_WITH_TNT,
-    MINECART_WITH_HOPPER,
+    MINECART_WITH_TNT( (byte) 1 ),
+    MINECART_WITH_HOPPER( (byte) 1 ),
     PRISMARINE_SHARD,
     HOPPER,
     RAW_RABBIT,
     COOKED_RABBIT,
-    RABBIT_STEW,
+    RABBIT_STEW( (byte) 1 ),
     RABBIT_FOOT,
     RABBIT_HIDE,
-    LEATHER_HORSE_ARMOR,
-    IRON_HORSE_ARMOR,
-    GOLDEN_HORSE_ARMOR,
-    DIAMOND_HORSE_ARMOR,
+    LEATHER_HORSE_ARMOR( (byte) 1 ),
+    IRON_HORSE_ARMOR( (byte) 1 ),
+    GOLDEN_HORSE_ARMOR( (byte) 1 ),
+    DIAMOND_HORSE_ARMOR( (byte) 1 ),
     LEAD,
     NAME_TAG,
     PRISMARINE_CRYSTALS,
@@ -366,22 +366,123 @@ public enum Material {
     CHORUS_FRUIT,
     POPPED_CHORUS_FRUIT,
     DRAGON_BREATH,
-    SPLASH_POTION,
-    LINGERING_POTION,
-    ELYTRA,
+    SPLASH_POTION( (byte) 1 ),
+    LINGERING_POTION( (byte) 1 ),
+    ELYTRA( (byte) 1 ),
     SHULKER_SHELL,
     BEETROOT,
     BEETROOT_SEEDS,
-    BEETROOT_SOUP,
+    BEETROOT_SOUP( (byte) 1 ),
     RAW_SALMON,
     CLOWNFISH,
     PUFFERFISH,
     COOKED_SALMON,
     ENCHANTED_GOLDEN_APPLE,
-    CHALKBOARD,
-    PORTFOLIO,
-    CAMERA,
+    CHALKBOARD( (byte) 1 ),
+    PORTFOLIO( (byte) 1 ),
+    CAMERA;
     // CHECKSTYLE:ON
     // TODO: Documentation
+
+    private byte maximumAmount;
+    private short maximumDurability;
+
+    Material() {
+        this.maximumAmount = 64;
+    }
+
+    Material( byte maximumAmount ) {
+        this.maximumAmount = maximumAmount;
+    }
+
+
+    Material( byte maximumAmount, short maximumDurability ) {
+        this.maximumAmount = maximumAmount;
+        this.maximumDurability = maximumDurability;
+    }
+
+    /**
+     * Get the amount of maximum items in a stack
+     *
+     * @return the maximum amount of items in a stack
+     */
+    public byte getMaximumAmount() {
+        switch ( this ) {
+            // Armor
+            case DIAMOND_BOOTS:
+            case DIAMOND_LEGGINGS:
+            case DIAMOND_HELMET:
+            case DIAMOND_CHESTPLATE:
+            case IRON_BOOTS:
+            case IRON_LEGGINGS:
+            case IRON_HELMET:
+            case IRON_CHESTPLATE:
+            case GOLDEN_BOOTS:
+            case GOLDEN_LEGGINGS:
+            case GOLDEN_HELMET:
+            case GOLDEN_CHESTPLATE:
+            case CHAIN_BOOTS:
+            case CHAIN_LEGGINGS:
+            case CHAIN_HELMET:
+            case CHAIN_CHESTPLATE:
+            case LEATHER_BOOTS:
+            case LEATHER_PANTS:
+            case LEATHER_CAP:
+            case LEATHER_TUNIC:
+                return 1;
+
+            // Tools
+            case WOODEN_AXE:
+            case WOODEN_HOE:
+            case WOODEN_SWORD:
+            case WOODEN_SHOVEL:
+            case WOODEN_PICKAXE:
+            case GOLDEN_AXE:
+            case GOLDEN_HOE:
+            case GOLDEN_SWORD:
+            case GOLDEN_SHOVEL:
+            case GOLDEN_PICKAXE:
+            case IRON_AXE:
+            case IRON_HOE:
+            case IRON_SWORD:
+            case IRON_SHOVEL:
+            case IRON_PICKAXE:
+            case DIAMOND_AXE:
+            case DIAMOND_HOE:
+            case DIAMOND_SWORD:
+            case DIAMOND_SHOVEL:
+            case DIAMOND_PICKAXE:
+            case BOW:
+                return 1;
+
+            case BED:
+                return 1;
+
+            case BEETROOT_SOUP:
+                return 1;
+
+            case BUCKET:
+                return 1;
+
+            case CAKE:
+                return 1;
+
+            case WOODEN_DOOR:
+            case IRON_DOOR:
+                return 1;
+
+            case MUSHROOM_STEW:
+                return 1;
+
+            case SIGN:
+                return 1;
+
+            case SNOWBALL:
+                return 1;
+
+            default:
+                return 64;
+        }
+    }
 
 }

@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import io.gomint.entity.Player;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
@@ -17,9 +18,11 @@ import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.world.Chunk;
 import io.gomint.world.Gamerule;
 import io.gomint.world.Sound;
 import io.gomint.world.World;
@@ -143,6 +146,11 @@ public abstract class WorldAdapter implements World {
         int y = (int) vector.getY();
         int z = (int) vector.getZ();
 
+        return this.getBlockAt( x, y, z );
+    }
+
+    @Override
+    public <T extends Block> T getBlockAt( int x, int y, int z ) {
         final ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
         if ( chunk == null ) {
             // TODO: Generate world
@@ -360,6 +368,16 @@ public abstract class WorldAdapter implements World {
     /**
      * Spawns the given entity at the specified position.
      *
+     * @param entity The entity to spawn
+     * @param vector The vector which contains the position of the spawn
+     */
+    public void spawnEntityAt( EntityItem entity, Vector vector ) {
+        this.spawnEntityAt( entity, vector.getX(), vector.getY(), vector.getZ() );
+    }
+
+    /**
+     * Spawns the given entity at the specified position.
+     *
      * @param entity    The entity to spawn
      * @param positionX The x coordinate to spawn the entity at
      * @param positionY The y coordinate to spawn the entity at
@@ -381,15 +399,6 @@ public abstract class WorldAdapter implements World {
      */
     public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
         this.entityManager.spawnEntityAt( entity, positionX, positionY, positionZ, yaw, pitch );
-    }
-
-    /**
-     * Despawns an entity given its unique ID.
-     *
-     * @param entityId The unique ID of the entity
-     */
-    public void despawnEntity( long entityId ) {
-        this.entityManager.despawnEntity( entityId );
     }
 
     // ==================================== CHUNK MANAGEMENT ==================================== //
@@ -681,6 +690,84 @@ public abstract class WorldAdapter implements World {
      */
     public int getAmountOfPlayers() {
         return players.size();
+    }
+
+    /**
+     * Get all entities which touch or are inside this bounding box
+     *
+     * @param bb        the bounding box which should be used to collect entities in
+     * @param exception a entity which should not be included in the list
+     * @return either null if there are no entities or a list of entities
+     */
+    public List<io.gomint.entity.Entity> getNearbyEntities( AxisAlignedBB bb, io.gomint.entity.Entity exception ) {
+        List<io.gomint.entity.Entity> nearby = null;
+
+        int minX = (int) Math.floor( ( bb.getMinX() - 2 ) / 16 );
+        int maxX = (int) Math.ceil( ( bb.getMaxX() + 2 ) / 16 );
+        int minZ = (int) Math.floor( ( bb.getMinZ() - 2 ) / 16 );
+        int maxZ = (int) Math.ceil( ( bb.getMaxZ() + 2 ) / 16 );
+
+        for ( int x = minX; x <= maxX; ++x ) {
+            for ( int z = minZ; z <= maxZ; ++z ) {
+                Chunk chunk = this.getChunk( x, z );
+                if ( chunk != null ) {
+                    Collection<io.gomint.entity.Entity> entities = chunk.getEntities();
+                    if ( entities != null ) {
+                        for ( io.gomint.entity.Entity entity : entities ) {
+                            if ( !entity.equals( exception ) && entity.getBoundingBox().intersectsWith( bb ) ) {
+                                if ( nearby == null ) {
+                                    nearby = new ArrayList<>();
+                                }
+
+                                nearby.add( entity );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return nearby;
+    }
+
+    @Override
+    public List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb, boolean includeEntities ) {
+        int minX = (int) Math.floor( bb.getMinX() );
+        int minY = (int) Math.floor( bb.getMinY() );
+        int minZ = (int) Math.floor( bb.getMinZ() );
+        int maxX = (int) Math.ceil( bb.getMaxX() );
+        int maxY = (int) Math.ceil( bb.getMaxY() );
+        int maxZ = (int) Math.ceil( bb.getMaxZ() );
+
+        List<AxisAlignedBB> collisions = null;
+
+        for ( int z = minZ; z <= maxZ; ++z ) {
+            for ( int x = minX; x <= maxX; ++x ) {
+                for ( int y = minY; y <= maxY; ++y ) {
+                    Block block = this.getBlockAt( x, y, z );
+                    AxisAlignedBB blockBox;
+                    if ( !block.canPassThrough() && ( blockBox = block.getBoundingBox() ).intersectsWith( bb ) ) {
+                        if ( collisions == null ) {
+                            collisions = new ArrayList<>();
+                        }
+
+                        collisions.add( blockBox );
+                    }
+                }
+            }
+        }
+
+        if ( includeEntities ) {
+            for ( io.gomint.entity.Entity entity1 : getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity ) ) {
+                if ( collisions == null ) {
+                    collisions = new ArrayList<>();
+                }
+
+                collisions.add( entity1.getBoundingBox() );
+            }
+        }
+
+        return collisions;
     }
 
 }

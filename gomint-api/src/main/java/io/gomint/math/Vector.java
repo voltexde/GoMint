@@ -36,15 +36,9 @@ public class Vector implements Cloneable {
     public static final Vector NORTH = new Vector( 0, 0, -1 );
     public static final Vector SOUTH = new Vector( 0, 0, 1 );
 
-    @Getter
-    @Setter
-    protected float x;
-    @Getter
-    @Setter
-    protected float y;
-    @Getter
-    @Setter
-    protected float z;
+    @Getter @Setter protected float x;
+    @Getter @Setter protected float y;
+    @Getter @Setter protected float z;
 
     public Vector() {
 
@@ -128,13 +122,13 @@ public class Vector implements Cloneable {
         return this;
     }
 
-    public float length() {
-        return (float) Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+    public double length() {
+        return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
     }
 
     public Vector normalize() {
-        float mag = this.length();
-        if ( mag == 0.0F ) {
+        double mag = this.length();
+        if ( mag == 0.0 ) {
             return this;
         }
 
@@ -163,7 +157,7 @@ public class Vector implements Cloneable {
         }
     }
 
-    public float distanceSquared( Vector position ) {
+    public double distanceSquared( Vector position ) {
         return Numbers.square( x - position.x ) + Numbers.square( y - position.y ) + Numbers.square( z - position.z );
     }
 

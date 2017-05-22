@@ -7,9 +7,12 @@
 
 package io.gomint.server.world;
 
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import net.openhft.koloboke.collect.LongCursor;
+import net.openhft.koloboke.collect.map.IntObjMap;
 import net.openhft.koloboke.collect.map.LongObjMap;
+import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;
@@ -35,7 +38,7 @@ public class ChunkCache {
     private long autoSaveInterval;
 
     // Internals for the GC
-    private final BiConsumer<EntityPlayer, ChunkAdapter> viewDistanceCOnsumer = new BiConsumer<EntityPlayer, ChunkAdapter>() {
+    private final BiConsumer<EntityPlayer, ChunkAdapter> viewDistanceConsumer = new BiConsumer<EntityPlayer, ChunkAdapter>() {
         @Override
         public void accept( EntityPlayer entityPlayer, ChunkAdapter chunkAdapter ) {
             int viewDistance = entityPlayer.getViewDistance();
@@ -100,7 +103,7 @@ public class ChunkCache {
                 }
 
                 // Calculate the hashes which are used by players view distances
-                this.world.getPlayers0().forEach( viewDistanceCOnsumer );
+                this.world.getPlayers0().forEach( viewDistanceConsumer );
                 if ( skip.get() ) {
                     skip.set( false );
                     continue;

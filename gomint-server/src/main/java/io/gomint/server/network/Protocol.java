@@ -18,7 +18,7 @@ public final class Protocol {
     // CHECKSTYLE:OFF
     // MC:PE Protocol ID
     public static final int MINECRAFT_PE_PROTOCOL_VERSION = 107;
-    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.0.5";
+    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.0.7";
 
     // ========================================= PACKET IDS ========================================= //
     public static final byte PACKET_LOGIN = (byte) 0x01;
@@ -31,6 +31,9 @@ public final class Protocol {
     public static final byte PACKET_WORLD_TIME = (byte) 0x0b;
     public static final byte PACKET_START_GAME = (byte) 0x0c;
     public static final byte PACKET_SPAWN_PLAYER = (byte) 0x0d;
+    public static final byte PACKET_DESPAWN_ENTITY = (byte) 0x0f;
+    public static final byte PACKET_ADD_ITEM_ENTITY = (byte) 0x10;
+    public static final byte PACKET_PICKUP_ITEM_ENTITY = (byte) 0x12;
     public static final byte PACKET_ENTITY_MOVEMENT = (byte) 0x13;
     public static final byte PACKET_MOVE_PLAYER = (byte) 0x14;
     public static final byte PACKET_REMOVE_BLOCK = (byte) 0x16;
@@ -44,6 +47,7 @@ public final class Protocol {
     public static final byte PACKET_PLAYER_ACTION = (byte) 0x25;
     public static final byte PACKET_MOB_ANIMATION = (byte) 0x28;
     public static final byte PACKET_ANIMATE = (byte) 0x2D;
+    public static final byte PACKET_DROP_ITEM = (byte) 0x2f;
     public static final byte PACKET_CONTAINER_SET_SLOT = (byte) 0x33;
     public static final byte PACKET_CONTAINER_SET_CONTENT = (byte) 0x35;
     public static final byte PACKET_CRAFTING_RECIPES = (byte) 0x36;
@@ -62,7 +66,6 @@ public final class Protocol {
     public static final byte PACKET_ENTITY_MOTION = (byte) 0xAE;
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     public static final byte PACKET_SPAWN_ENTITY = (byte) 0x98;
-    public static final byte PACKET_DESPAWN_ENTITY = (byte) 0x99;
     // CHECKSTYLE:ON
 
     // ========================================= PACKET METHODS ========================================= //
@@ -124,6 +127,9 @@ public final class Protocol {
 
             case PACKET_ANIMATE:
                 return new PacketAnimate();
+
+            case PACKET_DROP_ITEM:
+                return new PacketDropItem();
 
             case PACKET_CONTAINER_SET_SLOT:
                 return new PacketContainerSetSlot();

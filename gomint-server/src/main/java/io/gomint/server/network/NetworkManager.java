@@ -204,7 +204,7 @@ public class NetworkManager {
      *
      * @return The GoMint server instance that created this network manager
      */
-    GoMintServer getServer() {
+    public GoMintServer getServer() {
         return this.server;
     }
 

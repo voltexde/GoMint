@@ -7,10 +7,12 @@
 
 package io.gomint.server.crafting;
 
+import io.gomint.inventory.ItemStack;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketCraftingRecipes;
 import io.gomint.server.util.BatchUtil;
+import io.gomint.server.util.EnumConnectors;
 
 import java.util.*;
 
@@ -24,7 +26,10 @@ public class RecipeManager {
 
     private final GoMintServer server;
     private Set<Recipe> recipes;
+
+    // Lookup stuff
     private Map<UUID, Recipe> lookup;
+    private Map<List<ItemStack>, Recipe> outputLookup;
 
     private Packet batchPacket;
     private boolean dirty;
@@ -38,6 +43,7 @@ public class RecipeManager {
         this.server = server;
         this.recipes = new HashSet<>();
         this.lookup = new HashMap<>();
+        this.outputLookup = new HashMap<>();
         this.dirty = true;
     }
 
@@ -72,7 +78,29 @@ public class RecipeManager {
             this.lookup.put( recipe.getUUID(), recipe );
         }
 
+        // TODO: Due to a MC:PE Bug there is c chance the wrong recipe UUID has been sent. To get rid of it
+        // we need to do a expensive output search
+        List<ItemStack> sortedOutput = new ArrayList<>( recipe.createResult() );
+        sortOutput( sortedOutput );
+        this.outputLookup.put( sortedOutput, recipe );
+
         this.dirty = true;
+    }
+
+    private void sortOutput( List<ItemStack> sortedOutput ) {
+        Collections.sort( sortedOutput, new Comparator<ItemStack>() {
+            @Override
+            public int compare( ItemStack o1, ItemStack o2 ) {
+                int itemId1 = EnumConnectors.MATERIAL_CONNECTOR.convert( o1.getMaterial() ).getOldId();
+                int itemId2 = EnumConnectors.MATERIAL_CONNECTOR.convert( o2.getMaterial() ).getOldId();
+
+                if ( itemId1 == itemId2 ) {
+                    return Short.compare( o1.getData(), o2.getData() );
+                }
+
+                return Integer.compare( itemId1, itemId2 );
+            }
+        } );
     }
 
     /**
@@ -83,6 +111,18 @@ public class RecipeManager {
      */
     public Recipe getRecipe( UUID recipeId ) {
         return this.lookup.get( recipeId );
+    }
+
+    /**
+     * Lookup a recipe by its output
+     *
+     * @param output    The output collection we want to lookup
+     * @return the recipe found or null
+     */
+    public Recipe getRecipe( Collection<ItemStack> output ) {
+        List<ItemStack> sortedOutput = new ArrayList<>( output );
+        sortOutput( sortedOutput );
+        return this.outputLookup.get( sortedOutput );
     }
 
 }

@@ -4,6 +4,7 @@ import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Transformable;
 import io.gomint.server.world.WorldAdapter;
+import lombok.Setter;
 
 /**
  * A component that provides a solid implementation of Transformable and may be added to entities.
@@ -17,19 +18,41 @@ public class TransformComponent implements EntityComponent, Transformable {
     private float posY;
     private float posZ;
 
+    @Setter private float motionX;
+    @Setter private float motionY;
+    @Setter private float motionZ;
+
     private float yaw;
     private float headYaw;
     private float pitch;
 
     private boolean dirty;
 
+    /**
+     * Construct a basic transformer component
+     */
     public TransformComponent() {
 
     }
 
     @Override
     public void update( long currentTimeMS, float dT ) {
-        // Nothing to do here
+        // Nothing
+    }
+
+    @Override
+    public float getMotionX() {
+        return this.motionX;
+    }
+
+    @Override
+    public float getMotionY() {
+        return this.motionY;
+    }
+
+    @Override
+    public float getMotionZ() {
+        return this.motionZ;
     }
 
     @Override
@@ -95,12 +118,16 @@ public class TransformComponent implements EntityComponent, Transformable {
 
     @Override
     public Vector getDirection() {
-        double r = Math.toRadians( this.yaw );
-        double sinY = Math.sin( r );
-        double cosY = Math.cos( r );
-        double cosP = Math.cos( Math.toRadians( this.pitch ) );
+        double rY = Math.toRadians( this.yaw );
+        double rP = Math.toRadians( this.pitch );
 
-        return new Vector( (float) ( cosY * cosP ), 0.0F, (float) ( sinY * cosP ) );
+        float y = (float) -Math.sin( rP );
+        double cosP = Math.cos( rP );
+
+        float x = (float) (-cosP * Math.sin( rY ));
+        float z = (float) (cosP * Math.cos( rY ));
+
+        return new Vector( x, y, z );
     }
 
     @Override
@@ -116,11 +143,27 @@ public class TransformComponent implements EntityComponent, Transformable {
     }
 
     @Override
+    public void setMotion( float motionX, float motionY, float motionZ ) {
+        this.motionX = motionX;
+        this.motionY = motionY;
+        this.motionZ = motionZ;
+    }
+
+    @Override
+    public void manipulateMotion( float x, float y, float z ) {
+        this.motionX += x;
+        this.motionY += y;
+        this.motionZ += z;
+    }
+
+    @Override
     public void setPosition( float positionX, float positionY, float positionZ ) {
         this.posX = positionX;
         this.posY = positionY;
         this.posZ = positionZ;
         this.dirty = true;
+
+
     }
 
     @Override
@@ -133,10 +176,7 @@ public class TransformComponent implements EntityComponent, Transformable {
 
     @Override
     public void move( Vector offset ) {
-        this.posX += offset.getX();
-        this.posY += offset.getY();
-        this.posZ += offset.getZ();
-        this.dirty = true;
+        move( offset.getX(), offset.getY(), offset.getZ() );
     }
 
     @Override
@@ -165,7 +205,7 @@ public class TransformComponent implements EntityComponent, Transformable {
 
     @Override
     public Location toLocation( WorldAdapter world ) {
-        return new Location( world, this.posX, this.posY, this.posZ, this.yaw, this.pitch );
+        return new Location( world, this.posX, this.posY, this.posZ, this.headYaw, this.yaw, this.pitch );
     }
 
     @Override
@@ -210,4 +250,5 @@ public class TransformComponent implements EntityComponent, Transformable {
             this.pitch = -89.9F;
         }
     }
+
 }

@@ -7,6 +7,7 @@
 
 package io.gomint.world.block;
 
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 
 /**
@@ -67,7 +68,30 @@ public interface Block {
 
     /**
      * Set the type of this block to another material
+     *
+     * @param blockType the new material of this block
      */
     <T extends Block> T setType( Class<T> blockType );
+
+    /**
+     * Can a bounding box pass through this block?
+     *
+     * @return if a bounding box can pass though or not
+     */
+    boolean canPassThrough();
+
+    /**
+     * Get the bounding box of this block
+     *
+     * @return the bounding box of this block
+     */
+    AxisAlignedBB getBoundingBox();
+
+    /**
+     * Describes how slippery a block is
+     *
+     * @return the amount of blocks something can slip on this block
+     */
+    float getFrictionFactor();
 
 }

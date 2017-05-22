@@ -14,10 +14,10 @@ import lombok.EqualsAndHashCode;
 
 /**
  * @author BlackyPaw
- * @version 1.0
+ * @author geNAZt
+ * @version 1.1
  */
 @Data
-@EqualsAndHashCode( callSuper = false )
 public class PacketDespawnEntity extends Packet {
 
     private long entityId;
@@ -28,11 +28,17 @@ public class PacketDespawnEntity extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        buffer.writeLong( this.entityId );
+        buffer.writeSignedVarLong( this.entityId );
     }
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        this.entityId = buffer.readLong();
+        this.entityId = buffer.readSignedVarLong().longValue();
     }
+
+    @Override
+    public int estimateLength() {
+        return predictSignedVarLong( this.entityId );
+    }
+
 }

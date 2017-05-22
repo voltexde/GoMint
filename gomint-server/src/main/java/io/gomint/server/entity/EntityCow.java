@@ -1,5 +1,6 @@
 package io.gomint.server.entity;
 
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.server.entity.ai.AIPassiveIdleMovement;
 import io.gomint.server.world.WorldAdapter;
 
@@ -19,6 +20,7 @@ public class EntityCow extends EntityLiving {
      */
     public EntityCow( WorldAdapter world ) {
         super( EntityType.COW, world );
+        this.setSize( 0.9f, 1.3f );
         this.setupAI();
     }
 

@@ -17,6 +17,7 @@ import io.gomint.taglib.NBTTagCompound;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,8 @@ import java.util.List;
  * @version 1.0
  */
 public abstract class Packet {
+
+    private static final BigInteger UNSIGNED_LONG_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFF", 16);
 
     /**
      * Internal MC:PE id of this packet
@@ -103,7 +106,7 @@ public abstract class Packet {
         return new ItemStack( EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( id ) ), data, amount, nbt );
     }
 
-    public static void writeItemStack( ItemStack itemStack, PacketBuffer buffer, boolean secure ) {
+    public static void writeItemStack( ItemStack itemStack, PacketBuffer buffer ) {
         if ( itemStack == null || itemStack.getMaterial() == Material.AIR ) {
             buffer.writeSignedVarInt( 0 );
             return;
@@ -128,7 +131,7 @@ public abstract class Packet {
         }
     }
 
-    public static void writeItemStacks( ItemStack[] itemStacks, PacketBuffer buffer, boolean secure ) {
+    public static void writeItemStacks( ItemStack[] itemStacks, PacketBuffer buffer ) {
         if ( itemStacks == null || itemStacks.length == 0 ) {
             buffer.writeUnsignedVarInt( 0 );
             return;
@@ -137,10 +140,16 @@ public abstract class Packet {
         buffer.writeUnsignedVarInt( itemStacks.length );
 
         for ( ItemStack itemStack : itemStacks ) {
-            writeItemStack( itemStack, buffer, secure );
+            writeItemStack( itemStack, buffer );
         }
     }
 
+    /**
+     * Read in a variable amount of itemstacks
+     *
+     * @param buffer The buffer to read from
+     * @return a list of itemstacks
+     */
     public static List<ItemStack> readItemStacks( PacketBuffer buffer ) {
         int count = buffer.readUnsignedVarInt();
         List<ItemStack> itemStacks = new ArrayList<>( count );
@@ -227,6 +236,28 @@ public abstract class Packet {
         }
 
         return size;
+    }
+
+    public static int predictSignedVarLong( long input ) {
+        BigInteger origin = BigInteger.valueOf( input );
+        BigInteger left = origin.shiftLeft( 1 );
+        BigInteger right = origin.shiftRight( 63 );
+        BigInteger val = left.xor( right );
+
+        if(val.compareTo(UNSIGNED_LONG_MAX_VALUE) > 0) {
+            throw new IllegalArgumentException("The value is too big");
+        } else {
+            int size = 1;
+
+            val = val.and(UNSIGNED_LONG_MAX_VALUE);
+            BigInteger i = BigInteger.valueOf(-128L);
+
+            for(; !val.and(i).equals(BigInteger.ZERO); val = val.shiftRight(7)) {
+                size++;
+            }
+
+            return size + 1;
+        }
     }
 
 }

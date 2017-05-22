@@ -40,9 +40,9 @@ public class PacketStartGame extends Packet {
     public void serialize( PacketBuffer buffer ) {
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.runtimeEntityId );
-        buffer.writeLFloat( this.spawn.getX() );
-        buffer.writeLFloat( this.spawn.getY() );
-        buffer.writeLFloat( this.spawn.getZ() );
+        buffer.writeLFloat( (float) this.spawn.getX() );
+        buffer.writeLFloat( (float) this.spawn.getY() );
+        buffer.writeLFloat( (float) this.spawn.getZ() );
         buffer.writeLFloat( this.spawn.getYaw() );
         buffer.writeLFloat( this.spawn.getPitch() );
         buffer.writeSignedVarInt( this.seed );

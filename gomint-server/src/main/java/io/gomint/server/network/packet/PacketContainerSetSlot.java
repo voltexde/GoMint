@@ -27,7 +27,7 @@ public class PacketContainerSetSlot extends Packet {
         buffer.writeByte( this.windowId );
         buffer.writeSignedVarInt( this.slot );
         buffer.writeSignedVarInt( this.hotbarSlot );
-        writeItemStack( this.itemStack, buffer, this.windowId != 0x76 );
+        writeItemStack( this.itemStack, buffer );
         buffer.writeByte( this.unknown );
     }
 

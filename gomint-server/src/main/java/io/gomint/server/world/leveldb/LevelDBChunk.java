@@ -7,11 +7,11 @@
 
 package io.gomint.server.world.leveldb;
 
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,10 +24,11 @@ import java.nio.ByteOrder;
  */
 public class LevelDBChunk extends ChunkAdapter {
 
-    public LevelDBChunk( WorldAdapter worldAdapter, int x, int z ) {
+    LevelDBChunk( WorldAdapter worldAdapter, int x, int z ) {
         this.world = worldAdapter;
         this.x = x;
         this.z = z;
+        this.entities = HashLongObjMaps.newMutableMap();
     }
 
     /**

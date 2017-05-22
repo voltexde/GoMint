@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.world.WorldAdapter;
@@ -16,7 +17,6 @@ import org.slf4j.LoggerFactory;
  */
 public class Blocks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( Blocks.class );
     private static final IntObjMap<Block> KNOWN_BLOCKS = HashIntObjMaps.newMutableMap();
     private static final ObjObjMap<Class<?>, Block> KNOWN_API_INTERFACES = HashObjObjMaps.newMutableMap();
 

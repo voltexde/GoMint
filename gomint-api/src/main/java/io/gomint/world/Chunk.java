@@ -7,7 +7,11 @@
 
 package io.gomint.world;
 
+import io.gomint.entity.Entity;
 import io.gomint.world.block.Block;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -15,6 +19,20 @@ import io.gomint.world.block.Block;
  * @version 1.0
  */
 public interface Chunk {
+
+    /**
+     * X coordinate of the chunk
+     *
+     * @return x coordinate of the chunk
+     */
+    int getX();
+
+    /**
+     * Z coordinate of the chunk
+     *
+     * @return z coordinate of the chunk
+     */
+    int getZ();
 
     /**
      * Gets the block at the specified position.
@@ -25,5 +43,12 @@ public interface Chunk {
      * @return The block itself or null if the given coordinates lie not within this chunk
      */
     <T extends Block> T getBlockAt( int x, int y, int z );
+
+    /**
+     * Get a list of all entities which are located in this chunk
+     *
+     * @return either null if there are not entities in this chunk or a list of entities
+     */
+    Collection<Entity> getEntities();
 
 }

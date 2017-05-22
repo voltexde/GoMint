@@ -2,6 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.entity.Entity;
 import io.gomint.inventory.ItemStack;
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -123,6 +124,28 @@ public abstract class Block implements io.gomint.world.block.Block {
      */
     public <T extends TileEntity> T getTileEntity() {
         return (T) this.tileEntity;
+    }
+
+    @Override
+    public AxisAlignedBB getBoundingBox() {
+        return new AxisAlignedBB(
+                this.location.getX(),
+                this.location.getY(),
+                this.location.getZ(),
+                this.location.getX() + 1,
+                this.location.getY() + 1,
+                this.location.getZ() + 1
+        );
+    }
+
+    @Override
+    public float getFrictionFactor() {
+        return 0.6f;
+    }
+
+    @Override
+    public boolean canPassThrough() {
+        return false;
     }
 
     @Override

@@ -25,7 +25,7 @@ public class PacketContainerSetContent extends Packet {
     @Override
     public void serialize( PacketBuffer buffer ) {
         buffer.writeByte( this.windowId );
-        writeItemStacks( this.slots, buffer, this.windowId != 0x76 );
+        writeItemStacks( this.slots, buffer );
         writeIntList( this.hotbar, buffer );
     }
 
