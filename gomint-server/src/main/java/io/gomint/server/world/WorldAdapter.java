@@ -18,10 +18,11 @@ import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.world.block.Blocks;
+import io.gomint.util.Numbers;
 import io.gomint.world.Chunk;
 import io.gomint.world.Gamerule;
 import io.gomint.world.Sound;
@@ -44,6 +45,8 @@ import java.util.concurrent.*;
  */
 public abstract class WorldAdapter implements World {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( WorldAdapter.class );
+
     // CHECKSTYLE:OFF
     // Calculators for light
     @Getter
@@ -58,6 +61,7 @@ public abstract class WorldAdapter implements World {
     protected final File worldDir;
     protected String levelName;
     protected Location spawn;
+    @Getter
     protected Map<Gamerule, Object> gamerules = new HashMap<>();
 
     // Chunk Handling
@@ -151,6 +155,11 @@ public abstract class WorldAdapter implements World {
 
     @Override
     public <T extends Block> T getBlockAt( int x, int y, int z ) {
+        // Secure location
+        if ( y < 0 || y > 255 ) {
+            return (T) Blocks.get( 0, (byte) 0, (byte) ( y > 255 ? 15 : 0 ), (byte) 0, null, new Location( this, x, y, z ) );
+        }
+
         final ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
         if ( chunk == null ) {
             // TODO: Generate world
@@ -335,7 +344,7 @@ public abstract class WorldAdapter implements World {
 
         for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
             for ( int j = minChunkX; j <= maxChunkX; ++j ) {
-                this.sendChunk( j, i, player );
+                this.sendChunk( j, i, player, true );
             }
         }
 
@@ -371,7 +380,7 @@ public abstract class WorldAdapter implements World {
      * @param entity The entity to spawn
      * @param vector The vector which contains the position of the spawn
      */
-    public void spawnEntityAt( EntityItem entity, Vector vector ) {
+    public void spawnEntityAt( Entity entity, Vector vector ) {
         this.spawnEntityAt( entity, vector.getX(), vector.getY(), vector.getZ() );
     }
 
@@ -444,21 +453,39 @@ public abstract class WorldAdapter implements World {
      * @param x      The x-coordinate of the chunk
      * @param z      The z-coordinate of the chunk
      * @param player The player we want to send the chunk to
+     * @param sync   Force sync chunk loading
      */
-    public void sendChunk( int x, int z, EntityPlayer player ) {
-        Delegate2<Long, Packet> sendDelegate = new Delegate2<Long, Packet>() {
+    public void sendChunk( int x, int z, EntityPlayer player, boolean sync ) {
+        Delegate2<Long, ChunkAdapter> sendDelegate = new Delegate2<Long, ChunkAdapter>() {
             @Override
-            public void invoke( Long chunkHash, Packet chunkPacket ) {
-                player.getConnection().sendWorldChunk( chunkHash, chunkPacket );
+            public void invoke( Long chunkHash, ChunkAdapter chunk ) {
+                player.getConnection().sendWorldChunk( chunkHash, chunk.cachedPacket.get() );
+
+                // Send all spawned entities
+                Collection<io.gomint.entity.Entity> entities = chunk.getEntities();
+                if ( entities != null ) {
+                    for ( io.gomint.entity.Entity entity : entities ) {
+                        if ( entity instanceof Entity ) {
+                            player.getConnection().addToSendQueue( ( (Entity) entity ).createSpawnPacket() );
+                        }
+                    }
+                }
             }
         };
 
-        this.getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
-            @Override
-            public void invoke( ChunkAdapter chunk ) {
-                chunk.packageChunk( sendDelegate );
+        if ( !sync ) {
+            this.getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
+                @Override
+                public void invoke( ChunkAdapter chunk ) {
+                    chunk.packageChunk( sendDelegate );
+                }
+            } );
+        } else {
+            ChunkAdapter chunkAdapter = this.loadChunk( x, z, true );
+            if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ) {
+                packageChunk( chunkAdapter, sendDelegate );
             }
-        } );
+        }
     }
 
     /**
@@ -545,7 +572,7 @@ public abstract class WorldAdapter implements World {
      * @param z        The z coordinate of the chunk we want to package
      * @param callback The callback to be invoked once the chunk is packaged
      */
-    void notifyPackageChunk( int x, int z, Delegate2<Long, Packet> callback ) {
+    void notifyPackageChunk( int x, int z, Delegate2<Long, ChunkAdapter> callback ) {
         AsyncChunkPackageTask task = new AsyncChunkPackageTask( x, z, callback );
         this.chunkPackageTasks.add( task );
     }
@@ -556,12 +583,12 @@ public abstract class WorldAdapter implements World {
      * @param chunk    The chunk which should be packed
      * @param callback The callback which should be invoked when the packing has been done
      */
-    void packageChunk( ChunkAdapter chunk, Delegate2<Long, Packet> callback ) {
+    void packageChunk( ChunkAdapter chunk, Delegate2<Long, ChunkAdapter> callback ) {
         PacketWorldChunk packet = chunk.createPackagedData();
-        PacketBatch batch = BatchUtil.batch( packet );
+        PacketBatch batch = BatchUtil.batch( null, packet );
 
         chunk.setCachedPacket( batch );
-        callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), batch );
+        callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk );
     }
 
     // ==================================== NETWORKING HELPERS ==================================== //
@@ -574,25 +601,9 @@ public abstract class WorldAdapter implements World {
      * @param packet          The packet to send
      */
     public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
-        // Avoid duplicate arrays containing the very same data:
-        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-        buffer.writeByte( (byte) 0xFE );
-        buffer.writeByte( packet.getId() );
-        packet.serialize( buffer );
-
-        // Avoid duplicate array copies:
-        byte[] payload;
-
-        if ( buffer.getRemaining() == 0 ) {
-            payload = buffer.getBuffer();
-        } else {
-            payload = new byte[buffer.getPosition() - buffer.getBufferOffset()];
-            System.arraycopy( buffer.getBuffer(), buffer.getBufferOffset(), payload, 0, buffer.getPosition() - buffer.getBufferOffset() );
-        }
-
         // Send directly:
         for ( EntityPlayer player : this.players.keySet() ) {
-            player.getConnection().getConnection().send( reliability, orderingChannel, payload );
+            player.getConnection().send( reliability, orderingChannel, packet );
         }
     }
 
@@ -647,7 +658,7 @@ public abstract class WorldAdapter implements World {
                 }
 
                 if ( chunk != null ) {
-                    logger.debug( "Done chunk work " + task.getType() + " for " + chunk.getX() + " " + chunk.getZ() + " in " + ( System.currentTimeMillis() - start ) + "ms" );
+                    // logger.debug( "Done chunk work " + task.getType() + " for " + chunk.getX() + " " + chunk.getZ() + " in " + ( System.currentTimeMillis() - start ) + "ms" );
                 }
             } catch ( Throwable cause ) {
                 // Catching throwable in order to make sure no uncaught exceptions puts
@@ -702,14 +713,17 @@ public abstract class WorldAdapter implements World {
     public List<io.gomint.entity.Entity> getNearbyEntities( AxisAlignedBB bb, io.gomint.entity.Entity exception ) {
         List<io.gomint.entity.Entity> nearby = null;
 
-        int minX = (int) Math.floor( ( bb.getMinX() - 2 ) / 16 );
-        int maxX = (int) Math.ceil( ( bb.getMaxX() + 2 ) / 16 );
-        int minZ = (int) Math.floor( ( bb.getMinZ() - 2 ) / 16 );
-        int maxZ = (int) Math.ceil( ( bb.getMaxZ() + 2 ) / 16 );
+        int minX = Numbers.fastFloor( ( bb.getMinX() - 2 ) / 4 );
+        int maxX = Numbers.fastCeil( ( bb.getMaxX() + 2 ) / 4 );
+        int minZ = Numbers.fastFloor( ( bb.getMinZ() - 2 ) / 4 );
+        int maxZ = Numbers.fastCeil( ( bb.getMaxZ() + 2 ) / 4 );
 
-        for ( int x = minX; x <= maxX; ++x ) {
-            for ( int z = minZ; z <= maxZ; ++z ) {
-                Chunk chunk = this.getChunk( x, z );
+        for ( int x = minX; x < maxX; ++x ) {
+            for ( int z = minZ; z < maxZ; ++z ) {
+                int chunkX = x >> 2;
+                int chunkZ = z >> 2;
+
+                Chunk chunk = this.getChunk( chunkX, chunkZ );
                 if ( chunk != null ) {
                     Collection<io.gomint.entity.Entity> entities = chunk.getEntities();
                     if ( entities != null ) {
@@ -732,18 +746,18 @@ public abstract class WorldAdapter implements World {
 
     @Override
     public List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb, boolean includeEntities ) {
-        int minX = (int) Math.floor( bb.getMinX() );
-        int minY = (int) Math.floor( bb.getMinY() );
-        int minZ = (int) Math.floor( bb.getMinZ() );
-        int maxX = (int) Math.ceil( bb.getMaxX() );
-        int maxY = (int) Math.ceil( bb.getMaxY() );
-        int maxZ = (int) Math.ceil( bb.getMaxZ() );
+        int minX = Numbers.fastFloor( bb.getMinX() );
+        int minY = Numbers.fastFloor( bb.getMinY() );
+        int minZ = Numbers.fastFloor( bb.getMinZ() );
+        int maxX = Numbers.fastCeil( bb.getMaxX() );
+        int maxY = Numbers.fastCeil( bb.getMaxY() );
+        int maxZ = Numbers.fastCeil( bb.getMaxZ() );
 
         List<AxisAlignedBB> collisions = null;
 
-        for ( int z = minZ; z <= maxZ; ++z ) {
-            for ( int x = minX; x <= maxX; ++x ) {
-                for ( int y = minY; y <= maxY; ++y ) {
+        for ( int z = minZ; z < maxZ; ++z ) {
+            for ( int x = minX; x < maxX; ++x ) {
+                for ( int y = minY; y < maxY; ++y ) {
                     Block block = this.getBlockAt( x, y, z );
                     AxisAlignedBB blockBox;
                     if ( !block.canPassThrough() && ( blockBox = block.getBoundingBox() ).intersectsWith( bb ) ) {
@@ -758,12 +772,15 @@ public abstract class WorldAdapter implements World {
         }
 
         if ( includeEntities ) {
-            for ( io.gomint.entity.Entity entity1 : getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity ) ) {
-                if ( collisions == null ) {
-                    collisions = new ArrayList<>();
-                }
+            List<io.gomint.entity.Entity> entities = getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity );
+            if ( entities != null ) {
+                for ( io.gomint.entity.Entity entity1 : entities ) {
+                    if ( collisions == null ) {
+                        collisions = new ArrayList<>();
+                    }
 
-                collisions.add( entity1.getBoundingBox() );
+                    collisions.add( entity1.getBoundingBox() );
+                }
             }
         }
 

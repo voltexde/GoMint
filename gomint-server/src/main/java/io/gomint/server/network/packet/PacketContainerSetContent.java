@@ -15,6 +15,7 @@ import java.util.List;
 public class PacketContainerSetContent extends Packet {
 
     private byte windowId;
+    private long entityId;
     private ItemStack[] slots;
     private int[] hotbar;
 
@@ -25,6 +26,7 @@ public class PacketContainerSetContent extends Packet {
     @Override
     public void serialize( PacketBuffer buffer ) {
         buffer.writeByte( this.windowId );
+        buffer.writeSignedVarLong( this.entityId );
         writeItemStacks( this.slots, buffer );
         writeIntList( this.hotbar, buffer );
     }

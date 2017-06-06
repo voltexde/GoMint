@@ -5,9 +5,15 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
 import io.gomint.server.util.IntTriple;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
+import io.gomint.util.Numbers;
+import io.gomint.world.block.Air;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 /**
  * AI state that implements the passive movement of idling animals.
@@ -17,11 +23,15 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class AIPassiveIdleMovement extends AIState {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( AIPassiveIdleMovement.class );
+
     private final WorldAdapter world;
     private final PathfindingEngine pathfinding;
 
     private int currentPathNode;
     private List<IntTriple> path;
+
+    private long lastPointReachedTime;
 
     /**
      * Constructs a new AIPassiveIdleMovement that will belong to the given state machine.
@@ -41,19 +51,31 @@ public class AIPassiveIdleMovement extends AIState {
         if ( this.path != null && this.currentPathNode < this.path.size() ) {
             Vector position = this.pathfinding.getTransform().getPosition();
 
-            IntTriple blockPosition = new IntTriple( (int) position.getX(), (int) position.getY(), (int) position.getZ() );
+            IntTriple blockPosition = new IntTriple(
+                    Numbers.fastFloor( position.getX() ),
+                    Numbers.fastFloor( position.getY() ),
+                    Numbers.fastFloor( position.getZ() )
+            );
+
             IntTriple node = this.path.get( this.currentPathNode );
 
-            Vector direction = node.toVector().subtract( position ).normalize().multiply( 0.05F * dT );
-            this.pathfinding.getTransform().setPosition( position.add( direction ) );
+            Vector direction = node.toVector().add( .5f, 0, .5f ).subtract( position ).normalize().multiply( 2 * dT );
+            this.pathfinding.getTransform().setMotion( direction.getX(), direction.getY(), direction.getZ() );
 
             if ( blockPosition.equals( node ) ) {
+                this.lastPointReachedTime = currentTimeMS;
                 this.currentPathNode++;
+            } else if ( currentTimeMS - this.lastPointReachedTime > TimeUnit.SECONDS.toMillis( 5 ) ) {
+                // Generating new goal due to entity being stuck in movement loop
+                this.pathfinding.setGoal( this.generateRandomGoal() );
+                this.path = this.pathfinding.getPath();
+                this.currentPathNode = 0;
             }
         } else {
             this.pathfinding.setGoal( this.generateRandomGoal() );
             this.path = this.pathfinding.getPath();
             this.currentPathNode = 0;
+            this.lastPointReachedTime = currentTimeMS;
         }
     }
 
@@ -66,7 +88,7 @@ public class AIPassiveIdleMovement extends AIState {
     private Location generateRandomGoal() {
         // Generates a new random goal inside a 5 block circle around the entity:
         double t = 2 * Math.PI * ThreadLocalRandom.current().nextDouble();
-        double r = 5 * ThreadLocalRandom.current().nextDouble();
+        double r = 3 + 5 * ThreadLocalRandom.current().nextDouble();
         double x = r * Math.cos( t );
         double z = r * Math.sin( t );
 

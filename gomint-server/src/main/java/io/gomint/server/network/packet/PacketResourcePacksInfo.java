@@ -50,4 +50,9 @@ public class PacketResourcePacksInfo extends Packet {
 
     }
 
+    @Override
+    public int estimateLength() {
+        return 1 + 4;
+    }
+
 }

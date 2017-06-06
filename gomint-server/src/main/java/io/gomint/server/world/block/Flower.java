@@ -21,4 +21,9 @@ public class Flower extends Block {
         return false;
     }
 
+    @Override
+    public boolean canPassThrough() {
+        return true;
+    }
+
 }

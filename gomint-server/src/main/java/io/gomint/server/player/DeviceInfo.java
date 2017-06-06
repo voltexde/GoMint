@@ -11,6 +11,7 @@ public class DeviceInfo {
 
     private final String deviceName;
     private final DeviceOS os;
+
     public DeviceInfo( int deviceOS, String deviceName ) {
         this.os = DeviceOS.fromValue( deviceOS );
         this.deviceName = deviceName;

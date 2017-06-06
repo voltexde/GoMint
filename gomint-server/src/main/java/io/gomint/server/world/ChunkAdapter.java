@@ -22,8 +22,6 @@ import io.gomint.world.Biome;
 import io.gomint.world.Chunk;
 import io.gomint.world.block.Block;
 import net.openhft.koloboke.collect.map.LongObjMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,15 +36,13 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class ChunkAdapter implements Chunk {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( ChunkAdapter.class );
-
     // CHECKSTYLE:OFF
     // World
     protected WorldAdapter world;
 
     // Networking
     protected boolean dirty;
-    protected SoftReference<Packet> cachedPacket;
+    protected SoftReference<PacketBatch> cachedPacket;
 
     // Chunk
     protected int x;
@@ -159,11 +155,11 @@ public abstract class ChunkAdapter implements Chunk {
      *
      * @param callback The callback to be invoked once the operation is complete
      */
-    public void packageChunk( Delegate2<Long, Packet> callback ) {
+    public void packageChunk( Delegate2<Long, ChunkAdapter> callback ) {
         if ( !this.dirty && this.cachedPacket != null ) {
             Packet packet = this.cachedPacket.get();
             if ( packet != null ) {
-                callback.invoke( CoordinateUtils.toLong( x, z ), packet );
+                callback.invoke( CoordinateUtils.toLong( x, z ), this );
             } else {
                 this.world.notifyPackageChunk( x, z, callback );
             }
@@ -389,7 +385,7 @@ public abstract class ChunkAdapter implements Chunk {
     @Override
     public <T extends Block> T getBlockAt( int x, int y, int z ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
-        return slice.getBlockInstance( x, y - 16 * ( y >> 4 ), z );
+        return slice.getBlockInstance( x, y & 0x000000F, z );
     }
 
     // ==================================== MISCELLANEOUS ==================================== //
@@ -498,6 +494,11 @@ public abstract class ChunkAdapter implements Chunk {
     @Override
     public Collection<io.gomint.entity.Entity> getEntities() {
         return this.entities.size() == 0 ? null : this.entities.values();
+    }
+
+    @Override
+    public boolean equals( Object obj ) {
+        return obj instanceof ChunkAdapter && ( (ChunkAdapter) obj ).getX() == getX() && ( (ChunkAdapter) obj ).getZ() == getZ();
     }
 
 }

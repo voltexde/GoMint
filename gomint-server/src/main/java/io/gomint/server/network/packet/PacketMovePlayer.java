@@ -29,6 +29,7 @@ public class PacketMovePlayer extends Packet {
     private float pitch;
     private byte mode;
     private boolean onGround;
+    private long ridingEntityId;
 
     public PacketMovePlayer() {
         super( Protocol.PACKET_MOVE_PLAYER );
@@ -45,6 +46,7 @@ public class PacketMovePlayer extends Packet {
         buffer.writeLFloat( this.yaw );
         buffer.writeByte( this.mode );
         buffer.writeBoolean( this.onGround );
+        buffer.writeUnsignedVarLong( this.ridingEntityId );
     }
 
     @Override
@@ -58,6 +60,7 @@ public class PacketMovePlayer extends Packet {
         this.yaw = buffer.readLFloat();
         this.mode = buffer.readByte();
         this.onGround = buffer.readBoolean();
+        this.ridingEntityId = buffer.readUnsignedVarLong();
     }
 
     @Override

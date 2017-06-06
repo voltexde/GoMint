@@ -10,6 +10,7 @@ package io.gomint.server.crafting;
 import io.gomint.inventory.ItemStack;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketCraftingRecipes;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
@@ -31,7 +32,7 @@ public class RecipeManager {
     private Map<UUID, Recipe> lookup;
     private Map<List<ItemStack>, Recipe> outputLookup;
 
-    private Packet batchPacket;
+    private PacketBatch batchPacket;
     private boolean dirty;
 
     /**
@@ -53,12 +54,12 @@ public class RecipeManager {
      *
      * @return The packet containing all crafting recipes
      */
-    public Packet getCraftingRecipesBatch() {
+    public PacketBatch getCraftingRecipesBatch() {
         if ( this.dirty ) {
             PacketCraftingRecipes recipes = new PacketCraftingRecipes();
             recipes.setRecipes( this.recipes );
 
-            this.batchPacket = BatchUtil.batch( recipes );
+            this.batchPacket = BatchUtil.batch( null, recipes );
             this.dirty = false;
         }
 

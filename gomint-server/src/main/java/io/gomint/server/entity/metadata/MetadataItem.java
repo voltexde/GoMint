@@ -3,6 +3,7 @@ package io.gomint.server.entity.metadata;
 import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.inventory.MaterialMagicNumbers;
+import io.gomint.server.network.packet.Packet;
 import io.gomint.server.util.EnumConnectors;
 
 /**
@@ -50,9 +51,7 @@ public class MetadataItem extends MetadataValue {
     @Override
     void serialize( PacketBuffer buffer, int index ) {
         super.serialize( buffer, index );
-        buffer.writeLShort( (short) EnumConnectors.MATERIAL_CONNECTOR.convert( this.value.getMaterial() ).getOldId() );
-        buffer.writeByte( (byte) this.value.getData() );
-        buffer.writeLShort( this.value.getAmount() );
+        Packet.writeItemStack( this.value, buffer );
     }
 
     @Override

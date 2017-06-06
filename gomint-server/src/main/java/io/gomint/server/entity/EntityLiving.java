@@ -4,7 +4,10 @@ import io.gomint.entity.DamageCause;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
 import io.gomint.server.inventory.InventoryHolder;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.util.Numbers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +65,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder {
 
     @Override
     protected void fall() {
-        double damage = Math.floor( this.fallDistance - 3 );
+        double damage = this.fallDistance - 3;
         if ( damage > 0 ) {
             this.attack( damage, DamageCause.FALL );
         }
@@ -78,6 +81,29 @@ public abstract class EntityLiving extends Entity implements InventoryHolder {
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
         this.behaviour.update( currentTimeMS, dT );
+    }
+
+    /**
+     * Construct a spawn packet for this entity
+     *
+     * @return the spawn packet of this entity, ready to be sent to the client
+     */
+    public Packet createSpawnPacket() {
+        // Broadcast spawn entity packet:
+        PacketSpawnEntity packet = new PacketSpawnEntity();
+        packet.setEntityId( this.id );
+        packet.setEntityType( this.type );
+        packet.setX( this.getPositionX() );
+        packet.setY( this.getPositionY() );
+        packet.setZ( this.getPositionZ() );
+        packet.setVelocityX( this.getMotionX() );
+        packet.setVelocityY( this.getMotionY() );
+        packet.setVelocityZ( this.getMotionZ() );
+        packet.setPitch( this.getPitch() );
+        packet.setYaw( this.getYaw() );
+        packet.setAttributes( this.attributes.values() );
+        packet.setMetadata( this.getMetadata() );
+        return packet;
     }
 
 }

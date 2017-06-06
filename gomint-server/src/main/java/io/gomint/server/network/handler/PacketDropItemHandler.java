@@ -21,6 +21,7 @@ public class PacketDropItemHandler implements PacketHandler<PacketDropItem> {
 
         // Drop the item now, we may remove it later
         EntityItem drop = new EntityItem( packet.getItemStack(), connection.getEntity().getWorld() );
+        drop.lock();
         drop.setVelocity( connection.getEntity().getDirection().normalize().multiply( 0.4f ) );
         connection.getEntity().getWorld().spawnEntityAt( drop, connection.getEntity().getLocation().add( 0, 1.3f, 0 ) );
 

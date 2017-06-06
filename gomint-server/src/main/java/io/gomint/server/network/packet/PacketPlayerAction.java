@@ -42,6 +42,7 @@ public class PacketPlayerAction extends Packet {
         START_BREAK,
         ABORT_BREAK,
         STOP_BREAK,
+        CONTINUE_BREAK,
 
         RELEASE_ITEM,
         STOP_SLEEPING,
@@ -88,6 +89,8 @@ public class PacketPlayerAction extends Packet {
                     return ABORT_DIMENSION_CHANGE;
                 case 17:
                     return INTERACT_BLOCK;
+                case 18:
+                    return CONTINUE_BREAK;
             }
 
             System.out.println( "Unknown action id: " + actionId );

@@ -16,7 +16,7 @@ public class PacketContainerSetSlot extends Packet {
     private int slot;
     private int hotbarSlot;
     private ItemStack itemStack;
-    private byte unknown;
+    private byte selectedSlot;
 
     public PacketContainerSetSlot() {
         super( Protocol.PACKET_CONTAINER_SET_SLOT );
@@ -28,7 +28,7 @@ public class PacketContainerSetSlot extends Packet {
         buffer.writeSignedVarInt( this.slot );
         buffer.writeSignedVarInt( this.hotbarSlot );
         writeItemStack( this.itemStack, buffer );
-        buffer.writeByte( this.unknown );
+        buffer.writeByte( this.selectedSlot );
     }
 
     @Override
@@ -37,7 +37,7 @@ public class PacketContainerSetSlot extends Packet {
         this.slot = buffer.readSignedVarInt();
         this.hotbarSlot = buffer.readSignedVarInt();
         this.itemStack = readItemStack( buffer );
-        this.unknown = buffer.readByte();
+        this.selectedSlot = buffer.readByte();
     }
 
     @Override

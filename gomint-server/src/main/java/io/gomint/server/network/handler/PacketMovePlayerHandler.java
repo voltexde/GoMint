@@ -1,7 +1,11 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerMoveEvent;
+import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.Material;
 import io.gomint.math.Location;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMovePlayer;
 import org.slf4j.Logger;
@@ -40,6 +44,8 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
         PlayerMoveEvent playerMoveEvent = connection.getNetworkManager().getServer().getPluginManager().callEvent(
                 new PlayerMoveEvent( connection.getEntity(), from, to )
         );
+
+        // LOGGER.debug( "Moving " + ( Math.abs( Math.sqrt( from.distanceSquared( to ) ) ) * 20 ) + " blocks/s" );
 
         if ( playerMoveEvent.isCancelled() ) {
             playerMoveEvent.setTo( playerMoveEvent.getFrom() );

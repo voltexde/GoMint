@@ -162,8 +162,6 @@ public class TransformComponent implements EntityComponent, Transformable {
         this.posY = positionY;
         this.posZ = positionZ;
         this.dirty = true;
-
-
     }
 
     @Override
@@ -213,6 +211,11 @@ public class TransformComponent implements EntityComponent, Transformable {
         boolean result = this.dirty;
         this.dirty = false;
         return result;
+    }
+
+    @Override
+    public Vector getMotion() {
+        return new Vector( this.motionX, this.motionY, this.motionZ );
     }
 
     /**

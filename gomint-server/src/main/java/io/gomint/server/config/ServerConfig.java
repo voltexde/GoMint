@@ -27,6 +27,9 @@ public class ServerConfig extends SimpleConfig {
     @Comment( "The host and port to bind the server to" )
     private ListenerConfig listener = new ListenerConfig();
 
+    @Comment( "Config for connection options" )
+    private ConnectionConfig connection = new ConnectionConfig();
+
     @Comment( "The maximum number of players to play on this server" )
     private int maxPlayers = 10;
 
@@ -70,10 +73,10 @@ public class ServerConfig extends SimpleConfig {
     private int autoSaveInterval = 300000;
 
     // ------------------------ Advanced Performance Settings
-    @Comment( "Amount of Ticks per second which should be used to drive this server." )
-    private int targetTPS = 64;
+    @Comment( "Amount of Ticks per second which should be used to drive this server. 20 TPS is recommended for normal Servers. If you want PvP or Minigames you can set it higher but be sure to disable entities to have a stable TPS." )
+    private int targetTPS = 20;
 
-    @Comment( "Control wether we want to load chunks when entites step over borders or not." )
+    @Comment( "Control whether we want to load chunks when entities step over borders or not." )
     private boolean loadChunksForEntities = true;
 
 }

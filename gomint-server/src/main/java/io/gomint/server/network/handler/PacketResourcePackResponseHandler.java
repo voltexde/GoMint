@@ -39,7 +39,6 @@ public class PacketResourcePackResponseHandler implements PacketHandler<PacketRe
                 connection.setState( PlayerConnectionState.LOGIN );
                 LOGGER.info( "Logging in as " + connection.getEntity().getName() );
 
-                connection.sendWorldTime( 0, false );
                 connection.sendWorldInitialization();
                 connection.sendChunkRadiusUpdate();
                 connection.sendWorldTime( 0, false );
@@ -89,13 +88,13 @@ public class PacketResourcePackResponseHandler implements PacketHandler<PacketRe
                         spawnPlayer.setEntityId( entityPlayer.getEntityId() );
                         spawnPlayer.setRuntimeEntityId( entityPlayer.getEntityId() );
 
-                        spawnPlayer.setX( (float) entityPlayer.getPositionX() );
-                        spawnPlayer.setY( (float) entityPlayer.getPositionY() );
-                        spawnPlayer.setZ( (float) entityPlayer.getPositionZ() );
+                        spawnPlayer.setX( entityPlayer.getPositionX() );
+                        spawnPlayer.setY( entityPlayer.getPositionY() );
+                        spawnPlayer.setZ( entityPlayer.getPositionZ() );
 
-                        spawnPlayer.setVelocityX( (float) entityPlayer.getMotionX() );
-                        spawnPlayer.setVelocityY( (float) entityPlayer.getMotionY() );
-                        spawnPlayer.setVelocityZ( (float) entityPlayer.getMotionZ() );
+                        spawnPlayer.setVelocityX( entityPlayer.getMotionX() );
+                        spawnPlayer.setVelocityY( entityPlayer.getMotionY() );
+                        spawnPlayer.setVelocityZ( entityPlayer.getMotionZ() );
 
                         spawnPlayer.setPitch( entityPlayer.getPitch() );
                         spawnPlayer.setYaw( entityPlayer.getYaw() );

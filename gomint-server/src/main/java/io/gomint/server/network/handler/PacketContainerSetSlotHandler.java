@@ -19,7 +19,7 @@ public class PacketContainerSetSlotHandler implements PacketHandler<PacketContai
 
     @Override
     public void handle( PacketContainerSetSlot packet, long currentTimeMillis, PlayerConnection connection ) {
-        LOGGER.debug( "0x" + Integer.toHexString( packet.getWindowId() ) + ": " + packet.getSlot() + " -> " + packet.getItemStack() + " / " + packet.getUnknown() );
+        LOGGER.debug( "0x" + Integer.toHexString( packet.getWindowId() ) + ": " + packet.getSlot() + " -> " + packet.getItemStack() + " / " + packet.getSelectedSlot() );
 
         // Exception safety
         if ( packet.getSlot() < 0 ) {

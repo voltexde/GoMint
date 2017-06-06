@@ -17,8 +17,6 @@ import io.gomint.world.Chunk;
 import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
-import net.openhft.koloboke.collect.set.LongSet;
-import net.openhft.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +35,9 @@ public class EntityManager {
 
     private final WorldAdapter world;
     private LongObjMap<Entity> entitiesById;
+    private LongObjMap<Entity> spawnedInThisTick;
+
+    private boolean currentlyTicking;
 
     /**
      * Construct a new Entity manager for the given world
@@ -46,6 +47,7 @@ public class EntityManager {
     public EntityManager( WorldAdapter world ) {
         this.world = world;
         this.entitiesById = HashLongObjMaps.newMutableMap();
+        this.spawnedInThisTick = HashLongObjMaps.newMutableMap();
     }
 
     /**
@@ -58,40 +60,42 @@ public class EntityManager {
         // --------------------------------------
         // Update all entities:
         Set<Entity> movedEntities = null;
-        LongSet deadEntities = null;
+        this.currentlyTicking = true;
 
         LongObjCursor<Entity> cursor = this.entitiesById.cursor();
         while ( cursor.moveNext() ) {
             Entity entity = cursor.value();
-            entity.update( currentTimeMS, dT );
+            if ( !entity.isDead() ) {
+                Chunk current = entity.getChunk();
+                entity.update( currentTimeMS, dT );
 
-            if ( entity.isDead() ) {
-                if ( deadEntities == null ) {
-                    deadEntities = HashLongSets.newMutableSet();
-                }
+                if ( !entity.isDead() ) {
+                    if ( entity.getTransform().isDirty() ) {
+                        if ( movedEntities == null ) {
+                            movedEntities = new HashSet<>();
+                        }
 
-                deadEntities.add( entity.getEntityId() );
-            } else {
-                if ( entity.getTransform().isDirty() ) {
-                    if ( movedEntities == null ) {
-                        movedEntities = new HashSet<>();
+                        if ( !current.equals( entity.getChunk() ) ) {
+                            if ( current instanceof ChunkAdapter ) {
+                                ( (ChunkAdapter) current ).removeEntity( entity );
+                            }
+                        }
+
+                        movedEntities.add( entity );
                     }
-
-                    movedEntities.add( entity );
                 }
-            }
-        }
-
-        // --------------------------------------
-        // Remove dead entities from world
-        cursor = this.entitiesById.cursor();
-        while ( cursor.moveNext() ) {
-            Entity entity = cursor.value();
-            if ( entity.isDead() ) {
+            } else {
                 cursor.remove();
                 despawnEntity( entity );
             }
         }
+
+        this.currentlyTicking = false;
+
+        // --------------------------------------
+        // Merge created entities
+        this.entitiesById.putAll( this.spawnedInThisTick );
+        this.spawnedInThisTick.clear();
 
         // --------------------------------------
         // Create movement batches:
@@ -181,7 +185,12 @@ public class EntityManager {
      * @return The entity if found or null otherwise
      */
     public Entity findEntity( long entityId ) {
-        return this.entitiesById.get( entityId );
+        Entity entity = this.entitiesById.get( entityId );
+        if ( entity == null ) {
+            return this.spawnedInThisTick.get( entityId );
+        }
+
+        return entity;
     }
 
     /**
@@ -212,7 +221,22 @@ public class EntityManager {
         entity.setYaw( yaw );
         entity.setHeadYaw( yaw );
         entity.setPitch( pitch );
-        this.entitiesById.put( entity.getEntityId(), entity );
+
+        // Update bounding box
+        entity.getBoundingBox().setBounds(
+                entity.getPositionX() - ( entity.getWidth() / 2 ),
+                entity.getPositionY(),
+                entity.getPositionZ() - ( entity.getWidth() / 2 ),
+                entity.getPositionX() + ( entity.getWidth() / 2 ),
+                entity.getPositionY() + entity.getHeight(),
+                entity.getPositionZ() + ( entity.getWidth() / 2 )
+        );
+
+        if ( this.currentlyTicking ) {
+            this.spawnedInThisTick.put( entity.getEntityId(), entity );
+        } else {
+            this.entitiesById.put( entity.getEntityId(), entity );
+        }
 
         // Register to the correct chunk
         Chunk chunk = entity.getChunk();
@@ -253,6 +277,7 @@ public class EntityManager {
      *
      * @param entity The entity which should be despawned
      */
+
     public void despawnEntity( Entity entity ) {
         // Remove from chunk
         Chunk chunk = entity.getChunk();

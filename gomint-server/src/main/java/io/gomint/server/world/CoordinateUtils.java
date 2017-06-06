@@ -15,8 +15,6 @@ import io.gomint.math.Vector;
  */
 public final class CoordinateUtils {
 
-    private static final ThreadLocal<Vector> cachedVector = new ThreadLocal<>();
-
     /**
      * No init!
      */
@@ -112,16 +110,7 @@ public final class CoordinateUtils {
         int y = (int) ( hash >> 26 ) & 0xFFF;
         int z = (int) ( hash );
 
-        Vector ret;
-        if ( ( ret = cachedVector.get() ) == null ) {
-            cachedVector.set( ret = new Vector( x, y, z ) );
-        }
-
-        ret.setX( x );
-        ret.setY( y );
-        ret.setZ( z );
-
-        return ret;
+        return new Vector( x, y, z );
     }
 
 }

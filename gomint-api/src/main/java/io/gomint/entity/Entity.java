@@ -52,4 +52,5 @@ public interface Entity {
 
     AxisAlignedBB getBoundingBox();
 
+    boolean isOnGround();
 }

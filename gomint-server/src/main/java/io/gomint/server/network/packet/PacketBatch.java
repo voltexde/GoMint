@@ -28,20 +28,18 @@ public class PacketBatch extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        buffer.writeUnsignedVarInt( this.payload.length );
         buffer.writeBytes( this.payload );
     }
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        int length = buffer.readUnsignedVarInt();
-        this.payload = new byte[length];
+        this.payload = new byte[buffer.getRemaining()];
         buffer.readBytes( this.payload );
     }
 
     @Override
     public int estimateLength() {
-        return 4 + this.payload.length;
+        return this.payload.length;
     }
 
 }

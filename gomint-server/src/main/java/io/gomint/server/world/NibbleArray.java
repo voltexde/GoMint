@@ -55,7 +55,7 @@ public class NibbleArray {
      * @return The nibble's value
      */
     public byte get( int index ) {
-        return (byte) ( this.data[index / 2] >> ( ( index ) % 2 * 4 ) & 0xF );
+        return (byte) ( this.data[index / 2] >> ( ( index & 1 ) << 2 ) & 0xF );
     }
 
     /**

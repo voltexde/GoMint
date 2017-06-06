@@ -19,6 +19,11 @@ public enum PlayerConnectionState {
     HANDSHAKE,
 
     /**
+     * We told the client it should get ready for encryption
+     */
+    ENCRPYTION_INIT,
+
+    /**
      * Sending resource packs and waiting for the client to decide
      */
     RESOURCE_PACK,

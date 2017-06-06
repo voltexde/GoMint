@@ -6,8 +6,6 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketContainerSetContent;
 import io.gomint.server.network.packet.PacketContainerSetSlot;
 
-import java.util.Arrays;
-
 /**
  * @author geNAZt
  * @version 1.0
@@ -68,13 +66,8 @@ public class PlayerInventory extends MobInventory {
     public void sendContents( PlayerConnection playerConnection ) {
         super.sendContents( playerConnection );
 
-        PacketContainerSetContent strangeContent = new PacketContainerSetContent();
-        strangeContent.setWindowId( (byte) 0x7b );
-        strangeContent.setSlots( null );
-        strangeContent.setHotbar( null );
-        playerConnection.send( strangeContent );
-
         PacketContainerSetContent inventory = new PacketContainerSetContent();
+        inventory.setEntityId( ( (EntityPlayer) this.owner ).getEntityId() );
         inventory.setWindowId( (byte) 0 );
         inventory.setSlots( getContents() );
         inventory.setHotbar( this.hotbar );

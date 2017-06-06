@@ -11,7 +11,6 @@ import io.gomint.entity.Entity;
 import io.gomint.entity.Player;
 import io.gomint.inventory.ItemStack;
 import io.gomint.inventory.Material;
-import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
@@ -63,6 +62,9 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
     @Getter
     private AdventureSettings adventureSettings;
     private boolean op;
+    @Getter
+    @Setter
+    private Entity hoverEntity;
 
     // Hidden players
     private LongSet hiddenPlayers;
@@ -345,7 +347,10 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
         this.inventory.setItem( 2, new ItemStack( Material.DIAMOND_CHESTPLATE ) );
 
         // Send crafting recipes
-        this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
+        PacketBatch batch = new PacketBatch();
+        batch.setPayload( this.connection.getEncryptionHandler().encryptInputForClient(
+                this.world.getServer().getRecipeManager().getCraftingRecipesBatch().getPayload() ) );
+        this.connection.send( batch );
     }
 
     @Override

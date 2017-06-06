@@ -37,6 +37,8 @@ public class EntityItem extends Entity implements ItemDrop {
         super( EntityType.ITEM_DROP, world );
         this.itemStack = itemStack;
         this.setSize( 0.25f, 0.25f );
+        this.unlocked = true;
+        setPickupDelay( 5, TimeUnit.SECONDS );
     }
 
     @Override
@@ -57,6 +59,13 @@ public class EntityItem extends Entity implements ItemDrop {
     public void unlock( long currentTimeMillis ) {
         this.unlocked = true;
         this.pickupTime = currentTimeMillis + 2000;
+    }
+
+    /**
+     * Lock this item drop against picking up
+     */
+    public void lock() {
+        this.unlocked = false;
     }
 
     @Override

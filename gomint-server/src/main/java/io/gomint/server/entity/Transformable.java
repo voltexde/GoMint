@@ -219,4 +219,11 @@ public interface Transformable {
      */
     boolean isDirty();
 
+    /**
+     * The motion (velocity) this transformable has
+     *
+     * @return
+     */
+    Vector getMotion();
+
 }

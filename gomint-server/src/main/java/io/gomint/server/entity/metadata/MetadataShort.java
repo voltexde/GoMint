@@ -55,7 +55,7 @@ public class MetadataShort extends MetadataValue {
     @Override
     void serialize( PacketBuffer buffer, int index ) {
         super.serialize( buffer, index );
-        buffer.writeShort( this.value );
+        buffer.writeLShort( this.value );
     }
 
     @Override

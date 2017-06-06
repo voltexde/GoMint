@@ -1,16 +1,15 @@
 package io.gomint.server.world;
 
-import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.world.block.Blocks;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.openhft.koloboke.collect.ObjCollection;
-import net.openhft.koloboke.collect.map.IntObjMap;
-import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -19,10 +18,10 @@ import java.io.ByteArrayOutputStream;
 @RequiredArgsConstructor
 class ChunkSlice {
 
-    private static final ThreadLocal<Location> LOCATION_CACHE = new ThreadLocal<>();
-
-    @Getter private final ChunkAdapter chunk;
-    @Getter private final int sectionY;
+    @Getter
+    private final ChunkAdapter chunk;
+    @Getter
+    private final int sectionY;
 
     private boolean isAllAir = true;
 
@@ -31,10 +30,10 @@ class ChunkSlice {
     private NibbleArray blockLight = new NibbleArray( 4096 );
     private NibbleArray skyLight = new NibbleArray( 4096 );
 
-    private IntObjMap<TileEntity> tileEntities = HashIntObjMaps.newMutableMap();
+    private TileEntity[] tileEntities = new TileEntity[4096];
 
     private int getIndex( int x, int y, int z ) {
-        return ( x * 256 ) + ( z * 16 ) + y;
+        return ( x << 8 ) + ( z << 4 ) + y;
     }
 
     byte getBlock( int x, int y, int z ) {
@@ -48,35 +47,33 @@ class ChunkSlice {
     <T extends io.gomint.world.block.Block> T getBlockInstance( int x, int y, int z ) {
         int index = getIndex( x, y, z );
 
-        int fullX = ( this.chunk.getX() * 16 ) + x;
-        int fullY = ( sectionY * 16 ) + y;
-        int fullZ = ( this.chunk.getZ() * 16 ) + z;
-
-        Location loc;
-        if ( ( loc = LOCATION_CACHE.get() ) == null ) {
-            LOCATION_CACHE.set( loc = new Location( this.chunk.world, fullX, fullY, fullZ ) );
-        }
-
-        loc.setWorld( this.chunk.world );
-        loc.setX( fullX );
-        loc.setY( fullY );
-        loc.setZ( fullZ );
+        int fullX = CoordinateUtils.getChunkMin( this.chunk.getX() ) + x;
+        int fullY = CoordinateUtils.getChunkMin( this.sectionY ) + y;
+        int fullZ = CoordinateUtils.getChunkMin( this.chunk.getZ() ) + z;
 
         if ( isAllAir ) {
-            return (T) Blocks.get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, loc );
+            return (T) Blocks.get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ) );
         }
 
         return (T) Blocks.get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
-                this.blockLight.get( index ), this.tileEntities.get( index ), loc );
+                this.blockLight.get( index ), this.tileEntities[index], new Location( this.chunk.world, fullX, fullY, fullZ ) );
     }
 
-    ObjCollection<TileEntity> getTileEntities() {
-        return tileEntities.values();
+    Collection<TileEntity> getTileEntities() {
+        List<TileEntity> tileEntities = new ArrayList<>();
+
+        for ( TileEntity tileEntity : this.tileEntities ) {
+            if ( tileEntity != null ) {
+                tileEntities.add( tileEntity );
+            }
+        }
+
+        return tileEntities;
     }
 
     void addTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         int index = getIndex( x, y, z );
-        this.tileEntities.put( index, tileEntity );
+        this.tileEntities[index] = tileEntity;
     }
 
     void setBlock( int x, int y, int z, byte blockId ) {

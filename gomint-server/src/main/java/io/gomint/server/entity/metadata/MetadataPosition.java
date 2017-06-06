@@ -111,7 +111,7 @@ public class MetadataPosition extends MetadataValue {
     void serialize( PacketBuffer buffer, int index ) {
         super.serialize( buffer, index );
         buffer.writeSignedVarInt( this.x );
-        buffer.writeByte( (byte) this.y );
+        buffer.writeSignedVarInt( this.y );
         buffer.writeSignedVarInt( this.z );
     }
 

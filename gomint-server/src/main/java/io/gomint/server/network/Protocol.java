@@ -17,55 +17,59 @@ public final class Protocol {
 
     // CHECKSTYLE:OFF
     // MC:PE Protocol ID
-    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 107;
-    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.0.7";
+    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 113;
+    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.1.0";
 
     // ========================================= PACKET IDS ========================================= //
+    public static final byte PACKET_BATCH = (byte) 0xfe;
+
     public static final byte PACKET_LOGIN = (byte) 0x01;
     public static final byte PACKET_PLAY_STATE = (byte) 0x02;
+    public static final byte PACKET_ENCRYPTION_REQUEST = (byte) 0x03;
+    public static final byte PACKET_ENCRYPTION_RESPONSE = (byte) 0x04;
     public static final byte PACKET_DISCONNECT = (byte) 0x05;
-    public static final byte PACKET_BATCH = (byte) 0x06;
-    public static final byte PACKET_RESOURCEPACK_INFO = (byte) 0x07;
-    public static final byte PACKET_RESOURCEPACK_STACK = (byte) 0x08;
-    public static final byte PACKET_RESOURCEPACK_RESPONSE = (byte) 0x09;
-    public static final byte PACKET_WORLD_TIME = (byte) 0x0b;
-    public static final byte PACKET_START_GAME = (byte) 0x0c;
-    public static final byte PACKET_SPAWN_PLAYER = (byte) 0x0d;
-    public static final byte PACKET_DESPAWN_ENTITY = (byte) 0x0f;
-    public static final byte PACKET_ADD_ITEM_ENTITY = (byte) 0x10;
-    public static final byte PACKET_PICKUP_ITEM_ENTITY = (byte) 0x12;
-    public static final byte PACKET_ENTITY_MOVEMENT = (byte) 0x13;
-    public static final byte PACKET_MOVE_PLAYER = (byte) 0x14;
-    public static final byte PACKET_REMOVE_BLOCK = (byte) 0x16;
-    public static final byte PACKET_UPDATE_BLOCK = (byte) 0x17;
-    public static final byte PACKET_WORLD_SOUND_EVENT = (byte) 0x1A;
-    public static final byte PACKET_MOB_ARMOR_EQUIPMENT = (byte) 0x1C;
-    public static final byte PACKET_UPDATE_ATTRIBUTES = (byte) 0x1F;
-    public static final byte PACKET_MOB_EQUIPMENT = (byte) 0x20;
-    public static final byte PACKET_INTERACT = (byte) 0x22;
-    public static final byte PACKET_USE_ITEM = (byte) 0x24;
-    public static final byte PACKET_PLAYER_ACTION = (byte) 0x25;
-    public static final byte PACKET_MOB_ANIMATION = (byte) 0x28;
-    public static final byte PACKET_ANIMATE = (byte) 0x2D;
-    public static final byte PACKET_DROP_ITEM = (byte) 0x2f;
-    public static final byte PACKET_CONTAINER_SET_SLOT = (byte) 0x33;
-    public static final byte PACKET_CONTAINER_SET_CONTENT = (byte) 0x35;
-    public static final byte PACKET_CRAFTING_RECIPES = (byte) 0x36;
-    public static final byte PACKET_CRAFTING_EVENT = (byte) 0x37;
-    public static final byte PACKET_ADVENTURE_SETTINGS = (byte) 0x38;
-    public static final byte PACKET_TILE_ENTITY_DATA = (byte) 0x39;
-    public static final byte PACKET_WORLD_CHUNK = (byte) 0x3B;
-    public static final byte PACKET_SET_COMMANDS_ENABLED = (byte) 0x3C;
-    public static final byte PACKET_SET_DIFFICULTY = (byte) 0x3D;
-    public static final byte PACKET_SET_GAMEMODE = (byte) 0x3F;
-    public static final byte PACKET_PLAYER_LIST = (byte) 0x40;
-    public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
-    public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
+    public static final byte PACKET_RESOURCEPACK_INFO = (byte) 0x06;
+    public static final byte PACKET_RESOURCEPACK_STACK = (byte) 0x07;
+    public static final byte PACKET_RESOURCEPACK_RESPONSE = (byte) 0x08;
+    public static final byte PACKET_WORLD_TIME = (byte) 0x0a;
+    public static final byte PACKET_START_GAME = (byte) 0x0b;
+    public static final byte PACKET_SPAWN_PLAYER = (byte) 0x0c;
+    public static final byte PACKET_SPAWN_ENTITY = (byte) 0x0d;
+    public static final byte PACKET_DESPAWN_ENTITY = (byte) 0x0e;
+    public static final byte PACKET_ADD_ITEM_ENTITY = (byte) 0x0f;
+    public static final byte PACKET_PICKUP_ITEM_ENTITY = (byte) 0x11;
+    public static final byte PACKET_ENTITY_MOVEMENT = (byte) 0x12;
+    public static final byte PACKET_MOVE_PLAYER = (byte) 0x13;
+    public static final byte PACKET_REMOVE_BLOCK = (byte) 0x15;
+    public static final byte PACKET_UPDATE_BLOCK = (byte) 0x16;
+    public static final byte PACKET_WORLD_SOUND_EVENT = (byte) 0x19;
+
+    public static final byte PACKET_UPDATE_ATTRIBUTES = (byte) 0x1E;
+    public static final byte PACKET_MOB_EQUIPMENT = (byte) 0x1F;
+    public static final byte PACKET_MOB_ARMOR_EQUIPMENT = (byte) 0x20;
+    public static final byte PACKET_INTERACT = (byte) 0x21;
+    public static final byte PACKET_USE_ITEM = (byte) 0x23;
+    public static final byte PACKET_PLAYER_ACTION = (byte) 0x24;
+    public static final byte PACKET_MOB_ANIMATION = (byte) 0x27;
+    public static final byte PACKET_ANIMATE = (byte) 0x2C;
+    public static final byte PACKET_DROP_ITEM = (byte) 0x2E;
+    public static final byte PACKET_CONTAINER_SET_SLOT = (byte) 0x32;
+    public static final byte PACKET_CONTAINER_SET_CONTENT = (byte) 0x34;
+    public static final byte PACKET_CRAFTING_RECIPES = (byte) 0x35;
+    public static final byte PACKET_CRAFTING_EVENT = (byte) 0x36;
+    public static final byte PACKET_ADVENTURE_SETTINGS = (byte) 0x37;
+    public static final byte PACKET_TILE_ENTITY_DATA = (byte) 0x38;
+    public static final byte PACKET_WORLD_CHUNK = (byte) 0x3A;
+    public static final byte PACKET_SET_COMMANDS_ENABLED = (byte) 0x3B;
+    public static final byte PACKET_SET_DIFFICULTY = (byte) 0x3C;
+    public static final byte PACKET_SET_GAMEMODE = (byte) 0x3D;
+    public static final byte PACKET_PLAYER_LIST = (byte) 0x3F;
+    public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x44;
+    public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x45;
 
     public static final byte PACKET_ENTITY_METADATA = (byte) 0xAD;
     public static final byte PACKET_ENTITY_MOTION = (byte) 0xAE;
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
-    public static final byte PACKET_SPAWN_ENTITY = (byte) 0x98;
     // CHECKSTYLE:ON
 
     // ========================================= PACKET METHODS ========================================= //
@@ -88,6 +92,9 @@ public final class Protocol {
 
             case PACKET_PLAY_STATE:
                 return new PacketPlayState();
+
+            case PACKET_ENCRYPTION_RESPONSE:
+                return new PacketEncryptionResponse();
 
             case PACKET_DISCONNECT:
                 return new PacketDisconnect();

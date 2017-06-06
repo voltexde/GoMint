@@ -1,10 +1,14 @@
 package io.gomint.server.entity.pathfinding;
 
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Transformable;
 import io.gomint.server.util.IntTriple;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -16,6 +20,8 @@ import java.util.*;
  * @version 1.0
  */
 public class PathfindingEngine {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( PathfindingEngine.class );
 
     // The transform that holds the current position the object is located at:
     private final Transformable transform;
@@ -132,8 +138,10 @@ public class PathfindingEngine {
                     if ( node.isStart() ) {
                         break;
                     }
+
                     node = node.getPredecessor();
                 }
+
                 Collections.reverse( path );
                 return path;
             }
@@ -151,11 +159,23 @@ public class PathfindingEngine {
                     }
 
                     // Got to make sure this neighbour is even in reach from this block
-                    // TODO: Implement pre-conditions
+                    // Check if the block is walkable or jumpable
+                    Block block = this.getGoal().getWorld().getBlockAt( neighbourTriple.getX(), neighbourTriple.getY(), neighbourTriple.getZ() );
+                    if ( !block.canPassThrough() ) {
+                        AxisAlignedBB bb = block.getBoundingBox();
+                        double diff = bb.getMaxY() - neighbourTriple.getY();
+                        if ( diff > 0 && diff <= 0.5F ) {
+                            neighbourTriple = new IntTriple( neighbourTriple.getX(), neighbourTriple.getY() + 1, neighbourTriple.getZ() );
+                        } else {
+                            continue;
+                        }
+                    }
 
-                    // a) does neighbour provide sufficiently free space:
-
-                    // b) is jump required? if so, is it feasible?
+                    // We need to account for gravity here
+                    Block blockBeneath = this.getGoal().getWorld().getBlockAt( neighbourTriple.getX(), neighbourTriple.getY() - 1, neighbourTriple.getZ() );
+                    if ( blockBeneath.canPassThrough() ) {
+                        neighbourTriple = new IntTriple( neighbourTriple.getX(), neighbourTriple.getY() - 1, neighbourTriple.getZ() );
+                    }
 
                     // This block is a valid neighbour:
                     AStarNode neighbourNode = discoveredMap.get( neighbourTriple );
@@ -180,7 +200,32 @@ public class PathfindingEngine {
             }
 
             ++exploredNodesCount;
+
+            if ( exploredNodesCount >= MAXIMUM_NODES_TO_EXPLORE ) {
+                // Debug
+                // Goal was reached -> reconstruct path and return:
+                ArrayList<IntTriple> path = new ArrayList<>( node.getK() );
+                while ( true ) {
+                    path.add( node.getBlockPosition() );
+
+                    if ( node.isStart() ) {
+                        break;
+                    }
+
+                    node = node.getPredecessor();
+                }
+
+                Collections.reverse( path );
+
+                LOGGER.debug( "Path selected:" );
+                for ( IntTriple intTriple : path ) {
+                    Block block = this.getGoal().getWorld().getBlockAt( intTriple.getX(), intTriple.getY(), intTriple.getZ() );
+                    LOGGER.debug( "> " + intTriple + " > " + block.getClass() );
+                }
+            }
         }
+
+
 
         // Either has the threshold been exceeded or there is no solution to the problem:
         return null;

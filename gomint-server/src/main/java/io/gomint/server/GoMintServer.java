@@ -9,14 +9,13 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.entity.Player;
-import io.gomint.inventory.ItemStack;
-import io.gomint.inventory.Material;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
-import io.gomint.server.crafting.ShapedRecipe;
+import io.gomint.server.entity.EntityCow;
+import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.plugin.SimplePluginManager;
@@ -32,7 +31,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
-import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,14 +50,13 @@ public class GoMintServer implements GoMint {
 
     private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
 
-    // Global tick lock
-    private ReentrantLock tickLock = new ReentrantLock( true );
-
     // Configuration
     @Getter
     private ServerConfig serverConfig;
 
     // Networking
+    @Getter
+    private EncryptionKeyFactory encryptionKeyFactory;
     private NetworkManager networkManager;
 
     // World Management
@@ -88,8 +85,6 @@ public class GoMintServer implements GoMint {
      */
     public GoMintServer( String[] args ) {
         logger.info( "Starting " + getVersion() );
-
-        Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
         // ------------------------------------ //
@@ -116,6 +111,11 @@ public class GoMintServer implements GoMint {
         // Calculate the nanoseconds we need for the tick loop
         long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
         logger.debug( "Setting skipNanos to: " + skipNanos );
+
+        // ------------------------------------ //
+        // Start of encryption helpers
+        // ------------------------------------ //
+        this.encryptionKeyFactory = new EncryptionKeyFactory( this );
 
         // ------------------------------------ //
         // Scheduler + PluginManager Initialization
@@ -145,24 +145,19 @@ public class GoMintServer implements GoMint {
         // Add all recipes from asset library:
         for ( Recipe recipe : assetsLibrary.getRecipes() ) {
             this.recipeManager.registerRecipe( recipe );
-
-            if ( recipe.createResult().contains( new ItemStack( Material.CRAFTING_TABLE ) ) ) {
-                ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
-                System.out.println( recipe.getUUID() );
-                System.out.println( shapedRecipe.getHeight() );
-                System.out.println( shapedRecipe.getWidth() );
-            }
         }
 
         // ------------------------------------ //
         // World Initialization
         // ------------------------------------ //
         this.worldManager = new WorldManager( this );
+        // CHECKSTYLE:OFF
         try {
             this.worldManager.loadWorld( this.serverConfig.getWorld() );
         } catch ( Exception e ) {
             this.logger.error( "Failed to load default world", e );
         }
+        // CHECKSTYLE:ON
 
         // ------------------------------------ //
         // Load plugins with StartupPriority LOAD
@@ -181,12 +176,17 @@ public class GoMintServer implements GoMint {
         // Main Loop
         // ------------------------------------ //
 
+        // Spawn one cow for AI testing
+        EntityCow cow = new EntityCow( this.worldManager.getWorld( "world" ) );
+        this.worldManager.getWorld( "world" ).spawnEntityAt( cow, this.worldManager.getWorld( "world" ).getSpawnLocation() );
+
         // Tick loop
         float lastTickTime = Float.MIN_NORMAL;
+        ReentrantLock tickLock = new ReentrantLock( true );
         Condition tickCondition = tickLock.newCondition();
 
         while ( this.running.get() ) {
-            this.tickLock.lock();
+            tickLock.lock();
             try {
                 long start = System.nanoTime();
 
@@ -205,11 +205,12 @@ public class GoMintServer implements GoMint {
                     lastTickTime = (float) skipNanos / 1000000000.0F;
                 } else {
                     lastTickTime = (float) diff / 1000000000.0F;
+                    this.logger.warn( "Running behind: " + ( 1 / lastTickTime ) + " / " + ( 1 / ( skipNanos / 1000000000.0F ) ) + " tps" );
                 }
             } catch ( InterruptedException e ) {
                 // Ignored ._.
             } finally {
-                this.tickLock.unlock();
+                tickLock.unlock();
             }
         }
     }

@@ -39,6 +39,8 @@ public class DumpUtil {
             System.out.print( lineBuilder.toString() );
             lineBuilder = new StringBuilder();
         }
+
+        buffer.resetPosition();
     }
 
     public static void dumpByteArray( byte[] bytes ) {

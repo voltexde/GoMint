@@ -24,7 +24,7 @@ public class PacketMobArmorEquipment extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        buffer.writeLong( this.entityId );
+        buffer.writeUnsignedVarLong( this.entityId );
         writeItemStack( this.helmet, buffer );
         writeItemStack( this.chestplate, buffer );
         writeItemStack( this.leggings, buffer );
@@ -33,7 +33,7 @@ public class PacketMobArmorEquipment extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        this.entityId = buffer.readLong();
+        this.entityId = buffer.readUnsignedVarLong();
         this.helmet = readItemStack( buffer );
         this.chestplate = readItemStack( buffer );
         this.leggings = readItemStack( buffer );
@@ -42,7 +42,7 @@ public class PacketMobArmorEquipment extends Packet {
 
     @Override
     public int estimateLength() {
-        return 8 + predictItemStack( this.helmet ) + predictItemStack( this.boots ) + predictItemStack( this.chestplate ) + predictItemStack( this.leggings );
+        return predictVarLongSize( this.entityId ) + predictItemStack( this.helmet ) + predictItemStack( this.boots ) + predictItemStack( this.chestplate ) + predictItemStack( this.leggings );
     }
 
 }

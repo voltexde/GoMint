@@ -14,13 +14,13 @@ import io.gomint.jraknet.EncapsulatedPacket;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.Location;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.world.World;
 import lombok.Getter;
 import lombok.Setter;
 import net.openhft.koloboke.collect.LongCursor;
@@ -32,9 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -66,19 +64,30 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketLogin.class, new PacketLoginHandler() );
         PACKET_HANDLERS.put( PacketDropItem.class, new PacketDropItemHandler() );
         PACKET_HANDLERS.put( PacketMobEquipment.class, new PacketMobEquipmentHandler() );
+        PACKET_HANDLERS.put( PacketInteract.class, new PacketInteractHandler() );
+        PACKET_HANDLERS.put( PacketEncryptionResponse.class, new PacketEncryptionResponseHandler() );
     }
 
     // Network manager that created this connection:
-    @Getter private final NetworkManager networkManager;
+    @Getter
+    private final NetworkManager networkManager;
+    @Getter
+    @Setter
+    private EncryptionHandler encryptionHandler;
+    @Getter
+    private final GoMintServer server;
 
     // Actual connection for wire transfer:
-    @Getter private final Connection connection;
+    @Getter
+    private final Connection connection;
 
     // World data
     private final LongSet playerChunks;
 
     // Connection State:
-    @Getter @Setter private PlayerConnectionState state;
+    @Getter
+    @Setter
+    private PlayerConnectionState state;
     private int sentChunks;
     private BlockingQueue<Packet> sendQueue;
 
@@ -97,6 +106,7 @@ public class PlayerConnection {
         this.networkManager = networkManager;
         this.connection = connection;
         this.state = initialState;
+        this.server = networkManager.getServer();
 
         this.playerChunks = HashLongSets.newMutableSet();
         this.currentlySendingPlayerChunks = HashLongSets.newMutableSet();
@@ -139,19 +149,13 @@ public class PlayerConnection {
 
         // Send all queued packets
         if ( this.sendQueue != null && this.sendQueue.size() > 0 ) {
-            List<Packet> drainedPackets = new ArrayList<>();
-            this.sendQueue.drainTo( drainedPackets );
+            PacketBatch batch = BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, this.sendQueue );
 
-            this.networkManager.getServer().getExecutorService().execute( new Runnable() {
-                @Override
-                public void run() {
-                    PacketBatch batch = BatchUtil.batch( drainedPackets );
+            if ( connection.isConnected() ) {
+                send( batch );
+            }
 
-                    if ( connection.isConnected() ) {
-                        send( batch );
-                    }
-                }
-            } );
+            this.sendQueue.clear();
         }
     }
 
@@ -161,11 +165,15 @@ public class PlayerConnection {
      * @param packet The packet to send to the player
      */
     public void send( Packet packet ) {
-        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-        buffer.writeByte( (byte) 0xFE );
-        buffer.writeByte( packet.getId() );
-        packet.serialize( buffer );
-        this.connection.send( PacketReliability.RELIABLE, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+        if ( !( packet instanceof PacketBatch ) ) {
+            this.send( BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
+        } else {
+            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 1 );
+            buffer.writeByte( packet.getId() );
+            packet.serialize( buffer );
+
+            this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+        }
     }
 
     /**
@@ -176,11 +184,15 @@ public class PlayerConnection {
      * @param packet          The packet to send to the player
      */
     public void send( PacketReliability reliability, int orderingChannel, Packet packet ) {
-        PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 2 );
-        buffer.writeByte( (byte) 0xFE );
-        buffer.writeByte( packet.getId() );
-        packet.serialize( buffer );
-        this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
+        if ( !( packet instanceof PacketBatch ) ) {
+            this.send( reliability, orderingChannel, BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
+        } else {
+            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 1 );
+            buffer.writeByte( packet.getId() );
+            packet.serialize( buffer );
+
+            this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
+        }
     }
 
     /**
@@ -190,8 +202,10 @@ public class PlayerConnection {
      * @param chunkHash The hash of the chunk to keep track of what the player has loaded
      * @param chunkData The chunk data packet to send to the player
      */
-    public void sendWorldChunk( long chunkHash, Packet chunkData ) {
-        this.send( chunkData );
+    public void sendWorldChunk( long chunkHash, PacketBatch chunkData ) {
+        PacketBatch batch = new PacketBatch();
+        batch.setPayload( this.encryptionHandler.encryptInputForClient( chunkData.getPayload() ) );
+        this.send( batch );
 
         synchronized ( this.playerChunks ) {
             this.currentlySendingPlayerChunks.removeLong( chunkHash );
@@ -233,9 +247,6 @@ public class PlayerConnection {
 
         // Grab the packet ID from the packet's data
         byte packetId = buffer.readByte();
-        if ( packetId == (byte) 0xFE && buffer.getRemaining() > 0 ) {
-            packetId = buffer.readByte();
-        }
 
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
@@ -250,6 +261,20 @@ public class PlayerConnection {
             }
 
             // Don't allow for any other packets if we are in HANDSHAKE state:
+            return;
+        }
+
+        // When we are in encryption init state
+        if ( this.state == PlayerConnectionState.ENCRPYTION_INIT ) {
+            if ( packetId == PACKET_BATCH ) {
+                this.handleBatchPacket( currentTimeMillis, buffer, batch );
+            } else if ( packetId == PACKET_ENCRYPTION_RESPONSE ) {
+                this.handlePacket( currentTimeMillis, new PacketEncryptionResponse() );
+            } else {
+                LOGGER.error( "Received odd packet" );
+            }
+
+            // Don't allow for any other packets if we are in RESOURCE_PACK state:
             return;
         }
 
@@ -297,11 +322,21 @@ public class PlayerConnection {
             return;
         }
 
-        int compressedSize = buffer.readUnsignedVarInt();               // Compressed payload length (not of interest; only uncompressed size matters)
+        // Encrypted?
+        byte[] input = new byte[buffer.getRemaining()];
+        System.arraycopy( buffer.getBuffer(), buffer.getPosition(), input, 0, input.length );
+        if ( this.encryptionHandler != null ) {
+            input = this.encryptionHandler.decryptInputFromClient( input );
+            if ( input == null ) {
+                // Decryption error
+                disconnect( "Checksum of encrypted packet was wrong" );
+                return;
+            }
+        }
 
-        InflaterInputStream inflaterInputStream = new InflaterInputStream( new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), compressedSize ) );
+        InflaterInputStream inflaterInputStream = new InflaterInputStream( new ByteArrayInputStream( input ) );
 
-        ByteArrayOutputStream bout = new ByteArrayOutputStream( compressedSize );
+        ByteArrayOutputStream bout = new ByteArrayOutputStream( buffer.getRemaining() );
         byte[] batchIntermediate = new byte[256];
 
         try {
@@ -326,7 +361,7 @@ public class PlayerConnection {
             this.handleSocketData( currentTimeMillis, pktBuf, true );
 
             if ( pktBuf.getRemaining() > 0 ) {
-                LOGGER.error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x" + Integer.toHexString( payData[0] ) );
+                LOGGER.error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x" + Integer.toHexString( payData[0] ) + " reamining " + pktBuf.getRemaining() + " bytes" );
                 return;
             }
         }
@@ -366,7 +401,7 @@ public class PlayerConnection {
                     if ( !this.playerChunks.contains( hash ) &&
                             !this.currentlySendingPlayerChunks.contains( hash ) ) {
                         this.currentlySendingPlayerChunks.add( hash );
-                        worldAdapter.sendChunk( sendXChunk, sendZChunk, this.entity );
+                        worldAdapter.sendChunk( sendXChunk, sendZChunk, this.entity, false );
                     }
                 }
             }
@@ -433,9 +468,9 @@ public class PlayerConnection {
             }
 
             if ( this.entity != null ) {
-                LOGGER.info( "Player " + this.entity.getName() + " left the game" );
+                LOGGER.info( "Player " + this.entity.getName() + " left the game: " + message );
             } else {
-                LOGGER.info( "Player has been disconnected whilst logging in" );
+                LOGGER.info( "Player has been disconnected whilst logging in: " + message );
             }
 
             this.connection.disconnect( message );
@@ -464,13 +499,14 @@ public class PlayerConnection {
     public void sendMovePlayer( Location location ) {
         PacketMovePlayer move = new PacketMovePlayer();
         move.setEntityId( 0 );                      // All packets referencing the local player have entity ID 0
-        move.setX( (float) location.getX() );
+        move.setX( location.getX() );
         move.setY( (float) ( location.getY() + 1.62 ) );
-        move.setZ( (float) location.getZ() );
+        move.setZ( location.getZ() );
         move.setYaw( location.getYaw() );
         move.setPitch( location.getPitch() );
         move.setMode( (byte) 1 );
         move.setOnGround( false );
+        move.setRidingEntityId( 0 );    // TODO: Implement riding entities correctly
         this.send( move );
     }
 
@@ -494,22 +530,24 @@ public class PlayerConnection {
      * connection is currently in to this player.
      */
     public void sendWorldInitialization() {
-        World world = this.entity.getWorld();
+        WorldAdapter world = this.entity.getWorld();
 
         PacketStartGame packet = new PacketStartGame();
         packet.setEntityId( this.entity.getEntityId() );
         packet.setRuntimeEntityId( 0 );
+        packet.setGamemode( 0 );
         packet.setSpawn( world.getSpawnLocation().add( 0, 1.62f, 0 ) );
         packet.setX( (int) world.getSpawnLocation().getX() );
         packet.setY( (int) ( world.getSpawnLocation().getY() + 1.62 ) );
         packet.setZ( (int) world.getSpawnLocation().getZ() );
-        packet.setGamemode( 0 );
+        packet.setWorldGamemode( 0 );
         packet.setDimension( 0 );
         packet.setSeed( 12345 );
         packet.setGenerator( 1 );
         packet.setDifficulty( 1 );
         packet.setSecret( "1m0AAMIFIgA=" );
         packet.setWorldName( world.getWorldName() );
+        packet.setGamerules( world.getGamerules() );
 
         this.entity.setPosition( world.getSpawnLocation().add( 0, 1.62f, 0 ) );
         this.send( packet );

@@ -20,8 +20,10 @@ import java.util.Objects;
 public class ItemGenerator {
 
     public static void main( String[] args ) {
+        System.out.println( 4 >> 2 );
+
         // Download latest 1.0 block data
-        HttpClient client = new HttpClient();
+        /*HttpClient client = new HttpClient();
         HttpMethod method = new GetMethod( "https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pe/1.0/items.json" );
 
         try {
@@ -42,7 +44,7 @@ public class ItemGenerator {
             e.printStackTrace();
         } finally {
             method.releaseConnection();
-        }
+        }*/
     }
 
     private static String buildName( String displayName ) {

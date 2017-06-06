@@ -8,11 +8,14 @@
 package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.entity.AttributeInstance;
 import io.gomint.server.entity.EntityType;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.Collection;
 
 /**
  * @author BlackyPaw
@@ -30,8 +33,9 @@ public class PacketSpawnEntity extends Packet {
     private float velocityX;
     private float velocityY;
     private float velocityZ;
+    private float pitch;
     private float yaw;
-    private float headYaw;
+    private Collection<AttributeInstance> attributes;
     private MetadataContainer metadata;
 
     public PacketSpawnEntity() {
@@ -40,34 +44,36 @@ public class PacketSpawnEntity extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        buffer.writeLong( this.entityId );
-        buffer.writeInt( this.entityType.getId() );
-        buffer.writeFloat( this.x );
-        buffer.writeFloat( this.y );
-        buffer.writeFloat( this.z );
-        buffer.writeFloat( this.velocityX );
-        buffer.writeFloat( this.velocityY );
-        buffer.writeFloat( this.velocityZ );
-        buffer.writeFloat( this.yaw );
-        buffer.writeFloat( this.headYaw );
+        buffer.writeSignedVarLong( this.entityId );
+        buffer.writeUnsignedVarLong( this.entityId );
+        buffer.writeUnsignedVarInt( this.entityType.getId() );
+        buffer.writeLFloat( this.x );
+        buffer.writeLFloat( this.y );
+        buffer.writeLFloat( this.z );
+        buffer.writeLFloat( this.velocityX );
+        buffer.writeLFloat( this.velocityY );
+        buffer.writeLFloat( this.velocityZ );
+        buffer.writeLFloat( this.pitch );
+        buffer.writeLFloat( this.yaw );
+
+        if ( this.attributes == null ) {
+            buffer.writeUnsignedVarInt( 0 );
+        } else {
+            buffer.writeUnsignedVarInt( this.attributes.size() );
+            for ( AttributeInstance entry : this.attributes ) {
+                buffer.writeString( entry.getKey() );
+                buffer.writeLFloat( entry.getMinValue() );
+                buffer.writeLFloat( entry.getValue() );
+                buffer.writeLFloat( entry.getMaxValue() );
+            }
+        }
+
         this.metadata.serialize( buffer );
-        buffer.writeShort( (short) 0 );             // Unknown use
+        buffer.writeUnsignedVarInt( 0 );             // Entity links; TODO: implement this
     }
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-        this.entityId = buffer.readLong();
-        this.entityType = EntityType.getByID( buffer.readInt() );
-        this.x = buffer.readFloat();
-        this.y = buffer.readFloat();
-        this.z = buffer.readFloat();
-        this.velocityX = buffer.readFloat();
-        this.velocityY = buffer.readFloat();
-        this.velocityZ = buffer.readFloat();
-        this.yaw = buffer.readFloat();
-        this.headYaw = buffer.readFloat();
-        this.metadata = new MetadataContainer();
-        this.metadata.deserialize( buffer );
-        buffer.skip( 2 );                           // Unknown use
+
     }
 }

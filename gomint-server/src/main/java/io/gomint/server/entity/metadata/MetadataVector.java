@@ -56,9 +56,9 @@ public class MetadataVector extends MetadataValue {
     @Override
     void serialize( PacketBuffer buffer, int index ) {
         super.serialize( buffer, index );
-        buffer.writeLFloat( (float) this.value.getX() );
-        buffer.writeLFloat( (float) this.value.getY() );
-        buffer.writeLFloat( (float) this.value.getZ() );
+        buffer.writeLFloat( this.value.getX() );
+        buffer.writeLFloat( this.value.getY() );
+        buffer.writeLFloat( this.value.getZ() );
     }
 
     @Override

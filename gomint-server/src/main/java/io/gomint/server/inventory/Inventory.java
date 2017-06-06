@@ -7,6 +7,7 @@ import io.gomint.server.network.PlayerConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +20,7 @@ public abstract class Inventory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Inventory.class );
 
-    private final InventoryHolder owner;
+    protected final InventoryHolder owner;
     protected Set<PlayerConnection> viewer = new HashSet<>();
 
     protected int size;

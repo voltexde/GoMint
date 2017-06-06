@@ -13,6 +13,7 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.Gamerule;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,6 +22,8 @@ import java.math.BigInteger;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * @author BlackyPaw
@@ -103,6 +106,17 @@ public abstract class Packet {
             buffer.skip( extraLen );
         }
 
+        // They implemented additional data for item stacks aside from nbt
+        int countPlacedOn = buffer.readSignedVarInt();
+        for ( int i = 0; i < countPlacedOn; i++ ) {
+            buffer.readString();    // TODO: Implement proper support once we know the string values
+        }
+
+        int countCanBreak = buffer.readSignedVarInt();
+        for ( int i = 0; i < countCanBreak; i++ ) {
+            buffer.readString();    // TODO: Implement proper support once we know the string values
+        }
+
         return new ItemStack( EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( id ) ), data, amount, nbt );
     }
 
@@ -129,6 +143,10 @@ public abstract class Packet {
                 buffer.writeLShort( (short) 0 );
             }
         }
+
+        // canPlace and canBreak
+        buffer.writeSignedVarInt( 0 );
+        buffer.writeSignedVarInt( 0 );
     }
 
     public static void writeItemStacks( ItemStack[] itemStacks, PacketBuffer buffer ) {
@@ -258,6 +276,32 @@ public abstract class Packet {
 
             return size + 1;
         }
+    }
+
+    public void writeGamerules( Map<Gamerule, Object> gamerules, PacketBuffer buffer ) {
+        if ( gamerules == null ) {
+            buffer.writeUnsignedVarInt( 0 );
+            return;
+        }
+
+        buffer.writeUnsignedVarInt( gamerules.size() );
+        gamerules.forEach( new BiConsumer<Gamerule, Object>() {
+            @Override
+            public void accept( Gamerule gamerule, Object value ) {
+                buffer.writeString( gamerule.getNbtName().toLowerCase() );
+
+                if ( gamerule.getValueType() == Boolean.class ) {
+                    buffer.writeByte( (byte) 1 );
+                    buffer.writeBoolean( (Boolean) value );
+                } else if ( gamerule.getValueType() == Integer.class ) {
+                    buffer.writeByte( (byte) 2 );
+                    buffer.writeUnsignedVarInt( (Integer) value );
+                } else if ( gamerule.getValueType() == Float.class ) {
+                    buffer.writeByte( (byte) 3 );
+                    buffer.writeLFloat( (Float) value );
+                }
+            }
+        } );
     }
 
 }

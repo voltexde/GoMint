@@ -395,7 +395,6 @@ public enum Material {
         this.maximumAmount = maximumAmount;
     }
 
-
     Material( byte maximumAmount, short maximumDurability ) {
         this.maximumAmount = maximumAmount;
         this.maximumDurability = maximumDurability;
@@ -407,82 +406,7 @@ public enum Material {
      * @return the maximum amount of items in a stack
      */
     public byte getMaximumAmount() {
-        switch ( this ) {
-            // Armor
-            case DIAMOND_BOOTS:
-            case DIAMOND_LEGGINGS:
-            case DIAMOND_HELMET:
-            case DIAMOND_CHESTPLATE:
-            case IRON_BOOTS:
-            case IRON_LEGGINGS:
-            case IRON_HELMET:
-            case IRON_CHESTPLATE:
-            case GOLDEN_BOOTS:
-            case GOLDEN_LEGGINGS:
-            case GOLDEN_HELMET:
-            case GOLDEN_CHESTPLATE:
-            case CHAIN_BOOTS:
-            case CHAIN_LEGGINGS:
-            case CHAIN_HELMET:
-            case CHAIN_CHESTPLATE:
-            case LEATHER_BOOTS:
-            case LEATHER_PANTS:
-            case LEATHER_CAP:
-            case LEATHER_TUNIC:
-                return 1;
-
-            // Tools
-            case WOODEN_AXE:
-            case WOODEN_HOE:
-            case WOODEN_SWORD:
-            case WOODEN_SHOVEL:
-            case WOODEN_PICKAXE:
-            case GOLDEN_AXE:
-            case GOLDEN_HOE:
-            case GOLDEN_SWORD:
-            case GOLDEN_SHOVEL:
-            case GOLDEN_PICKAXE:
-            case IRON_AXE:
-            case IRON_HOE:
-            case IRON_SWORD:
-            case IRON_SHOVEL:
-            case IRON_PICKAXE:
-            case DIAMOND_AXE:
-            case DIAMOND_HOE:
-            case DIAMOND_SWORD:
-            case DIAMOND_SHOVEL:
-            case DIAMOND_PICKAXE:
-            case BOW:
-                return 1;
-
-            case BED:
-                return 1;
-
-            case BEETROOT_SOUP:
-                return 1;
-
-            case BUCKET:
-                return 1;
-
-            case CAKE:
-                return 1;
-
-            case WOODEN_DOOR:
-            case IRON_DOOR:
-                return 1;
-
-            case MUSHROOM_STEW:
-                return 1;
-
-            case SIGN:
-                return 1;
-
-            case SNOWBALL:
-                return 1;
-
-            default:
-                return 64;
-        }
+        return this.maximumAmount;
     }
 
 }

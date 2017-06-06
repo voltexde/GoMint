@@ -16,6 +16,7 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.util.Numbers;
 import io.gomint.world.Chunk;
 import lombok.Getter;
@@ -67,8 +68,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Bounding Box
      */
     protected AxisAlignedBB boundingBox;
-    private float width;
-    private float height;
+    @Getter private float width;
+    @Getter private float height;
 
     /**
      * How high can this entity "climb" in one movement?
@@ -349,12 +350,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     private void checkInsideBlock() {
         // Check in which block we are
-        int fullBlockX = (int) Math.floor( this.transform.getPositionX() );
-        int fullBlockY = (int) Math.floor( this.transform.getPositionY() );
-        int fullBlockZ = (int) Math.floor( this.transform.getPositionZ() );
+        int fullBlockX = Numbers.fastFloor( this.transform.getPositionX() );
+        int fullBlockY = Numbers.fastFloor( this.transform.getPositionY() );
+        int fullBlockZ = Numbers.fastFloor( this.transform.getPositionZ() );
 
         // Are we stuck inside a block?
-        if ( this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ ).isSolid() ) {
+        Block block;
+        if ( ( block = this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ ) ).isSolid() &&
+                block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
+            LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "@" + getEntityId() + " is stuck in a block" );
+
             // Calc with how much force we can get out of here, this depends on how far we are in
             float diffX = this.transform.getPositionX() - fullBlockX;
             float diffY = this.transform.getPositionY() - fullBlockY;
@@ -730,26 +735,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_SHOW_NAMETAG );
     }
 
-    /**
-     * Construct a spawn packet for this entity
-     *
-     * @return the spawn packet of this entity, ready to be sent to the client
-     */
-    public Packet createSpawnPacket() {
-        // Broadcast spawn entity packet:
-        PacketSpawnEntity packet = new PacketSpawnEntity();
-        packet.setEntityId( this.id );
-        packet.setEntityType( this.type );
-        packet.setX( (float) this.getPositionX() );
-        packet.setY( (float) this.getPositionY() );
-        packet.setZ( (float) this.getPositionZ() );
-        packet.setVelocityX( 0.0F );
-        packet.setVelocityY( 0.0F );
-        packet.setVelocityZ( 0.0F );
-        packet.setYaw( this.getYaw() );
-        packet.setHeadYaw( this.getHeadYaw() );
-        packet.setMetadata( this.getMetadata() );
-        return packet;
+    public abstract Packet createSpawnPacket();
+
+    @Override
+    public boolean isOnGround() {
+        return this.onGround;
     }
 
 }

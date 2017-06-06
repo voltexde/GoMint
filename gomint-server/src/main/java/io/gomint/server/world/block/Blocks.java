@@ -1,15 +1,10 @@
 package io.gomint.server.world.block;
 
-import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.world.WorldAdapter;
-import net.openhft.koloboke.collect.map.IntObjMap;
 import net.openhft.koloboke.collect.map.ObjObjMap;
-import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -17,7 +12,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Blocks {
 
-    private static final IntObjMap<Block> KNOWN_BLOCKS = HashIntObjMaps.newMutableMap();
+    private static final Block[] KNOWN_BLOCKS = new Block[256];
     private static final ObjObjMap<Class<?>, Block> KNOWN_API_INTERFACES = HashObjObjMaps.newMutableMap();
 
     public static final Air AIR = createBlock( 0, Air.class );
@@ -236,7 +231,7 @@ public class Blocks {
     private static <T extends Block> T createBlock( int blockId, Class<T> blockClass ) {
         try {
             T instance = blockClass.newInstance();
-            KNOWN_BLOCKS.put( blockId, instance );
+            KNOWN_BLOCKS[blockId] = instance;
 
             // Check for API interface
             for ( Class<?> aClass : instance.getClass().getInterfaces() ) {
@@ -254,7 +249,7 @@ public class Blocks {
 
     public static <T extends Block> T get( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel,
                                            TileEntity tileEntity, Location location ) {
-        Block instance = KNOWN_BLOCKS.get( blockId );
+        Block instance = KNOWN_BLOCKS[blockId];
         if ( instance != null ) {
             instance.setBlockData( blockData );
             instance.setTileEntity( tileEntity );

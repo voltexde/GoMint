@@ -7,12 +7,9 @@
 
 package io.gomint.server.world;
 
-import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import net.openhft.koloboke.collect.LongCursor;
-import net.openhft.koloboke.collect.map.IntObjMap;
 import net.openhft.koloboke.collect.map.LongObjMap;
-import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 import net.openhft.koloboke.collect.set.LongSet;
 import net.openhft.koloboke.collect.set.hash.HashLongSets;

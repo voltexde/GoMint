@@ -3,7 +3,10 @@ package io.gomint.server.network.packet;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.server.network.Protocol;
+import io.gomint.world.Gamerule;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @author geNAZt
@@ -13,11 +16,12 @@ import lombok.Data;
 public class PacketStartGame extends Packet {
     private long entityId;
     private long runtimeEntityId;
+    private int gamemode;
     private Location spawn;
     private int seed;
     private int dimension;
     private int generator;
-    private int gamemode;
+    private int worldGamemode;
     private int difficulty;
     private int x;
     private int y;
@@ -29,6 +33,7 @@ public class PacketStartGame extends Packet {
     private float lightningLevel;
     private boolean commandsEnabled;
     private boolean isTexturePacksRequired;
+    private Map<Gamerule, Object> gamerules;
     private String secret;
     private String worldName;
 
@@ -40,15 +45,16 @@ public class PacketStartGame extends Packet {
     public void serialize( PacketBuffer buffer ) {
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.runtimeEntityId );
-        buffer.writeLFloat( (float) this.spawn.getX() );
-        buffer.writeLFloat( (float) this.spawn.getY() );
-        buffer.writeLFloat( (float) this.spawn.getZ() );
+        buffer.writeSignedVarInt( this.gamemode );
+        buffer.writeLFloat( this.spawn.getX() );
+        buffer.writeLFloat( this.spawn.getY() );
+        buffer.writeLFloat( this.spawn.getZ() );
         buffer.writeLFloat( this.spawn.getYaw() );
         buffer.writeLFloat( this.spawn.getPitch() );
         buffer.writeSignedVarInt( this.seed );
         buffer.writeSignedVarInt( this.dimension );
         buffer.writeSignedVarInt( this.generator );
-        buffer.writeSignedVarInt( this.gamemode );
+        buffer.writeSignedVarInt( this.worldGamemode );
         buffer.writeSignedVarInt( this.difficulty );
         buffer.writeSignedVarInt( (int) this.spawn.getX() );
         buffer.writeSignedVarInt( (int) this.spawn.getY() );
@@ -60,6 +66,7 @@ public class PacketStartGame extends Packet {
         buffer.writeLFloat( this.lightningLevel );
         buffer.writeBoolean( this.commandsEnabled );
         buffer.writeBoolean( this.isTexturePacksRequired );
+        writeGamerules( this.gamerules, buffer );
         buffer.writeString( this.secret );
         buffer.writeString( this.worldName );
     }

@@ -1,17 +1,38 @@
+/*
+ *  Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ *
+ *  This code is licensed under the BSD license found in the
+ *  LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerLoginEvent;
 import io.gomint.event.player.PlayerPreLoginEvent;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.LoginHandler;
+import io.gomint.server.jwt.JwtAlgorithm;
+import io.gomint.server.jwt.JwtSignatureException;
+import io.gomint.server.jwt.JwtToken;
+import io.gomint.server.jwt.MojangChainValidator;
+import io.gomint.server.network.EncryptionHandler;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.Protocol;
+import io.gomint.server.network.packet.PacketEncryptionRequest;
 import io.gomint.server.network.packet.PacketLogin;
 import io.gomint.server.network.packet.PacketPlayState;
+import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.world.WorldAdapter;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Base64;
 
 /**
  * @author geNAZt
@@ -24,9 +45,9 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
     @Override
     public void handle( PacketLogin packet, long currentTimeMillis, PlayerConnection connection ) {
         PlayerPreLoginEvent playerPreLoginEvent = connection.getNetworkManager().getServer().getPluginManager().callEvent(
-                new PlayerPreLoginEvent( connection.getConnection().getAddress() ) 
+                new PlayerPreLoginEvent( connection.getConnection().getAddress() )
         );
-        
+
         if ( playerPreLoginEvent.isCancelled() ) {
             // Since the user has not gotten any packets we are not able to be sure if we can send him a disconnect notification
             // so we decide to close the raknet connection without any notice
@@ -50,16 +71,71 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             return;
         }
 
-        LoginHandler loginHandler = new LoginHandler( packet );
-        if ( !loginHandler.isValid() && connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
+        // More data please
+        ByteBuffer byteBuffer = ByteBuffer.wrap( packet.getPayload() );
+        byteBuffer.order( ByteOrder.LITTLE_ENDIAN );
+        byte[] stringBuffer = new byte[byteBuffer.getInt()];
+        byteBuffer.get( stringBuffer );
+
+        // Parse chain and validate
+        String jwt = new String( stringBuffer );
+        JSONObject json;
+        try {
+            json = this.parseJwtString( jwt );
+        } catch ( ParseException e ) {
+            e.printStackTrace();
+            return;
+        }
+
+        Object jsonChainRaw = json.get( "chain" );
+        if ( jsonChainRaw == null || !( jsonChainRaw instanceof JSONArray ) ) {
+            return;
+        }
+
+        MojangChainValidator chainValidator = new MojangChainValidator( connection.getServer().getEncryptionKeyFactory() );
+        JSONArray jsonChain = (JSONArray) jsonChainRaw;
+        for ( int i = 0; i < jsonChain.size(); ++i ) {
+            Object jsonTokenRaw = jsonChain.get( i );
+            if ( jsonTokenRaw instanceof String ) {
+                try {
+                    JwtToken token = JwtToken.parse( (String) jsonTokenRaw );
+                    chainValidator.addToken( token );
+                } catch ( IllegalArgumentException e ) {
+                    e.printStackTrace();
+                    continue;
+                }
+            }
+        }
+
+        // Check if valid user (xbox live)
+        if ( !chainValidator.validate() && connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
             connection.disconnect( "Only valid XBOX Logins are allowed" );
             return;
         }
 
+        // Parse skin
+        byte[] skin = new byte[byteBuffer.getInt()];
+        byteBuffer.get( skin );
+
+        JwtToken skinToken = JwtToken.parse( new String( skin ) );
+
+        try {
+            skinToken.validateSignature( JwtAlgorithm.ES384, chainValidator.getTrustedKeys().get( skinToken.getHeader().getProperty( "x5u" ) ) );
+        } catch ( JwtSignatureException e ) {
+            // Invalid skin
+            if ( connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
+                connection.disconnect( "Skin is invalid or corrupted" );
+                return;
+            }
+        }
+
+        // Create additional data wrappers
+        PlayerSkin playerSkin = new PlayerSkin( skinToken.getClaim( "SkinId" ), Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinData" ) ) );
+
         // Create entity:
         WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();
-        connection.setEntity( new EntityPlayer( world, connection, loginHandler.getUserName(), loginHandler.getUuid() ) );
-        connection.getEntity().setSkin( loginHandler.getSkin() );
+        connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(), chainValidator.getUuid() ) );
+        connection.getEntity().setSkin( playerSkin );
         connection.getEntity().setNameTagVisible( true );
         connection.getEntity().setNameTagAlwaysVisible( true );
 
@@ -70,9 +146,45 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             return;
         }
 
-        connection.setState( PlayerConnectionState.RESOURCE_PACK );
-        connection.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
-        connection.sendResourcePacks();
+        if ( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory().getKeyPair() == null ) {
+            // No encryption
+            connection.setState( PlayerConnectionState.RESOURCE_PACK );
+            connection.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
+            connection.sendResourcePacks();
+        } else {
+            // Enable encryption
+            EncryptionHandler encryptionHandler = new EncryptionHandler( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory() );
+            encryptionHandler.supplyClientKey( chainValidator.getClientPublicKey() );
+            if ( encryptionHandler.beginClientsideEncryption() ) {
+                // Get the needed data for the encryption start
+                byte[] salt = encryptionHandler.getClientSalt();
+                String serverPublic = encryptionHandler.getServerPublic();
+
+                connection.setState( PlayerConnectionState.ENCRPYTION_INIT );
+                connection.setEncryptionHandler( encryptionHandler );
+
+                PacketEncryptionRequest packetEncryptionRequest = new PacketEncryptionRequest();
+                packetEncryptionRequest.setServerKey( serverPublic );
+                packetEncryptionRequest.setClientSalt( salt );
+                connection.send( packetEncryptionRequest );
+            }
+        }
+    }
+
+    /**
+     * Parses the specified JSON string and ensures it is a JSONObject.
+     *
+     * @param jwt The string to parse
+     * @return The parsed JSON object on success
+     * @throws ParseException Thrown if the given JSON string is invalid or does not start with a JSONObject
+     */
+    private JSONObject parseJwtString( String jwt ) throws ParseException {
+        Object jsonParsed = new JSONParser().parse( jwt );
+        if ( jsonParsed instanceof JSONObject ) {
+            return (JSONObject) jsonParsed;
+        } else {
+            throw new ParseException( ParseException.ERROR_UNEXPECTED_TOKEN );
+        }
     }
 
 }

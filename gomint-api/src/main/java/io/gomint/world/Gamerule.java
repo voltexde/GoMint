@@ -31,6 +31,7 @@ public final class Gamerule<T> {
     public static final Gamerule<Integer> RANDOM_TICK_SPEED = new Gamerule<>( "randomTickSpeed", Integer.class );
     public static final Gamerule<Boolean> SEND_COMMAND_FEEDBACK = new Gamerule<>( "sendCommandFeedback", Boolean.class );
     public static final Gamerule<Boolean> SHOW_DEATH_MESSAGES = new Gamerule<>( "showDeathMessages", Boolean.class );
+
     private static final Map<String, Gamerule> gamerulesByNbtNames = new HashMap<>();
     private final String nbtName;
     private final Class<T> valueType;
@@ -48,7 +49,7 @@ public final class Gamerule<T> {
             this.instantiator = null;
         }
 
-        gamerulesByNbtNames.put( nbtName, this );
+        gamerulesByNbtNames.put( nbtName.toLowerCase(), this );
     }
 
     /**
@@ -58,7 +59,7 @@ public final class Gamerule<T> {
      * @return The gamerule on success or null if no gamerule according to the NBT name was found
      */
     public static Gamerule getByNbtName( String nbtName ) {
-        return gamerulesByNbtNames.get( nbtName );
+        return gamerulesByNbtNames.get( nbtName.toLowerCase() );
     }
 
     /**
@@ -95,6 +96,7 @@ public final class Gamerule<T> {
         } catch ( IllegalAccessException | InvocationTargetException e ) {
             e.printStackTrace();
         }
+
         return null;
     }
 
