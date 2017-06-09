@@ -64,8 +64,8 @@ public final class Protocol {
     public static final byte PACKET_SET_DIFFICULTY = (byte) 0x3C;
     public static final byte PACKET_SET_GAMEMODE = (byte) 0x3D;
     public static final byte PACKET_PLAYER_LIST = (byte) 0x3F;
-    public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x44;
-    public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x45;
+    public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
+    public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
 
     public static final byte PACKET_ENTITY_METADATA = (byte) 0xAD;
     public static final byte PACKET_ENTITY_MOTION = (byte) 0xAE;

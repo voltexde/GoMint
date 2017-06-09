@@ -21,6 +21,7 @@ import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
 import io.gomint.world.Chunk;
 import io.gomint.world.block.Block;
+import lombok.Getter;
 import net.openhft.koloboke.collect.map.LongObjMap;
 
 import java.io.ByteArrayOutputStream;
@@ -53,7 +54,7 @@ public abstract class ChunkAdapter implements Chunk {
     protected byte[] biomes = new byte[16 * 16];
 
     // Blocks
-    protected ChunkSlice[] chunkSlices = new ChunkSlice[16];
+    @Getter protected ChunkSlice[] chunkSlices = new ChunkSlice[16];
     protected byte[] height = new byte[16 * 16 * 2];
 
     // Players / Chunk GC

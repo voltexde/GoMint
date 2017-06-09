@@ -10,6 +10,7 @@ import lombok.Data;
  */
 @Data
 public class PacketAdventureSettings extends Packet {
+
     private int flags;
     private int userPermission;
 

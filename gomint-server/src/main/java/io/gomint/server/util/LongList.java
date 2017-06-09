@@ -8,7 +8,6 @@ import java.util.Arrays;
  */
 public class LongList {
 
-
     /**
      * Default initial capacity.
      */

@@ -105,6 +105,12 @@ public final class CoordinateUtils {
         return ( ( (long) x & 0x3FFFFFF ) << 38 ) | ( ( (long) y & 0xFFF ) << 26 ) | ( (long) z & 0x3FFFFFF );
     }
 
+    /**
+     * Get the vector which has been encoded into the long
+     *
+     * @param hash The encoded long
+     * @return the decoded vector
+     */
     public static Vector fromLong( long hash ) {
         int x = (int) ( hash >> 38 );
         int y = (int) ( hash >> 26 ) & 0xFFF;

@@ -203,6 +203,8 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     public void sendWorldChunk( long chunkHash, PacketBatch chunkData ) {
+        LOGGER.debug( "Sending chunk with hash: " + chunkHash + " to the client" );
+
         PacketBatch batch = new PacketBatch();
         batch.setPayload( this.encryptionHandler.encryptInputForClient( chunkData.getPayload() ) );
         this.send( batch );

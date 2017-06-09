@@ -6,6 +6,7 @@ import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,11 +29,12 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Called when a normal block update should be done
      *
+     * @param updateReason  The reason why this block should update
      * @param currentTimeMS The timestamp when the tick has begun
      * @param dT            The difference time in full seconds since the last tick
      * @return a timestamp for the next execution
      */
-    public long update( long currentTimeMS, float dT ) {
+    public long update( UpdateReason updateReason, long currentTimeMS, float dT ) {
         return -1;
     }
 

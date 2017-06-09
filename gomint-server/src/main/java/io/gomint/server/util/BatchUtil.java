@@ -61,7 +61,7 @@ public class BatchUtil {
             packet.serialize( buffer );
 
             try {
-                ByteUtil.writeVarInt( buffer.getPosition(), batchStreamHolder.getOutputStream() );
+                writeVarInt( buffer.getPosition(), batchStreamHolder.getOutputStream() );
                 batchStreamHolder.getOutputStream().write( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
             } catch ( IOException e ) {
                 e.printStackTrace();
@@ -79,6 +79,15 @@ public class BatchUtil {
         STREAM_BUFFER.push( batchStreamHolder );
 
         return batch;
+    }
+
+    public static void writeVarInt( int value, OutputStream stream ) throws IOException {
+        while ( ( value & -128 ) != 0 ) {
+            stream.write( value & 127 | 128 );
+            value >>>= 7;
+        }
+
+        stream.write( value );
     }
 
     public static PacketBatch batch( EncryptionHandler encryptionHandler, Packet... packets ) {

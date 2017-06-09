@@ -388,11 +388,6 @@ class AnvilChunk extends ChunkAdapter {
 
                     this.setBlockLight( i, y, k, blockLight.get( blockIndex ) );
                     this.setSkyLight( i, y, k, skyLight.get( blockIndex ) );
-
-                    // Tick blocks on loading once to check if they need to be scheduled
-                    if ( blockId > 0 ) {
-                        this.world.getTickQueue().add( 1L, CoordinateUtils.toLong( ( x * 16 ) + i, y, ( z * 16 ) + k ) );
-                    }
                 }
             }
         }

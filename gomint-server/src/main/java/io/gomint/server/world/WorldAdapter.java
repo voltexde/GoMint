@@ -8,7 +8,6 @@
 package io.gomint.server.world;
 
 import io.gomint.entity.Player;
-import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
@@ -31,6 +30,8 @@ import io.gomint.world.block.Block;
 import lombok.Getter;
 import net.openhft.koloboke.collect.map.ObjObjMap;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+import net.openhft.koloboke.collect.set.ByteSet;
+import net.openhft.koloboke.collect.set.hash.HashByteSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,12 +46,25 @@ import java.util.concurrent.*;
  */
 public abstract class WorldAdapter implements World {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( WorldAdapter.class );
-
     // CHECKSTYLE:OFF
+    private static final ByteSet CAN_TICK_RANDOM = HashByteSets.newImmutableSet( new byte[]{
+            (byte) Blocks.GRASS_BLOCK.getBlockId(),
+            (byte) Blocks.FARMLAND.getBlockId(),
+            (byte) Blocks.MYCELIUM.getBlockId(),
+
+            (byte) Blocks.SAPLING.getBlockId(),
+
+            (byte) Blocks.LEAVES.getBlockId(),
+            (byte) Blocks.ACACIA_LEAVES.getBlockId(),
+
+            (byte) Blocks.TOP_SNOW.getBlockId(),
+            (byte) Blocks.ICE.getBlockId(),
+            (byte) Blocks.LAVA.getBlockId(),
+            (byte) Blocks.STATIONARY_LAVA.getBlockId(),
+    } );
+
     // Calculators for light
-    @Getter
-    private static final BlocklightCalculator blockLightCalculator = new BlocklightCalculator();
+    @Getter private static final BlocklightCalculator blockLightCalculator = new BlocklightCalculator();
 
     // Shared objects
     @Getter
@@ -73,6 +87,7 @@ public abstract class WorldAdapter implements World {
     // Block ticking
     @Getter
     protected TickList tickQueue = new TickList();
+    private int randomUpdateNumber = ThreadLocalRandom.current().nextInt();
 
     // I/O
     private boolean asyncWorkerRunning;
@@ -91,6 +106,7 @@ public abstract class WorldAdapter implements World {
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
         this.startAsyncWorker( server.getExecutorService() );
+        this.initGamerules();
     }
     // CHECKSTYLE:ON
 
@@ -230,6 +246,15 @@ public abstract class WorldAdapter implements World {
         chunk.setData( x & 0xF, y, z & 0xF, data );
     }
 
+    private void initGamerules() {
+        this.setGamerule( Gamerule.DO_DAYLIGHT_CYCLE, false );
+    }
+
+    @Override
+    public <T> void setGamerule( Gamerule<T> gamerule, T value ) {
+        this.gamerules.put( gamerule, value );
+    }
+
     @Override
     @SuppressWarnings( "unchecked" )
     public <T> T getGamerule( Gamerule<T> gamerule ) {
@@ -251,6 +276,42 @@ public abstract class WorldAdapter implements World {
 
         // ---------------------------------------
         // Update all blocks
+
+        // Random blocks
+        for ( long chunkHash : this.chunkCache.getChunkHashes() ) {
+            int x = (int) ( chunkHash >> 32 );
+            int z = (int) ( chunkHash ) + Integer.MIN_VALUE;
+
+            ChunkAdapter chunkAdapter = chunkCache.getChunk( x, z );
+            if ( chunkAdapter != null ) {
+                for ( ChunkSlice chunkSlice : chunkAdapter.getChunkSlices() ) {
+                    if ( chunkSlice != null ) {
+                        WorldAdapter.this.randomUpdateNumber = WorldAdapter.this.randomUpdateNumber * 3 + 1013904223;
+                        int blockHash = WorldAdapter.this.randomUpdateNumber >> 2;
+
+                        for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
+                            int blockX = blockHash & 0x0f;
+                            int blockY = blockHash >> 8 & 0x0f;
+                            int blockZ = blockHash >> 16 & 0x0f;
+
+                            byte blockId = chunkSlice.getBlock( blockX, blockY, blockZ );
+                            if ( CAN_TICK_RANDOM.contains( blockId ) ) {
+                                Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
+                                if ( block instanceof io.gomint.server.world.block.Block ) {
+                                    long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
+                                    if ( next > currentTimeMS ) {
+                                        Location location = block.getLocation();
+                                        WorldAdapter.this.tickQueue.add( next, CoordinateUtils.toLong( (int) location.getX(), (int) location.getY(), (int) location.getZ() ) );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Scheduled blocks
         while ( this.tickQueue.getNextTaskTime() < currentTimeMS ) {
             long blockToUpdate = this.tickQueue.getNextElement();
             if ( blockToUpdate == Long.MIN_VALUE ) {
@@ -263,12 +324,7 @@ public abstract class WorldAdapter implements World {
                 // CHECKSTYLE:OFF
                 try {
                     io.gomint.server.world.block.Block block1 = (io.gomint.server.world.block.Block) block;
-                    long next = block1.update( currentTimeMS, dT );
-
-                    // Check for abort value ( -1 )
-                    if ( next == -1 ) {
-                        continue;
-                    }
+                    long next = block1.update( UpdateReason.SCHEDULED, currentTimeMS, dT );
 
                     // Reschedule if needed
                     if ( next > currentTimeMS ) {
@@ -288,7 +344,7 @@ public abstract class WorldAdapter implements World {
         // ---------------------------------------
         // Chunk packages are done in main thread in order to be able to
         // cache packets without possibly getting into race conditions:
-        if ( !this.chunkPackageTasks.isEmpty() ) {
+        while ( !this.chunkPackageTasks.isEmpty() ) {
             // One chunk per tick at max:
             AsyncChunkPackageTask task = this.chunkPackageTasks.poll();
             ChunkAdapter chunk = this.getChunk( task.getX(), task.getZ() );
@@ -635,8 +691,6 @@ public abstract class WorldAdapter implements World {
                     continue;
                 }
 
-                long start = System.currentTimeMillis();
-
                 ChunkAdapter chunk = null;
                 switch ( task.getType() ) {
                     case LOAD:
@@ -655,10 +709,6 @@ public abstract class WorldAdapter implements World {
                         // Log some error when this happens
 
                         break;
-                }
-
-                if ( chunk != null ) {
-                    // logger.debug( "Done chunk work " + task.getType() + " for " + chunk.getX() + " " + chunk.getZ() + " in " + ( System.currentTimeMillis() - start ) + "ms" );
                 }
             } catch ( Throwable cause ) {
                 // Catching throwable in order to make sure no uncaught exceptions puts

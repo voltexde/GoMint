@@ -15,17 +15,22 @@ import io.gomint.plugin.Plugin;
  */
 public class SecurityManagerCallerDetector implements CallerDetector {
 
-    private final static MySecurityManager mySecurityManager = new MySecurityManager();
+    private static final MySecurityManager SECURITY_MANAGER = new MySecurityManager();
 
     @Override
     public Class<? extends Plugin> getCallerPlugin() {
-        return mySecurityManager.getCallerPlugin();
+        return SECURITY_MANAGER.getCallerPlugin();
     }
 
     /**
      * A custom security manager that exposes the getClassContext() information
      */
     static class MySecurityManager extends SecurityManager {
+        /**
+         * Get the plugin who called
+         *
+         * @return class of the plugin who called
+         */
         public Class<? extends Plugin> getCallerPlugin() {
             for ( Class aClass : getClassContext() ) {
                 if ( !aClass.equals( Plugin.class ) && Plugin.class.isAssignableFrom( aClass ) ) {

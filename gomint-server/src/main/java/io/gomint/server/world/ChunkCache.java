@@ -190,4 +190,15 @@ public class ChunkCache {
         return this.autoSaveInterval;
     }
 
+    /**
+     * Get stored chunk hashes
+     *
+     * @return
+     */
+    public long[] getChunkHashes() {
+        synchronized ( this.cachedChunks ) {
+            return this.cachedChunks.keySet().toLongArray();
+        }
+    }
+
 }

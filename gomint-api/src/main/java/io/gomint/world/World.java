@@ -72,6 +72,15 @@ public interface World {
     <T> T getGamerule( Gamerule<T> gamerule );
 
     /**
+     * Sets the value of the given gamerule for this world
+     *
+     * @param gamerule The gamerule to set a value for
+     * @param value    The value which should be set
+     * @param <T>      The generic type of the gamerule
+     */
+    <T> void setGamerule( Gamerule<T> gamerule, T value );
+
+    /**
      * Get a collection of players which are online on this world
      *
      * @return Collection of players online on this world

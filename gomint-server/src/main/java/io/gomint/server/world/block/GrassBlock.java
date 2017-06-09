@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.world.UpdateReason;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -12,7 +14,7 @@ public class GrassBlock extends Block {
     }
 
     @Override
-    public long update( long currentTimeMS, float dT ) {
+    public long update( UpdateReason updateReason, long currentTimeMS, float dT ) {
         Block block = world.getBlockAt( location.add( 0, 1, 0 ) );
         byte lightLevel = block.getSkyLightLevel();
 
@@ -20,7 +22,7 @@ public class GrassBlock extends Block {
 
         }
 
-        return currentTimeMS + 50;
+        return -1;
     }
 
     @Override

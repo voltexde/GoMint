@@ -7,6 +7,7 @@
 
 package io.gomint.server.network;
 
+import io.gomint.server.util.DumpUtil;
 import lombok.Getter;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -117,14 +118,14 @@ public class EncryptionHandler {
         }
 
         byte[] outputChunked = new byte[input.length - 8];
-        byte[] checksum = new byte[8];
 
         System.arraycopy( output, 0, outputChunked, 0, outputChunked.length );
-        System.arraycopy( output, output.length - 8, checksum, 0, 8 );
 
         byte[] hashBytes = calcHash( outputChunked, this.receiveCounter );
-        if ( !Arrays.equals( hashBytes, checksum ) ) {
-            return null;
+        for ( int i = output.length - 8; i < output.length; i++ ) {
+            if ( hashBytes[i - (output.length - 8)] != output[i] ) {
+                return null;
+            }
         }
 
         return outputChunked;
@@ -144,6 +145,16 @@ public class EncryptionHandler {
         System.arraycopy( hashBytes, 0, finalInput, input.length, 8 );
 
         return this.processCipher( this.clientEncryptor, finalInput );
+    }
+
+
+    /**
+     * Get the servers public key
+     *
+     * @return BASE64 encoded public key
+     */
+    public String getServerPublic() {
+        return Base64.getEncoder().encodeToString( this.keyFactory.getKeyPair().getPublic().getEncoded() );
     }
 
     private byte[] calcHash( byte[] input, AtomicLong counter ) {
@@ -212,15 +223,6 @@ public class EncryptionHandler {
         BufferedBlockCipher cipher = new BufferedBlockCipher( new CFBBlockCipher( new AESFastEngine(), 8 ) );
         cipher.init( encryptor, new ParametersWithIV( new KeyParameter( key ), iv ) );
         return cipher;
-    }
-
-    /**
-     * Get the servers public key
-     *
-     * @return BASE64 encoded public key
-     */
-    public String getServerPublic() {
-        return Base64.getEncoder().encodeToString( this.keyFactory.getKeyPair().getPublic().getEncoded() );
     }
 
 }
