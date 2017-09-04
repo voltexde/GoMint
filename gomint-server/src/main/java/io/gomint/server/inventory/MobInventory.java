@@ -61,6 +61,7 @@ public class MobInventory extends Inventory {
     @Override
     public void sendContents( PlayerConnection playerConnection ) {
         PacketMobArmorEquipment armorEquipment = new PacketMobArmorEquipment();
+        armorEquipment.setEntityId( this.owner.getEntityId() );
         armorEquipment.setHelmet( this.contents[originalSize] );
         armorEquipment.setChestplate( this.contents[originalSize + 1] );
         armorEquipment.setLeggings( this.contents[originalSize + 2] );
@@ -72,6 +73,7 @@ public class MobInventory extends Inventory {
     public void sendContents( int slot, PlayerConnection playerConnection ) {
         if ( slot > originalSize ) {
             PacketMobArmorEquipment armorEquipment = new PacketMobArmorEquipment();
+            armorEquipment.setEntityId( this.owner.getEntityId() );
             armorEquipment.setHelmet( this.contents[originalSize] );
             armorEquipment.setChestplate( this.contents[originalSize + 1] );
             armorEquipment.setLeggings( this.contents[originalSize + 2] );

@@ -97,6 +97,9 @@ public abstract class WorldAdapter implements World {
     // Player handling
     private ObjObjMap<EntityPlayer, ChunkAdapter> players;
 
+    // Misc
+    private int amountOfSpawnChunks;
+
     protected WorldAdapter( GoMintServer server, File worldDir ) {
         this.server = server;
         this.logger = LoggerFactory.getLogger( "World-" + worldDir.getName() );
@@ -107,6 +110,8 @@ public abstract class WorldAdapter implements World {
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
         this.startAsyncWorker( server.getExecutorService() );
         this.initGamerules();
+
+        this.amountOfSpawnChunks = (int) ( Math.pow( server.getServerConfig().getAmountOfChunksForSpawnArea(), 2 ) * Math.PI );
     }
     // CHECKSTYLE:ON
 
@@ -403,9 +408,6 @@ public abstract class WorldAdapter implements World {
                 this.sendChunk( j, i, player, true );
             }
         }
-
-        // Spawn for others
-        spawnEntityAt( player, player.getPositionX(), player.getPositionY(), player.getPositionZ(), player.getYaw(), player.getPitch() );
     }
 
     /**
@@ -838,6 +840,10 @@ public abstract class WorldAdapter implements World {
         }
 
         return collisions;
+    }
+
+    public int getAmountOfSpawnChunks() {
+        return this.amountOfSpawnChunks;
     }
 
 }

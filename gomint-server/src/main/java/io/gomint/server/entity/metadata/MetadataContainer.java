@@ -10,6 +10,7 @@ package io.gomint.server.entity.metadata;
 import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Vector;
+import lombok.ToString;
 import net.openhft.koloboke.collect.map.ByteObjMap;
 import net.openhft.koloboke.collect.map.hash.HashByteObjMaps;
 import net.openhft.koloboke.function.ByteObjConsumer;
@@ -19,6 +20,7 @@ import net.openhft.koloboke.function.ByteObjConsumer;
  * @author geNAZt
  * @version 2.0
  */
+@ToString
 public class MetadataContainer {
 
     /**

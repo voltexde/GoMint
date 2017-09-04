@@ -89,11 +89,6 @@ public class GoMintServer implements GoMint {
         logger.info( "Starting " + getVersion() );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
-        PacketBuffer packetBuffer = new PacketBuffer( 12 );
-        packetBuffer.writeUnsignedVarInt( 46906 );
-        packetBuffer.setPosition( 0 );
-        DumpUtil.dumpPacketbuffer( packetBuffer );
-
         // ------------------------------------ //
         // Executor Initialization
         // ------------------------------------ //
@@ -184,8 +179,8 @@ public class GoMintServer implements GoMint {
         // ------------------------------------ //
 
         // Spawn one cow for AI testing
-        EntityCow cow = new EntityCow( this.worldManager.getWorld( "world" ) );
-        this.worldManager.getWorld( "world" ).spawnEntityAt( cow, this.worldManager.getWorld( "world" ).getSpawnLocation() );
+        // EntityCow cow = new EntityCow( this.worldManager.getWorld( "world" ) );
+        // this.worldManager.getWorld( "world" ).spawnEntityAt( cow, this.worldManager.getWorld( "world" ).getSpawnLocation() );
 
         // Tick loop
         float lastTickTime = Float.MIN_NORMAL;

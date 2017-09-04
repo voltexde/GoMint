@@ -19,6 +19,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
+import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import lombok.Getter;
@@ -59,7 +60,7 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketRemoveBlock.class, new PacketRemoveBlockHandler() );
         PACKET_HANDLERS.put( PacketMobArmorEquipment.class, new PacketMobArmorEquipmentHandler() );
         PACKET_HANDLERS.put( PacketAdventureSettings.class, new PacketAdventureSettingsHandler() );
-        PACKET_HANDLERS.put( PacketContainerSetSlot.class, new PacketContainerSetSlotHandler() );
+        PACKET_HANDLERS.put( PacketInventorySetSlot.class, new PacketContainerSetSlotHandler() );
         PACKET_HANDLERS.put( PacketResourcePackResponse.class, new PacketResourcePackResponseHandler() );
         PACKET_HANDLERS.put( PacketCraftingEvent.class, new PacketCraftingEventHandler() );
         PACKET_HANDLERS.put( PacketLogin.class, new PacketLoginHandler() );
@@ -131,6 +132,7 @@ public class PlayerConnection {
      * result in several packets and chunks to be sent in order to account for the change.
      */
     public void onViewDistanceChanged() {
+        LOGGER.debug( "View distance changed to " + this.getEntity().getViewDistance() );
         this.checkForNewChunks();
         this.sendChunkRadiusUpdate();
     }
@@ -204,7 +206,7 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     public void sendWorldChunk( long chunkHash, PacketBatch chunkData ) {
-        LOGGER.debug( "Sending chunk with hash: " + chunkHash + " to the client" );
+        // LOGGER.debug( "Sending chunk with hash: " + chunkHash + " to the client" );
 
         PacketBatch batch = new PacketBatch();
         batch.setPayload( this.encryptionHandler.encryptInputForClient( chunkData.getPayload() ) );
@@ -218,16 +220,16 @@ public class PlayerConnection {
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
 
-            if ( this.sentChunks == 64 ) {
+            LOGGER.debug( "Sent chunks: " + this.sentChunks + "; Needing chunks: " + this.getEntity().getWorld().getAmountOfSpawnChunks() );
+            if ( this.sentChunks >= this.getEntity().getWorld().getAmountOfSpawnChunks() ) {
                 int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
                 int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
                 WorldAdapter worldAdapter = this.entity.getWorld();
                 worldAdapter.movePlayerToChunk( spawnXChunk, spawnZChunk, this.entity );
 
+                this.getEntity().fullyInit();
                 this.sendPlayState( PacketPlayState.PlayState.SPAWN );
-                this.sendWorldTime( 0, false );
-                this.sendMovePlayer( this.entity.getLocation() );
                 this.state = PlayerConnectionState.PLAYING;
             }
         }
@@ -257,7 +259,7 @@ public class PlayerConnection {
             buffer.readShort();
         }
 
-        LOGGER.debug( "Got packet with ID: " + Integer.toHexString( packetId & 0xff ) );
+        // LOGGER.debug( "Got packet with ID: " + Integer.toHexString( packetId & 0xff ) );
 
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
@@ -446,9 +448,9 @@ public class PlayerConnection {
     }
 
     public void sendCommandsEnabled() {
-        PacketSetCommandsEnabled packetSetCommandsEnabled = new PacketSetCommandsEnabled();
+        /*PacketSetCommandsEnabled packetSetCommandsEnabled = new PacketSetCommandsEnabled();
         packetSetCommandsEnabled.setEnabled( false );   // TODO: Change after command system is there
-        this.send( packetSetCommandsEnabled );
+        this.send( packetSetCommandsEnabled );*/
     }
 
     public void sendDifficulty() {
@@ -509,14 +511,14 @@ public class PlayerConnection {
      */
     public void sendMovePlayer( Location location ) {
         PacketMovePlayer move = new PacketMovePlayer();
-        move.setEntityId( 0 );                      // All packets referencing the local player have entity ID 0
+        move.setEntityId( this.entity.getEntityId() );
         move.setX( location.getX() );
         move.setY( (float) ( location.getY() + 1.62 ) );
         move.setZ( location.getZ() );
         move.setYaw( location.getYaw() );
         move.setPitch( location.getPitch() );
-        move.setMode( (byte) 1 );
-        move.setOnGround( false );
+        move.setMode( (byte) 2 );
+        move.setOnGround( this.getEntity().isOnGround() );
         move.setRidingEntityId( 0 );    // TODO: Implement riding entities correctly
         this.send( move );
     }
@@ -527,12 +529,10 @@ public class PlayerConnection {
      * times.
      *
      * @param ticks    The current number of ticks of the world time
-     * @param counting Whether or not the world time is counting upwards
      */
-    public void sendWorldTime( int ticks, boolean counting ) {
+    public void sendWorldTime( int ticks ) {
         PacketWorldTime time = new PacketWorldTime();
         time.setTicks( ticks );
-        time.setCounting( counting );
         this.send( time );
     }
 
@@ -545,8 +545,8 @@ public class PlayerConnection {
 
         PacketStartGame packet = new PacketStartGame();
         packet.setEntityId( this.entity.getEntityId() );
-        packet.setRuntimeEntityId( 0 );
-        packet.setGamemode( 0 );
+        packet.setRuntimeEntityId( this.entity.getEntityId() );
+        packet.setGamemode( EnumConnectors.GAMEMODE_CONNECTOR.convert( this.entity.getGamemode() ).getMagicNumber() );
         packet.setSpawn( world.getSpawnLocation().add( 0, 1.62f, 0 ) );
         packet.setX( (int) world.getSpawnLocation().getX() );
         packet.setY( (int) ( world.getSpawnLocation().getY() + 1.62 ) );

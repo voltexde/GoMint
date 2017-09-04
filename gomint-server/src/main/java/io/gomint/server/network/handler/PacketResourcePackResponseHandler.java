@@ -40,80 +40,12 @@ public class PacketResourcePackResponseHandler implements PacketHandler<PacketRe
                 LOGGER.info( "Logging in as " + connection.getEntity().getName() );
 
                 connection.sendWorldInitialization();
-                connection.sendChunkRadiusUpdate();
-                connection.sendWorldTime( 0, false );
-                connection.sendDifficulty();
-                connection.sendCommandsEnabled();
-                connection.getEntity().getAdventureSettings().update();
+                connection.sendWorldTime( 0 );
                 connection.getEntity().updateAttributes();
+                connection.sendCommandsEnabled();
 
-                // Now its time for the join event since the play is fully loaded
-                connection.getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( connection.getEntity() ) );
-
-                // Add player to world (will send world chunk packets):
-                connection.getEntity().fullyInit();
+                // Start sending chunks
                 connection.getEntity().getWorld().addPlayer( connection.getEntity() );
-
-                PacketPlayerlist playerlist = null;
-
-                // Remap all current living entities
-                List<PacketPlayerlist.Entry> listEntry = null;
-                for ( Player player : connection.getEntity().getWorld().getServer().getPlayers() ) {
-                    if ( !player.isHidden( connection.getEntity() ) && !player.equals( connection.getEntity() ) ) {
-                        if ( playerlist == null ) {
-                            playerlist = new PacketPlayerlist();
-                            playerlist.setMode( (byte) 0 );
-                            playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-                                add( new PacketPlayerlist.Entry( connection.getEntity().getUUID(),
-                                        connection.getEntity().getEntityId(),
-                                        connection.getEntity().getName(),
-                                        connection.getEntity().getSkin() ) );
-                            }} );
-                        }
-
-                        ( (EntityPlayer) player ).getConnection().send( playerlist );
-                    }
-
-                    if ( !connection.getEntity().isHidden( player ) && !connection.getEntity().equals( player ) ) {
-                        if ( listEntry == null ) {
-                            listEntry = new ArrayList<>();
-                        }
-
-                        listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(), player.getName(), player.getSkin() ) );
-
-                        EntityPlayer entityPlayer = (EntityPlayer) player;
-                        PacketSpawnPlayer spawnPlayer = new PacketSpawnPlayer();
-                        spawnPlayer.setUuid( entityPlayer.getUUID() );
-                        spawnPlayer.setName( entityPlayer.getName() );
-                        spawnPlayer.setEntityId( entityPlayer.getEntityId() );
-                        spawnPlayer.setRuntimeEntityId( entityPlayer.getEntityId() );
-
-                        spawnPlayer.setX( entityPlayer.getPositionX() );
-                        spawnPlayer.setY( entityPlayer.getPositionY() );
-                        spawnPlayer.setZ( entityPlayer.getPositionZ() );
-
-                        spawnPlayer.setVelocityX( entityPlayer.getMotionX() );
-                        spawnPlayer.setVelocityY( entityPlayer.getMotionY() );
-                        spawnPlayer.setVelocityZ( entityPlayer.getMotionZ() );
-
-                        spawnPlayer.setPitch( entityPlayer.getPitch() );
-                        spawnPlayer.setYaw( entityPlayer.getYaw() );
-                        spawnPlayer.setHeadYaw( entityPlayer.getHeadYaw() );
-
-                        spawnPlayer.setItemInHand( entityPlayer.getInventory().getItemInHand() );
-                        spawnPlayer.setMetadataContainer( entityPlayer.getMetadata() );
-
-                        connection.addToSendQueue( spawnPlayer );
-                    }
-                }
-
-                if ( listEntry != null ) {
-                    // Send player list
-                    PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
-                    packetPlayerlist.setMode( (byte) 0 );
-                    packetPlayerlist.setEntries( listEntry );
-                    connection.send( packetPlayerlist );
-                }
 
                 break;
         }

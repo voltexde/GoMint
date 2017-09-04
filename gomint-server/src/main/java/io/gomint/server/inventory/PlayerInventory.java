@@ -4,7 +4,8 @@ import io.gomint.inventory.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketContainerSetContent;
-import io.gomint.server.network.packet.PacketContainerSetSlot;
+import io.gomint.server.network.packet.PacketInventoryContent;
+import io.gomint.server.network.packet.PacketInventorySetSlot;
 
 /**
  * @author geNAZt
@@ -51,7 +52,7 @@ public class PlayerInventory extends MobInventory {
     public void sendContents( int slot, PlayerConnection playerConnection ) {
         super.sendContents( slot, playerConnection );
 
-        PacketContainerSetSlot setSlot = new PacketContainerSetSlot();
+        PacketInventorySetSlot setSlot = new PacketInventorySetSlot();
         setSlot.setSlot( slot );
         setSlot.setWindowId( (byte) 0 );
         setSlot.setItemStack( this.contents[slot] );
@@ -66,11 +67,9 @@ public class PlayerInventory extends MobInventory {
     public void sendContents( PlayerConnection playerConnection ) {
         super.sendContents( playerConnection );
 
-        PacketContainerSetContent inventory = new PacketContainerSetContent();
-        inventory.setEntityId( ( (EntityPlayer) this.owner ).getEntityId() );
+        PacketInventoryContent inventory = new PacketInventoryContent();
         inventory.setWindowId( (byte) 0 );
-        inventory.setSlots( getContents() );
-        inventory.setHotbar( this.hotbar );
+        inventory.setItems( getContents() );
         playerConnection.send( inventory );
     }
 

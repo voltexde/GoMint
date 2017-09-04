@@ -9,6 +9,7 @@ package io.gomint.server.entity;
 
 import io.gomint.entity.Entity;
 import io.gomint.entity.Player;
+import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.ItemStack;
 import io.gomint.inventory.Material;
 import io.gomint.math.AxisAlignedBB;
@@ -32,6 +33,7 @@ import net.openhft.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,10 +60,9 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
     private UUID uuid;
     @Setter
     private PlayerSkin skin;
-    private Gamemode gamemode;
+    private Gamemode gamemode = Gamemode.SURVIVAL;
     @Getter
     private AdventureSettings adventureSettings;
-    private boolean op;
     @Getter
     @Setter
     private Entity hoverEntity;
@@ -178,12 +179,12 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
         this.connection.send( packetSetGamemode );
 
         // Recalc adventure settings
-        this.adventureSettings.setCanDestroyBlock( ( gameModeNumber & 0x02 ) == 0 );
+        this.adventureSettings.setWorldImmutable( gameModeNumber == 0x03 );
         this.adventureSettings.setCanFly( ( gameModeNumber & 0x01 ) > 0 );
         this.adventureSettings.setNoclip( gameModeNumber == 0x03 );
         this.adventureSettings.setFlying( gameModeNumber == 0x03 );
-        this.adventureSettings.setNoMvP( gameModeNumber == 0x03 );
-        this.adventureSettings.setNoPvM( gameModeNumber == 0x03 );
+        this.adventureSettings.setAttackMobs( gameModeNumber < 0x02 );
+        this.adventureSettings.setAttackPlayers( gameModeNumber < 0x02 );
         this.adventureSettings.setNoPvP( gameModeNumber == 0x03 );
         this.adventureSettings.update();
     }
@@ -195,7 +196,7 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
 
     @Override
     public boolean isOp() {
-        return this.op;
+        return this.adventureSettings.isOperator();
     }
 
     @Override
@@ -323,7 +324,7 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
             if ( instance.isDirty() ) {
                 if ( updateAttributes == null ) {
                     updateAttributes = new PacketUpdateAttributes();
-                    updateAttributes.setEntityId( 0 );
+                    updateAttributes.setEntityId( this.getEntityId() );
                 }
 
                 updateAttributes.addAttributeInstance( instance );
@@ -345,6 +346,80 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
         this.inventory.setItem( 0, new ItemStack( Material.WOOD_PLANKS, 12 ) );
         this.inventory.setItem( 1, new ItemStack( Material.ACACIA_DOOR ) );
         this.inventory.setItem( 2, new ItemStack( Material.DIAMOND_CHESTPLATE ) );
+
+        // Now its time for the join event since the play is fully loaded
+        this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
+
+        this.connection.getEntity().getAdventureSettings().update();
+        this.connection.getEntity().updateAttributes();
+
+        // Spawn for others
+        this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );
+
+        PacketPlayerlist playerlist = null;
+
+        // Remap all current living entities
+        List<PacketPlayerlist.Entry> listEntry = null;
+        for ( Player player : this.getConnection().getEntity().getWorld().getServer().getPlayers() ) {
+            if ( !player.isHidden( this ) && !player.equals( this ) ) {
+                if ( playerlist == null ) {
+                    playerlist = new PacketPlayerlist();
+                    playerlist.setMode( (byte) 0 );
+                    playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+                        add( new PacketPlayerlist.Entry( EntityPlayer.this.getUUID(),
+                                EntityPlayer.this.getEntityId(),
+                                EntityPlayer.this.getName(),
+                                EntityPlayer.this.getSkin() ) );
+                    }} );
+                }
+
+                ( (EntityPlayer) player ).getConnection().send( playerlist );
+            }
+
+            if ( !this.isHidden( player ) && !this.equals( player ) ) {
+                if ( listEntry == null ) {
+                    listEntry = new ArrayList<>();
+                }
+
+                listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(), player.getName(), player.getSkin() ) );
+
+                EntityPlayer entityPlayer = (EntityPlayer) player;
+                PacketSpawnPlayer spawnPlayer = new PacketSpawnPlayer();
+                spawnPlayer.setUuid( entityPlayer.getUUID() );
+                spawnPlayer.setName( entityPlayer.getName() );
+                spawnPlayer.setEntityId( entityPlayer.getEntityId() );
+                spawnPlayer.setRuntimeEntityId( entityPlayer.getEntityId() );
+
+                spawnPlayer.setX( entityPlayer.getPositionX() );
+                spawnPlayer.setY( entityPlayer.getPositionY() );
+                spawnPlayer.setZ( entityPlayer.getPositionZ() );
+
+                spawnPlayer.setVelocityX( entityPlayer.getMotionX() );
+                spawnPlayer.setVelocityY( entityPlayer.getMotionY() );
+                spawnPlayer.setVelocityZ( entityPlayer.getMotionZ() );
+
+                spawnPlayer.setPitch( entityPlayer.getPitch() );
+                spawnPlayer.setYaw( entityPlayer.getYaw() );
+                spawnPlayer.setHeadYaw( entityPlayer.getHeadYaw() );
+
+                spawnPlayer.setItemInHand( entityPlayer.getInventory().getItemInHand() );
+                spawnPlayer.setMetadataContainer( entityPlayer.getMetadata() );
+
+                this.getConnection().addToSendQueue( spawnPlayer );
+            }
+        }
+
+        if ( listEntry != null ) {
+            // Send player list
+            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+            packetPlayerlist.setMode( (byte) 0 );
+            packetPlayerlist.setEntries( listEntry );
+            this.getConnection().send( packetPlayerlist );
+        }
+
+        this.getConnection().sendWorldTime( 0 );
+        this.sendData( this );
+        this.getConnection().sendMovePlayer( this.getLocation() );
 
         // Send crafting recipes
         PacketBatch batch = new PacketBatch();

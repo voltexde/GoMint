@@ -53,7 +53,8 @@ public final class Protocol {
     public static final byte PACKET_MOB_ANIMATION = (byte) 0x27;
     public static final byte PACKET_ANIMATE = (byte) 0x2C;
     public static final byte PACKET_DROP_ITEM = (byte) 0x2E;
-    public static final byte PACKET_CONTAINER_SET_SLOT = (byte) 0x32;
+    public static final byte PACKET_INVENTORY_CONTENT_PACKET = (byte) 0x31;
+    public static final byte PACKET_INVENTORY_SET_SLOT = (byte) 0x32;
     public static final byte PACKET_CONTAINER_SET_CONTENT = (byte) 0x34;
     public static final byte PACKET_CRAFTING_RECIPES = (byte) 0x35;
     public static final byte PACKET_CRAFTING_EVENT = (byte) 0x36;
@@ -138,8 +139,8 @@ public final class Protocol {
             case PACKET_DROP_ITEM:
                 return new PacketDropItem();
 
-            case PACKET_CONTAINER_SET_SLOT:
-                return new PacketContainerSetSlot();
+            case PACKET_INVENTORY_SET_SLOT:
+                return new PacketInventorySetSlot();
 
             case PACKET_CRAFTING_EVENT:
                 return new PacketCraftingEvent();

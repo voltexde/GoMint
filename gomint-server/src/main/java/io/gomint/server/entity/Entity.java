@@ -13,7 +13,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.packet.Packet;
-import io.gomint.server.network.packet.PacketSpawnEntity;
+import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
@@ -43,6 +43,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
     private static final int FLAG_CAN_SHOW_NAMETAG = 14;
     private static final int FLAG_ALWAYS_SHOW_NAMETAG = 15;
 
+    private static final int FLAG_HAS_COLLISION = 45;
+    private static final int FLAG_AFFECTED_BY_GRAVITY = 46;
+
     // Useful stuff for movement. Those are values for per client tick
     protected static final float GRAVITY = 0.04f;
     protected static final float DRAG = 0.02f;
@@ -68,8 +71,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Bounding Box
      */
     protected AxisAlignedBB boundingBox;
-    @Getter private float width;
-    @Getter private float height;
+    @Getter
+    private float width;
+    @Getter
+    private float height;
 
     /**
      * How high can this entity "climb" in one movement?
@@ -122,6 +127,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.metadataContainer.putLong( MetadataContainer.DATA_INDEX, 0 );
         this.transform = new TransformComponent();
         this.boundingBox = new AxisAlignedBB( 0, 0, 0, 0, 0, 0 );
+
+        // Set some default stuff
+        this.setAffectedByGravity( true );
     }
 
     // ==================================== ACCESSORS ==================================== //
@@ -712,7 +720,15 @@ public abstract class Entity implements io.gomint.entity.Entity {
     protected void setSize( float width, float height ) {
         this.width = width;
         this.height = height;
-        this.eyeHeight = (float) (height / 2 + 0.1);
+        this.eyeHeight = (float) ( height / 2 + 0.1 );
+    }
+
+    public void setHasCollision( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_HAS_COLLISION, value );
+    }
+
+    public void setAffectedByGravity( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_AFFECTED_BY_GRAVITY, value );
     }
 
     @Override
@@ -736,6 +752,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     public abstract Packet createSpawnPacket();
+
+    public void sendData( EntityPlayer player ) {
+        PacketEntityMetadata metadataPacket = new PacketEntityMetadata();
+        metadataPacket.setEntityId( this.getEntityId() );
+        metadataPacket.setMetadata( this.metadataContainer );
+        player.getConnection().send( metadataPacket );
+    }
 
     @Override
     public boolean isOnGround() {
