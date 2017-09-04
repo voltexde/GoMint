@@ -9,6 +9,7 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.entity.Player;
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
@@ -20,6 +21,7 @@ import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
 import io.gomint.world.World;
@@ -86,6 +88,11 @@ public class GoMintServer implements GoMint {
     public GoMintServer( String[] args ) {
         logger.info( "Starting " + getVersion() );
         Thread.currentThread().setName( "GoMint Main Thread" );
+
+        PacketBuffer packetBuffer = new PacketBuffer( 12 );
+        packetBuffer.writeUnsignedVarInt( 46906 );
+        packetBuffer.setPosition( 0 );
+        DumpUtil.dumpPacketbuffer( packetBuffer );
 
         // ------------------------------------ //
         // Executor Initialization

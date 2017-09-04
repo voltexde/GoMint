@@ -137,8 +137,6 @@ class ChunkSlice {
         try {
             baos.write( this.blocks == null ? new byte[4096] : this.blocks );
             baos.write( this.data == null ? new byte[2048] : this.data.raw() );
-            baos.write( this.skyLight.raw() );
-            baos.write( this.blockLight.raw() );
         } catch ( Exception ignored ) {
 
         }

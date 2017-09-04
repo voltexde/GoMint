@@ -10,10 +10,7 @@ package io.gomint.server.network.handler;
 import io.gomint.event.player.PlayerLoginEvent;
 import io.gomint.event.player.PlayerPreLoginEvent;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.jwt.JwtAlgorithm;
-import io.gomint.server.jwt.JwtSignatureException;
-import io.gomint.server.jwt.JwtToken;
-import io.gomint.server.jwt.MojangChainValidator;
+import io.gomint.server.jwt.*;
 import io.gomint.server.network.EncryptionHandler;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
@@ -41,6 +38,7 @@ import java.util.Base64;
 public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PacketLoginHandler.class );
+    private static final EncryptionRequestForger FORGER = new EncryptionRequestForger();
 
     @Override
     public void handle( PacketLogin packet, long currentTimeMillis, PlayerConnection connection ) {
@@ -157,15 +155,14 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             encryptionHandler.supplyClientKey( chainValidator.getClientPublicKey() );
             if ( encryptionHandler.beginClientsideEncryption() ) {
                 // Get the needed data for the encryption start
-                byte[] salt = encryptionHandler.getClientSalt();
-                String serverPublic = encryptionHandler.getServerPublic();
-
                 connection.setState( PlayerConnectionState.ENCRPYTION_INIT );
                 connection.setEncryptionHandler( encryptionHandler );
 
+                // Forge a JWT
+                String encryptionRequestJWT = FORGER.forge( encryptionHandler.getServerPublic(), encryptionHandler.getServerPrivate(), encryptionHandler.getClientSalt() );
+
                 PacketEncryptionRequest packetEncryptionRequest = new PacketEncryptionRequest();
-                packetEncryptionRequest.setServerKey( serverPublic );
-                packetEncryptionRequest.setClientSalt( salt );
+                packetEncryptionRequest.setJwt( encryptionRequestJWT );
                 connection.send( packetEncryptionRequest );
             }
         }
