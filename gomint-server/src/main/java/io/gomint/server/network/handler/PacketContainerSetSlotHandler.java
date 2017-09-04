@@ -5,7 +5,7 @@ import io.gomint.server.inventory.transaction.InventoryTransaction;
 import io.gomint.server.inventory.transaction.Transaction;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.packet.PacketContainerSetSlot;
+import io.gomint.server.network.packet.PacketInventorySetSlot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,13 +13,13 @@ import org.slf4j.LoggerFactory;
  * @author geNAZt
  * @version 1.0
  */
-public class PacketContainerSetSlotHandler implements PacketHandler<PacketContainerSetSlot> {
+public class PacketContainerSetSlotHandler implements PacketHandler<PacketInventorySetSlot> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PacketContainerSetSlotHandler.class );
 
     @Override
-    public void handle( PacketContainerSetSlot packet, long currentTimeMillis, PlayerConnection connection ) {
-        LOGGER.debug( "0x" + Integer.toHexString( packet.getWindowId() ) + ": " + packet.getSlot() + " -> " + packet.getItemStack() + " / " + packet.getSelectedSlot() );
+    public void handle( PacketInventorySetSlot packet, long currentTimeMillis, PlayerConnection connection ) {
+        LOGGER.debug( "0x" + Integer.toHexString( packet.getWindowId() ) + ": " + packet.getSlot() + " -> " + packet.getItemStack() );
 
         // Exception safety
         if ( packet.getSlot() < 0 ) {

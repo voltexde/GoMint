@@ -9,4 +9,6 @@ package io.gomint.server.inventory;
  */
 public interface InventoryHolder {
 
+    long getEntityId();
+
 }

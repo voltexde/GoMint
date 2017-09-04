@@ -3,6 +3,7 @@ package io.gomint.server.network.packet;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.server.network.Protocol;
+import io.gomint.server.player.PlayerPermissionMagicNumbers;
 import io.gomint.world.Gamerule;
 import lombok.Data;
 
@@ -45,7 +46,7 @@ public class PacketStartGame extends Packet {
     private boolean hasBonusChestEnabled;
     private boolean hasStartWithMapEnabled;
     private boolean hasTrustPlayersEnabled;
-    private int defaultPlayerPermission = 1; // This is Member
+    private int defaultPlayerPermission = PlayerPermissionMagicNumbers.MEMBER.getId();
     private int xboxLiveBroadcastMode = 0;
 
     // World data
