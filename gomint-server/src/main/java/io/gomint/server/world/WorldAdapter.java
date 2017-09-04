@@ -615,7 +615,7 @@ public abstract class WorldAdapter implements World {
      *
      * @param chunk The chunk to save
      */
-    public void saveChunkAsynchronously( ChunkAdapter chunk ) {
+    void saveChunkAsynchronously( ChunkAdapter chunk ) {
         AsyncChunkSaveTask task = new AsyncChunkSaveTask( chunk );
         this.asyncChunkTasks.add( task );
     }
@@ -639,7 +639,7 @@ public abstract class WorldAdapter implements World {
      * @param chunk    The chunk which should be packed
      * @param callback The callback which should be invoked when the packing has been done
      */
-    void packageChunk( ChunkAdapter chunk, Delegate2<Long, ChunkAdapter> callback ) {
+    private void packageChunk( ChunkAdapter chunk, Delegate2<Long, ChunkAdapter> callback ) {
         PacketWorldChunk packet = chunk.createPackagedData();
         PacketBatch batch = BatchUtil.batch( null, packet );
 
@@ -691,7 +691,7 @@ public abstract class WorldAdapter implements World {
                     continue;
                 }
 
-                ChunkAdapter chunk = null;
+                ChunkAdapter chunk;
                 switch ( task.getType() ) {
                     case LOAD:
                         AsyncChunkLoadTask load = (AsyncChunkLoadTask) task;
@@ -732,7 +732,7 @@ public abstract class WorldAdapter implements World {
         updateBlock.setBlockId( block.getBlockId() );
         updateBlock.setPrioAndMetadata( (byte) ( 0xb << 4 | ( block.getBlockData() & 0xf ) ) );
 
-        broadcast( PacketReliability.RELIABLE, 0, updateBlock );
+        broadcast( PacketReliability.RELIABLE_ORDERED, 0, updateBlock );
 
         // Check for tile entity
         if ( block.getTileEntity() != null ) {
@@ -740,7 +740,7 @@ public abstract class WorldAdapter implements World {
             tileEntityData.setPosition( pos );
             tileEntityData.setTileEntity( block.getTileEntity() );
 
-            broadcast( PacketReliability.RELIABLE, 0, tileEntityData );
+            broadcast( PacketReliability.RELIABLE_ORDERED, 0, tileEntityData );
         }
     }
 
@@ -809,13 +809,16 @@ public abstract class WorldAdapter implements World {
             for ( int x = minX; x < maxX; ++x ) {
                 for ( int y = minY; y < maxY; ++y ) {
                     Block block = this.getBlockAt( x, y, z );
-                    AxisAlignedBB blockBox;
-                    if ( !block.canPassThrough() && ( blockBox = block.getBoundingBox() ).intersectsWith( bb ) ) {
-                        if ( collisions == null ) {
-                            collisions = new ArrayList<>();
-                        }
 
-                        collisions.add( blockBox );
+                    if ( !block.canPassThrough() ) {
+                        AxisAlignedBB blockBox = block.getBoundingBox();
+                        if ( blockBox.intersectsWith( bb ) ) {
+                            if ( collisions == null ) {
+                                collisions = new ArrayList<>();
+                            }
+
+                            collisions.add( blockBox );
+                        }
                     }
                 }
             }

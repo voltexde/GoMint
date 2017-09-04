@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -168,7 +169,7 @@ public class PlayerConnection {
         if ( !( packet instanceof PacketBatch ) ) {
             this.send( BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
         } else {
-            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 1 );
+            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 3 );
             buffer.writeByte( packet.getId() );
             packet.serialize( buffer );
 
@@ -187,7 +188,7 @@ public class PlayerConnection {
         if ( !( packet instanceof PacketBatch ) ) {
             this.send( reliability, orderingChannel, BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
         } else {
-            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 1 );
+            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 3 );
             buffer.writeByte( packet.getId() );
             packet.serialize( buffer );
 
@@ -249,6 +250,14 @@ public class PlayerConnection {
 
         // Grab the packet ID from the packet's data
         byte packetId = buffer.readByte();
+
+        // There is some data behind the packet id when non batched packets (2 bytes)
+        // TODO: Find out if MCPE uses triads as packetnumbers now
+        if ( packetId != PACKET_BATCH ) {
+            buffer.readShort();
+        }
+
+        LOGGER.debug( "Got packet with ID: " + Integer.toHexString( packetId & 0xff ) );
 
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
@@ -547,9 +556,11 @@ public class PlayerConnection {
         packet.setSeed( 12345 );
         packet.setGenerator( 1 );
         packet.setDifficulty( 1 );
-        packet.setSecret( "1m0AAMIFIgA=" );
+        packet.setLevelId( Base64.getEncoder().encodeToString( world.getWorldName().getBytes() ) );
         packet.setWorldName( world.getWorldName() );
+        packet.setTemplateName( "" );
         packet.setGamerules( world.getGamerules() );
+        packet.setTexturePacksRequired( true );
 
         this.entity.setPosition( world.getSpawnLocation().add( 0, 1.62f, 0 ) );
         this.send( packet );

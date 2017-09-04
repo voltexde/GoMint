@@ -51,7 +51,7 @@ public class Bootstrap {
         }
 
         // Check the libs (versions and artifacts)
-        checkLibs( libsFolder );
+        // checkLibs( libsFolder );
 
         File[] files = libsFolder.listFiles();
         if ( files == null ) {
