@@ -50,7 +50,7 @@ public final class Protocol {
     public static final byte PACKET_INTERACT = (byte) 0x21;
     public static final byte PACKET_USE_ITEM = (byte) 0x23;
     public static final byte PACKET_PLAYER_ACTION = (byte) 0x24;
-    public static final byte PACKET_MOB_ANIMATION = (byte) 0x27;
+    public static final byte PACKET_ENTITY_METADATA = (byte) 0x27;
     public static final byte PACKET_ANIMATE = (byte) 0x2C;
     public static final byte PACKET_DROP_ITEM = (byte) 0x2E;
     public static final byte PACKET_INVENTORY_CONTENT_PACKET = (byte) 0x31;
@@ -68,7 +68,7 @@ public final class Protocol {
     public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
     public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
 
-    public static final byte PACKET_ENTITY_METADATA = (byte) 0xAD;
+
     public static final byte PACKET_ENTITY_MOTION = (byte) 0xAE;
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     // CHECKSTYLE:ON

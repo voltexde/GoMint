@@ -19,8 +19,8 @@ public class PacketCraftingEvent extends Packet {
     private byte windowId;
     private int recipeType;
     private UUID recipeId;
-    private List<ItemStack> input;
-    private List<ItemStack> output;
+    private ItemStack[] input;
+    private ItemStack[] output;
 
     public PacketCraftingEvent() {
         super( Protocol.PACKET_CRAFTING_EVENT );

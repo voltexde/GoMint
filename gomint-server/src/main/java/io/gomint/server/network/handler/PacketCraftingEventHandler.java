@@ -8,10 +8,7 @@ import io.gomint.server.network.packet.PacketCraftingEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author geNAZt
@@ -31,24 +28,28 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
             return;
         }
 
+        // Generate lists of output and input
+        List<ItemStack> packetInput = Arrays.asList( packet.getInput() );
+        List<ItemStack> packetOutput = Arrays.asList( packet.getOutput() );
+
         // Generate a output stack for compare
         Collection<ItemStack> output = recipe.createResult();
 
         // Due to a bug in MC:PE it can happen that the recipe id is shit
-        if ( output.size() != packet.getOutput().size() ) {
+        if ( output.size() != packet.getOutput().length) {
             LOGGER.debug( "Output size does not match up" );
-            recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packet.getOutput() );
+            recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packetOutput );
         } else {
             Iterator<ItemStack> recipeSide = output.iterator();
-            Iterator<ItemStack> packetSide = packet.getOutput().iterator();
+            Iterator<ItemStack> packetSide = packetOutput.iterator();
 
             while ( recipeSide.hasNext() ) {
                 ItemStack recipeOutput = recipeSide.next();
-                ItemStack packetOutput = packetSide.next();
+                ItemStack packetSingleOutput = packetSide.next();
 
-                if ( !recipeOutput.equals( packetOutput ) ) {
+                if ( !recipeOutput.equals( packetSingleOutput ) ) {
                     LOGGER.debug( "Packet wanted to get a recipe with different output" );
-                    recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packet.getOutput() );
+                    recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packetOutput );
                     break;
                 }
             }
@@ -65,8 +66,8 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         }
 
         // Patch up a bug where the input side is empty when in desktop gui mode
-        if ( packet.getInput().size() == 0 ) {
-            packet.getInput().addAll( recipe.getIngredients() );
+        if ( packet.getInput().length == 0 ) {
+            packetInput.addAll( recipe.getIngredients() );
         }
 
         // Now we have to look if we have the correct items

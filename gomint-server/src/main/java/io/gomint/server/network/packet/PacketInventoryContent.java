@@ -5,9 +5,6 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author geNAZt
  */
@@ -29,6 +26,13 @@ public class PacketInventoryContent extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-
+        this.windowId = buffer.readUnsignedVarInt();
+        this.items = readItemStacks( buffer );
     }
+
+    @Override
+    public int estimateLength() {
+        return predictVarIntSize( this.windowId ) + predictItemStacksSize( this.items );
+    }
+
 }

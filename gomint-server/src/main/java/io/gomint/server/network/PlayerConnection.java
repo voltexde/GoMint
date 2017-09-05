@@ -229,7 +229,7 @@ public class PlayerConnection {
                 worldAdapter.movePlayerToChunk( spawnXChunk, spawnZChunk, this.entity );
 
                 this.getEntity().fullyInit();
-                this.sendPlayState( PacketPlayState.PlayState.SPAWN );
+
                 this.state = PlayerConnectionState.PLAYING;
             }
         }
