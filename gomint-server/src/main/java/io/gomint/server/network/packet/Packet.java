@@ -168,12 +168,12 @@ public abstract class Packet {
      * @param buffer The buffer to read from
      * @return a list of itemstacks
      */
-    public static List<ItemStack> readItemStacks( PacketBuffer buffer ) {
+    public static ItemStack[] readItemStacks( PacketBuffer buffer ) {
         int count = buffer.readUnsignedVarInt();
-        List<ItemStack> itemStacks = new ArrayList<>( count );
+        ItemStack[] itemStacks = new ItemStack[count];
 
         for ( int i = 0; i < count; i++ ) {
-            itemStacks.add( readItemStack( buffer ) );
+            itemStacks[i] = readItemStack( buffer );
         }
 
         return itemStacks;
@@ -213,6 +213,16 @@ public abstract class Packet {
                 return idSize + dataSize + 2;
             }
         }
+    }
+
+
+    public static int predictItemStacksSize( ItemStack[] v ) {
+        int size = predictVarIntSize( v.length );
+        for ( ItemStack itemStack : v ) {
+            size += predictItemStack( itemStack );
+        }
+
+        return size;
     }
 
     public static int predictSignedVarInt( int v ) {

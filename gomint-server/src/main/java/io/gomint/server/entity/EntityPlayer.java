@@ -48,7 +48,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @EqualsAndHashCode( callSuper = false, of = { "uuid" } )
-public class EntityPlayer extends EntityLiving implements Player, InventoryHolder {
+public class EntityPlayer extends EntityHuman implements Player, InventoryHolder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
 
@@ -112,6 +112,9 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
         this.eyeHeight = 1.62f;
         this.stepHeight = 0.6f;
         this.initAttributes();
+
+        this.setNameTagAlwaysVisible( true );
+        this.setCanClimb( true );
     }
 
     private void initAttributes() {
@@ -181,7 +184,7 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
         // Recalc adventure settings
         this.adventureSettings.setWorldImmutable( gameModeNumber == 0x03 );
         this.adventureSettings.setCanFly( ( gameModeNumber & 0x01 ) > 0 );
-        this.adventureSettings.setNoclip( gameModeNumber == 0x03 );
+        this.adventureSettings.setNoClip( gameModeNumber == 0x03 );
         this.adventureSettings.setFlying( gameModeNumber == 0x03 );
         this.adventureSettings.setAttackMobs( gameModeNumber < 0x02 );
         this.adventureSettings.setAttackPlayers( gameModeNumber < 0x02 );
@@ -352,6 +355,7 @@ public class EntityPlayer extends EntityLiving implements Player, InventoryHolde
 
         this.connection.getEntity().getAdventureSettings().update();
         this.connection.getEntity().updateAttributes();
+        this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
 
         // Spawn for others
         this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );

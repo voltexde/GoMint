@@ -42,6 +42,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     private static final int FLAG_CAN_SHOW_NAMETAG = 14;
     private static final int FLAG_ALWAYS_SHOW_NAMETAG = 15;
+    private static final int FLAG_CAN_CLIMB = 19;
 
     private static final int FLAG_HAS_COLLISION = 45;
     private static final int FLAG_AFFECTED_BY_GRAVITY = 46;
@@ -130,6 +131,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         // Set some default stuff
         this.setAffectedByGravity( true );
+        this.setNameTagVisible( true );
     }
 
     // ==================================== ACCESSORS ==================================== //
@@ -763,6 +765,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Override
     public boolean isOnGround() {
         return this.onGround;
+    }
+
+    public void setCanClimb( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_CLIMB, value );
     }
 
 }

@@ -26,7 +26,7 @@ public class PlayerInventory extends MobInventory {
             this.hotbar[i] = i + HOTBAR_SIZE;
         }
 
-        sendContents( player.getConnection() );
+        // sendContents( player.getConnection() );
     }
 
     /**
