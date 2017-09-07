@@ -15,7 +15,7 @@ public class PacketRemoveBlock extends Packet {
     private Vector position;
 
     public PacketRemoveBlock() {
-        super( Protocol.PACKET_REMOVE_BLOCK );
+        super( (byte) -1 );
     }
 
     @Override

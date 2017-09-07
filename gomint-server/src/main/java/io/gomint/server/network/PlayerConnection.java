@@ -68,6 +68,9 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketMobEquipment.class, new PacketMobEquipmentHandler() );
         PACKET_HANDLERS.put( PacketInteract.class, new PacketInteractHandler() );
         PACKET_HANDLERS.put( PacketEncryptionResponse.class, new PacketEncryptionResponseHandler() );
+        PACKET_HANDLERS.put( PacketInventoryTransaction.class, new PacketInventoryTransactionHandler() );
+        PACKET_HANDLERS.put( PacketContainerOpen.class, new PacketContainerOpenHandler() );
+        PACKET_HANDLERS.put( PacketContainerClose.class, new PacketContainerCloseHandler() );
     }
 
     // Network manager that created this connection:
@@ -387,6 +390,8 @@ public class PlayerConnection {
      * @param packet            The packet to handle
      */
     private void handlePacket( long currentTimeMillis, Packet packet ) {
+        LOGGER.debug( "Should handle: " + packet );
+
         PacketHandler handler = PACKET_HANDLERS.get( packet.getClass() );
         if ( handler != null ) {
             handler.handle( packet, currentTimeMillis, this );

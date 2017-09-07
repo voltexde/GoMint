@@ -1,7 +1,9 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.WorldAdapter;
 import net.openhft.koloboke.collect.map.ObjObjMap;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
@@ -238,6 +240,9 @@ public class Blocks {
                 KNOWN_API_INTERFACES.put( aClass, instance );
             }
 
+            // For ease of use also put the class into the api interfaces
+            KNOWN_API_INTERFACES.put( instance.getClass(), instance );
+
             return instance;
         } catch ( IllegalAccessException | InstantiationException e ) {
             e.printStackTrace();
@@ -270,6 +275,13 @@ public class Blocks {
         }
 
         return null;
+    }
+
+    public static void replaceWithItem( Block block, ItemStack item ) {
+        // We need to change the block id first
+        int id = EnumConnectors.MATERIAL_CONNECTOR.convert( item.getMaterial() ).getOldId();
+        Block newBlock = KNOWN_BLOCKS[id];
+        block.setType( newBlock.getClass(), (byte) item.getData() );
     }
 
 }

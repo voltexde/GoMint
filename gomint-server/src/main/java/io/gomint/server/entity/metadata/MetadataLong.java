@@ -62,7 +62,7 @@ public class MetadataLong extends MetadataValue {
 
     @Override
     void deserialize( PacketBuffer buffer ) {
-        this.value = buffer.readInt();
+        this.value = buffer.readSignedVarLong().longValue();
     }
 
     @Override

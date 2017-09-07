@@ -38,9 +38,12 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
     }
 
     @Override
-    public void interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+    public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
         // Open / Close the door
+        // TODO: Door events
         toggle();
+
+        return true;
     }
 
     @Override

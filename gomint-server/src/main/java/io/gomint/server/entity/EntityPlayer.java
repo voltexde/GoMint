@@ -15,15 +15,17 @@ import io.gomint.inventory.Material;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.math.Vector2;
+import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
-import io.gomint.server.inventory.InventoryHolder;
-import io.gomint.server.inventory.PlayerInventory;
+import io.gomint.server.inventory.*;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.util.Numbers;
 import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -66,12 +68,18 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     @Getter
     @Setter
     private Entity hoverEntity;
+    @Getter @Setter
+    private boolean sneaking;
 
     // Hidden players
     private LongSet hiddenPlayers;
 
     // Inventory
     private PlayerInventory inventory;
+    private ArmorInventory armorInventory;
+    private Inventory craftingInventory;
+    private Inventory cursorInventory;
+    private Inventory craftingResultInventory;
     @Setter
     @Getter
     private TransactionGroup transactions;
@@ -115,6 +123,9 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
         this.setNameTagAlwaysVisible( true );
         this.setCanClimb( true );
+
+        this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
+        this.metadataContainer.putShort( MetadataContainer.DATA_AIR, (short) 400 );
     }
 
     private void initAttributes() {
@@ -318,6 +329,42 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     }
 
     /**
+     * Get the players armor
+     *
+     * @return the players armor
+     */
+    public ArmorInventory getArmorInventory() {
+        return armorInventory;
+    }
+
+    /**
+     * Get the virtual inventory for the crafting slots
+     *
+     * @return the players crafting field
+     */
+    public Inventory getCraftingInventory() {
+        return craftingInventory;
+    }
+
+    /**
+     * Get the virtual inventory for the cursor item
+     *
+     * @return the players cursor item
+     */
+    public Inventory getCursorInventory() {
+        return cursorInventory;
+    }
+
+    /**
+     * Get the virtual inventory of the current crafting process
+     *
+     * @return the current crafting input inventory
+     */
+    public Inventory getCraftingResultInventory() {
+        return craftingResultInventory;
+    }
+
+    /**
      * Check for attribute updates and send them to the player if needed
      */
     public void updateAttributes() {
@@ -344,8 +391,13 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
      */
     public void fullyInit() {
         this.inventory = new PlayerInventory( this );
+        this.armorInventory = new ArmorInventory( this );
+        this.craftingInventory = new CraftingResultInventory( this );
+        this.cursorInventory = new CursorInventory( this );
+        this.craftingResultInventory = new CraftingResultInventory( this );
 
         // Testing items
+        // TODO: Remove anytime soon
         this.inventory.setItem( 0, new ItemStack( Material.WOOD_PLANKS, 12 ) );
         this.inventory.setItem( 1, new ItemStack( Material.ACACIA_DOOR ) );
         this.inventory.setItem( 2, new ItemStack( Material.DIAMOND_CHESTPLATE ) );
@@ -455,6 +507,28 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         packetSpawnPlayer.setItemInHand( this.getInventory().getItemInHand() );
         packetSpawnPlayer.setMetadataContainer( this.getMetadata() );
         return packetSpawnPlayer;
+    }
+
+    /**
+     * Check if the player can interact with the given position
+     *
+     * @param position    to check for
+     * @param maxDistance for which we check
+     * @return true if the player can interact, false if not
+     */
+    public boolean canInteract( Vector position, int maxDistance ) {
+        // Distance
+        Vector eyePosition = this.getPosition().add( 0, this.getEyeHeight(), 0 );
+        if ( eyePosition.distanceSquared( position ) > Numbers.square( maxDistance ) ) {
+            return false;
+        }
+
+        // Direction
+        Vector playerPosition = this.getPosition();
+        Vector2 directionPlane = this.getDirectionPlane();
+        float dot = directionPlane.dot( new Vector2( eyePosition.getX(), eyePosition.getZ() ) );
+        float dot1 = directionPlane.dot( new Vector2( playerPosition.getX(), playerPosition.getZ() ) );
+        return ( dot1 - dot ) >= -0.5f;
     }
 
 }

@@ -8,6 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.entity.Player;
+import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
@@ -20,6 +21,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.util.Numbers;
 import io.gomint.world.Chunk;
@@ -63,8 +65,6 @@ public abstract class WorldAdapter implements World {
             (byte) Blocks.STATIONARY_LAVA.getBlockId(),
     } );
 
-    // Calculators for light
-    @Getter private static final BlocklightCalculator blockLightCalculator = new BlocklightCalculator();
 
     // Shared objects
     @Getter
@@ -97,7 +97,6 @@ public abstract class WorldAdapter implements World {
     // Player handling
     private ObjObjMap<EntityPlayer, ChunkAdapter> players;
 
-    // Misc
     private int amountOfSpawnChunks;
 
     protected WorldAdapter( GoMintServer server, File worldDir ) {
@@ -111,7 +110,7 @@ public abstract class WorldAdapter implements World {
         this.startAsyncWorker( server.getExecutorService() );
         this.initGamerules();
 
-        this.amountOfSpawnChunks = (int) ( Math.pow( server.getServerConfig().getAmountOfChunksForSpawnArea(), 2 ) * Math.PI );
+        this.amountOfSpawnChunks = (int) ( Math.pow( this.server.getServerConfig().getAmountOfChunksForSpawnArea(), 2 ) * Math.PI );
     }
     // CHECKSTYLE:ON
 
@@ -189,26 +188,6 @@ public abstract class WorldAdapter implements World {
 
         // Get correct block out of the blocks factory
         return chunk.getBlockAt( x & 0xF, y, z & 0xF );
-    }
-
-    /**
-     * Set the block light of the block given by the vector
-     *
-     * @param vector     The position of the block
-     * @param lightLevel The new block light level to set
-     */
-    public void setBlockLight( Vector vector, byte lightLevel ) {
-        int x = (int) vector.getX();
-        int y = (int) vector.getY();
-        int z = (int) vector.getZ();
-
-        final ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
-        if ( chunk == null ) {
-            // TODO: Generate world
-            return;
-        }
-
-        chunk.setBlockLight( x & 0xF, y, z & 0xF, lightLevel );
     }
 
     /**
@@ -844,6 +823,52 @@ public abstract class WorldAdapter implements World {
 
     public int getAmountOfSpawnChunks() {
         return this.amountOfSpawnChunks;
+    }
+
+    /**
+     * Use a item on a block to interact / place it down
+     *
+     * @param itemInHand    of the player which wants to interact
+     * @param blockPosition on which we want to use the item
+     * @param face          on which we interact
+     * @param clickPosition the exact position on the block we interact with
+     * @param entity        which interacts with the block
+     * @return true when interaction was successful, false when not
+     */
+    public boolean useItemOn( ItemStack itemInHand, Vector blockPosition, int face, Vector clickPosition, EntityPlayer entity ) {
+        Block blockClicked = this.getBlockAt( blockPosition );
+        if ( blockClicked instanceof Air ) {
+            return false;
+        }
+
+        // TODO: Event stuff and spawn protection / Adventure gamemode
+
+        io.gomint.server.world.block.Block clickedBlock = (io.gomint.server.world.block.Block) blockClicked;
+        boolean interacted = false;
+        if ( !entity.isSneaking() ) {
+            interacted = clickedBlock.interact( entity, face, clickPosition, itemInHand );
+        }
+
+        if ( !interacted || entity.isSneaking() ) {
+            boolean canBePlaced = EnumConnectors.MATERIAL_CONNECTOR.convert( itemInHand.getMaterial() ).getOldId() < 256;
+            if ( canBePlaced ) {
+                Block blockReplace = blockClicked.getSide( face );
+                io.gomint.server.world.block.Block replaceBlock = (io.gomint.server.world.block.Block) blockReplace;
+
+                if ( clickedBlock.canBeReplaced( itemInHand ) ) {
+                    replaceBlock = clickedBlock;
+                } else if ( !replaceBlock.canBeReplaced( itemInHand ) ) {
+                    return false;
+                }
+
+                // We got the block we want to replace
+                // Let the item build up the block
+                Blocks.replaceWithItem( replaceBlock, itemInHand );
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

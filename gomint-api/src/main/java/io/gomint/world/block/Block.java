@@ -70,8 +70,9 @@ public interface Block {
      * Set the type of this block to another material
      *
      * @param blockType the new material of this block
+     * @param data      optional data for the block
      */
-    <T extends Block> T setType( Class<T> blockType );
+    <T extends Block> T setType( Class<T> blockType, byte data );
 
     /**
      * Can a bounding box pass through this block?
@@ -93,5 +94,7 @@ public interface Block {
      * @return the amount of blocks something can slip on this block
      */
     float getFrictionFactor();
+
+    Block getSide( int face );
 
 }

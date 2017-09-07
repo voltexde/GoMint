@@ -30,7 +30,7 @@ public class ItemStack implements Cloneable {
      * @param material The material of the item
      */
     public ItemStack( Material material ) {
-        this( material, (short) 0, 1 );
+        this( material, (short) 0, material == Material.AIR ? 0 : 1 );
     }
 
     /**

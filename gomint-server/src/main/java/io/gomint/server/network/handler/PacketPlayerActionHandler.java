@@ -38,6 +38,12 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 connection.getEntity().setBreakTime( ( currentTimeMillis - connection.getEntity().getStartBreak() ) );
                 connection.getEntity().setStartBreak( 0 );
                 break;
+            case START_SNEAK:
+                connection.getEntity().setSneaking( true );
+                break;
+            case STOP_SNEAK:
+                connection.getEntity().setSneaking( false );
+                break;
             default:
                 LOGGER.warn( "Unhandled action: " + packet );
                 break;

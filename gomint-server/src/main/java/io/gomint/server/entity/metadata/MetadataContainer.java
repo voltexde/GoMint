@@ -69,6 +69,24 @@ public class MetadataContainer {
     static final byte METADATA_VECTOR = 8;
 
     public static final byte DATA_INDEX = 0;
+    public static final int DATA_HEALTH = 1; //int (minecart/boat)
+    public static final int DATA_VARIANT = 2; //int
+    public static final int DATA_COLOR = 3, DATA_COLOUR = 3; //byte
+    public static final int DATA_NAMETAG = 4; //string
+    public static final int DATA_OWNER_EID = 5; //long
+    public static final int DATA_TARGET_EID = 6; //long
+    public static final int DATA_AIR = 7; //short
+    public static final int DATA_POTION_COLOR = 8; //int (ARGB!)
+    public static final int DATA_POTION_AMBIENT = 9; //byte
+    /* 10 (byte) */
+    public static final int DATA_HURT_TIME = 11; //int (minecart/boat)
+    public static final int DATA_HURT_DIRECTION = 12; //int (minecart/boat)
+    public static final int DATA_PADDLE_TIME_LEFT = 13; //float
+    public static final int DATA_PADDLE_TIME_RIGHT = 14; //float
+    public static final int DATA_EXPERIENCE_VALUE = 15; //int (xp orb)
+    public static final int DATA_MINECART_DISPLAY_BLOCK = 16; //int (id | (data << 16))
+    public static final int DATA_MINECART_DISPLAY_OFFSET = 17; //int
+    public static final int DATA_MINECART_HAS_DISPLAY = 18; //byte (must be 1 for minecart to show block inside)
     public static final byte DATA_PLAYER_INDEX = 27;
 
     private ByteObjMap<MetadataValue> entries;
@@ -98,7 +116,7 @@ public class MetadataContainer {
      * @return true when the flag has been set, false when not
      */
     public boolean getDataFlag( int indexId, int flagId ) {
-        return ( ( ( indexId == DATA_PLAYER_INDEX ? this.getByte( indexId ) & 0xff : this.getLong( indexId ) ) ) & ( 1 << flagId ) ) > 0;
+        return ( indexId == DATA_PLAYER_INDEX ? this.getByte( indexId ) & 0xff : this.getLong( indexId ) & ( 1L << flagId ) ) > 0;
     }
 
     /**
@@ -116,7 +134,7 @@ public class MetadataContainer {
                 this.putByte( indexId, flags );
             } else {
                 long flags = this.getLong( indexId );
-                flags ^= 1 << flagId;
+                flags ^= 1L << flagId;
                 this.putLong( indexId, flags );
             }
         }

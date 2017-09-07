@@ -18,10 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 class ChunkSlice {
 
-    @Getter
-    private final ChunkAdapter chunk;
-    @Getter
-    private final int sectionY;
+    @Getter private final ChunkAdapter chunk;
+    @Getter private final int sectionY;
 
     private boolean isAllAir = true;
 
@@ -109,22 +107,6 @@ class ChunkSlice {
         }
 
         return this.data.get( getIndex( x, y, z ) );
-    }
-
-    void setBlockLight( int x, int y, int z, byte value ) {
-        this.blockLight.set( getIndex( x, y, z ), value );
-    }
-
-    byte getBlockLight( int x, int y, int z ) {
-        return this.blockLight.get( getIndex( x, y, z ) );
-    }
-
-    void setSkyLight( int x, int y, int z, byte value ) {
-        this.skyLight.set( getIndex( x, y, z ), value );
-    }
-
-    byte getSkyLight( int x, int y, int z ) {
-        return this.skyLight.get( getIndex( x, y, z ) );
     }
 
     boolean isAllAir() {

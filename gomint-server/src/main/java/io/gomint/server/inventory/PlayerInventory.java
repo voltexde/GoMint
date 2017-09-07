@@ -3,7 +3,6 @@ package io.gomint.server.inventory;
 import io.gomint.inventory.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.packet.PacketContainerSetContent;
 import io.gomint.server.network.packet.PacketInventoryContent;
 import io.gomint.server.network.packet.PacketInventorySetSlot;
 
@@ -11,32 +10,25 @@ import io.gomint.server.network.packet.PacketInventorySetSlot;
  * @author geNAZt
  * @version 1.0
  */
-public class PlayerInventory extends MobInventory {
+public class PlayerInventory extends Inventory {
 
     private static final byte HOTBAR_SIZE = 9;
     private static final byte INV_SIZE = 36;
 
-    private int[] hotbar = new int[HOTBAR_SIZE];
-    private int itemInHandSlot;
+    private byte itemInHandSlot;
 
+    /**
+     * Construct a new Inventory for the player which is 36 + 9 in size
+     *
+     * @param player for which this inventory is
+     */
     public PlayerInventory( EntityPlayer player ) {
         super( player, HOTBAR_SIZE + INV_SIZE );
 
-        for ( int i = 0; i < this.hotbar.length; i++ ) {
-            this.hotbar[i] = i + HOTBAR_SIZE;
+        byte[] hotbar = new byte[HOTBAR_SIZE];
+        for ( int i = 0; i < hotbar.length; i++ ) {
+            hotbar[i] = (byte) (i + HOTBAR_SIZE);
         }
-
-        // sendContents( player.getConnection() );
-    }
-
-    /**
-     * Set the item into the inventory without sending a packet to the client
-     *
-     * @param index     The slot to set
-     * @param itemStack The item which should be set into
-     */
-    public void setItemWithoutSending( int index, ItemStack itemStack ) {
-        this.contents[index] = itemStack;
     }
 
     /**
@@ -50,27 +42,37 @@ public class PlayerInventory extends MobInventory {
 
     @Override
     public void sendContents( int slot, PlayerConnection playerConnection ) {
-        super.sendContents( slot, playerConnection );
-
         PacketInventorySetSlot setSlot = new PacketInventorySetSlot();
         setSlot.setSlot( slot );
-        setSlot.setWindowId( (byte) 0 );
+        setSlot.setWindowId( (byte) WindowMagicNumbers.PLAYER.getId() );
         setSlot.setItemStack( this.contents[slot] );
         playerConnection.addToSendQueue( setSlot );
     }
 
-    /**
-     * Send the whole inventory to the client, overwriting its current view
-     *
-     * @param playerConnection The connection to send this inventory to
-     */
+    @Override
     public void sendContents( PlayerConnection playerConnection ) {
-        super.sendContents( playerConnection );
-
         PacketInventoryContent inventory = new PacketInventoryContent();
-        inventory.setWindowId( (byte) 0 );
+        inventory.setWindowId( (byte) WindowMagicNumbers.PLAYER.getId() );
         inventory.setItems( getContents() );
         playerConnection.send( inventory );
+    }
+
+    /**
+     * Set the slot for the item the player currently has in hand
+     *
+     * @param slot in the inventory to point on the item in hand
+     */
+    public void setItemInHand( byte slot ) {
+        this.itemInHandSlot = slot;
+    }
+
+    /**
+     * Get the number of the slot the user is currently holding in hand
+     *
+     * @return the slot number for the in hand item
+     */
+    public byte getItemInHandSlot() {
+        return this.itemInHandSlot;
     }
 
 }
