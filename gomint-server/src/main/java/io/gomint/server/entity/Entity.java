@@ -10,6 +10,7 @@ package io.gomint.server.entity;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.math.Vector2;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.packet.Packet;
@@ -126,6 +127,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.world = world;
         this.metadataContainer = new MetadataContainer();
         this.metadataContainer.putLong( MetadataContainer.DATA_INDEX, 0 );
+        this.metadataContainer.putInt( MetadataContainer.DATA_VARIANT, 0 );
+        this.metadataContainer.putInt( MetadataContainer.DATA_POTION_COLOR, 0 );
         this.transform = new TransformComponent();
         this.boundingBox = new AxisAlignedBB( 0, 0, 0, 0, 0, 0 );
 
@@ -613,6 +616,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     public Vector getDirection() {
         return this.transform.getDirection();
+    }
+
+    /**
+     * Get a 2D view of the current direction
+     *
+     * @return The direction in which this entity looks
+     */
+    public Vector2 getDirectionPlane() {
+        return ( new Vector2( (float) -Math.cos( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ),
+                (float) -Math.sin( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ) ) ).normalize();
     }
 
     /**

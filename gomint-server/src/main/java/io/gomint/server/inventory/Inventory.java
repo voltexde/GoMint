@@ -7,7 +7,6 @@ import io.gomint.server.network.PlayerConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,8 +29,7 @@ public abstract class Inventory {
         this.owner = owner;
         this.size = size;
 
-        this.contents = new ItemStack[size];
-        Arrays.fill( this.contents, new ItemStack( Material.AIR, (short) 0, 0 ) );
+        this.clear();
 
         // Add owner to viewers if needed
         if ( this.owner instanceof EntityPlayer ) {
@@ -68,6 +66,11 @@ public abstract class Inventory {
         return this.contents[slot];
     }
 
+    /**
+     * Send the whole inventory to the client, overwriting its current view
+     *
+     * @param playerConnection The connection to send this inventory to
+     */
     public abstract void sendContents( PlayerConnection playerConnection );
 
     public abstract void sendContents( int slot, PlayerConnection playerConnection );
@@ -148,6 +151,16 @@ public abstract class Inventory {
         }
 
         return false;
+    }
+
+    public void clear() {
+        this.contents = new ItemStack[this.size];
+        Arrays.fill( this.contents, new ItemStack( Material.AIR, (short) 0, 0 ) );
+    }
+
+    public void resizeAndClear( int newSize ) {
+        this.size = newSize;
+        this.clear();
     }
 
 }

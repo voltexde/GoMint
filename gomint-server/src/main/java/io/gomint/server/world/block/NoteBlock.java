@@ -22,11 +22,13 @@ public class NoteBlock extends Block {
     }
 
     @Override
-    public void interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+    public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
         NoteblockTileEntity tileEntity = getTileEntity();
         if ( tileEntity != null ) {
             tileEntity.interact( entity, face, facePos, item );
         }
+
+        return true;
     }
 
 }

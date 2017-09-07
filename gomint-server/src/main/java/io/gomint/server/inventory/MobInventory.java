@@ -16,30 +16,8 @@ import java.util.Arrays;
  */
 public class MobInventory extends Inventory {
 
-    // TODO: Decide if armor moves into its own inventory
-    private ItemStack helmet = new ItemStack( Material.AIR );
-    private ItemStack chestPlate = new ItemStack( Material.AIR );
-    private ItemStack leggings = new ItemStack( Material.AIR );
-    private ItemStack boots = new ItemStack( Material.AIR );
-
     public MobInventory( InventoryHolder inventoryHolder, int size ) {
         super( inventoryHolder, size );
-    }
-
-    public void setHelmet( ItemStack itemStack ) {
-        this.helmet = itemStack;
-    }
-
-    public void setChestplate( ItemStack itemStack ) {
-        this.chestPlate = itemStack;
-    }
-
-    public void setLeggings( ItemStack itemStack ) {
-        this.setItem( this.size - 2, itemStack );
-    }
-
-    public void setBoots( ItemStack itemStack ) {
-        this.setItem( this.size - 1, itemStack );
     }
 
     public ItemStack[] getContents() {
@@ -54,7 +32,7 @@ public class MobInventory extends Inventory {
     public void setItem( int index, ItemStack item ) {
         this.contents[index] = item;
 
-        if ( index < this.size - 4 ) {
+        if ( index < this.size ) {
             for ( PlayerConnection playerConnection : this.viewer ) {
                 this.sendContents( index, playerConnection );
             }

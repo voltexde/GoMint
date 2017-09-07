@@ -22,7 +22,7 @@ public class TransactionGroup {
 
     @Getter private boolean hasExecuted = false;
     @Getter private final Set<Inventory> inventories = new HashSet<>();
-    private final Set<Transaction> transactions = new HashSet<>();
+    private final List<Transaction> transactions = new ArrayList<>();
 
     // Need / have for this transactions
     @Getter private List<ItemStack> haveItems = new ArrayList<>();
@@ -52,17 +52,6 @@ public class TransactionGroup {
             return;
         }
 
-        // Check if we have a older transaction which this should replace
-        for ( Transaction tx : new HashSet<>( this.transactions ) ) {
-            if ( tx.hasInventory() && tx.getInventory().equals( transaction.getInventory() ) && tx.getSlot() == transaction.getSlot() ) {
-                if ( transaction.getCreationTime() >= tx.getCreationTime() ) {
-                    this.transactions.remove( tx );
-                } else {
-                    return;
-                }
-            }
-        }
-
         // Add this transaction and also the inventory
         this.transactions.add( transaction );
         if ( transaction.hasInventory() ) {
@@ -87,8 +76,22 @@ public class TransactionGroup {
 
                 // Check if source inventory changed during transaction
                 if ( !checkSourceItem.equals( sourceItem ) || sourceItem.getAmount() != checkSourceItem.getAmount() ) {
-                    this.matchItems = false;
-                    return;
+                    // Check if there was a transaction before which changed this slot
+                    boolean foundOtherTransaction = false;
+                    for ( Transaction transaction : this.transactions ) {
+                        if ( transaction.hasInventory()
+                                && transaction.getTargetItem().equals( checkSourceItem )
+                                && transaction.getSlot() == ts.getSlot() ) {
+                            // This is ok, another transaction in this group changed the item
+                            foundOtherTransaction = true;
+                            break;
+                        }
+                    }
+
+                    if ( !foundOtherTransaction ) {
+                        this.matchItems = false;
+                        return;
+                    }
                 }
             }
 
@@ -137,7 +140,7 @@ public class TransactionGroup {
      * @return true on success, false otherwise
      */
     private boolean execute( long currentTimeMillis ) {
-        if ( this.hasExecuted || !this.canExecute() ) {
+        if ( this.hasExecuted ) {
             return false;
         }
 

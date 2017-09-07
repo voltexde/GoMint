@@ -307,60 +307,6 @@ public abstract class ChunkAdapter implements Chunk {
     }
 
     /**
-     * Sets the lighting value of the specified block
-     *
-     * @param x     The x-coordinate of the block
-     * @param y     The y-coordinate of the block
-     * @param z     The z-coordinate of the block
-     * @param value The lighting value
-     */
-    protected void setBlockLight( int x, int y, int z, byte value ) {
-        ChunkSlice slice = ensureSlice( y >> 4 );
-        slice.setBlockLight( x, y - 16 * ( y >> 4 ), z, value );
-        this.dirty = true;
-    }
-
-    /**
-     * Gets the lighting value of the specified block
-     *
-     * @param x The x-coordinate of the block
-     * @param y The y-coordinate of the block
-     * @param z The z-coordinate of the block
-     * @return The block's lighting value
-     */
-    public byte getBlockLight( int x, int y, int z ) {
-        ChunkSlice slice = ensureSlice( y >> 4 );
-        return slice.getBlockLight( x, y - 16 * ( y >> 4 ), z );
-    }
-
-    /**
-     * Sets the skylight value of the specified block
-     *
-     * @param x     The x-coordinate of the block
-     * @param y     The y-coordinate of the block
-     * @param z     The z-coordinate of the block
-     * @param value The lighting value
-     */
-    protected void setSkyLight( int x, int y, int z, byte value ) {
-        ChunkSlice slice = ensureSlice( y >> 4 );
-        slice.setSkyLight( x, y - 16 * ( y >> 4 ), z, value );
-        this.dirty = true;
-    }
-
-    /**
-     * Gets the skylight value of the specified block
-     *
-     * @param x The x-coordinate of the block
-     * @param y The y-coordinate of the block
-     * @param z The z-coordinate of the block
-     * @return The block's lighting value
-     */
-    public byte getSkyLight( int x, int y, int z ) {
-        ChunkSlice slice = ensureSlice( y >> 4 );
-        return slice.getSkyLight( x, y - 16 * ( y >> 4 ), z );
-    }
-
-    /**
      * Sets a block column's biome.
      *
      * @param x     The x-coordinate of the block column

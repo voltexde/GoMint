@@ -6,6 +6,8 @@ import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.packet.PacketUpdateBlock;
 import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
 import lombok.Getter;
@@ -46,8 +48,8 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @param facePos The position where the entity interacted with the block
      * @param item    The item with which the entity interacted, can be null
      */
-    public void interact( Entity entity, int face, Vector facePos, ItemStack item ) {
-
+    public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+        return false;
     }
 
     @Override
@@ -86,17 +88,15 @@ public abstract class Block implements io.gomint.world.block.Block {
     }
 
     @Override
-    public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType ) {
+    public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType, byte data ) {
         Vector pos = this.location.toVector();
         Block instance = Blocks.get( blockType );
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
             worldAdapter.setBlockId( pos, instance.getBlockId() );
-            worldAdapter.setBlockData( pos, (byte) 0 );
+            worldAdapter.setBlockData( pos, data );
 
-            // Update light
             instance.setLocation( this.location );
-            WorldAdapter.getBlockLightCalculator().calculate( worldAdapter, instance );
 
             // Check if new block needs tile entity
             if ( instance.needsTileentity() ) {
@@ -161,4 +161,46 @@ public abstract class Block implements io.gomint.world.block.Block {
         return false;
     }
 
+    @Override
+    public io.gomint.world.block.Block getSide( int face ) {
+        switch ( face ) {
+            case 0:
+                return location.getWorld().getBlockAt( location.toVector().add( Vector.DOWN ) );
+            case 1:
+                return location.getWorld().getBlockAt( location.toVector().add( Vector.UP ) );
+            case 2:
+                return location.getWorld().getBlockAt( location.toVector().add( Vector.NORTH ) );
+            case 3:
+                return location.getWorld().getBlockAt( location.toVector().add( Vector.SOUTH ) );
+            case 4:
+                return location.getWorld().getBlockAt( location.toVector().add( Vector.WEST ) );
+            case 5:
+                return location.getWorld().getBlockAt( location.toVector().add( Vector.EAST ) );
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if this block can be replaced by the item in the arguments
+     *
+     * @param item which may replace this block
+     * @return true if this block can be replaced with the item, false when not
+     */
+    public boolean canBeReplaced( ItemStack item ) {
+        return false;
+    }
+
+    /**
+     * Send informations for this block
+     *
+     * @param connection which should get the block data
+     */
+    public void send( PlayerConnection connection ) {
+        PacketUpdateBlock updateBlock = new PacketUpdateBlock();
+        updateBlock.setPosition( this.location );
+        updateBlock.setBlockId( this.getBlockId() );
+        updateBlock.setPrioAndMetadata( (byte) ( 0xb << 4 | ( this.getBlockData() & 0xf ) ) );
+        connection.addToSendQueue( updateBlock );
+    }
 }

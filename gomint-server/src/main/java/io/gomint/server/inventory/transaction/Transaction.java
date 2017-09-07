@@ -46,11 +46,4 @@ public interface Transaction {
      */
     int getSlot();
 
-    /**
-     * The time when this transaction was created
-     *
-     * @return time in millis of the creation of this transaction
-     */
-    long getCreationTime();
-
 }
