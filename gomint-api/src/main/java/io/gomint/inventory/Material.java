@@ -68,6 +68,7 @@ public enum Material {
     FARMLAND,
     FURNACE,
     BURNING_FURNACE,
+    WOODEN_DOOR_BLOCK,
     LADDER,
     RAIL,
     COBBLESTONE_STAIRS,
@@ -264,7 +265,7 @@ public enum Material {
     PAINTING,
     GOLDEN_APPLE,
     SIGN( (byte) 16 ),
-    WOODEN_DOOR,
+    WOODEN_DOOR(WOODEN_DOOR_BLOCK),
     BUCKET( (byte) 16 ),
     MINECART( (byte) 1 ),
     SADDLE( (byte) 1 ),
@@ -386,6 +387,7 @@ public enum Material {
 
     private byte maximumAmount;
     private short maximumDurability;
+    private Material blockMaterial = null;
 
     Material() {
         this.maximumAmount = 64;
@@ -400,6 +402,11 @@ public enum Material {
         this.maximumDurability = maximumDurability;
     }
 
+    Material( Material blockMaterial ) {
+        this.maximumAmount = 64;
+        this.blockMaterial = blockMaterial;
+    }
+
     /**
      * Get the amount of maximum items in a stack
      *
@@ -407,6 +414,10 @@ public enum Material {
      */
     public byte getMaximumAmount() {
         return this.maximumAmount;
+    }
+
+    public Material getBlockMaterial() {
+        return this.blockMaterial != null ? this.blockMaterial : this;
     }
 
 }

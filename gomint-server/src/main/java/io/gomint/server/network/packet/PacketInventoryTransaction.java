@@ -2,6 +2,7 @@ package io.gomint.server.network.packet;
 
 import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
@@ -32,7 +33,7 @@ public class PacketInventoryTransaction extends Packet {
     private ItemStack itemInHand;
 
     // Type USE_ITEM
-    private Vector blockPosition;
+    private BlockPosition blockPosition;
     private int face;
     private Vector playerPosition;
     private Vector clickPosition;
@@ -77,7 +78,7 @@ public class PacketInventoryTransaction extends Packet {
                 break;
             case TYPE_USE_ITEM:
                 this.actionType = buffer.readUnsignedVarInt();
-                this.blockPosition = new Vector( buffer.readSignedVarInt(), buffer.readUnsignedVarInt(), buffer.readSignedVarInt() );
+                this.blockPosition = readBlockPosition( buffer );
                 this.face = buffer.readSignedVarInt();
                 this.hotbarSlot = buffer.readSignedVarInt();
                 this.itemInHand = readItemStack( buffer );

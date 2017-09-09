@@ -448,4 +448,8 @@ public abstract class ChunkAdapter implements Chunk {
         return obj instanceof ChunkAdapter && ( (ChunkAdapter) obj ).getX() == getX() && ( (ChunkAdapter) obj ).getZ() == getZ();
     }
 
+    public PacketBatch getCachedPacket() {
+        return cachedPacket.get();
+    }
+
 }

@@ -1,6 +1,6 @@
 package io.gomint.server.world.block;
 
-import io.gomint.entity.Entity;
+import io.gomint.server.entity.Entity;
 import io.gomint.inventory.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;

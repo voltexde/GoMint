@@ -1,6 +1,7 @@
 package io.gomint.server.world.block;
 
-import io.gomint.entity.Entity;
+import io.gomint.math.BlockPosition;
+import io.gomint.server.entity.Entity;
 import io.gomint.inventory.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
@@ -84,7 +85,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     protected void updateBlock() {
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
         worldAdapter.setBlockData( this.location, this.blockData );
-        worldAdapter.updateBlock( this.location );
+        worldAdapter.updateBlock( this.location.toBlockPosition() );
     }
 
     @Override
@@ -103,10 +104,10 @@ public abstract class Block implements io.gomint.world.block.Block {
                 instance.createTileentity();
             }
 
-            worldAdapter.updateBlock( pos );
+            worldAdapter.updateBlock( pos.toBlockPosition() );
         }
 
-        return world.getBlockAt( pos );
+        return world.getBlockAt( pos.toBlockPosition() );
     }
 
     /**
@@ -165,17 +166,17 @@ public abstract class Block implements io.gomint.world.block.Block {
     public io.gomint.world.block.Block getSide( int face ) {
         switch ( face ) {
             case 0:
-                return location.getWorld().getBlockAt( location.toVector().add( Vector.DOWN ) );
+                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.DOWN ) );
             case 1:
-                return location.getWorld().getBlockAt( location.toVector().add( Vector.UP ) );
+                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
             case 2:
-                return location.getWorld().getBlockAt( location.toVector().add( Vector.NORTH ) );
+                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.NORTH ) );
             case 3:
-                return location.getWorld().getBlockAt( location.toVector().add( Vector.SOUTH ) );
+                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.SOUTH ) );
             case 4:
-                return location.getWorld().getBlockAt( location.toVector().add( Vector.WEST ) );
+                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.WEST ) );
             case 5:
-                return location.getWorld().getBlockAt( location.toVector().add( Vector.EAST ) );
+                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.EAST ) );
         }
 
         return null;
@@ -198,9 +199,22 @@ public abstract class Block implements io.gomint.world.block.Block {
      */
     public void send( PlayerConnection connection ) {
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
-        updateBlock.setPosition( this.location );
+        updateBlock.setPosition( this.location.toBlockPosition() );
         updateBlock.setBlockId( this.getBlockId() );
-        updateBlock.setPrioAndMetadata( (byte) ( 0xb << 4 | ( this.getBlockData() & 0xf ) ) );
+        updateBlock.setPrioAndMetadata( (byte) ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( this.getBlockData() ) ) );
         connection.addToSendQueue( updateBlock );
     }
+
+    public boolean beforePlacement( ItemStack item, Location location ) {
+        return true;
+    }
+
+    public void afterPlacement() {
+
+    }
+
+    public byte calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
+        return (byte) item.getData();
+    }
+
 }

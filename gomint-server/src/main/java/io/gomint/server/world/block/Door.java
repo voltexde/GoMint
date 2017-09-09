@@ -1,8 +1,11 @@
 package io.gomint.server.world.block;
 
-import io.gomint.entity.Entity;
+import io.gomint.math.BlockPosition;
+import io.gomint.server.entity.Entity;
 import io.gomint.inventory.ItemStack;
+import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.math.Vector2;
 
 /**
  * @author geNAZt
@@ -18,7 +21,7 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
     @Override
     public boolean isOpen() {
         if ( isTop() ) {
-            Door otherPart = getLocation().getWorld().getBlockAt( getLocation().add( 0, -1, 0 ) );
+            Door otherPart = getLocation().getWorld().getBlockAt( getLocation().toBlockPosition().add( BlockPosition.DOWN ) );
             return otherPart.isOpen();
         }
 
@@ -28,7 +31,7 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
     @Override
     public void toggle() {
         if ( isTop() ) {
-            Door otherPart = getLocation().getWorld().getBlockAt( getLocation().add( 0, -1, 0 ) );
+            Door otherPart = getLocation().getWorld().getBlockAt( getLocation().toBlockPosition().add( BlockPosition.DOWN ) );
             otherPart.toggle();
             return;
         }
@@ -44,6 +47,27 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
         toggle();
 
         return true;
+    }
+
+    @Override
+    public boolean beforePlacement( ItemStack item, Location location ) {
+        Block above = location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
+        return above.canBeReplaced( item );
+    }
+
+    @Override
+    public byte calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
+        if ( entity == null ) {
+            return super.calculatePlacementData( null, item, clickVector );
+        }
+
+        Vector2 directionPlane = entity.getDirectionPlane();
+        double xAbs = Math.abs( directionPlane.getX() );
+        double zAbs = Math.abs( directionPlane.getZ() );
+
+        System.out.println( xAbs + " -> " + zAbs );
+
+        return (byte) 1;
     }
 
     @Override

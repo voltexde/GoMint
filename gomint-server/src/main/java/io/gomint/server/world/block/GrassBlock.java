@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.math.BlockPosition;
 import io.gomint.server.world.UpdateReason;
 
 /**
@@ -15,7 +16,7 @@ public class GrassBlock extends Block {
 
     @Override
     public long update( UpdateReason updateReason, long currentTimeMS, float dT ) {
-        Block block = world.getBlockAt( location.add( 0, 1, 0 ) );
+        Block block = world.getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
         byte lightLevel = block.getSkyLightLevel();
 
         if ( lightLevel >= 9 ) {

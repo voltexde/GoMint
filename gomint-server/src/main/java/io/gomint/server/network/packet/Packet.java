@@ -10,6 +10,8 @@ package io.gomint.server.network.packet;
 import io.gomint.inventory.ItemStack;
 import io.gomint.inventory.Material;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.math.BlockPosition;
+import io.gomint.math.Vector;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.taglib.NBTTagCompound;
@@ -313,5 +315,16 @@ public abstract class Packet {
             }
         } );
     }
+
+    public BlockPosition readBlockPosition( PacketBuffer buffer ) {
+        return new BlockPosition( buffer.readSignedVarInt(), buffer.readUnsignedVarInt(), buffer.readSignedVarInt() );
+    }
+
+    public void writeBlockPosition( BlockPosition position, PacketBuffer buffer ) {
+        buffer.writeSignedVarInt( position.getX() );
+        buffer.writeUnsignedVarInt( position.getY() );
+        buffer.writeSignedVarInt( position.getZ() );
+    }
+
 
 }

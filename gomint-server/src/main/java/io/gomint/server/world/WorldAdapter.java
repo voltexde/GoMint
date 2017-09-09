@@ -11,6 +11,7 @@ import io.gomint.entity.Player;
 import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
@@ -48,6 +49,8 @@ import java.util.concurrent.*;
  */
 public abstract class WorldAdapter implements World {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( WorldAdapter.class );
+
     // CHECKSTYLE:OFF
     private static final ByteSet CAN_TICK_RANDOM = HashByteSets.newImmutableSet( new byte[]{
             (byte) Blocks.GRASS_BLOCK.getBlockId(),
@@ -64,7 +67,6 @@ public abstract class WorldAdapter implements World {
             (byte) Blocks.LAVA.getBlockId(),
             (byte) Blocks.STATIONARY_LAVA.getBlockId(),
     } );
-
 
     // Shared objects
     @Getter
@@ -165,10 +167,10 @@ public abstract class WorldAdapter implements World {
     }
 
     @Override
-    public <T extends Block> T getBlockAt( Vector vector ) {
-        int x = (int) vector.getX();
-        int y = (int) vector.getY();
-        int z = (int) vector.getZ();
+    public <T extends Block> T getBlockAt( BlockPosition pos ) {
+        int x = pos.getX();
+        int y = pos.getY();
+        int z = pos.getZ();
 
         return this.getBlockAt( x, y, z );
     }
@@ -496,17 +498,7 @@ public abstract class WorldAdapter implements World {
         Delegate2<Long, ChunkAdapter> sendDelegate = new Delegate2<Long, ChunkAdapter>() {
             @Override
             public void invoke( Long chunkHash, ChunkAdapter chunk ) {
-                player.getConnection().sendWorldChunk( chunkHash, chunk.cachedPacket.get() );
-
-                // Send all spawned entities
-                Collection<io.gomint.entity.Entity> entities = chunk.getEntities();
-                if ( entities != null ) {
-                    for ( io.gomint.entity.Entity entity : entities ) {
-                        if ( entity instanceof Entity ) {
-                            player.getConnection().addToSendQueue( ( (Entity) entity ).createSpawnPacket() );
-                        }
-                    }
-                }
+                player.getChunkSendQueue().offer( chunk );
             }
         };
 
@@ -521,6 +513,8 @@ public abstract class WorldAdapter implements World {
             ChunkAdapter chunkAdapter = this.loadChunk( x, z, true );
             if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ) {
                 packageChunk( chunkAdapter, sendDelegate );
+            } else {
+                sendDelegate.invoke( CoordinateUtils.toLong( x, z ), chunkAdapter );
             }
         }
     }
@@ -704,14 +698,16 @@ public abstract class WorldAdapter implements World {
      *
      * @param pos The position of the block to update
      */
-    public void updateBlock( Vector pos ) {
+    public void updateBlock( BlockPosition pos ) {
         io.gomint.server.world.block.Block block = getBlockAt( pos );
+
+        LOGGER.debug( "Updating block @ " + pos + " data: " + block.getBlockData() );
 
         // Update the block
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( pos );
         updateBlock.setBlockId( block.getBlockId() );
-        updateBlock.setPrioAndMetadata( (byte) ( 0xb << 4 | ( block.getBlockData() & 0xf ) ) );
+        updateBlock.setPrioAndMetadata( (byte) ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() ) ) );
 
         broadcast( PacketReliability.RELIABLE_ORDERED, 0, updateBlock );
 
@@ -835,7 +831,7 @@ public abstract class WorldAdapter implements World {
      * @param entity        which interacts with the block
      * @return true when interaction was successful, false when not
      */
-    public boolean useItemOn( ItemStack itemInHand, Vector blockPosition, int face, Vector clickPosition, EntityPlayer entity ) {
+    public boolean useItemOn( ItemStack itemInHand, BlockPosition blockPosition, int face, Vector clickPosition, EntityPlayer entity ) {
         Block blockClicked = this.getBlockAt( blockPosition );
         if ( blockClicked instanceof Air ) {
             return false;
@@ -850,7 +846,7 @@ public abstract class WorldAdapter implements World {
         }
 
         if ( !interacted || entity.isSneaking() ) {
-            boolean canBePlaced = EnumConnectors.MATERIAL_CONNECTOR.convert( itemInHand.getMaterial() ).getOldId() < 256;
+            boolean canBePlaced = EnumConnectors.MATERIAL_CONNECTOR.convert( itemInHand.getMaterial().getBlockMaterial() ).getOldId() < 256;
             if ( canBePlaced ) {
                 Block blockReplace = blockClicked.getSide( face );
                 io.gomint.server.world.block.Block replaceBlock = (io.gomint.server.world.block.Block) blockReplace;
@@ -863,8 +859,7 @@ public abstract class WorldAdapter implements World {
 
                 // We got the block we want to replace
                 // Let the item build up the block
-                Blocks.replaceWithItem( replaceBlock, itemInHand );
-                return true;
+                return Blocks.replaceWithItem( entity, replaceBlock, itemInHand, clickPosition );
             }
         }
 
