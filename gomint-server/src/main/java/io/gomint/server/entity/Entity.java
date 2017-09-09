@@ -371,7 +371,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         Block block;
         if ( ( block = this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ ) ).isSolid() &&
                 block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
-            LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "@" + getEntityId() + " is stuck in a block" );
+            // LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "(" + getEntityId() + ") @" + getLocation().toVector() + " is stuck in a block " + block.getClass().getSimpleName() + "@" + block.getLocation().toVector() + " -> " + block.getBoundingBox() );
 
             // Calc with how much force we can get out of here, this depends on how far we are in
             float diffX = this.transform.getPositionX() - fullBlockX;

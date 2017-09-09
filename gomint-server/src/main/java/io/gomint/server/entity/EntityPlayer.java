@@ -24,7 +24,6 @@ import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.util.Numbers;
-import io.gomint.world.Chunk;
 import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -238,6 +237,8 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     @Override
     public void teleport( Location to ) {
+        Location from = getLocation();
+
         // Check if we need to change worlds
         if ( !to.getWorld().equals( getWorld() ) ) {
             // Change worlds first
@@ -255,7 +256,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         setYaw( to.getYaw() );
         setHeadYaw( to.getHeadYaw() );
 
-        this.connection.checkForNewChunks();
+        this.connection.checkForNewChunks( from );
     }
 
     // ==================================== UPDATING ==================================== //

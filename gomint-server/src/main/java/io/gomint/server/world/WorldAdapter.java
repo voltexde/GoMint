@@ -184,7 +184,7 @@ public abstract class WorldAdapter implements World {
 
         ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
         if ( chunk == null ) {
-            chunk = this.loadChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ), true  );
+            chunk = this.loadChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ), true );
         }
 
         // Get correct block out of the blocks factory
@@ -528,21 +528,23 @@ public abstract class WorldAdapter implements World {
      */
     public void movePlayerToChunk( int x, int z, EntityPlayer player ) {
         ChunkAdapter oldChunk = this.players.get( player );
-        getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
-            @Override
-            public void invoke( ChunkAdapter newChunk ) {
-                if ( oldChunk == null ) {
-                    newChunk.addPlayer( player );
-                    WorldAdapter.this.players.put( player, newChunk );
-                }
+        ChunkAdapter newChunk = this.getChunk( x, z );
+        if ( newChunk == null ) {
+            newChunk = this.loadChunk( x, z, true );
+        }
 
-                if ( oldChunk != null && !oldChunk.equals( newChunk ) ) {
-                    oldChunk.removePlayer( player );
-                    newChunk.addPlayer( player );
-                    WorldAdapter.this.players.put( player, newChunk );
-                }
-            }
-        } );
+        LOGGER.debug( "Moving entity " + player.getName() + " to chunk " + x + ", " + z + " based on position " + player.getLocation() );
+
+        if ( oldChunk == null ) {
+            newChunk.addPlayer( player );
+            this.players.put( player, newChunk );
+        }
+
+        if ( oldChunk != null && !oldChunk.equals( newChunk ) ) {
+            oldChunk.removePlayer( player );
+            newChunk.addPlayer( player );
+            this.players.put( player, newChunk );
+        }
     }
 
     /**

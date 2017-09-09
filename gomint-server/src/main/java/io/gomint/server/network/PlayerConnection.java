@@ -130,7 +130,7 @@ public class PlayerConnection {
      */
     public void onViewDistanceChanged() {
         LOGGER.debug( "View distance changed to " + this.getEntity().getViewDistance() );
-        this.checkForNewChunks();
+        this.checkForNewChunks( null );
         this.sendChunkRadiusUpdate();
     }
 
@@ -160,6 +160,7 @@ public class PlayerConnection {
                         ChunkAdapter chunk = queue.poll();
                         if ( chunk == null ) continue;
 
+                        LOGGER.debug( "Sending chunk " + chunk.getX() + ", " + chunk.getZ() );
                         this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() );
 
                         // Send all spawned entities
@@ -411,8 +412,6 @@ public class PlayerConnection {
      * @param packet            The packet to handle
      */
     private void handlePacket( long currentTimeMillis, Packet packet ) {
-        LOGGER.debug( "Should handle: " + packet );
-
         PacketHandler handler = PACKET_HANDLERS.get( packet.getClass() );
         if ( handler != null ) {
             handler.handle( packet, currentTimeMillis, this );
@@ -424,8 +423,9 @@ public class PlayerConnection {
 
     /**
      * Check if we need to send new chunks to the player
+     * @param from which location the entity moved
      */
-    public void checkForNewChunks() {
+    public void checkForNewChunks( Location from ) {
         // Don't check until we are fully spawned
         if ( this.state != PlayerConnectionState.PLAYING ) {
             return;
@@ -452,7 +452,13 @@ public class PlayerConnection {
         }
 
         // Move the player to this chunk
-        worldAdapter.movePlayerToChunk( currentXChunk, currentZChunk, this.entity );
+        if ( from != null ) {
+            int oldChunkX = CoordinateUtils.fromBlockToChunk( (int) from.getX() );
+            int oldChunkZ = CoordinateUtils.fromBlockToChunk( (int) from.getZ() );
+            if ( !from.getWorld().equals( worldAdapter ) || oldChunkX != currentXChunk || oldChunkZ != currentZChunk ) {
+                worldAdapter.movePlayerToChunk( currentXChunk, currentZChunk, this.entity );
+            }
+        }
 
         // Check for unloading chunks
         synchronized ( this.playerChunks ) {

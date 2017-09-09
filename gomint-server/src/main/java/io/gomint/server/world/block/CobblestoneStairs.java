@@ -4,7 +4,7 @@ package io.gomint.server.world.block;
  * @author geNAZt
  * @version 1.0
  */
-public class CobblestoneStairs extends Block {
+public class CobblestoneStairs extends Stairs {
 
     @Override
     public int getBlockId() {
@@ -14,11 +14,6 @@ public class CobblestoneStairs extends Block {
     @Override
     public long getBreakTime() {
         return 3000;
-    }
-
-    @Override
-    public boolean isTransparent() {
-        return true;
     }
 
 }
