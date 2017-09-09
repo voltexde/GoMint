@@ -15,6 +15,7 @@ import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityMetadata;
+import io.gomint.server.util.Values;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
@@ -39,7 +40,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class Entity implements io.gomint.entity.Entity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Entity.class );
-    protected static final float CLIENT_TICK_RATE = TimeUnit.MILLISECONDS.toNanos( 50 ) / (float) TimeUnit.SECONDS.toNanos( 1 );
 
     private static final int FLAG_CAN_SHOW_NAMETAG = 14;
     private static final int FLAG_ALWAYS_SHOW_NAMETAG = 15;
@@ -187,7 +187,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         // Check if we need to calc motion
         this.lastUpdateDt += dT;
-        if ( this.lastUpdateDt >= CLIENT_TICK_RATE ) {
+        if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
             // Calc motion
             this.transform.manipulateMotion( 0, -Entity.GRAVITY, 0 );
 

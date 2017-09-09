@@ -51,8 +51,6 @@ public class BatchUtil {
         }
 
         for ( Packet packet : packets ) {
-            LOGGER.debug( "Packing / sending: " + packet.toString() );
-
             int estimate = packet.estimateLength();
             if ( estimate == -1 ) {
                 LOGGER.warn( "Packet " + packet.getClass().getSimpleName() + " has returned negative estimation" );

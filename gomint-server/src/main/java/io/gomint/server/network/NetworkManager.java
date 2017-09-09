@@ -56,10 +56,11 @@ public class NetworkManager {
 
     // Internal ticking
     private long currentTickMillis;
+    private float lastTickTime;
     private final LongObjConsumer<PlayerConnection> connectionConsumer = new LongObjConsumer<PlayerConnection>() {
         @Override
         public void accept( long l, PlayerConnection connection ) {
-            connection.update( currentTickMillis );
+            connection.update( currentTickMillis, lastTickTime );
         }
     };
 
@@ -150,6 +151,7 @@ public class NetworkManager {
 
         // Tick all player connections in order to receive all incoming packets:
         this.currentTickMillis = currentMillis;
+        this.lastTickTime = lastTickTime;
         this.playersByGuid.forEach( this.connectionConsumer );
     }
 

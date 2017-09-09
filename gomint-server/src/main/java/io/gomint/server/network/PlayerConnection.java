@@ -21,6 +21,7 @@ import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.util.Values;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
@@ -76,6 +77,7 @@ public class PlayerConnection {
     @Getter private final NetworkManager networkManager;
     @Getter @Setter private EncryptionHandler encryptionHandler;
     @Getter private final GoMintServer server;
+    private float lastUpdateDt;
 
     // Actual connection for wire transfer:
     @Getter private final Connection connection;
@@ -137,8 +139,9 @@ public class PlayerConnection {
      * accordingly.
      *
      * @param currentMillis Time when the tick started
+     * @param dT The delta from the full second which has been calculated in the last tick
      */
-    public void update( long currentMillis ) {
+    public void update( long currentMillis, float dT ) {
         // Receive all waiting packets:
         EncapsulatedPacket packetData;
         while ( ( packetData = this.connection.receive() ) != null ) {
@@ -146,28 +149,31 @@ public class PlayerConnection {
         }
 
         // Check if we need to send chunks
-        if ( this.entity != null ) {
-            if ( this.entity.getChunkSendQueue().size() > 0 ) {
-                // Check if we have a slot
-                Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
-                int alreadySent = 0;
-                while ( queue.size() > 0 && alreadySent < 2 ) {
-                    ChunkAdapter chunk = queue.poll();
-                    if ( chunk == null ) continue;
+        this.lastUpdateDt += dT;
+        if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
+            if ( this.entity != null ) {
+                if ( this.entity.getChunkSendQueue().size() > 0 ) {
+                    // Check if we have a slot
+                    Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
+                    int alreadySent = 0;
+                    while ( queue.size() > 0 && alreadySent < 1 ) {
+                        ChunkAdapter chunk = queue.poll();
+                        if ( chunk == null ) continue;
 
-                    this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() );
+                        this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() );
 
-                    // Send all spawned entities
-                    Collection<Entity> entities = chunk.getEntities();
-                    if ( entities != null ) {
-                        for ( io.gomint.entity.Entity entity : entities ) {
-                            if ( entity instanceof io.gomint.server.entity.Entity ) {
-                                this.addToSendQueue( ( (io.gomint.server.entity.Entity) entity ).createSpawnPacket() );
+                        // Send all spawned entities
+                        Collection<Entity> entities = chunk.getEntities();
+                        if ( entities != null ) {
+                            for ( io.gomint.entity.Entity entity : entities ) {
+                                if ( entity instanceof io.gomint.server.entity.Entity ) {
+                                    this.addToSendQueue( ( (io.gomint.server.entity.Entity) entity ).createSpawnPacket() );
+                                }
                             }
                         }
-                    }
 
-                    alreadySent++;
+                        alreadySent++;
+                    }
                 }
             }
         }

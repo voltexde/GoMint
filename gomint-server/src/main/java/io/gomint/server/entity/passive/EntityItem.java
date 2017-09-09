@@ -6,6 +6,7 @@ import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityType;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketAddItemEntity;
+import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import lombok.Getter;
 import lombok.ToString;
@@ -75,7 +76,7 @@ public class EntityItem extends Entity implements ItemDrop {
 
         // Check if we need to calc friction
         this.lastUpdateDt += dT;
-        if ( this.lastUpdateDt >= CLIENT_TICK_RATE ) {
+        if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
             // Calculate friction
             float friction = 1 - DRAG;
             if ( this.onGround && ( Math.abs( this.getMotionX() ) > 0.00001 || Math.abs( this.getMotionZ() ) > 0.00001 ) ) {
