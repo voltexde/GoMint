@@ -21,8 +21,11 @@ import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
 import io.gomint.world.Chunk;
 import io.gomint.world.block.Block;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.openhft.koloboke.collect.map.LongObjMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,7 +38,10 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
+@EqualsAndHashCode( callSuper = false, of = { "x", "z" } )
 public abstract class ChunkAdapter implements Chunk {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( ChunkAdapter.class );
 
     // CHECKSTYLE:OFF
     // World
@@ -54,7 +60,8 @@ public abstract class ChunkAdapter implements Chunk {
     protected byte[] biomes = new byte[16 * 16];
 
     // Blocks
-    @Getter protected ChunkSlice[] chunkSlices = new ChunkSlice[16];
+    @Getter
+    protected ChunkSlice[] chunkSlices = new ChunkSlice[16];
     protected byte[] height = new byte[16 * 16 * 2];
 
     // Players / Chunk GC
@@ -85,6 +92,7 @@ public abstract class ChunkAdapter implements Chunk {
      */
     public void addPlayer( EntityPlayer player ) {
         this.players.add( player );
+        this.entities.put( player.getEntityId(), player );
     }
 
     /**
@@ -95,6 +103,7 @@ public abstract class ChunkAdapter implements Chunk {
     public void removePlayer( EntityPlayer player ) {
         this.players.remove( player );
         this.lastPlayerOnThisChunk = System.currentTimeMillis();
+        this.entities.remove( player.getEntityId() );
     }
 
     /**
@@ -103,6 +112,7 @@ public abstract class ChunkAdapter implements Chunk {
      * @param entity The entity which should be added
      */
     public void addEntity( Entity entity ) {
+        LOGGER.debug( "Adding entity " + entity + " to chunk " + x + ", " + z );
         this.entities.put( entity.getEntityId(), entity );
     }
 
@@ -112,6 +122,7 @@ public abstract class ChunkAdapter implements Chunk {
      * @param entity The entity which should be removed
      */
     public void removeEntity( Entity entity ) {
+        LOGGER.debug( "Removing entity " + entity + " from chunk " + x + ", " + z );
         this.entities.remove( entity.getEntityId() );
     }
 
@@ -441,11 +452,6 @@ public abstract class ChunkAdapter implements Chunk {
     @Override
     public Collection<io.gomint.entity.Entity> getEntities() {
         return this.entities.size() == 0 ? null : this.entities.values();
-    }
-
-    @Override
-    public boolean equals( Object obj ) {
-        return obj instanceof ChunkAdapter && ( (ChunkAdapter) obj ).getX() == getX() && ( (ChunkAdapter) obj ).getZ() == getZ();
     }
 
     public PacketBatch getCachedPacket() {

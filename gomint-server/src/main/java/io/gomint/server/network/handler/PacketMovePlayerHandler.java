@@ -66,7 +66,7 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
         if ( (int) from.getX() != (int) to.getX() ||
                 (int) from.getZ() != (int) to.getZ() ||
                 !to.getWorld().equals( from.getWorld() ) ) {
-            connection.checkForNewChunks();
+            connection.checkForNewChunks( from );
         }
     }
 

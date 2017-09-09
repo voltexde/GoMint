@@ -66,7 +66,7 @@ public class EntityManager {
         while ( cursor.moveNext() ) {
             Entity entity = cursor.value();
             if ( !entity.isDead() ) {
-                Chunk current = entity.getChunk();
+                ChunkAdapter current = (ChunkAdapter) entity.getChunk();
                 entity.update( currentTimeMS, dT );
 
                 if ( !entity.isDead() ) {
@@ -75,10 +75,9 @@ public class EntityManager {
                             movedEntities = new HashSet<>();
                         }
 
-                        if ( !current.equals( entity.getChunk() ) ) {
-                            if ( current instanceof ChunkAdapter ) {
-                                ( (ChunkAdapter) current ).removeEntity( entity );
-                            }
+                        if ( !( entity instanceof EntityPlayer ) && !current.equals( entity.getChunk() ) ) {
+                            LOGGER.debug( "Current entity position: " + entity.getLocation() );
+                            current.removeEntity( entity );
                         }
 
                         movedEntities.add( entity );
@@ -141,7 +140,7 @@ public class EntityManager {
                 }
 
                 // Set the new entity
-                if ( chunk instanceof ChunkAdapter ) {
+                if ( !( movedEntity instanceof EntityPlayer ) && chunk instanceof ChunkAdapter ) {
                     ChunkAdapter castedChunk = (ChunkAdapter) chunk;
                     if ( !castedChunk.knowsEntity( movedEntity ) ) {
                         castedChunk.addEntity( movedEntity );
