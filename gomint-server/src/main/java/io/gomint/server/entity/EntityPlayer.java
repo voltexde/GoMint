@@ -12,10 +12,7 @@ import io.gomint.entity.Player;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.ItemStack;
 import io.gomint.inventory.Material;
-import io.gomint.math.AxisAlignedBB;
-import io.gomint.math.Location;
-import io.gomint.math.Vector;
-import io.gomint.math.Vector2;
+import io.gomint.math.*;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.*;
@@ -24,8 +21,10 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.util.Numbers;
+import io.gomint.world.Chunk;
 import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -37,7 +36,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -56,20 +57,16 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     private final PlayerConnection connection;
     private int viewDistance;
+    private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
 
     // Player Information
     private String username;
     private UUID uuid;
-    @Setter
-    private PlayerSkin skin;
+    @Setter private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter
-    private AdventureSettings adventureSettings;
-    @Getter
-    @Setter
-    private Entity hoverEntity;
-    @Getter @Setter
-    private boolean sneaking;
+    @Getter private AdventureSettings adventureSettings;
+    @Getter @Setter private Entity hoverEntity;
+    @Getter @Setter private boolean sneaking;
 
     // Hidden players
     private LongSet hiddenPlayers;
@@ -80,23 +77,13 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private Inventory craftingInventory;
     private Inventory cursorInventory;
     private Inventory craftingResultInventory;
-    @Setter
-    @Getter
-    private TransactionGroup transactions;
-    @Setter
-    @Getter
-    private EntityItem queuedItemDrop;
+    @Setter @Getter private TransactionGroup transactions;
+    @Setter @Getter private EntityItem queuedItemDrop;
 
     // Block break data
-    @Setter
-    @Getter
-    private Vector breakVector;
-    @Setter
-    @Getter
-    private long startBreak;
-    @Setter
-    @Getter
-    private long breakTime;
+    @Setter @Getter private BlockPosition breakVector;
+    @Setter @Getter private long startBreak;
+    @Setter @Getter private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -529,6 +516,10 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         float dot = directionPlane.dot( new Vector2( eyePosition.getX(), eyePosition.getZ() ) );
         float dot1 = directionPlane.dot( new Vector2( playerPosition.getX(), playerPosition.getZ() ) );
         return ( dot1 - dot ) >= -0.5f;
+    }
+
+    public Queue<ChunkAdapter> getChunkSendQueue() {
+        return this.chunkSendQueue;
     }
 
 }

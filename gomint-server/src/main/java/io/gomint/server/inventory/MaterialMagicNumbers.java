@@ -72,6 +72,7 @@ public enum MaterialMagicNumbers {
     FARMLAND( 60, "minecraft:farmland" ),
     FURNACE( 61, "minecraft:furnace" ),
     BURNING_FURNACE( 62, "minecraft:lit_furnace" ),
+    WOODEN_DOOR_BLOCK( 64, "minecraft:wooden_door" ),
     LADDER( 65, "minecraft:ladder" ),
     RAIL( 66, "minecraft:rail" ),
     COBBLESTONE_STAIRS( 67, "minecraft:cobblestone_stairs" ),

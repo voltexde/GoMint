@@ -9,6 +9,7 @@ package io.gomint.world;
 
 import io.gomint.entity.Player;
 import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.world.block.Block;
@@ -47,10 +48,10 @@ public interface World {
     /**
      * Get the block at that position or null if the position is not loaded in the world.
      *
-     * @param vector of the position
+     * @param pos of the position
      * @return block which has been found at that position or null
      */
-    <T extends Block> T getBlockAt( Vector vector );
+    <T extends Block> T getBlockAt( BlockPosition pos );
 
     /**
      * Get the block at that position or null if the position is not loaded in the world.

@@ -7,6 +7,7 @@
 
 package io.gomint.server.network;
 
+import io.gomint.entity.Entity;
 import io.gomint.event.player.PlayerKickEvent;
 import io.gomint.event.player.PlayerQuitEvent;
 import io.gomint.jraknet.Connection;
@@ -20,6 +21,7 @@ import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import lombok.Getter;
@@ -33,9 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.InflaterInputStream;
@@ -53,7 +53,6 @@ public class PlayerConnection {
 
     static {
         // Register all packet handlers we need
-        PACKET_HANDLERS.put( PacketUseItem.class, new PacketUseItemHandler() );
         PACKET_HANDLERS.put( PacketMovePlayer.class, new PacketMovePlayerHandler() );
         PACKET_HANDLERS.put( PacketSetChunkRadius.class, new PacketSetChunkRadiusHandler() );
         PACKET_HANDLERS.put( PacketPlayerAction.class, new PacketPlayerActionHandler() );
@@ -74,25 +73,18 @@ public class PlayerConnection {
     }
 
     // Network manager that created this connection:
-    @Getter
-    private final NetworkManager networkManager;
-    @Getter
-    @Setter
-    private EncryptionHandler encryptionHandler;
-    @Getter
-    private final GoMintServer server;
+    @Getter private final NetworkManager networkManager;
+    @Getter @Setter private EncryptionHandler encryptionHandler;
+    @Getter private final GoMintServer server;
 
     // Actual connection for wire transfer:
-    @Getter
-    private final Connection connection;
+    @Getter private final Connection connection;
 
     // World data
     private final LongSet playerChunks;
 
     // Connection State:
-    @Getter
-    @Setter
-    private PlayerConnectionState state;
+    @Getter @Setter private PlayerConnectionState state;
     private int sentChunks;
     private BlockingQueue<Packet> sendQueue;
 
@@ -153,6 +145,33 @@ public class PlayerConnection {
             this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
         }
 
+        // Check if we need to send chunks
+        if ( this.entity != null ) {
+            if ( this.entity.getChunkSendQueue().size() > 0 ) {
+                // Check if we have a slot
+                Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
+                int alreadySent = 0;
+                while ( queue.size() > 0 && alreadySent < 2 ) {
+                    ChunkAdapter chunk = queue.poll();
+                    if ( chunk == null ) continue;
+
+                    this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() );
+
+                    // Send all spawned entities
+                    Collection<Entity> entities = chunk.getEntities();
+                    if ( entities != null ) {
+                        for ( io.gomint.entity.Entity entity : entities ) {
+                            if ( entity instanceof io.gomint.server.entity.Entity ) {
+                                this.addToSendQueue( ( (io.gomint.server.entity.Entity) entity ).createSpawnPacket() );
+                            }
+                        }
+                    }
+
+                    alreadySent++;
+                }
+            }
+        }
+
         // Send all queued packets
         if ( this.sendQueue != null && this.sendQueue.size() > 0 ) {
             PacketBatch batch = BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, this.sendQueue );
@@ -209,8 +228,6 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     public void sendWorldChunk( long chunkHash, PacketBatch chunkData ) {
-        // LOGGER.debug( "Sending chunk with hash: " + chunkHash + " to the client" );
-
         PacketBatch batch = new PacketBatch();
         batch.setPayload( this.encryptionHandler.encryptInputForClient( chunkData.getPayload() ) );
         this.send( batch );
@@ -222,8 +239,6 @@ public class PlayerConnection {
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
-
-            LOGGER.debug( "Sent chunks: " + this.sentChunks + "; Needing chunks: " + this.getEntity().getWorld().getAmountOfSpawnChunks() );
             if ( this.sentChunks >= this.getEntity().getWorld().getAmountOfSpawnChunks() ) {
                 int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
                 int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
@@ -405,6 +420,11 @@ public class PlayerConnection {
      * Check if we need to send new chunks to the player
      */
     public void checkForNewChunks() {
+        // Don't check until we are fully spawned
+        if ( this.state != PlayerConnectionState.PLAYING ) {
+            return;
+        }
+
         WorldAdapter worldAdapter = this.entity.getWorld();
 
         int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );

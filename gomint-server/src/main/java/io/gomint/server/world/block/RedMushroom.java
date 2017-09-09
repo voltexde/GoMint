@@ -8,7 +8,7 @@ public class RedMushroom extends Block {
 
     @Override
     public int getBlockId() {
-        return 100;
+        return 40;
     }
 
 }

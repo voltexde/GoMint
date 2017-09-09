@@ -8,6 +8,7 @@
 package io.gomint.server.world.leveldb;
 
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
@@ -57,7 +58,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             int spawnZ = (int) this.spawn.getZ();
             int y = 255;
 
-            while ( getBlockAt( new Vector( spawnX, y, spawnZ ) ).equals( Blocks.AIR ) ) {
+            while ( getBlockAt( new BlockPosition( spawnX, y, spawnZ ) ).equals( Blocks.AIR ) ) {
                 y--;
             }
 

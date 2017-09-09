@@ -83,35 +83,38 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     return;
                 }
 
-                // Can we safely interact?
-                if ( connection.getEntity().canInteract( packet.getBlockPosition().add( .5f, .5f, .5f ), 13 ) && connection.getEntity().getGamemode() != Gamemode.SPECTATOR ) {
-                    ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
-                    ItemStack packetItemInHand = packet.getItemInHand();
-                    if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
-                        if ( packet.getActions().length > 0 ) {
-                            resetBlocks( packet, connection );
-                            connection.getEntity().getInventory().sendContents( connection );
+                if ( packet.getActionType() == 0 ) {
+
+                    // Can we safely interact?
+                    if ( connection.getEntity().canInteract( packet.getBlockPosition().toVector().add( .5f, .5f, .5f ), 13 ) && connection.getEntity().getGamemode() != Gamemode.SPECTATOR ) {
+                        ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
+                        ItemStack packetItemInHand = packet.getItemInHand();
+                        if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
+                            if ( packet.getActions().length > 0 ) {
+                                resetBlocks( packet, connection );
+                                connection.getEntity().getInventory().sendContents( connection );
+                            }
+
+                            return;
                         }
 
-                        return;
-                    }
+                        if ( !connection.getEntity().getWorld().useItemOn( itemInHand, packet.getBlockPosition(), packet.getFace(), packet.getClickPosition(), connection.getEntity() ) ) {
+                            if ( packet.getActions().length > 0 ) {
+                                resetBlocks( packet, connection );
+                                connection.getEntity().getInventory().sendContents( connection );
+                            }
 
-                    if ( !connection.getEntity().getWorld().useItemOn( itemInHand, packet.getBlockPosition(), packet.getFace(), packet.getClickPosition(), connection.getEntity() ) ) {
-                        if ( packet.getActions().length > 0 ) {
-                            resetBlocks( packet, connection );
-                            connection.getEntity().getInventory().sendContents( connection );
+                            return;
                         }
 
-                        return;
+                        itemInHand.setAmount( itemInHand.getAmount() - 1 );
+                        if ( itemInHand.getAmount() <= 0 ) {
+                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), new ItemStack( Material.AIR ) );
+                        }
+                    } else {
+                        resetBlocks( packet, connection );
+                        connection.getEntity().getInventory().sendContents( connection );
                     }
-
-                    itemInHand.setAmount( itemInHand.getAmount() - 1 );
-                    if ( itemInHand.getAmount() <= 0 ) {
-                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), new ItemStack( Material.AIR ) );
-                    }
-                } else {
-                    resetBlocks( packet, connection );
-                    connection.getEntity().getInventory().sendContents( connection );
                 }
 
                 break;
