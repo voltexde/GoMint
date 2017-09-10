@@ -73,10 +73,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Bounding Box
      */
     protected AxisAlignedBB boundingBox;
-    @Getter
-    private float width;
-    @Getter
-    private float height;
+    @Getter private float width;
+    @Getter private float height;
 
     /**
      * How high can this entity "climb" in one movement?
@@ -114,6 +112,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
     protected WorldAdapter world;
     private TransformComponent transform;
     private float lastUpdateDt;
+    @Getter
+    private List<EntityLink> links;
 
     /**
      * Construct a new Entity

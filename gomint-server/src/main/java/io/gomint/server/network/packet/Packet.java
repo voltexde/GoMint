@@ -12,6 +12,7 @@ import io.gomint.inventory.Material;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
+import io.gomint.server.entity.EntityLink;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.taglib.NBTTagCompound;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -326,5 +328,24 @@ public abstract class Packet {
         buffer.writeSignedVarInt( position.getZ() );
     }
 
+    public int predictString( String v ) {
+        byte[] data = v.getBytes( StandardCharsets.UTF_8 );
+        int size = predictVarIntSize( data.length );
+        return size + data.length;
+    }
+
+    public void writeEntityLinks( List<EntityLink> links, PacketBuffer buffer ) {
+        if ( links == null ) {
+            buffer.writeUnsignedVarInt( 0 );
+        } else {
+            buffer.writeUnsignedVarInt( links.size() );
+            for ( EntityLink link : links ) {
+                buffer.writeUnsignedVarLong( link.getFrom() );
+                buffer.writeUnsignedVarLong( link.getTo() );
+                buffer.writeByte( link.getUnknown1() );
+                buffer.writeByte( link.getUnknown2() );
+            }
+        }
+    }
 
 }
