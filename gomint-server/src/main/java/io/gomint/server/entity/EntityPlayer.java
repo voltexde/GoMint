@@ -400,67 +400,6 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         // Spawn for others
         this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );
 
-        PacketPlayerlist playerlist = null;
-
-        // Remap all current living entities
-        List<PacketPlayerlist.Entry> listEntry = null;
-        for ( Player player : this.getConnection().getEntity().getWorld().getServer().getPlayers() ) {
-            if ( !player.isHidden( this ) && !player.equals( this ) ) {
-                if ( playerlist == null ) {
-                    playerlist = new PacketPlayerlist();
-                    playerlist.setMode( (byte) 0 );
-                    playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-                        add( new PacketPlayerlist.Entry( EntityPlayer.this.getUUID(),
-                                EntityPlayer.this.getEntityId(),
-                                EntityPlayer.this.getName(),
-                                EntityPlayer.this.getSkin() ) );
-                    }} );
-                }
-
-                ( (EntityPlayer) player ).getConnection().send( playerlist );
-            }
-
-            if ( !this.isHidden( player ) && !this.equals( player ) ) {
-                if ( listEntry == null ) {
-                    listEntry = new ArrayList<>();
-                }
-
-                listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(), player.getName(), player.getSkin() ) );
-
-                EntityPlayer entityPlayer = (EntityPlayer) player;
-                PacketSpawnPlayer spawnPlayer = new PacketSpawnPlayer();
-                spawnPlayer.setUuid( entityPlayer.getUUID() );
-                spawnPlayer.setName( entityPlayer.getName() );
-                spawnPlayer.setEntityId( entityPlayer.getEntityId() );
-                spawnPlayer.setRuntimeEntityId( entityPlayer.getEntityId() );
-
-                spawnPlayer.setX( entityPlayer.getPositionX() );
-                spawnPlayer.setY( entityPlayer.getPositionY() );
-                spawnPlayer.setZ( entityPlayer.getPositionZ() );
-
-                spawnPlayer.setVelocityX( entityPlayer.getMotionX() );
-                spawnPlayer.setVelocityY( entityPlayer.getMotionY() );
-                spawnPlayer.setVelocityZ( entityPlayer.getMotionZ() );
-
-                spawnPlayer.setPitch( entityPlayer.getPitch() );
-                spawnPlayer.setYaw( entityPlayer.getYaw() );
-                spawnPlayer.setHeadYaw( entityPlayer.getHeadYaw() );
-
-                spawnPlayer.setItemInHand( entityPlayer.getInventory().getItemInHand() );
-                spawnPlayer.setMetadataContainer( entityPlayer.getMetadata() );
-
-                this.getConnection().addToSendQueue( spawnPlayer );
-            }
-        }
-
-        if ( listEntry != null ) {
-            // Send player list
-            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
-            packetPlayerlist.setMode( (byte) 0 );
-            packetPlayerlist.setEntries( listEntry );
-            this.getConnection().send( packetPlayerlist );
-        }
-
         this.getConnection().sendWorldTime( 0 );
         this.sendData( this );
         this.getConnection().sendMovePlayer( this.getLocation() );

@@ -42,4 +42,9 @@ public class PacketAdventureSettings extends Packet {
         this.entityId = buffer.readLLong();
     }
 
+    @Override
+    public int estimateLength() {
+        return predictVarIntSize( this.flags ) + predictVarIntSize( this.commandPermission ) + predictVarIntSize( this.flags2 )
+                + predictVarIntSize( this.playerPermission ) + predictVarIntSize( this.customFlags ) + 8;
+    }
 }

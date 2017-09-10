@@ -13,6 +13,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketDespawnEntity;
 import io.gomint.server.network.packet.PacketEntityMovement;
+import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.world.Chunk;
 import net.openhft.koloboke.collect.map.LongObjCursor;
 import net.openhft.koloboke.collect.map.LongObjMap;
@@ -20,7 +21,9 @@ import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -250,6 +253,47 @@ public class EntityManager {
             ChunkAdapter castedChunk = (ChunkAdapter) chunk;
             if ( !castedChunk.knowsEntity( entity ) ) {
                 castedChunk.addEntity( entity );
+            }
+        }
+
+        // If this is a player send full playerlist
+        if ( entity instanceof EntityPlayer ) {
+            EntityPlayer entityPlayer = (EntityPlayer) entity;
+            PacketPlayerlist playerlist = null;
+
+            // Remap all current living entities
+            List<PacketPlayerlist.Entry> listEntry = null;
+            for ( Player player : entityPlayer.getWorld().getServer().getPlayers() ) {
+                if ( !player.isHidden( entityPlayer ) && !player.equals( entityPlayer ) ) {
+                    if ( playerlist == null ) {
+                        playerlist = new PacketPlayerlist();
+                        playerlist.setMode( (byte) 0 );
+                        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+                            add( new PacketPlayerlist.Entry( entityPlayer.getUUID(),
+                                    entityPlayer.getEntityId(),
+                                    entityPlayer.getName(),
+                                    entityPlayer.getSkin() ) );
+                        }} );
+                    }
+
+                    ( (EntityPlayer) player ).getConnection().send( playerlist );
+                }
+
+                if ( !entityPlayer.isHidden( player ) && !entityPlayer.equals( player ) ) {
+                    if ( listEntry == null ) {
+                        listEntry = new ArrayList<>();
+                    }
+
+                    listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(), player.getName(), player.getSkin() ) );
+                }
+            }
+
+            if ( listEntry != null ) {
+                // Send player list
+                PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+                packetPlayerlist.setMode( (byte) 0 );
+                packetPlayerlist.setEntries( listEntry );
+                entityPlayer.getConnection().send( packetPlayerlist );
             }
         }
 
