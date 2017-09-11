@@ -1,7 +1,7 @@
 package io.gomint.server.entity.passive;
 
 import io.gomint.entity.passive.ItemDrop;
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityType;
 import io.gomint.server.network.packet.Packet;
@@ -43,8 +43,8 @@ public class EntityItem extends Entity implements ItemDrop {
     }
 
     @Override
-    public ItemStack getItemStack() {
-        return this.itemStack.clone();
+    public <T extends ItemStack> T getItemStack() {
+        return (T) (( io.gomint.server.inventory.item.ItemStack) this.itemStack).clone();
     }
 
     @Override

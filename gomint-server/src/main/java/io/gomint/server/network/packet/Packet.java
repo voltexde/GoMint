@@ -7,14 +7,12 @@
 
 package io.gomint.server.network.packet;
 
-import io.gomint.inventory.ItemStack;
-import io.gomint.inventory.Material;
+import io.gomint.inventory.item.ItemAir;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
-import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityLink;
-import io.gomint.server.inventory.MaterialMagicNumbers;
-import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Gamerule;
 
@@ -24,7 +22,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -35,13 +32,18 @@ import java.util.function.BiConsumer;
  */
 public abstract class Packet {
 
-    private static final BigInteger UNSIGNED_LONG_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFF", 16);
+    private static final BigInteger UNSIGNED_LONG_MAX_VALUE = new BigInteger( "FFFFFFFFFFFFFFFF", 16 );
 
     /**
      * Internal MC:PE id of this packet
      */
     protected final byte id;
 
+    /**
+     * Construct a new packet
+     *
+     * @param id of the packet
+     */
     protected Packet( byte id ) {
         this.id = id;
     }
@@ -87,10 +89,16 @@ public abstract class Packet {
         return 0;
     }
 
-    public static ItemStack readItemStack( PacketBuffer buffer ) {
+    /**
+     * Read a item stack from the packet buffer
+     *
+     * @param buffer from the packet
+     * @return read item stack
+     */
+    static ItemStack readItemStack( PacketBuffer buffer ) {
         int id = buffer.readSignedVarInt();
         if ( id == 0 ) {
-            return new ItemStack( Material.AIR, (short) 0, 0, null );
+            return ItemAir.create( 0 );
         }
 
         int temp = buffer.readSignedVarInt();
@@ -121,16 +129,22 @@ public abstract class Packet {
             buffer.readString();    // TODO: Implement proper support once we know the string values
         }
 
-        return new ItemStack( EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( id ) ), data, amount, nbt );
+        return Items.create( id, data, amount, nbt );
     }
 
+    /**
+     * Write a item stack to the packet buffer
+     *
+     * @param itemStack which should be written
+     * @param buffer    which should be used to write to
+     */
     public static void writeItemStack( ItemStack itemStack, PacketBuffer buffer ) {
-        if ( itemStack == null || itemStack.getMaterial() == Material.AIR ) {
+        if ( itemStack == null || itemStack instanceof ItemAir ) {
             buffer.writeSignedVarInt( 0 );
             return;
         }
 
-        buffer.writeSignedVarInt( EnumConnectors.MATERIAL_CONNECTOR.convert( itemStack.getMaterial() ).getOldId() );
+        buffer.writeSignedVarInt( ( (io.gomint.server.inventory.item.ItemStack) itemStack ).getMaterial() );
         buffer.writeSignedVarInt( ( itemStack.getData() << 8 ) + ( itemStack.getAmount() & 0xff ) );
 
         NBTTagCompound compound = itemStack.getNbtData();
@@ -153,55 +167,18 @@ public abstract class Packet {
         buffer.writeSignedVarInt( 0 );
     }
 
-    public static void writeItemStacks( ItemStack[] itemStacks, PacketBuffer buffer ) {
-        if ( itemStacks == null || itemStacks.length == 0 ) {
-            buffer.writeUnsignedVarInt( 0 );
-            return;
-        }
-
-        buffer.writeUnsignedVarInt( itemStacks.length );
-
-        for ( ItemStack itemStack : itemStacks ) {
-            writeItemStack( itemStack, buffer );
-        }
-    }
-
     /**
-     * Read in a variable amount of itemstacks
+     * Predict the size of an item stack
      *
-     * @param buffer The buffer to read from
-     * @return a list of itemstacks
+     * @param itemStack which should be predicted in size
+     * @return amount of bytes needed to write given itemstack
      */
-    public static ItemStack[] readItemStacks( PacketBuffer buffer ) {
-        int count = buffer.readUnsignedVarInt();
-        ItemStack[] itemStacks = new ItemStack[count];
-
-        for ( int i = 0; i < count; i++ ) {
-            itemStacks[i] = readItemStack( buffer );
-        }
-
-        return itemStacks;
-    }
-
-    public static void writeIntList( int[] integers, PacketBuffer buffer ) {
-        if ( integers == null || integers.length == 0 ) {
-            buffer.writeUnsignedVarInt( 0 );
-            return;
-        }
-
-        buffer.writeUnsignedVarInt( integers.length );
-
-        for ( Integer integer : integers ) {
-            buffer.writeSignedVarInt( integer );
-        }
-    }
-
-    public static int predictItemStack( ItemStack itemStack ) {
-        if ( itemStack == null || itemStack.getMaterial() == Material.AIR ) {
+    int predictItemStack( ItemStack itemStack ) {
+        if ( itemStack == null || itemStack instanceof ItemAir ) {
             return predictSignedVarInt( 0 );
         }
 
-        int idSize = predictSignedVarInt( EnumConnectors.MATERIAL_CONNECTOR.convert( itemStack.getMaterial() ).getOldId() );
+        int idSize = predictSignedVarInt( ( (io.gomint.server.inventory.item.ItemStack) itemStack ).getMaterial() );
         int dataSize = predictSignedVarInt( ( itemStack.getData() << 8 ) + ( itemStack.getAmount() & 0xff ) );
 
         NBTTagCompound compound = itemStack.getNbtData();
@@ -219,8 +196,49 @@ public abstract class Packet {
         }
     }
 
+    /**
+     * Write a array of item stacks to the buffer
+     *
+     * @param itemStacks which should be written to the buffer
+     * @param buffer     which should be written to
+     */
+    void writeItemStacks( ItemStack[] itemStacks, PacketBuffer buffer ) {
+        if ( itemStacks == null || itemStacks.length == 0 ) {
+            buffer.writeUnsignedVarInt( 0 );
+            return;
+        }
 
-    public static int predictItemStacksSize( ItemStack[] v ) {
+        buffer.writeUnsignedVarInt( itemStacks.length );
+
+        for ( ItemStack itemStack : itemStacks ) {
+            writeItemStack( itemStack, buffer );
+        }
+    }
+
+    /**
+     * Read in a variable amount of itemstacks
+     *
+     * @param buffer The buffer to read from
+     * @return a list of item stacks
+     */
+    ItemStack[] readItemStacks( PacketBuffer buffer ) {
+        int count = buffer.readUnsignedVarInt();
+        ItemStack[] itemStacks = new ItemStack[count];
+
+        for ( int i = 0; i < count; i++ ) {
+            itemStacks[i] = readItemStack( buffer );
+        }
+
+        return itemStacks;
+    }
+
+    /**
+     * Predict the size of an item stack array
+     *
+     * @param v array of item stacks to get the size for
+     * @return size of item stack array
+     */
+    int predictItemStacksSize( ItemStack[] v ) {
         int size = predictVarIntSize( v.length );
         for ( ItemStack itemStack : v ) {
             size += predictItemStack( itemStack );
@@ -229,7 +247,34 @@ public abstract class Packet {
         return size;
     }
 
-    public static int predictSignedVarInt( int v ) {
+
+    /**
+     * Write a array of integers to the buffer
+     *
+     * @param integers which should be written to the buffer
+     * @param buffer   which should be written to
+     */
+    void writeIntList( int[] integers, PacketBuffer buffer ) {
+        if ( integers == null || integers.length == 0 ) {
+            buffer.writeUnsignedVarInt( 0 );
+            return;
+        }
+
+        buffer.writeUnsignedVarInt( integers.length );
+
+        for ( Integer integer : integers ) {
+            buffer.writeSignedVarInt( integer );
+        }
+    }
+
+
+    /**
+     * Predict the byte size of a variable signed integer
+     *
+     * @param v number which should be predicted
+     * @return size in bytes
+     */
+    int predictSignedVarInt( int v ) {
         long val = (long) ( v << 1 ^ v >> 31 );
         return predictVarLongSize( val );
     }
@@ -240,7 +285,7 @@ public abstract class Packet {
      * @param input the number to predict
      * @return the amount of bytes
      */
-    public static int predictVarIntSize( int input ) {
+    int predictVarIntSize( int input ) {
         int size = 1;
         int value = input;
 
@@ -258,7 +303,7 @@ public abstract class Packet {
      * @param input the number to predict
      * @return the amount of bytes
      */
-    public static int predictVarLongSize( long input ) {
+    int predictVarLongSize( long input ) {
         int size = 1;
         long value = input;
 
@@ -270,21 +315,27 @@ public abstract class Packet {
         return size;
     }
 
-    public static int predictSignedVarLong( long input ) {
+    /**
+     * Predict the byte size of an variable long
+     *
+     * @param input which should be predicted in size
+     * @return size in bytes
+     */
+    int predictSignedVarLong( long input ) {
         BigInteger origin = BigInteger.valueOf( input );
         BigInteger left = origin.shiftLeft( 1 );
         BigInteger right = origin.shiftRight( 63 );
         BigInteger val = left.xor( right );
 
-        if(val.compareTo(UNSIGNED_LONG_MAX_VALUE) > 0) {
-            throw new IllegalArgumentException("The value is too big");
+        if ( val.compareTo( UNSIGNED_LONG_MAX_VALUE ) > 0 ) {
+            throw new IllegalArgumentException( "The value is too big" );
         } else {
             int size = 1;
 
-            val = val.and(UNSIGNED_LONG_MAX_VALUE);
-            BigInteger i = BigInteger.valueOf(-128L);
+            val = val.and( UNSIGNED_LONG_MAX_VALUE );
+            BigInteger i = BigInteger.valueOf( -128L );
 
-            for(; !val.and(i).equals(BigInteger.ZERO); val = val.shiftRight(7)) {
+            for ( ; !val.and( i ).equals( BigInteger.ZERO ); val = val.shiftRight( 7 ) ) {
                 size++;
             }
 

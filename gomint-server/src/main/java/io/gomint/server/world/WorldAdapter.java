@@ -7,8 +7,10 @@
 
 package io.gomint.server.world;
 
+import com.koloboke.collect.map.ObjObjMap;
+import com.koloboke.collect.map.hash.HashObjObjMaps;
 import io.gomint.entity.Player;
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.BlockPosition;
@@ -31,10 +33,6 @@ import io.gomint.world.Sound;
 import io.gomint.world.World;
 import io.gomint.world.block.Block;
 import lombok.Getter;
-import net.openhft.koloboke.collect.map.ObjObjMap;
-import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
-import net.openhft.koloboke.collect.set.ByteSet;
-import net.openhft.koloboke.collect.set.hash.HashByteSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,21 +50,21 @@ public abstract class WorldAdapter implements World {
     private static final Logger LOGGER = LoggerFactory.getLogger( WorldAdapter.class );
 
     // CHECKSTYLE:OFF
-    private static final ByteSet CAN_TICK_RANDOM = HashByteSets.newImmutableSet( new byte[]{
-            (byte) Blocks.GRASS_BLOCK.getBlockId(),
-            (byte) Blocks.FARMLAND.getBlockId(),
-            (byte) Blocks.MYCELIUM.getBlockId(),
+    private static final Set<Byte> CAN_TICK_RANDOM = new HashSet<>( Arrays.asList(
+            (byte) 2,       // Grass
+            (byte) 60,      // Farmland
+            (byte) 110,     // Mycelium
 
-            (byte) Blocks.SAPLING.getBlockId(),
+            (byte) 6,       // Sapling
 
-            (byte) Blocks.LEAVES.getBlockId(),
-            (byte) Blocks.ACACIA_LEAVES.getBlockId(),
+            (byte) 16,      // Leaves
+            (byte) 161,     // Acacia leaves
 
-            (byte) Blocks.TOP_SNOW.getBlockId(),
-            (byte) Blocks.ICE.getBlockId(),
-            (byte) Blocks.LAVA.getBlockId(),
-            (byte) Blocks.STATIONARY_LAVA.getBlockId(),
-    } );
+            (byte) 78,      // Top snow
+            (byte) 79,      // Ice
+            (byte) 11,      // Stationary Lava
+            (byte) 10       // Lava
+    ) );
 
     // Shared objects
     @Getter
@@ -818,6 +816,11 @@ public abstract class WorldAdapter implements World {
         return collisions;
     }
 
+    /**
+     * Get the amount of chunks a player needs to be spawned
+     *
+     * @return amount of chunks for a spawn
+     */
     public int getAmountOfSpawnChunks() {
         return this.amountOfSpawnChunks;
     }
@@ -847,7 +850,7 @@ public abstract class WorldAdapter implements World {
         }
 
         if ( !interacted || entity.isSneaking() ) {
-            boolean canBePlaced = EnumConnectors.MATERIAL_CONNECTOR.convert( itemInHand.getMaterial().getBlockMaterial() ).getOldId() < 256;
+            boolean canBePlaced = ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).getBlockId() < 256;
             if ( canBePlaced ) {
                 Block blockReplace = blockClicked.getSide( face );
                 io.gomint.server.world.block.Block replaceBlock = (io.gomint.server.world.block.Block) blockReplace;

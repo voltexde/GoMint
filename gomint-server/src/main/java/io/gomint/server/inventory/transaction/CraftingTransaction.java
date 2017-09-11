@@ -1,6 +1,6 @@
 package io.gomint.server.inventory.transaction;
 
-import io.gomint.inventory.ItemStack;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.Inventory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

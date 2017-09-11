@@ -1,9 +1,10 @@
 package io.gomint.server.world.block;
 
 import io.gomint.server.entity.Entity;
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.registry.RegisterInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
  * @author geNAZt
  * @version 1.0
  */
+@RegisterInfo( id = 58 )
 public class CraftingTable extends Block {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( CraftingTable.class );

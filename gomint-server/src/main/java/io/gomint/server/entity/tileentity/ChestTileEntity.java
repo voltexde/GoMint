@@ -7,11 +7,10 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.inventory.ItemStack;
-import io.gomint.inventory.Material;
 import io.gomint.server.inventory.ChestInventory;
 import io.gomint.server.inventory.MaterialMagicNumbers;
-import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -44,25 +43,21 @@ class ChestTileEntity extends TileEntity {
             NBTTagCompound itemCompound = (NBTTagCompound) item;
 
             // This is needed since minecraft changed from storing raw ids to string keys somewhere in 1.7 / 1.8
-            Material material = null;
+            int material = 0;
             try {
-                material = EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( itemCompound.getShort( "id", (short) 0 ) ) );
+                material = itemCompound.getShort( "id", (short) 0 );
             } catch ( ClassCastException e ) {
-                material = EnumConnectors.MATERIAL_CONNECTOR.revert( MaterialMagicNumbers.valueOfWithId( itemCompound.getString( "id", "minecraft:air" ) ) );
+                material = MaterialMagicNumbers.valueOfWithId( itemCompound.getString( "id", "minecraft:air" ) );
             }
 
             // Skip non existent items for PE
-            if ( material == null || material == Material.AIR ) {
+            if ( material == 0 ) {
                 continue;
             }
 
-            ItemStack itemStack = new ItemStack(
-                    material,
+            this.inventory.setContent( itemCompound.getByte( "Slot", (byte) 127 ), Items.create( material,
                     itemCompound.getShort( "Damage", (short) 0 ),
-                    itemCompound.getByte( "Count", (byte) 0 )
-            );
-
-            this.inventory.setContent( itemCompound.getByte( "Slot", (byte) 127 ), itemStack );
+                    itemCompound.getByte( "Count", (byte) 0 ), null ) );
         }
     }
 
@@ -82,7 +77,7 @@ class ChestTileEntity extends TileEntity {
             if ( itemStack != null ) {
                 NBTTagCompound nbtTagCompound = new NBTTagCompound( "" );
                 nbtTagCompound.addValue( "Slot", (byte) i );
-                nbtTagCompound.addValue( "id", EnumConnectors.MATERIAL_CONNECTOR.convert( itemStack.getMaterial() ).getOldId() );
+                nbtTagCompound.addValue( "id", itemStack.getMaterial() );
                 nbtTagCompound.addValue( "Damage", itemStack.getData() );
                 nbtTagCompound.addValue( "Count", itemStack.getAmount() );
                 nbtTagCompounds.add( nbtTagCompound );

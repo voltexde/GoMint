@@ -1,7 +1,7 @@
 package io.gomint.server.inventory.transaction;
 
-import io.gomint.inventory.ItemStack;
-import io.gomint.inventory.Material;
+import io.gomint.inventory.item.ItemAir;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.Inventory;
 import lombok.Getter;
@@ -18,14 +18,18 @@ import java.util.Set;
 public class TransactionGroup {
 
     private final EntityPlayer player;
-    @Getter private final long creationTime;
+    @Getter
+    private final long creationTime;
 
-    @Getter private boolean hasExecuted = false;
-    @Getter private final Set<Inventory> inventories = new HashSet<>();
+    @Getter
+    private boolean hasExecuted = false;
+    @Getter
+    private final Set<Inventory> inventories = new HashSet<>();
     private final List<Transaction> transactions = new ArrayList<>();
 
     // Need / have for this transactions
-    @Getter private List<ItemStack> haveItems = new ArrayList<>();
+    @Getter
+    private List<ItemStack> haveItems = new ArrayList<>();
     private List<ItemStack> needItems = new ArrayList<>();
 
     // Matched
@@ -66,11 +70,11 @@ public class TransactionGroup {
 
         // Check all transactions for needed and having items
         for ( Transaction ts : this.transactions ) {
-            if ( ts.getTargetItem().getMaterial() != Material.AIR ) {
-                this.needItems.add( ts.getTargetItem().clone() );
+            if ( ts.getTargetItem() instanceof ItemAir ) {
+                this.needItems.add( ( (io.gomint.server.inventory.item.ItemStack) ts.getTargetItem() ).clone() );
             }
 
-            ItemStack sourceItem = ts.getSourceItem() != null ? ts.getSourceItem().clone() : null;
+            ItemStack sourceItem = ts.getSourceItem() != null ? ( (io.gomint.server.inventory.item.ItemStack) ts.getSourceItem() ).clone() : null;
             if ( ts.hasInventory() && sourceItem != null ) {
                 ItemStack checkSourceItem = ts.getInventory().getItem( ts.getSlot() );
 
@@ -95,7 +99,7 @@ public class TransactionGroup {
                 }
             }
 
-            if ( sourceItem != null && sourceItem.getMaterial() != Material.AIR ) {
+            if ( sourceItem != null && !( sourceItem instanceof ItemAir ) ) {
                 this.haveItems.add( sourceItem );
             }
         }

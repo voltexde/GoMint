@@ -18,6 +18,7 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
+import io.gomint.world.block.Air;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
@@ -58,7 +59,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             int spawnZ = (int) this.spawn.getZ();
             int y = 255;
 
-            while ( getBlockAt( new BlockPosition( spawnX, y, spawnZ ) ).equals( Blocks.AIR ) ) {
+            while ( getBlockAt( new BlockPosition( spawnX, y, spawnZ ) ) instanceof Air ) {
                 y--;
             }
 

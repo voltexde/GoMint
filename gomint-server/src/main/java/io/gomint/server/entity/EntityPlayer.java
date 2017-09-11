@@ -7,11 +7,12 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.GoMint;
 import io.gomint.entity.Entity;
 import io.gomint.entity.Player;
 import io.gomint.event.player.PlayerJoinEvent;
-import io.gomint.inventory.ItemStack;
-import io.gomint.inventory.Material;
+import io.gomint.inventory.item.ItemAcaciaDoor;
+import io.gomint.inventory.item.ItemWoodPlanks;
 import io.gomint.math.*;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
@@ -28,12 +29,11 @@ import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import net.openhft.koloboke.collect.set.LongSet;
-import net.openhft.koloboke.collect.set.hash.HashLongSets;
+import com.koloboke.collect.set.LongSet;
+import com.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
@@ -62,7 +62,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private String username;
     private UUID uuid;
     @Setter private PlayerSkin skin;
-    private Gamemode gamemode = Gamemode.SURVIVAL;
+    private Gamemode gamemode = Gamemode.CREATIVE;
     @Getter private AdventureSettings adventureSettings;
     @Getter @Setter private Entity hoverEntity;
     @Getter @Setter private boolean sneaking;
@@ -386,15 +386,22 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
         // Testing items
         // TODO: Remove anytime soon
-        this.inventory.setItem( 0, new ItemStack( Material.WOOD_PLANKS, 12 ) );
-        this.inventory.setItem( 1, new ItemStack( Material.ACACIA_DOOR ) );
-        this.inventory.setItem( 2, new ItemStack( Material.DIAMOND_CHESTPLATE ) );
+        this.inventory.setItem( 0, GoMint.instance().createItemStack( ItemWoodPlanks.class, 12 ) );
+        this.inventory.setItem( 1, GoMint.instance().createItemStack( ItemAcaciaDoor.class, 1 ) );
 
         // Now its time for the join event since the play is fully loaded
         this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
 
-        this.connection.getEntity().getAdventureSettings().update();
-        this.connection.getEntity().updateAttributes();
+        int gameModeNumber = EnumConnectors.GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
+        this.getAdventureSettings().setWorldImmutable( gameModeNumber == 0x03 );
+        this.getAdventureSettings().setCanFly( ( gameModeNumber & 0x01 ) > 0 );
+        this.getAdventureSettings().setNoClip( gameModeNumber == 0x03 );
+        this.getAdventureSettings().setFlying( gameModeNumber == 0x03 );
+        this.getAdventureSettings().setAttackMobs( gameModeNumber < 0x02 );
+        this.getAdventureSettings().setAttackPlayers( gameModeNumber < 0x02 );
+        this.getAdventureSettings().setNoPvP( gameModeNumber == 0x03 );
+        this.getAdventureSettings().update();
+        this.updateAttributes();
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
 
         // Spawn for others
@@ -458,6 +465,11 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         return ( dot1 - dot ) >= -0.5f;
     }
 
+    /**
+     * Queue which holds chunks to be sent to the client
+     *
+     * @return queue with chunks to be sent to the client
+     */
     public Queue<ChunkAdapter> getChunkSendQueue() {
         return this.chunkSendQueue;
     }

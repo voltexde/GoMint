@@ -1,12 +1,10 @@
 package io.gomint.server.network.packet;
 
-import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.network.Protocol;
-import io.gomint.server.util.DumpUtil;
 import lombok.Data;
 
-import java.util.List;
 import java.util.UUID;
 
 /**

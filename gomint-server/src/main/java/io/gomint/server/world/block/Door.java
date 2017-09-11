@@ -2,7 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.Entity;
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.math.Vector2;

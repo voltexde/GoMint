@@ -21,15 +21,16 @@ import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.util.Pair;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import lombok.Getter;
 import lombok.Setter;
-import net.openhft.koloboke.collect.LongCursor;
-import net.openhft.koloboke.collect.set.LongSet;
-import net.openhft.koloboke.collect.set.hash.HashLongSets;
+import com.koloboke.collect.LongCursor;
+import com.koloboke.collect.set.LongSet;
+import com.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,12 +154,18 @@ public class PlayerConnection {
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
             if ( this.entity != null ) {
                 if ( this.entity.getChunkSendQueue().size() > 0 ) {
+                    int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
+                    int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );
+
                     // Check if we have a slot
                     Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
                     int alreadySent = 0;
-                    while ( queue.size() > 0 && alreadySent < 1 ) {
+                    while ( queue.size() > 0 && alreadySent < 4 ) {
                         ChunkAdapter chunk = queue.poll();
                         if ( chunk == null ) continue;
+
+                        int dist = Math.abs( chunk.getX() - currentX ) + Math.abs( chunk.getZ() - currentZ );
+                        if ( dist > this.entity.getViewDistance() ) continue;
 
                         LOGGER.debug( "Sending chunk " + chunk.getX() + ", " + chunk.getZ() );
                         this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() );
@@ -438,15 +445,44 @@ public class PlayerConnection {
 
         int viewDistance = this.entity.getViewDistance();
         synchronized ( this.playerChunks ) {
+            List<Pair<Integer, Integer>> toSendChunks = new ArrayList<>();
             for ( int sendXChunk = currentXChunk - viewDistance; sendXChunk < currentXChunk + viewDistance; sendXChunk++ ) {
                 for ( int sendZChunk = currentZChunk - viewDistance; sendZChunk < currentZChunk + viewDistance; sendZChunk++ ) {
-                    long hash = CoordinateUtils.toLong( sendXChunk, sendZChunk );
+                    toSendChunks.add( new Pair<>( sendXChunk, sendZChunk ) );
+                }
+            }
 
-                    if ( !this.playerChunks.contains( hash ) &&
-                            !this.currentlySendingPlayerChunks.contains( hash ) ) {
-                        this.currentlySendingPlayerChunks.add( hash );
-                        worldAdapter.sendChunk( sendXChunk, sendZChunk, this.entity, false );
+            toSendChunks.sort( new Comparator<Pair<Integer, Integer>>() {
+                @Override
+                public int compare( Pair<Integer, Integer> o1, Pair<Integer, Integer> o2 ) {
+                    if ( Objects.equals( o1.getFirst(), o2.getFirst() ) &&
+                            Objects.equals( o1.getSecond(), o2.getSecond() ) ) {
+                        return 0;
                     }
+
+                    int distXFirst = Math.abs( o1.getFirst() - currentXChunk );
+                    int distXSecond = Math.abs( o2.getFirst() - currentXChunk );
+
+                    int distZFirst = Math.abs( o1.getSecond() - currentZChunk );
+                    int distZSecond = Math.abs( o2.getSecond() - currentZChunk );
+
+                    if ( distXFirst + distZFirst > distXSecond + distZSecond ) {
+                        return 1;
+                    } else if ( distXFirst + distZFirst < distXSecond + distZSecond ) {
+                        return -1;
+                    }
+
+                    return 0;
+                }
+            } );
+
+            for ( Pair<Integer, Integer> chunk : toSendChunks ) {
+                long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
+
+                if ( !this.playerChunks.contains( hash ) &&
+                        !this.currentlySendingPlayerChunks.contains( hash ) ) {
+                    this.currentlySendingPlayerChunks.add( hash );
+                    worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity, false );
                 }
             }
         }

@@ -1,16 +1,14 @@
 package io.gomint.server.world.block;
 
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.util.EnumConnectors;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.registry.GeneratorCallback;
+import io.gomint.server.registry.Registry;
 import io.gomint.server.world.block.generator.BlockGenerator;
 import javassist.*;
-import net.openhft.koloboke.collect.map.ObjIntMap;
-import net.openhft.koloboke.collect.map.hash.HashObjIntMaps;
 
 /**
  * @author geNAZt
@@ -18,7 +16,49 @@ import net.openhft.koloboke.collect.map.hash.HashObjIntMaps;
  */
 public class Blocks {
 
-    private static final BlockGenerator[] KNOWN_BLOCKS = new BlockGenerator[256];
+    private static final Registry<BlockGenerator> GENERATORS = new Registry<>( new GeneratorCallback<BlockGenerator>() {
+        @Override
+        public BlockGenerator generate( int id, Class<?> clazz ) {
+            // Create generated Generator for this block
+            ClassPool pool = ClassPool.getDefault();
+            CtClass generatorCT = pool.makeClass( "io.gomint.server.world.block.generator." + clazz.getSimpleName() );
+
+            try {
+                generatorCT.setInterfaces( new CtClass[]{ pool.get( "io.gomint.server.world.block.generator.BlockGenerator" ) } );
+            } catch ( NotFoundException e ) {
+                e.printStackTrace();
+                return null;
+            }
+
+            try {
+                generatorCT.addMethod( CtNewMethod.make( "public Object generate( byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {" +
+                        "io.gomint.server.world.block.Block block = new " + clazz.getName() + "();" +
+                        "            block.setBlockData( blockData );\n" +
+                        "            block.setTileEntity( tileEntity );\n" +
+                        "            block.setWorld( (io.gomint.server.world.WorldAdapter) location.getWorld() );\n" +
+                        "            block.setLocation( location );\n" +
+                        "            block.setSkyLightLevel( skyLightLevel );\n" +
+                        "            block.setBlockLightLevel( blockLightLevel );" +
+                        "return block;" +
+                        "}", generatorCT ) );
+
+                generatorCT.addMethod( CtNewMethod.make( "public Object generate() { return new " + clazz.getName() + "(); }", generatorCT ) );
+            } catch ( CannotCompileException e ) {
+                e.printStackTrace();
+                return null;
+            }
+
+            try {
+                return (BlockGenerator) generatorCT.toClass().newInstance();
+            } catch ( InstantiationException | IllegalAccessException | CannotCompileException e ) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+    } );
+
+    /*private static final BlockGenerator[] KNOWN_BLOCKS = new BlockGenerator[256];
     private static final ObjIntMap<Class<?>> KNOWN_API_INTERFACES = HashObjIntMaps.newMutableMap();
 
     public static final Air AIR = createBlock( 0, Air.class );
@@ -283,11 +323,11 @@ public class Blocks {
         }
 
         return null;
-    }
+    }*/
 
     public static <T extends Block> T get( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel,
                                            TileEntity tileEntity, Location location ) {
-        BlockGenerator instance = KNOWN_BLOCKS[blockId];
+        BlockGenerator instance = GENERATORS.getGenerator( blockId );
         if ( instance != null ) {
             return instance.generate( blockData, skyLightLevel, blockLightLevel, tileEntity, location );
         }
@@ -296,14 +336,9 @@ public class Blocks {
     }
 
     public static <T extends Block> T get( Class<?> apiInterface ) {
-        int id = KNOWN_API_INTERFACES.getInt( apiInterface );
-        if ( id > -1 ) {
-            BlockGenerator generator = KNOWN_BLOCKS[id];
-            if ( generator != null ) {
-                return generator.generate();
-            }
-
-            return null;
+        BlockGenerator instance = GENERATORS.getGenerator( apiInterface );
+        if ( instance != null ) {
+            return instance.generate();
         }
 
         return null;
@@ -311,8 +346,8 @@ public class Blocks {
 
     public static boolean replaceWithItem( Entity entity, Block block, ItemStack item, Vector clickVector ) {
         // We need to change the block id first
-        int id = EnumConnectors.MATERIAL_CONNECTOR.convert( item.getMaterial().getBlockMaterial() ).getOldId();
-        BlockGenerator blockGenerator = KNOWN_BLOCKS[id];
+        int id = ( (io.gomint.server.inventory.item.ItemStack) item ).getBlockId();
+        BlockGenerator blockGenerator = GENERATORS.getGenerator( id );
         Block newBlock = blockGenerator.generate();
         if ( !newBlock.beforePlacement( item, block.location ) ) {
             return false;

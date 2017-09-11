@@ -1,6 +1,6 @@
 package io.gomint.entity.passive;
 
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,9 +14,10 @@ public interface ItemDrop {
      * Get the ItemStack which has been stored in this entity. You can modify it but it won't update
      * the entity.
      *
+     * @param <T> generic type of the item stack
      * @return the ItemStack which has been stored
      */
-    ItemStack getItemStack();
+    <T extends ItemStack> T getItemStack();
 
     /**
      * Set a new pickup delay

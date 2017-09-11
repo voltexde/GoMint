@@ -1,6 +1,6 @@
 package io.gomint.server.network.handler;
 
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketCraftingEvent;
@@ -19,8 +19,6 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
 
     @Override
     public void handle( PacketCraftingEvent packet, long currentTimeMillis, PlayerConnection connection ) {
-        System.out.println( packet );
-
         // Get the recipe based on its id
         Recipe recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packet.getRecipeId() );
         if ( recipe == null ) {
@@ -40,7 +38,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         Collection<ItemStack> output = recipe.createResult();
 
         // Due to a bug in MC:PE it can happen that the recipe id is shit
-        if ( output.size() != packet.getOutput().length) {
+        if ( output.size() != packet.getOutput().length ) {
             LOGGER.debug( "Output size does not match up" );
             recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packetOutput );
         } else {
@@ -76,7 +74,10 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         for ( ItemStack recipeWanted : recipe.getIngredients() ) {
             boolean found = false;
             for ( ItemStack input : inputItems ) {
-                if ( recipeWanted.getMaterial() == input.getMaterial() &&
+                int recipeMaterial = ( (io.gomint.server.inventory.item.ItemStack) recipeWanted ).getMaterial();
+                int inputMaterial = ( (io.gomint.server.inventory.item.ItemStack) input ).getMaterial();
+
+                if ( recipeMaterial == inputMaterial &&
                         ( recipeWanted.getData() == -1 || recipeWanted.getData() == input.getData() ) ) {
                     found = true;
                     break;
@@ -97,7 +98,10 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         for ( ItemStack neededToConsume : packet.getInput() ) {
             boolean didConsume = false;
             for ( ItemStack canConsume : available ) {
-                if ( neededToConsume.getMaterial() == canConsume.getMaterial() &&
+                int needToConsumeMaterial = ( (io.gomint.server.inventory.item.ItemStack) neededToConsume ).getMaterial();
+                int canConsumeMaterial = ( (io.gomint.server.inventory.item.ItemStack) canConsume ).getMaterial();
+
+                if ( needToConsumeMaterial == canConsumeMaterial &&
                         ( neededToConsume.getData() == -1 || neededToConsume.getData() == canConsume.getData() ) ) {
                     if ( canConsume.getAmount() > 0 ) {
                         canConsume.setAmount( canConsume.getAmount() - 1 );
@@ -112,7 +116,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
                         }
 
                         if ( !didFindAlreadyConsumed ) {
-                            ItemStack canConsumeClone = canConsume.clone();
+                            ItemStack canConsumeClone = ( (io.gomint.server.inventory.item.ItemStack) canConsume ).clone();
                             canConsumeClone.setAmount( 1 );
                             consume.add( canConsumeClone );
                         }

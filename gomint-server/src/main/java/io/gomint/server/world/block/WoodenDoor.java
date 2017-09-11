@@ -1,11 +1,13 @@
 package io.gomint.server.world.block;
 
 import io.gomint.math.BlockPosition;
+import io.gomint.server.registry.RegisterInfo;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@RegisterInfo( id = 64 )
 public class WoodenDoor extends Door {
 
     @Override

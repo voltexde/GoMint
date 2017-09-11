@@ -2,11 +2,13 @@ package io.gomint.math;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@ToString
 public class Vector2 {
 
     public static final Vector2 ZERO = new Vector2( 0, 0 );

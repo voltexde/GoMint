@@ -7,13 +7,13 @@
 
 package io.gomint.server.entity.metadata;
 
-import io.gomint.inventory.ItemStack;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Vector;
 import lombok.ToString;
-import net.openhft.koloboke.collect.map.ByteObjMap;
-import net.openhft.koloboke.collect.map.hash.HashByteObjMaps;
-import net.openhft.koloboke.function.ByteObjConsumer;
+import com.koloboke.collect.map.ByteObjMap;
+import com.koloboke.collect.map.hash.HashByteObjMaps;
+import com.koloboke.function.ByteObjConsumer;
 
 /**
  * @author BlackyPaw

@@ -23,7 +23,7 @@ import io.gomint.world.Chunk;
 import io.gomint.world.block.Block;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import net.openhft.koloboke.collect.map.LongObjMap;
+import com.koloboke.collect.map.LongObjMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -11,7 +11,7 @@ import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
-import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
+import com.koloboke.collect.map.hash.HashLongObjMaps;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
