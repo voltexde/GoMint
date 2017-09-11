@@ -1,13 +1,12 @@
 package io.gomint.server.network.handler;
 
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.transaction.DropItemTransaction;
 import io.gomint.server.inventory.transaction.InventoryTransaction;
 import io.gomint.server.inventory.transaction.Transaction;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventorySetSlot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -15,12 +14,8 @@ import org.slf4j.LoggerFactory;
  */
 public class PacketContainerSetSlotHandler implements PacketHandler<PacketInventorySetSlot> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( PacketContainerSetSlotHandler.class );
-
     @Override
     public void handle( PacketInventorySetSlot packet, long currentTimeMillis, PlayerConnection connection ) {
-        LOGGER.debug( "0x" + Integer.toHexString( packet.getWindowId() ) + ": " + packet.getSlot() + " -> " + packet.getItemStack() );
-
         // Exception safety
         if ( packet.getSlot() < 0 ) {
             return;
@@ -37,8 +32,8 @@ public class PacketContainerSetSlotHandler implements PacketHandler<PacketInvent
             transaction = new InventoryTransaction(
                     connection.getEntity().getInventory(),
                     packet.getSlot(),
-                    connection.getEntity().getInventory().getItem( packet.getSlot() ).clone(),
-                    packet.getItemStack().clone(),
+                    ( (ItemStack) connection.getEntity().getInventory().getItem( packet.getSlot() ) ).clone(),
+                    ( (ItemStack) packet.getItemStack() ).clone(),
                     currentTimeMillis );
         } else if ( packet.getWindowId() == 0x78 ) { // Armor inventory
             // The client wanted to set a slot which is outside of the inventory size
@@ -49,7 +44,7 @@ public class PacketContainerSetSlotHandler implements PacketHandler<PacketInvent
             transaction = new InventoryTransaction( connection.getEntity().getInventory(),
                     packet.getSlot() + connection.getEntity().getInventory().getSize(),
                     connection.getEntity().getInventory().getItem( packet.getSlot() + connection.getEntity().getInventory().getSize() ),
-                    packet.getItemStack().clone(),
+                    ( (ItemStack) packet.getItemStack() ).clone(),
                     currentTimeMillis );
         } else {
             return;

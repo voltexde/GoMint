@@ -14,7 +14,7 @@ import io.gomint.server.world.NibbleArray;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
 import io.gomint.taglib.NBTTagCompound;
-import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
+import com.koloboke.collect.map.hash.HashLongObjMaps;
 
 import java.io.IOException;
 import java.io.OutputStream;

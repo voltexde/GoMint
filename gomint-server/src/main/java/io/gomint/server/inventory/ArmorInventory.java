@@ -1,6 +1,6 @@
 package io.gomint.server.inventory;
 
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryContent;
 import io.gomint.server.network.packet.PacketInventorySetSlot;

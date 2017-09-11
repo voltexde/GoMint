@@ -7,6 +7,8 @@
 
 package io.gomint.inventory;
 
+import io.gomint.inventory.item.ItemStack;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -17,9 +19,10 @@ public interface Inventory {
      * Gets the item out of this inventory
      *
      * @param slot The slot which we want to lookup
+     * @param <T>  generic type of the item stack
      * @return The itemstack or null if the slot is empty
      */
-    ItemStack getContent( int slot );
+    <T extends ItemStack> T getContent( int slot );
 
     /**
      * Set the item into the slot of this inventory

@@ -1,6 +1,6 @@
 package io.gomint.server.network.handler;
 
-import io.gomint.inventory.Material;
+import io.gomint.inventory.item.ItemAir;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.transaction.DropItemTransaction;
 import io.gomint.server.network.PlayerConnection;
@@ -15,7 +15,7 @@ public class PacketDropItemHandler implements PacketHandler<PacketDropItem> {
     @Override
     public void handle( PacketDropItem packet, long currentTimeMillis, PlayerConnection connection ) {
         // We can only drop real items
-        if ( packet.getItemStack().getMaterial() == Material.AIR ) {
+        if ( packet.getItemStack() instanceof ItemAir ) {
             return;
         }
 

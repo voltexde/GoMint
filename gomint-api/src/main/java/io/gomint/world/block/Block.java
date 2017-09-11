@@ -69,6 +69,7 @@ public interface Block {
     /**
      * Set the type of this block to another material
      *
+     * @param <T>       block generic type
      * @param blockType the new material of this block
      * @param data      optional data for the block
      */

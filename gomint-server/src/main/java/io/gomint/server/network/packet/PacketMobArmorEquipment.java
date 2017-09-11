@@ -1,7 +1,7 @@
 package io.gomint.server.network.packet;
 
-import io.gomint.inventory.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
 
@@ -42,7 +42,9 @@ public class PacketMobArmorEquipment extends Packet {
 
     @Override
     public int estimateLength() {
-        return predictVarLongSize( this.entityId ) + predictItemStack( this.helmet ) + predictItemStack( this.boots ) + predictItemStack( this.chestplate ) + predictItemStack( this.leggings );
+        return predictVarLongSize( this.entityId ) + predictItemStack( this.helmet ) +
+                predictItemStack( this.boots ) + predictItemStack( this.chestplate ) +
+                predictItemStack( this.leggings );
     }
 
 }

@@ -1,10 +1,8 @@
 package io.gomint.server.network.handler;
 
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMobEquipment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt

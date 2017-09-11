@@ -8,7 +8,7 @@
 package io.gomint.server.inventory;
 
 import io.gomint.inventory.Inventory;
-import io.gomint.inventory.ItemStack;
+import io.gomint.inventory.item.ItemStack;
 
 /**
  * @author geNAZt
@@ -19,8 +19,8 @@ public class ChestInventory implements Inventory {
     private ItemStack[] content = new ItemStack[27];
 
     @Override
-    public ItemStack getContent( int slot ) {
-        return ( slot > size() ) ? null : this.content[slot];
+    public <T extends ItemStack> T getContent( int slot ) {
+        return ( slot > size() ) ? null : (T) this.content[slot];
     }
 
     @Override

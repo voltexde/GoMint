@@ -1,9 +1,9 @@
 package io.gomint.server.network.handler;
 
-import io.gomint.inventory.ItemStack;
-import io.gomint.inventory.Material;
+import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.Inventory;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.inventory.transaction.InventoryTransaction;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
@@ -109,7 +109,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                         itemInHand.setAmount( itemInHand.getAmount() - 1 );
                         if ( itemInHand.getAmount() <= 0 ) {
-                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), new ItemStack( Material.AIR ) );
+                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
                         }
                     } else {
                         resetBlocks( packet, connection );

@@ -1,7 +1,8 @@
 package io.gomint.server.inventory;
 
-import io.gomint.inventory.ItemStack;
-import io.gomint.inventory.Material;
+import io.gomint.GoMint;
+import io.gomint.inventory.item.ItemAir;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import org.slf4j.Logger;
@@ -69,10 +70,16 @@ public abstract class Inventory {
     /**
      * Send the whole inventory to the client, overwriting its current view
      *
-     * @param playerConnection The connection to send this inventory to
+     * @param playerConnection to send this inventory to
      */
     public abstract void sendContents( PlayerConnection playerConnection );
 
+    /**
+     * Send a specific slot to the client
+     *
+     * @param slot             to send
+     * @param playerConnection which should get this slot
+     */
     public abstract void sendContents( int slot, PlayerConnection playerConnection );
 
     /**
@@ -82,24 +89,28 @@ public abstract class Inventory {
      * @return true when the inventory has place for the item stack, false if not
      */
     public boolean hasPlaceFor( ItemStack itemStack ) {
-        ItemStack clone = itemStack.clone();
+        if ( itemStack instanceof io.gomint.server.inventory.item.ItemStack ) {
+            io.gomint.server.inventory.item.ItemStack serverItemStack = (io.gomint.server.inventory.item.ItemStack) itemStack;
+            ItemStack clone = serverItemStack.clone();
 
-        for ( ItemStack content : this.contents ) {
-            if ( content.getMaterial() == Material.AIR ) {
-                return true;
-            } else if ( content.equals( clone ) &&
-                    content.getAmount() <= content.getMaximumAmount() ) {
-                if ( content.getAmount() + clone.getAmount() <= content.getMaximumAmount() ) {
+            for ( ItemStack content : this.contents ) {
+                if ( content instanceof ItemAir ) {
                     return true;
-                } else {
-                    int amountToDecrease = content.getMaximumAmount() - content.getAmount();
-                    clone.setAmount( clone.getAmount() - amountToDecrease );
-                }
+                } else if ( content.equals( clone ) &&
+                        content.getAmount() <= content.getMaximumAmount() ) {
+                    if ( content.getAmount() + clone.getAmount() <= content.getMaximumAmount() ) {
+                        return true;
+                    } else {
+                        int amountToDecrease = content.getMaximumAmount() - content.getAmount();
+                        clone.setAmount( clone.getAmount() - amountToDecrease );
+                    }
 
-                if ( clone.getAmount() == 0 ) {
-                    return true;
+                    if ( clone.getAmount() == 0 ) {
+                        return true;
+                    }
                 }
             }
+
         }
 
         return false;
@@ -117,36 +128,39 @@ public abstract class Inventory {
             return false;
         }
 
-        ItemStack clone = itemStack.clone();
+        if ( itemStack instanceof io.gomint.server.inventory.item.ItemStack ) {
+            io.gomint.server.inventory.item.ItemStack serverItemStack = (io.gomint.server.inventory.item.ItemStack) itemStack;
+            ItemStack clone = serverItemStack.clone();
 
-        // First try to merge
-        for ( int i = 0; i < this.contents.length; i++ ) {
-            if ( this.contents[i].equals( clone ) &&
-                    this.contents[i].getAmount() <= this.contents[i].getMaximumAmount() ) {
-                if ( this.contents[i].getAmount() + clone.getAmount() <= this.contents[i].getMaximumAmount() ) {
-                    this.contents[i].setAmount( this.contents[i].getAmount() + clone.getAmount() );
-                    clone.setAmount( 0 );
-                } else {
-                    int amountToDecrease = this.contents[i].getMaximumAmount() - this.contents[i].getAmount();
-                    this.contents[i].setAmount( this.contents[i].getMaximumAmount() );
-                    clone.setAmount( clone.getAmount() - amountToDecrease );
-                }
+            // First try to merge
+            for ( int i = 0; i < this.contents.length; i++ ) {
+                if ( this.contents[i].equals( clone ) &&
+                        this.contents[i].getAmount() <= this.contents[i].getMaximumAmount() ) {
+                    if ( this.contents[i].getAmount() + clone.getAmount() <= this.contents[i].getMaximumAmount() ) {
+                        this.contents[i].setAmount( this.contents[i].getAmount() + clone.getAmount() );
+                        clone.setAmount( 0 );
+                    } else {
+                        int amountToDecrease = this.contents[i].getMaximumAmount() - this.contents[i].getAmount();
+                        this.contents[i].setAmount( this.contents[i].getMaximumAmount() );
+                        clone.setAmount( clone.getAmount() - amountToDecrease );
+                    }
 
-                // Send item to all viewers
-                setItem( i, this.contents[i] );
+                    // Send item to all viewers
+                    setItem( i, this.contents[i] );
 
-                // We added all of the stack to this inventory
-                if ( clone.getAmount() == 0 ) {
-                    return true;
+                    // We added all of the stack to this inventory
+                    if ( clone.getAmount() == 0 ) {
+                        return true;
+                    }
                 }
             }
-        }
 
-        // Search for a free slot
-        for ( int i = 0; i < this.contents.length; i++ ) {
-            if ( this.contents[i].getMaterial() == Material.AIR ) {
-                setItem( i, clone );
-                return true;
+            // Search for a free slot
+            for ( int i = 0; i < this.contents.length; i++ ) {
+                if ( this.contents[i] instanceof ItemAir ) {
+                    setItem( i, clone );
+                    return true;
+                }
             }
         }
 
@@ -155,7 +169,7 @@ public abstract class Inventory {
 
     public void clear() {
         this.contents = new ItemStack[this.size];
-        Arrays.fill( this.contents, new ItemStack( Material.AIR, (short) 0, 0 ) );
+        Arrays.fill( this.contents, GoMint.instance().createItemStack( ItemAir.class, 0 ) );
     }
 
     public void resizeAndClear( int newSize ) {

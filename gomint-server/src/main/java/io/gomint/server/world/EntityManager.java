@@ -15,9 +15,9 @@ import io.gomint.server.network.packet.PacketDespawnEntity;
 import io.gomint.server.network.packet.PacketEntityMovement;
 import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.world.Chunk;
-import net.openhft.koloboke.collect.map.LongObjCursor;
-import net.openhft.koloboke.collect.map.LongObjMap;
-import net.openhft.koloboke.collect.map.hash.HashLongObjMaps;
+import com.koloboke.collect.map.LongObjCursor;
+import com.koloboke.collect.map.LongObjMap;
+import com.koloboke.collect.map.hash.HashLongObjMaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,12 +1,14 @@
 package io.gomint.server.world.block;
 
 import io.gomint.math.BlockPosition;
+import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.UpdateReason;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@RegisterInfo( id = 2 )
 public class GrassBlock extends Block {
 
     @Override

@@ -8,7 +8,9 @@
 package io.gomint.server;
 
 import io.gomint.GoMint;
+import io.gomint.GoMintInstanceHolder;
 import io.gomint.entity.Player;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
@@ -16,6 +18,7 @@ import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
 import io.gomint.server.entity.EntityCow;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
@@ -86,6 +89,7 @@ public class GoMintServer implements GoMint {
      * @param args which should have been given over from the static Bootstrap
      */
     public GoMintServer( String[] args ) {
+        GoMintInstanceHolder.setInstance( this );
         logger.info( "Starting " + getVersion() );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
@@ -296,6 +300,11 @@ public class GoMintServer implements GoMint {
         }
 
         return world;
+    }
+
+    @Override
+    public <T extends ItemStack> T createItemStack( Class<T> itemClass, int amount ) {
+        return Items.create( itemClass, (byte) amount );
     }
 
     /**
