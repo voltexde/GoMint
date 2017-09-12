@@ -17,18 +17,21 @@ public class Items {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Items.class );
     private static final Registry<ItemGenerator> GENERATORS = new Registry<>( new GeneratorCallback<ItemGenerator>() {
+        private ClassPool pool = ClassPool.getDefault();
+        private CtClass inter;
+
         @Override
         public ItemGenerator generate( int id, Class<?> clazz ) {
-            ClassPool pool = ClassPool.getDefault();
-
-            CtClass generatorClass = pool.makeClass( "io.gomint.server.inventory.item.generator." + clazz.getSimpleName() );
-
-            try {
-                generatorClass.addInterface( pool.get( "io.gomint.server.inventory.item.generator.ItemGenerator" ) );
-            } catch ( NotFoundException e ) {
-                e.printStackTrace();
-                return null;
+            if ( this.inter == null ) {
+                try {
+                    this.inter = pool.get( "io.gomint.server.inventory.item.generator.ItemGenerator" );
+                } catch ( NotFoundException e ) {
+                    e.printStackTrace();
+                }
             }
+
+            CtClass generatorClass = this.pool.makeClass( "io.gomint.server.inventory.item.generator." + clazz.getSimpleName() );
+            generatorClass.addInterface( this.inter );
 
             // Generate the generation method
             try {

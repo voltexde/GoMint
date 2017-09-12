@@ -7,17 +7,22 @@ import io.gomint.taglib.NBTTagCompound;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 117 )
+@RegisterInfo( id = 379 )
  public class ItemBrewingStand extends ItemStack implements io.gomint.inventory.item.ItemBrewingStand {
 
     // CHECKSTYLE:OFF
     public ItemBrewingStand( short data, int amount ) {
-        super( 117, data, amount );
+        super( 379, data, amount );
     }
 
     public ItemBrewingStand( short data, int amount, NBTTagCompound nbt ) {
-        super( 117, data, amount, nbt );
+        super( 379, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public int getBlockId() {
+        return 117;
+    }
 
 }

@@ -16,7 +16,7 @@ import java.util.Set;
  * @author geNAZt
  * @version 1.0
  */
-public abstract class Inventory {
+public abstract class Inventory implements io.gomint.inventory.Inventory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Inventory.class );
 
@@ -59,7 +59,7 @@ public abstract class Inventory {
         return this.contents;
     }
 
-    public int getSize() {
+    public int size() {
         return size;
     }
 

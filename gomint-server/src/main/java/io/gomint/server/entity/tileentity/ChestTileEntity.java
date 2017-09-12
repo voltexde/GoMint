@@ -7,9 +7,10 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.inventory.ChestInventory;
+import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.MaterialMagicNumbers;
-import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
@@ -21,7 +22,7 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-class ChestTileEntity extends TileEntity {
+class ChestTileEntity extends TileEntity implements InventoryHolder {
 
     private ChestInventory inventory;
 
@@ -33,7 +34,7 @@ class ChestTileEntity extends TileEntity {
      */
     public ChestTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
         super( tagCompound, world );
-        this.inventory = new ChestInventory();
+        this.inventory = new ChestInventory( this );
 
         // Read in items
         List<Object> itemList = tagCompound.getList( "Items", false );
@@ -55,7 +56,7 @@ class ChestTileEntity extends TileEntity {
                 continue;
             }
 
-            this.inventory.setContent( itemCompound.getByte( "Slot", (byte) 127 ), Items.create( material,
+            this.inventory.setItem( itemCompound.getByte( "Slot", (byte) 127 ), Items.create( material,
                     itemCompound.getShort( "Damage", (short) 0 ),
                     itemCompound.getByte( "Count", (byte) 0 ), null ) );
         }
@@ -73,11 +74,11 @@ class ChestTileEntity extends TileEntity {
 
         List<NBTTagCompound> nbtTagCompounds = new ArrayList<>();
         for ( int i = 0; i < this.inventory.size(); i++ ) {
-            ItemStack itemStack = this.inventory.getContent( i );
+            ItemStack itemStack = this.inventory.getItem( i );
             if ( itemStack != null ) {
                 NBTTagCompound nbtTagCompound = new NBTTagCompound( "" );
                 nbtTagCompound.addValue( "Slot", (byte) i );
-                nbtTagCompound.addValue( "id", itemStack.getMaterial() );
+                nbtTagCompound.addValue( "id", ( (io.gomint.server.inventory.item.ItemStack) itemStack ).getMaterial() );
                 nbtTagCompound.addValue( "Damage", itemStack.getData() );
                 nbtTagCompound.addValue( "Count", itemStack.getAmount() );
                 nbtTagCompounds.add( nbtTagCompound );

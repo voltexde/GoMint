@@ -19,10 +19,9 @@ public interface Inventory {
      * Gets the item out of this inventory
      *
      * @param slot The slot which we want to lookup
-     * @param <T>  generic type of the item stack
-     * @return The itemstack or null if the slot is empty
+     * @return The item stack or null if the slot is empty
      */
-    <T extends ItemStack> T getContent( int slot );
+    ItemStack getItem( int slot );
 
     /**
      * Set the item into the slot of this inventory
@@ -30,7 +29,7 @@ public interface Inventory {
      * @param slot      The slot in which we want to set this item
      * @param itemStack The item which we want to set into that slot
      */
-    void setContent( int slot, ItemStack itemStack );
+    void setItem( int slot, ItemStack itemStack );
 
     /**
      * Get the size of this inventory

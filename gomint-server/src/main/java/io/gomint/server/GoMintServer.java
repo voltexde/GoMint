@@ -18,6 +18,7 @@ import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
 import io.gomint.server.entity.EntityCow;
+import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;

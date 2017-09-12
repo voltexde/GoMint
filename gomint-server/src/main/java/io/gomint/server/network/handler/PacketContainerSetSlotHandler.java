@@ -25,7 +25,7 @@ public class PacketContainerSetSlotHandler implements PacketHandler<PacketInvent
         Transaction transaction;
         if ( packet.getWindowId() == 0 ) { // Player inventory
             // The client wanted to set a slot which is outside of the inventory size
-            if ( packet.getSlot() >= connection.getEntity().getInventory().getSize() ) {
+            if ( packet.getSlot() >= connection.getEntity().getInventory().size() ) {
                 return;
             }
 
@@ -42,8 +42,8 @@ public class PacketContainerSetSlotHandler implements PacketHandler<PacketInvent
             }
 
             transaction = new InventoryTransaction( connection.getEntity().getInventory(),
-                    packet.getSlot() + connection.getEntity().getInventory().getSize(),
-                    connection.getEntity().getInventory().getItem( packet.getSlot() + connection.getEntity().getInventory().getSize() ),
+                    packet.getSlot() + connection.getEntity().getInventory().size(),
+                    connection.getEntity().getInventory().getItem( packet.getSlot() + connection.getEntity().getInventory().size() ),
                     ( (ItemStack) packet.getItemStack() ).clone(),
                     currentTimeMillis );
         } else {

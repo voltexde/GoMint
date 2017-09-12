@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 68 )
- public class ItemWallSign extends ItemStack implements io.gomint.inventory.item.ItemWallSign {
+public class ItemWallSign extends ItemStack {
 
     // CHECKSTYLE:OFF
     public ItemWallSign( short data, int amount ) {

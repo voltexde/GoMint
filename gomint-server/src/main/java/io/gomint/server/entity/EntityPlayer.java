@@ -62,7 +62,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private String username;
     private UUID uuid;
     @Setter private PlayerSkin skin;
-    private Gamemode gamemode = Gamemode.CREATIVE;
+    private Gamemode gamemode = Gamemode.SURVIVAL;
     @Getter private AdventureSettings adventureSettings;
     @Getter @Setter private Entity hoverEntity;
     @Getter @Setter private boolean sneaking;
