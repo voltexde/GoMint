@@ -9,6 +9,8 @@ import javassist.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -22,6 +24,14 @@ public class Items {
 
         @Override
         public ItemGenerator generate( int id, Class<?> clazz ) {
+            if ( id == 210 || id == 211 || id == 212 || id == 230 || id == 242 ) {
+                System.out.println( "INVALID BLOCK ID" );
+            }
+
+            if ( id == 454 || id == 456 || id == 498 ) {
+                System.out.println( "INVALID ITEM ID" );
+            }
+
             if ( this.inter == null ) {
                 try {
                     this.inter = pool.get( "io.gomint.server.inventory.item.generator.ItemGenerator" );
@@ -96,6 +106,15 @@ public class Items {
         }
 
         return itemGenerator.generate( (short) 0, amount );
+    }
+
+    /**
+     * Get all known items
+     *
+     * @return
+     */
+    public static Collection<Integer> getAll() {
+        return GENERATORS.getAll();
     }
 
 }

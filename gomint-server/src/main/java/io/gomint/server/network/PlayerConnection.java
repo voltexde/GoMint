@@ -646,6 +646,7 @@ public class PlayerConnection {
         if ( this.entity != null && this.entity.getWorld() != null ) {
             this.networkManager.getServer().getPluginManager().callEvent( new PlayerQuitEvent( this.entity ) );
             this.entity.getWorld().removePlayer( this.entity );
+            this.entity.cleanup();
             this.entity.despawn();
             this.entity = null;
         }

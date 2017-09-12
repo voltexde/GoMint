@@ -92,15 +92,13 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
         MojangChainValidator chainValidator = new MojangChainValidator( connection.getServer().getEncryptionKeyFactory() );
         JSONArray jsonChain = (JSONArray) jsonChainRaw;
-        for ( int i = 0; i < jsonChain.size(); ++i ) {
-            Object jsonTokenRaw = jsonChain.get( i );
+        for ( Object jsonTokenRaw : jsonChain ) {
             if ( jsonTokenRaw instanceof String ) {
                 try {
                     JwtToken token = JwtToken.parse( (String) jsonTokenRaw );
                     chainValidator.addToken( token );
                 } catch ( IllegalArgumentException e ) {
                     e.printStackTrace();
-                    continue;
                 }
             }
         }
