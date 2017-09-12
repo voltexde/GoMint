@@ -23,7 +23,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
     @Override
     public void handle( PacketInventoryTransaction packet, long currentTimeMillis, PlayerConnection connection ) {
-        // System.out.println( packet );
+        LOGGER.debug( packet.toString() );
 
         switch ( packet.getType() ) {
             case PacketInventoryTransaction.TYPE_NORMAL:
@@ -40,10 +40,11 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                             break;
 
                         case -4:    // Set output slot
-                            continue;
+                            inventory = connection.getEntity().getCraftingResultInventory();
+                            break;
 
                         case -5:    // Crafting result input
-                            inventory = connection.getEntity().getCraftingResultInventory();
+                            inventory = connection.getEntity().getCraftingInputInventory();
                             break;
 
                         case -100:  // Crafting container dropped contents

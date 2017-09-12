@@ -33,7 +33,7 @@ public class CraftingTable extends Block {
             // This should be a container open
             LOGGER.debug( "Changing to 3x3 crafting grid for player " + ( (EntityPlayer) entity ).getName() );
             ( (EntityPlayer) entity ).getCraftingInventory().resizeAndClear( 9 );
-            ( (EntityPlayer) entity ).getCraftingResultInventory().resizeAndClear( 9 );
+            ( (EntityPlayer) entity ).getCraftingInputInventory().resizeAndClear( 9 );
         }
 
         return true;

@@ -75,6 +75,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private ArmorInventory armorInventory;
     private Inventory craftingInventory;
     private Inventory cursorInventory;
+    private Inventory craftingInputInventory;
     private Inventory craftingResultInventory;
     @Setter @Getter private TransactionGroup transactions;
     @Setter @Getter private EntityItem queuedItemDrop;
@@ -348,6 +349,15 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
      *
      * @return the current crafting input inventory
      */
+    public Inventory getCraftingInputInventory() {
+        return craftingInputInventory;
+    }
+
+    /**
+     * Get the virtual inventory of the current crafting process
+     *
+     * @return the current crafting result inventory
+     */
     public Inventory getCraftingResultInventory() {
         return craftingResultInventory;
     }
@@ -380,9 +390,10 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     public void fullyInit() {
         this.inventory = new PlayerInventory( this );
         this.armorInventory = new ArmorInventory( this );
-        this.craftingInventory = new CraftingResultInventory( this );
+        this.craftingInventory = new CraftingInputInventory( this );
         this.cursorInventory = new CursorInventory( this );
-        this.craftingResultInventory = new CraftingResultInventory( this );
+        this.craftingInputInventory = new CraftingInputInventory( this );
+        this.craftingResultInventory = new CursorInventory( this );
         this.connection.getServer().getCreativeInventory().addViewer( this );
 
         // Testing items

@@ -6,9 +6,9 @@ import io.gomint.server.network.PlayerConnection;
  * @author geNAZt
  * @version 1.0
  */
-public class CraftingResultInventory extends Inventory {
+public class CraftingInputInventory extends Inventory {
 
-    public CraftingResultInventory( InventoryHolder owner ) {
+    public CraftingInputInventory( InventoryHolder owner ) {
         super( owner, 4 );
     }
 
