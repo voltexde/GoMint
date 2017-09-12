@@ -140,50 +140,17 @@ public class TransactionGroup {
     /**
      * Try to execute the transaction
      *
-     * @param currentTimeMillis The time where the tick started
-     * @return true on success, false otherwise
+     * If it fails
      */
-    private boolean execute( long currentTimeMillis ) {
-        if ( this.hasExecuted ) {
-            return false;
-        }
-
-        // TODO: Add a inventory event here
-
-        for ( Transaction transaction : this.transactions ) {
-            if ( transaction.hasInventory() ) {
-                transaction.getInventory().setItem( transaction.getSlot(), transaction.getTargetItem() );
-            } else if ( transaction instanceof DropItemTransaction ) {
-                ( (DropItemTransaction) transaction ).getItemDrop().unlock( currentTimeMillis );
-            }
-        }
-
-        this.hasExecuted = true;
-        return true;
-    }
-
-    /**
-     * Try to execute this transaction. If it tails it reverts itself
-     *
-     * @param currentTimeMillis The time where the tick started
-     */
-    public void tryExecute( long currentTimeMillis ) {
+    public void execute() {
         if ( this.canExecute() ) {
-            if ( !this.execute( currentTimeMillis ) ) {
-                // Revert inventory
-                for ( Inventory inventory : this.getInventories() ) {
-                    inventory.sendContents( this.player.getConnection() );
-                }
-
-                // Revert dropped items
-                for ( Transaction transaction : this.transactions ) {
-                    if ( transaction instanceof DropItemTransaction ) {
-                        ( (DropItemTransaction) transaction ).getItemDrop().despawn();
-                    }
-                }
+            for ( Transaction transaction : this.transactions ) {
+                transaction.commit();
             }
-
-            this.player.setTransactions( null );
+        } else {
+            for ( Transaction transaction : this.transactions ) {
+                transaction.revert();
+            }
         }
     }
 

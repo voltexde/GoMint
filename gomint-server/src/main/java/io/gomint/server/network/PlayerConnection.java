@@ -61,11 +61,9 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketRemoveBlock.class, new PacketRemoveBlockHandler() );
         PACKET_HANDLERS.put( PacketMobArmorEquipment.class, new PacketMobArmorEquipmentHandler() );
         PACKET_HANDLERS.put( PacketAdventureSettings.class, new PacketAdventureSettingsHandler() );
-        PACKET_HANDLERS.put( PacketInventorySetSlot.class, new PacketContainerSetSlotHandler() );
         PACKET_HANDLERS.put( PacketResourcePackResponse.class, new PacketResourcePackResponseHandler() );
         PACKET_HANDLERS.put( PacketCraftingEvent.class, new PacketCraftingEventHandler() );
         PACKET_HANDLERS.put( PacketLogin.class, new PacketLoginHandler() );
-        PACKET_HANDLERS.put( PacketDropItem.class, new PacketDropItemHandler() );
         PACKET_HANDLERS.put( PacketMobEquipment.class, new PacketMobEquipmentHandler() );
         PACKET_HANDLERS.put( PacketInteract.class, new PacketInteractHandler() );
         PACKET_HANDLERS.put( PacketEncryptionResponse.class, new PacketEncryptionResponseHandler() );

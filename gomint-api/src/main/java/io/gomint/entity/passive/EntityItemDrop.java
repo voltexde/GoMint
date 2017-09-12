@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt
  * @version 1.0
  */
-public interface ItemDrop {
+public interface EntityItemDrop {
 
     /**
      * Get the ItemStack which has been stored in this entity. You can modify it but it won't update

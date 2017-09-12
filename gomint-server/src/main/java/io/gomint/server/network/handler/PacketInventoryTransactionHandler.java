@@ -1,9 +1,12 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.inventory.item.ItemAir;
+import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.Inventory;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.inventory.transaction.DropItemTransaction;
 import io.gomint.server.inventory.transaction.InventoryTransaction;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
@@ -65,11 +68,24 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                             LOGGER.warn( "Unknown window id: " + transaction.getWindowId() );
                     }
 
-                    InventoryTransaction inventoryTransaction = new InventoryTransaction( inventory, transaction.getSlot(), transaction.getOldItem(), transaction.getNewItem(), currentTimeMillis );
-                    transactionGroup.addTransaction( inventoryTransaction );
+                    switch ( transaction.getSourceType() ) {
+                        case 0:
+                            // Normal inventory stuff
+                            InventoryTransaction inventoryTransaction = new InventoryTransaction( connection.getEntity(), inventory, transaction.getSlot(), transaction.getOldItem(), transaction.getNewItem(), currentTimeMillis );
+                            transactionGroup.addTransaction( inventoryTransaction );
+                            break;
+                        case 2:
+                            // Drop item
+                            DropItemTransaction dropItemTransaction = new DropItemTransaction(
+                                    connection.getEntity().getLocation().add( 0, 1.3f, 0 ),
+                                    connection.getEntity().getDirection().normalize().multiply( 0.4f ),
+                                    transaction.getNewItem() );
+                            transactionGroup.addTransaction( dropItemTransaction );
+                            break;
+                    }
                 }
 
-                transactionGroup.tryExecute( currentTimeMillis );
+                transactionGroup.execute();
 
                 break;
 

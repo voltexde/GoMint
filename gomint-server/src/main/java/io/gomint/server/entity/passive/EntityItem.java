@@ -1,6 +1,6 @@
 package io.gomint.server.entity.passive;
 
-import io.gomint.entity.passive.ItemDrop;
+import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityType;
@@ -18,11 +18,9 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  */
 @ToString
-public class EntityItem extends Entity implements ItemDrop {
+public class EntityItem extends Entity implements EntityItemDrop {
 
     private final ItemStack itemStack;
-    @Getter
-    private boolean unlocked;
     @Getter
     private long pickupTime;
 
@@ -38,8 +36,7 @@ public class EntityItem extends Entity implements ItemDrop {
         super( EntityType.ITEM_DROP, world );
         this.itemStack = itemStack;
         this.setSize( 0.25f, 0.25f );
-        this.unlocked = true;
-        setPickupDelay( 5, TimeUnit.SECONDS );
+        setPickupDelay( 2, TimeUnit.SECONDS );
     }
 
     @Override
@@ -50,23 +47,6 @@ public class EntityItem extends Entity implements ItemDrop {
     @Override
     public void setPickupDelay( long duration, TimeUnit timeUnit ) {
         this.pickupTime = System.currentTimeMillis() + timeUnit.toMillis( duration );
-    }
-
-    /**
-     * Unlock the item to allow picking it up
-     *
-     * @param currentTimeMillis the time in millis where the tick started
-     */
-    public void unlock( long currentTimeMillis ) {
-        this.unlocked = true;
-        this.pickupTime = currentTimeMillis + 2000;
-    }
-
-    /**
-     * Lock this item drop against picking up
-     */
-    public void lock() {
-        this.unlocked = false;
     }
 
     @Override
