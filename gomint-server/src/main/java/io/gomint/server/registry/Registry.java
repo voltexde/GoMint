@@ -7,6 +7,7 @@ import com.koloboke.collect.map.hash.HashIntObjMaps;
 import com.koloboke.collect.map.hash.HashObjIntMaps;
 
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * @author geNAZt
@@ -77,6 +78,10 @@ public class Registry<R> {
 
     public R getGenerator( int id ) {
         return generators.get( id );
+    }
+
+    public Collection<Integer> getAll() {
+        return generators.keySet();
     }
 
 }

@@ -383,6 +383,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         this.craftingInventory = new CraftingResultInventory( this );
         this.cursorInventory = new CursorInventory( this );
         this.craftingResultInventory = new CraftingResultInventory( this );
+        this.connection.getServer().getCreativeInventory().addViewer( this );
 
         // Testing items
         // TODO: Remove anytime soon
@@ -472,6 +473,13 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
      */
     public Queue<ChunkAdapter> getChunkSendQueue() {
         return this.chunkSendQueue;
+    }
+
+    /**
+     * Remove player from PlayerList and remove from global inventories etc.
+     */
+    public void cleanup() {
+        this.connection.getServer().getCreativeInventory().removeViewer( this );
     }
 
 }

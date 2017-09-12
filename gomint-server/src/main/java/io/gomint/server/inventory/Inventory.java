@@ -123,7 +123,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
      * @return true when it got added, false if not
      */
     public boolean addItem( ItemStack itemStack ) {
-        // Check if we have plave for this item
+        // Check if we have place for this item
         if ( !this.hasPlaceFor( itemStack ) ) {
             return false;
         }

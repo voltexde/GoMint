@@ -65,9 +65,19 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
         double xAbs = Math.abs( directionPlane.getX() );
         double zAbs = Math.abs( directionPlane.getZ() );
 
-        System.out.println( xAbs + " -> " + zAbs );
-
-        return (byte) 1;
+        if ( zAbs > xAbs ) {
+            if ( directionPlane.getZ() > 0 ) {
+                return (byte) 1;
+            } else {
+                return (byte) 3;
+            }
+        } else {
+            if ( directionPlane.getX() > 0 ) {
+                return (byte) 2;
+            } else {
+                return (byte) 4;
+            }
+        }
     }
 
     @Override

@@ -14,6 +14,8 @@ import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.List;
  */
 class ChestTileEntity extends TileEntity implements InventoryHolder {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( ChestTileEntity.class );
     private ChestInventory inventory;
 
     /**
@@ -56,9 +59,17 @@ class ChestTileEntity extends TileEntity implements InventoryHolder {
                 continue;
             }
 
-            this.inventory.setItem( itemCompound.getByte( "Slot", (byte) 127 ), Items.create( material,
-                    itemCompound.getShort( "Damage", (short) 0 ),
-                    itemCompound.getByte( "Count", (byte) 0 ), null ) );
+            byte slot = itemCompound.getByte( "Slot", (byte) 127 );
+            if ( slot == 127 ) {
+                LOGGER.warn( "Found item without slot information: " + material + " @ " + this.location + " setting it to the next free slot" );
+                this.inventory.addItem( Items.create( material,
+                        itemCompound.getShort( "Damage", (short) 0 ),
+                        itemCompound.getByte( "Count", (byte) 0 ), null ) );
+            } else {
+                this.inventory.setItem( slot, Items.create( material,
+                        itemCompound.getShort( "Damage", (short) 0 ),
+                        itemCompound.getByte( "Count", (byte) 0 ), null ) );
+            }
         }
     }
 

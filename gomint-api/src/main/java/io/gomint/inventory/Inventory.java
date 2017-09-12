@@ -32,6 +32,14 @@ public interface Inventory {
     void setItem( int slot, ItemStack itemStack );
 
     /**
+     * Add a item to the next free slot in this inventory
+     *
+     * @param itemStack which should be added to the inventory
+     * @return true if it was stored, false when not
+     */
+    boolean addItem( ItemStack itemStack );
+
+    /**
      * Get the size of this inventory
      *
      * @return The size of this inventory

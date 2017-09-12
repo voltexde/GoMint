@@ -18,6 +18,8 @@ import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
 import io.gomint.server.entity.EntityCow;
+import io.gomint.server.inventory.CreativeInventory;
+import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.EncryptionKeyFactory;
@@ -52,7 +54,7 @@ import java.util.function.Consumer;
  * @author geNAZt
  * @version 1.1
  */
-public class GoMintServer implements GoMint {
+public class GoMintServer implements GoMint, InventoryHolder {
 
     private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
 
@@ -70,6 +72,7 @@ public class GoMintServer implements GoMint {
 
     // Game Information
     private RecipeManager recipeManager;
+    private CreativeInventory creativeInventory;
 
     // Plugin Management
     @Getter
@@ -153,6 +156,8 @@ public class GoMintServer implements GoMint {
         for ( Recipe recipe : assetsLibrary.getRecipes() ) {
             this.recipeManager.registerRecipe( recipe );
         }
+
+        this.creativeInventory = new CreativeInventory( this );
 
         // ------------------------------------ //
         // World Initialization
@@ -355,6 +360,10 @@ public class GoMintServer implements GoMint {
         }
 
         return amount;
+    }
+
+    public CreativeInventory getCreativeInventory() {
+        return this.creativeInventory;
     }
 
 }

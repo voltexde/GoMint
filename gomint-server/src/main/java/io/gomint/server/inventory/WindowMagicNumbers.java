@@ -14,6 +14,7 @@ public enum WindowMagicNumbers {
     PLAYER( 0 ),
     OFFHAND( 119 ),
     ARMOR( 120 ),
+    CREATIVE( 121 ),
     CURSOR( 124 );
 
     private final int id;
