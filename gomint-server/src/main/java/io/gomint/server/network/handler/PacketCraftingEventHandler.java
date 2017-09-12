@@ -23,7 +23,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         Recipe recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packet.getRecipeId() );
         if ( recipe == null ) {
             // Resend inventory and call it a day
-            for ( ItemStack itemStack : connection.getEntity().getCraftingResultInventory().getContents() ) {
+            for ( ItemStack itemStack : connection.getEntity().getCraftingInputInventory().getContents() ) {
                 connection.getEntity().getInventory().addItem( itemStack );
             }
 
@@ -62,14 +62,14 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         // 0 => Small crafting window inside of the player inventory
 
         // If the crafting window is small you can't craft bigger recipes
-        if ( packet.getRecipeType() == 0 && connection.getEntity().getCraftingResultInventory().size() > 4 ) {
+        if ( packet.getRecipeType() == 0 && connection.getEntity().getCraftingInputInventory().size() > 4 ) {
             // Resend inventory and call it a day
             connection.getEntity().getInventory().sendContents( connection );
             return;
         }
 
         // Now we have to look if we have the correct items
-        ItemStack[] inputItems = connection.getEntity().getCraftingResultInventory().getContents();
+        ItemStack[] inputItems = connection.getEntity().getCraftingInputInventory().getContents();
         boolean craftable = true;
         for ( ItemStack recipeWanted : recipe.getIngredients() ) {
             boolean found = false;
@@ -139,14 +139,11 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
 
             // TODO: There is a difference in the UI selected, "Classic" mode does put crafting result into the cursor inventory
             for ( ItemStack itemStack : output ) {
-                if ( !connection.getEntity().getInventory().addItem( itemStack ) ) {
-                    // Drop it?
-
-                }
+                connection.getEntity().getCraftingResultInventory().addItem( itemStack );
             }
 
             // Reset the inventory
-            connection.getEntity().getCraftingResultInventory().clear();
+            connection.getEntity().getCraftingInputInventory().clear();
         } else {
             // We can't craft => reset inventory
             for ( ItemStack inputItem : inputItems ) {
@@ -154,7 +151,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
             }
 
             connection.getEntity().getInventory().sendContents( connection );
-            connection.getEntity().getCraftingResultInventory().clear();
+            connection.getEntity().getCraftingInputInventory().clear();
         }
     }
 
