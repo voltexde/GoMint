@@ -70,7 +70,7 @@ public class TransactionGroup {
 
         // Check all transactions for needed and having items
         for ( Transaction ts : this.transactions ) {
-            if ( ts.getTargetItem() instanceof ItemAir ) {
+            if ( !( ts.getTargetItem() instanceof ItemAir ) ) {
                 this.needItems.add( ( (io.gomint.server.inventory.item.ItemStack) ts.getTargetItem() ).clone() );
             }
 

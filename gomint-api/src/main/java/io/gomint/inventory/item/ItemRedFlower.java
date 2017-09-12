@@ -6,15 +6,15 @@ import io.gomint.GoMint;
  * @author geNAZt
  * @version 1.0
  */
-public interface ItemWallSign extends ItemStack {
+public interface ItemRedFlower extends ItemStack {
 
     /**
      * Create a new item stack with given class and amount
      *
      * @param amount which is used for the creation
      */
-    static ItemWallSign create( int amount ) {
-        return GoMint.instance().createItemStack( ItemWallSign.class, amount );
+    static ItemRedFlower create( int amount ) {
+        return GoMint.instance().createItemStack( ItemRedFlower.class, amount );
     }
 
 }

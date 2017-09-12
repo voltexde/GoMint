@@ -7,16 +7,16 @@ import io.gomint.taglib.NBTTagCompound;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 244 )
+@RegisterInfo( id = 457 )
  public class ItemBeetroot extends ItemStack implements io.gomint.inventory.item.ItemBeetroot {
 
     // CHECKSTYLE:OFF
     public ItemBeetroot( short data, int amount ) {
-        super( 244, data, amount );
+        super( 457, data, amount );
     }
 
     public ItemBeetroot( short data, int amount, NBTTagCompound nbt ) {
-        super( 244, data, amount, nbt );
+        super( 457, data, amount, nbt );
     }
     // CHECKSTYLE:ON
 

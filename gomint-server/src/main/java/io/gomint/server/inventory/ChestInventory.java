@@ -7,31 +7,26 @@
 
 package io.gomint.server.inventory;
 
-import io.gomint.inventory.Inventory;
-import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.network.PlayerConnection;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public class ChestInventory implements Inventory {
+public class ChestInventory extends Inventory {
 
-    private ItemStack[] content = new ItemStack[27];
-
-    @Override
-    public <T extends ItemStack> T getContent( int slot ) {
-        return ( slot > size() ) ? null : (T) this.content[slot];
+    public ChestInventory( InventoryHolder owner ) {
+        super( owner, 27 );
     }
 
     @Override
-    public void setContent( int slot, ItemStack itemStack ) {
-        if ( slot > size() ) return;
-        this.content[slot] = itemStack;
+    public void sendContents( PlayerConnection playerConnection ) {
+
     }
 
     @Override
-    public int size() {
-        return content.length;
+    public void sendContents( int slot, PlayerConnection playerConnection ) {
+
     }
 
 }

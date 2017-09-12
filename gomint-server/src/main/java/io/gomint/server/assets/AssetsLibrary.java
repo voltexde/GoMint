@@ -97,6 +97,7 @@ public class AssetsLibrary {
                 default:
                     continue;
             }
+
             this.recipes.add( recipe );
         }
 

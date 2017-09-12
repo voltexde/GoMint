@@ -62,7 +62,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         // 0 => Small crafting window inside of the player inventory
 
         // If the crafting window is small you can't craft bigger recipes
-        if ( packet.getRecipeType() == 0 && connection.getEntity().getCraftingResultInventory().getSize() > 4 ) {
+        if ( packet.getRecipeType() == 0 && connection.getEntity().getCraftingResultInventory().size() > 4 ) {
             // Resend inventory and call it a day
             connection.getEntity().getInventory().sendContents( connection );
             return;
