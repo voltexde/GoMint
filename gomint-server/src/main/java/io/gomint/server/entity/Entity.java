@@ -783,4 +783,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_CLIMB, value );
     }
 
+    public Vector getVelocity() {
+        return this.transform.getMotion();
+    }
+
 }

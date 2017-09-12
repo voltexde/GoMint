@@ -8,6 +8,8 @@
 package io.gomint.world;
 
 import io.gomint.entity.Player;
+import io.gomint.entity.passive.EntityItemDrop;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
@@ -107,5 +109,7 @@ public interface World {
      * @return either a list of collisions or null
      */
     List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb, boolean includeEntities );
+
+    EntityItemDrop createItemDrop( Location location, ItemStack itemStack );
 
 }

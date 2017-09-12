@@ -51,8 +51,8 @@ public final class Protocol {
    // public static final byte PACKET_USE_ITEM = (byte) 0x23;
     public static final byte PACKET_PLAYER_ACTION = (byte) 0x24;
     public static final byte PACKET_ENTITY_METADATA = (byte) 0x27;
+    public static final byte PACKET_ENTITY_MOTION = (byte) 0x28;
     public static final byte PACKET_ANIMATE = (byte) 0x2C;
-    public static final byte PACKET_DROP_ITEM = (byte) -1;
     public static final byte PACKET_CONTAINER_OPEN = (byte) 0x2E;
     public static final byte PACKET_CONTAINER_CLOSE = (byte) 0x2F;
     public static final byte PACKET_INVENTORY_CONTENT_PACKET = (byte) 0x31;
@@ -70,8 +70,6 @@ public final class Protocol {
     public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
     public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
 
-
-    public static final byte PACKET_ENTITY_MOTION = (byte) 0xAE;
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     // CHECKSTYLE:ON
 
@@ -137,9 +135,6 @@ public final class Protocol {
 
             case PACKET_ANIMATE:
                 return new PacketAnimate();
-
-            case PACKET_DROP_ITEM:
-                return new PacketDropItem();
 
             case PACKET_CONTAINER_OPEN:
                 return new PacketContainerOpen();

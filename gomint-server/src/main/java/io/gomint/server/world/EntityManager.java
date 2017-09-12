@@ -10,10 +10,7 @@ package io.gomint.server.world;
 import io.gomint.entity.Player;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.packet.Packet;
-import io.gomint.server.network.packet.PacketDespawnEntity;
-import io.gomint.server.network.packet.PacketEntityMovement;
-import io.gomint.server.network.packet.PacketPlayerlist;
+import io.gomint.server.network.packet.*;
 import io.gomint.world.Chunk;
 import com.koloboke.collect.map.LongObjCursor;
 import com.koloboke.collect.map.LongObjMap;
@@ -79,7 +76,6 @@ public class EntityManager {
                         }
 
                         if ( !( entity instanceof EntityPlayer ) && !current.equals( entity.getChunk() ) ) {
-                            LOGGER.debug( "Current entity position: " + entity.getLocation() );
                             current.removeEntity( entity );
                         }
 
@@ -162,6 +158,11 @@ public class EntityManager {
                 packetEntityMovement.setHeadYaw( movedEntity.getHeadYaw() );
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
 
+                // Prepare motion packet
+                PacketEntityMotion packetEntityMotion = new PacketEntityMotion();
+                packetEntityMotion.setEntityId( movedEntity.getEntityId() );
+                packetEntityMotion.setVelocity( movedEntity.getVelocity() );
+
                 // Check which player we need to inform about this movement
                 for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
                     if ( movedEntity instanceof EntityPlayer ) {
@@ -174,6 +175,7 @@ public class EntityManager {
                     if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
                             Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
                         entityPlayer.getConnection().addToSendQueue( packetEntityMovement );
+                        entityPlayer.getConnection().addToSendQueue( packetEntityMotion );
                     }
                 }
             }
@@ -218,6 +220,9 @@ public class EntityManager {
      * @param pitch     The pitch value of the entity
      */
     public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
+        // TODO: Entity spawn event
+
+
         // Set the position and yaw
         entity.setPosition( positionX, positionY, positionZ );
         entity.setYaw( yaw );
@@ -320,7 +325,6 @@ public class EntityManager {
      *
      * @param entity The entity which should be despawned
      */
-
     public void despawnEntity( Entity entity ) {
         // Remove from chunk
         Chunk chunk = entity.getChunk();

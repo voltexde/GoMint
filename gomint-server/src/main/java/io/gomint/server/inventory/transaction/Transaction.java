@@ -46,4 +46,14 @@ public interface Transaction {
      */
     int getSlot();
 
+    /**
+     * Called when the transaction has been a success
+     */
+    void commit();
+
+    /**
+     * Called when a transaction failed
+     */
+    void revert();
+
 }

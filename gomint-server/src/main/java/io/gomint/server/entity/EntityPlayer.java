@@ -7,6 +7,8 @@
 
 package io.gomint.server.entity;
 
+import com.koloboke.collect.set.LongSet;
+import com.koloboke.collect.set.hash.HashLongSets;
 import io.gomint.GoMint;
 import io.gomint.entity.Entity;
 import io.gomint.entity.Player;
@@ -29,11 +31,10 @@ import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import com.koloboke.collect.set.LongSet;
-import com.koloboke.collect.set.hash.HashLongSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
@@ -61,11 +62,17 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     // Player Information
     private String username;
     private UUID uuid;
-    @Setter private PlayerSkin skin;
+    @Setter
+    private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter private AdventureSettings adventureSettings;
-    @Getter @Setter private Entity hoverEntity;
-    @Getter @Setter private boolean sneaking;
+    @Getter
+    private AdventureSettings adventureSettings;
+    @Getter
+    @Setter
+    private Entity hoverEntity;
+    @Getter
+    @Setter
+    private boolean sneaking;
 
     // Hidden players
     private LongSet hiddenPlayers;
@@ -77,13 +84,20 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private Inventory cursorInventory;
     private Inventory craftingInputInventory;
     private Inventory craftingResultInventory;
-    @Setter @Getter private TransactionGroup transactions;
-    @Setter @Getter private EntityItem queuedItemDrop;
+    @Setter
+    @Getter
+    private TransactionGroup transactions;
 
     // Block break data
-    @Setter @Getter private BlockPosition breakVector;
-    @Setter @Getter private long startBreak;
-    @Setter @Getter private long breakTime;
+    @Setter
+    @Getter
+    private BlockPosition breakVector;
+    @Setter
+    @Getter
+    private long startBreak;
+    @Setter
+    @Getter
+    private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -267,14 +281,14 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         super.update( currentTimeMS, dT );
 
         // Look around
-        List<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
+        Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
         if ( nearbyEntities != null ) {
             for ( Entity nearbyEntity : nearbyEntities ) {
                 if ( nearbyEntity instanceof EntityItem ) {
                     EntityItem entityItem = (EntityItem) nearbyEntity;
 
                     // Check if we can pick it up
-                    if ( entityItem.isUnlocked() && currentTimeMS > entityItem.getPickupTime() ) {
+                    if ( currentTimeMS > entityItem.getPickupTime() ) {
                         // Check if we have place in out inventory to store this item
                         if ( !this.inventory.hasPlaceFor( entityItem.getItemStack() ) ) {
                             continue;

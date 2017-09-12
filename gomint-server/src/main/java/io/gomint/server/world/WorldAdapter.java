@@ -21,6 +21,7 @@ import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
@@ -734,10 +735,10 @@ public abstract class WorldAdapter implements World {
      *
      * @param bb        the bounding box which should be used to collect entities in
      * @param exception a entity which should not be included in the list
-     * @return either null if there are no entities or a list of entities
+     * @return either null if there are no entities or a collection of entities
      */
-    public List<io.gomint.entity.Entity> getNearbyEntities( AxisAlignedBB bb, io.gomint.entity.Entity exception ) {
-        List<io.gomint.entity.Entity> nearby = null;
+    public Collection<io.gomint.entity.Entity> getNearbyEntities( AxisAlignedBB bb, io.gomint.entity.Entity exception ) {
+        Set<io.gomint.entity.Entity> nearby = null;
 
         int minX = Numbers.fastFloor( ( bb.getMinX() - 2 ) / 4 );
         int maxX = Numbers.fastCeil( ( bb.getMaxX() + 2 ) / 4 );
@@ -756,7 +757,7 @@ public abstract class WorldAdapter implements World {
                         for ( io.gomint.entity.Entity entity : entities ) {
                             if ( !entity.equals( exception ) && entity.getBoundingBox().intersectsWith( bb ) ) {
                                 if ( nearby == null ) {
-                                    nearby = new ArrayList<>();
+                                    nearby = new HashSet<>();
                                 }
 
                                 nearby.add( entity );
@@ -801,7 +802,7 @@ public abstract class WorldAdapter implements World {
         }
 
         if ( includeEntities ) {
-            List<io.gomint.entity.Entity> entities = getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity );
+            Collection<io.gomint.entity.Entity> entities = getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity );
             if ( entities != null ) {
                 for ( io.gomint.entity.Entity entity1 : entities ) {
                     if ( collisions == null ) {
@@ -868,6 +869,12 @@ public abstract class WorldAdapter implements World {
         }
 
         return false;
+    }
+
+    public EntityItem createItemDrop( Location location, ItemStack item ) {
+        EntityItem entityItem = new EntityItem( item, this );
+        spawnEntityAt( entityItem, location );
+        return entityItem;
     }
 
 }
