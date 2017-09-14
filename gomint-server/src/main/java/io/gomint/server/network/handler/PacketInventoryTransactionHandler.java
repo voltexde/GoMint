@@ -69,6 +69,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     }
 
                     switch ( transaction.getSourceType() ) {
+                        case 99999:
                         case 0:
                             // Normal inventory stuff
                             InventoryTransaction inventoryTransaction = new InventoryTransaction( connection.getEntity(), inventory, transaction.getSlot(), transaction.getOldItem(), transaction.getNewItem(), currentTimeMillis );

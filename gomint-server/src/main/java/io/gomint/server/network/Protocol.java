@@ -55,6 +55,7 @@ public final class Protocol {
     public static final byte PACKET_ANIMATE = (byte) 0x2C;
     public static final byte PACKET_CONTAINER_OPEN = (byte) 0x2E;
     public static final byte PACKET_CONTAINER_CLOSE = (byte) 0x2F;
+    public static final byte PACKET_HOTBAR = (byte) 0x30;
     public static final byte PACKET_INVENTORY_CONTENT_PACKET = (byte) 0x31;
     public static final byte PACKET_INVENTORY_SET_SLOT = (byte) 0x32;
     public static final byte PACKET_CONTAINER_SET_CONTENT = (byte) 0x33;
@@ -88,6 +89,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_HOTBAR:
+                return new PacketHotbar();
+
             case PACKET_LOGIN:
                 return new PacketLogin();
 

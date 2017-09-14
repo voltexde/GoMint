@@ -12,9 +12,6 @@ import io.gomint.server.network.packet.PacketInventorySetSlot;
  */
 public class PlayerInventory extends Inventory {
 
-    private static final byte HOTBAR_SIZE = 9;
-    private static final byte INV_SIZE = 36;
-
     private byte itemInHandSlot;
 
     /**
@@ -23,12 +20,7 @@ public class PlayerInventory extends Inventory {
      * @param player for which this inventory is
      */
     public PlayerInventory( EntityPlayer player ) {
-        super( player, HOTBAR_SIZE + INV_SIZE );
-
-        byte[] hotbar = new byte[HOTBAR_SIZE];
-        for ( int i = 0; i < hotbar.length; i++ ) {
-            hotbar[i] = (byte) (i + HOTBAR_SIZE);
-        }
+        super( player, 36 );
     }
 
     /**
