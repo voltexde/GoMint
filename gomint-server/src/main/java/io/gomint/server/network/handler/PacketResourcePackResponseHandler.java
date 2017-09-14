@@ -44,9 +44,6 @@ public class PacketResourcePackResponseHandler implements PacketHandler<PacketRe
                 connection.getEntity().updateAttributes();
                 connection.sendCommandsEnabled();
 
-                // Start sending chunks
-                connection.getEntity().getWorld().addPlayer( connection.getEntity() );
-
                 break;
         }
     }

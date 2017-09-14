@@ -7,9 +7,11 @@
 
 package io.gomint.server.entity.metadata;
 
+import io.gomint.server.entity.EntityFlag;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Vector;
+import lombok.Getter;
 import lombok.ToString;
 import com.koloboke.collect.map.ByteObjMap;
 import com.koloboke.collect.map.hash.HashByteObjMaps;
@@ -68,7 +70,7 @@ public class MetadataContainer {
      */
     static final byte METADATA_VECTOR = 8;
 
-    public static final byte DATA_INDEX = 0;
+    public static final int DATA_INDEX = 0;
     public static final int DATA_HEALTH = 1; //int (minecart/boat)
     public static final int DATA_VARIANT = 2; //int
     public static final int DATA_COLOR = 3, DATA_COLOUR = 3; //byte
@@ -87,9 +89,12 @@ public class MetadataContainer {
     public static final int DATA_MINECART_DISPLAY_BLOCK = 16; //int (id | (data << 16))
     public static final int DATA_MINECART_DISPLAY_OFFSET = 17; //int
     public static final int DATA_MINECART_HAS_DISPLAY = 18; //byte (must be 1 for minecart to show block inside)
-    public static final byte DATA_PLAYER_INDEX = 27;
+    public static final int DATA_PLAYER_INDEX = 27;
+    public static final int DATA_SCALE = 39;
+    public static final int DATA_MAX_AIRDATA_MAX_AIR = 43;
 
     private ByteObjMap<MetadataValue> entries;
+    @Getter private boolean dirty;
 
     /**
      * Constructs a new, empty metadata container.
@@ -115,8 +120,8 @@ public class MetadataContainer {
      * @param flagId  The flag id used to encrypt the boolean
      * @return true when the flag has been set, false when not
      */
-    public boolean getDataFlag( int indexId, int flagId ) {
-        return ( indexId == DATA_PLAYER_INDEX ? this.getByte( indexId ) & 0xff : this.getLong( indexId ) & ( 1L << flagId ) ) > 0;
+    public boolean getDataFlag( int indexId, EntityFlag flagId ) {
+        return ( indexId == DATA_PLAYER_INDEX ? this.getByte( indexId ) & 0xff : this.getLong( indexId ) & ( 1L << flagId.getId() ) ) > 0;
     }
 
     /**
@@ -126,15 +131,15 @@ public class MetadataContainer {
      * @param flagId  The flag id used to encrypt the boolean
      * @param value   The boolean to encrypt
      */
-    public void setDataFlag( int indexId, int flagId, boolean value ) {
+    public void setDataFlag( int indexId, EntityFlag flagId, boolean value ) {
         if ( this.getDataFlag( indexId, flagId ) != value ) {
             if ( indexId == DATA_PLAYER_INDEX ) {
                 byte flags = this.getByte( indexId );
-                flags ^= 1 << flagId;
+                flags ^= 1 << flagId.getId();
                 this.putByte( indexId, flags );
             } else {
                 long flags = this.getLong( indexId );
-                flags ^= 1L << flagId;
+                flags ^= 1L << flagId.getId();
                 this.putLong( indexId, flags );
             }
         }
@@ -148,6 +153,7 @@ public class MetadataContainer {
      */
     public void put( int index, MetadataValue value ) {
         this.entries.put( (byte) index, value );
+        this.dirty = true;
     }
 
     /**
@@ -198,7 +204,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void putByte( int index, byte value ) {
-        this.entries.put( (byte) index, new MetadataByte( value ) );
+        this.put( index, new MetadataByte( value ) );
     }
 
     /**
@@ -228,7 +234,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void putShort( int index, short value ) {
-        this.entries.put( (byte) index, new MetadataShort( value ) );
+        this.put( index, new MetadataShort( value ) );
     }
 
     /**
@@ -258,7 +264,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void putInt( int index, int value ) {
-        this.entries.put( (byte) index, new MetadataInt( value ) );
+        this.put( index, new MetadataInt( value ) );
     }
 
     /**
@@ -288,7 +294,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void putFloat( int index, float value ) {
-        this.entries.put( (byte) index, new MetadataFloat( value ) );
+        this.put( index, new MetadataFloat( value ) );
     }
 
     /**
@@ -318,7 +324,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void putString( int index, String value ) {
-        this.entries.put( (byte) index, new MetadataString( value ) );
+        this.put( index, new MetadataString( value ) );
     }
 
     /**
@@ -348,7 +354,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void putItem( int index, ItemStack value ) {
-        this.entries.put( (byte) index, new MetadataItem( value ) );
+        this.put( index, new MetadataItem( value ) );
     }
 
     /**
@@ -380,7 +386,7 @@ public class MetadataContainer {
      * @param z     The z-value of the position to put into the container
      */
     public void putPosition( int index, int x, int y, int z ) {
-        this.entries.put( (byte) index, new MetadataPosition( x, y, z ) );
+        this.put( index, new MetadataPosition( x, y, z ) );
     }
 
     /**
@@ -411,7 +417,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void putLong( int index, long value ) {
-        this.entries.put( (byte) index, new MetadataLong( value ) );
+        this.put( index, new MetadataLong( value ) );
     }
 
     /**
@@ -441,7 +447,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void putVector( int index, Vector value ) {
-        this.entries.put( (byte) index, new MetadataVector( value ) );
+        this.put( index, new MetadataVector( value ) );
     }
 
     /**

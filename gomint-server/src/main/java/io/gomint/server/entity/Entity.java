@@ -19,6 +19,7 @@ import io.gomint.server.util.Values;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.Liquid;
 import io.gomint.util.Numbers;
 import io.gomint.world.Chunk;
 import lombok.Getter;
@@ -39,13 +40,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class Entity implements io.gomint.entity.Entity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Entity.class );
-
-    private static final int FLAG_CAN_SHOW_NAMETAG = 14;
-    private static final int FLAG_ALWAYS_SHOW_NAMETAG = 15;
-    private static final int FLAG_CAN_CLIMB = 19;
-
-    private static final int FLAG_HAS_COLLISION = 45;
-    private static final int FLAG_AFFECTED_BY_GRAVITY = 46;
 
     // Useful stuff for movement. Those are values for per client tick
     protected static final float GRAVITY = 0.04f;
@@ -72,8 +66,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Bounding Box
      */
     protected AxisAlignedBB boundingBox;
-    @Getter private float width;
-    @Getter private float height;
+    @Getter
+    private float width;
+    @Getter
+    private float height;
 
     /**
      * How high can this entity "climb" in one movement?
@@ -370,7 +366,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         Block block;
         if ( ( block = this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ ) ).isSolid() &&
                 block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
-            // LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "(" + getEntityId() + ") @" + getLocation().toVector() + " is stuck in a block " + block.getClass().getSimpleName() + "@" + block.getLocation().toVector() + " -> " + block.getBoundingBox() );
+            LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "(" + getEntityId() + ") @" + getLocation().toVector() + " is stuck in a block " + block.getClass().getSimpleName() + "@" + block.getLocation().toVector() + " -> " + block.getBoundingBox() );
 
             // Calc with how much force we can get out of here, this depends on how far we are in
             float diffX = this.transform.getPositionX() - fullBlockX;
@@ -738,31 +734,31 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     public void setHasCollision( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_HAS_COLLISION, value );
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.HAS_COLLISION, value );
     }
 
     public void setAffectedByGravity( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_AFFECTED_BY_GRAVITY, value );
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.AFFECTED_BY_GRAVITY, value );
     }
 
     @Override
     public void setNameTagAlwaysVisible( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_ALWAYS_SHOW_NAMETAG, value );
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ALWAYS_SHOW_NAMETAG, value );
     }
 
     @Override
     public boolean isNameTagAlwaysVisible() {
-        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, FLAG_ALWAYS_SHOW_NAMETAG );
+        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ALWAYS_SHOW_NAMETAG );
     }
 
     @Override
     public void setNameTagVisible( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_SHOW_NAMETAG, value );
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_SHOW_NAMETAG, value );
     }
 
     @Override
     public boolean isNameTagVisible() {
-        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_SHOW_NAMETAG );
+        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_SHOW_NAMETAG );
     }
 
     public abstract Packet createSpawnPacket();
@@ -780,11 +776,22 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     public void setCanClimb( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, FLAG_CAN_CLIMB, value );
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_CLIMB, value );
     }
 
     public Vector getVelocity() {
         return this.transform.getMotion();
+    }
+
+    protected boolean isInsideLiquid() {
+        Location eyeLocation = this.getLocation().clone().add( 0, this.eyeHeight, 0 );
+        Block block = eyeLocation.getWorld().getBlockAt( eyeLocation.toBlockPosition() );
+        if ( block instanceof Liquid ) {
+            float yLiquid = (float) ( block.getLocation().getY() + 1 + ( ( ( (Liquid) block ).getFillHeight() - 0.12 ) ) );
+            return eyeLocation.getY() < yLiquid;
+        }
+
+        return false;
     }
 
 }

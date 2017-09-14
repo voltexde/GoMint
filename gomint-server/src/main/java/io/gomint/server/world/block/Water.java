@@ -7,7 +7,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 8 )
-public class Water extends Block {
+public class Water extends Liquid {
 
     @Override
     public int getBlockId() {

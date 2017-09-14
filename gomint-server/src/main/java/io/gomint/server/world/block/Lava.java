@@ -7,7 +7,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 10 )
-public class Lava extends Block {
+public class Lava extends Liquid {
 
     @Override
     public int getBlockId() {

@@ -127,6 +127,9 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
         this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
         this.metadataContainer.putShort( MetadataContainer.DATA_AIR, (short) 400 );
+        this.metadataContainer.putShort( MetadataContainer.DATA_MAX_AIRDATA_MAX_AIR, (short) 400 );
+        this.metadataContainer.putFloat( MetadataContainer.DATA_SCALE, 1.0f );
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, true );
     }
 
     private void initAttributes() {

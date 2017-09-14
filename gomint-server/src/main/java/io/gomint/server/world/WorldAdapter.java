@@ -98,8 +98,6 @@ public abstract class WorldAdapter implements World {
     // Player handling
     private ObjObjMap<EntityPlayer, ChunkAdapter> players;
 
-    private int amountOfSpawnChunks;
-
     protected WorldAdapter( GoMintServer server, File worldDir ) {
         this.server = server;
         this.logger = LoggerFactory.getLogger( "World-" + worldDir.getName() );
@@ -110,8 +108,6 @@ public abstract class WorldAdapter implements World {
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
         this.startAsyncWorker( server.getExecutorService() );
         this.initGamerules();
-
-        this.amountOfSpawnChunks = (int) ( Math.pow( this.server.getServerConfig().getAmountOfChunksForSpawnArea(), 2 ) * Math.PI );
     }
     // CHECKSTYLE:ON
 
@@ -372,15 +368,10 @@ public abstract class WorldAdapter implements World {
      */
     public void addPlayer( EntityPlayer player ) {
         // Schedule sending spawn region chunks:
-        final int minBlockX = (int) ( this.spawn.getX() - 64 );
-        final int minBlockZ = (int) ( this.spawn.getZ() - 64 );
-        final int maxBlockX = (int) ( this.spawn.getX() + 64 );
-        final int maxBlockZ = (int) ( this.spawn.getZ() + 64 );
-
-        final int minChunkX = CoordinateUtils.fromBlockToChunk( minBlockX );
-        final int minChunkZ = CoordinateUtils.fromBlockToChunk( minBlockZ );
-        final int maxChunkX = CoordinateUtils.fromBlockToChunk( maxBlockX );
-        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( maxBlockZ );
+        final int minChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) - player.getViewDistance();
+        final int minChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) - player.getViewDistance();
+        final int maxChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) + player.getViewDistance();
+        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) + player.getViewDistance();
 
         for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
             for ( int j = minChunkX; j <= maxChunkX; ++j ) {
@@ -531,8 +522,6 @@ public abstract class WorldAdapter implements World {
         if ( newChunk == null ) {
             newChunk = this.loadChunk( x, z, true );
         }
-
-        LOGGER.debug( "Moving entity " + player.getName() + " to chunk " + x + ", " + z + " based on position " + player.getLocation() );
 
         if ( oldChunk == null ) {
             newChunk.addPlayer( player );
@@ -815,15 +804,6 @@ public abstract class WorldAdapter implements World {
         }
 
         return collisions;
-    }
-
-    /**
-     * Get the amount of chunks a player needs to be spawned
-     *
-     * @return amount of chunks for a spawn
-     */
-    public int getAmountOfSpawnChunks() {
-        return this.amountOfSpawnChunks;
     }
 
     /**
