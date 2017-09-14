@@ -8,8 +8,6 @@ import io.gomint.server.world.WorldAdapter;
  */
 public class EntityHuman extends EntityLiving {
 
-    private static final int FLAG_PLAYER_SLEEP = 1;
-
     private static final int DATA_PLAYER_BED_POSITION = 29;
 
     /**
@@ -23,11 +21,11 @@ public class EntityHuman extends EntityLiving {
         this.metadataContainer.putByte( MetadataContainer.DATA_PLAYER_INDEX, (byte) 0 );
 
         // Sleeping stuff
-        this.setPlayerFlag( FLAG_PLAYER_SLEEP, false );
+        this.setPlayerFlag( EntityFlag.PLAYER_SLEEP, false );
         this.metadataContainer.putPosition( DATA_PLAYER_BED_POSITION, 0,0,0 );
     }
 
-    public void setPlayerFlag( int flag, boolean value ) {
+    public void setPlayerFlag( EntityFlag flag, boolean value ) {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_PLAYER_INDEX, flag, value );
     }
 }

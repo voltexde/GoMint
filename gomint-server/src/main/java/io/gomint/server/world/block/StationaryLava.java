@@ -7,7 +7,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 11 )
-public class StationaryLava extends Block {
+public class StationaryLava extends Liquid {
 
     @Override
     public int getBlockId() {
@@ -29,4 +29,9 @@ public class StationaryLava extends Block {
         return false;
     }
 
+    @Override
+    public float getFillHeight() {
+        return 1f;
+    }
+    
 }
