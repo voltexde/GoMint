@@ -30,9 +30,4 @@ public class PacketInventoryContent extends Packet {
         this.items = readItemStacks( buffer );
     }
 
-    @Override
-    public int estimateLength() {
-        return predictVarIntSize( this.windowId ) + predictItemStacksSize( this.items );
-    }
-
 }

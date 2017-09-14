@@ -72,15 +72,6 @@ public abstract class Packet {
     public abstract void deserialize( PacketBuffer buffer );
 
     /**
-     * Returns an estimate length of the packet (used for pre-allocation).
-     *
-     * @return The estimate length of the packet or -1 if unknown
-     */
-    public int estimateLength() {
-        return -1;
-    }
-
-    /**
      * Returns the ordering channel to send the packet on.
      *
      * @return The ordering channel of the packet
@@ -168,35 +159,6 @@ public abstract class Packet {
     }
 
     /**
-     * Predict the size of an item stack
-     *
-     * @param itemStack which should be predicted in size
-     * @return amount of bytes needed to write given itemstack
-     */
-    int predictItemStack( ItemStack itemStack ) {
-        if ( itemStack == null || itemStack instanceof ItemAir ) {
-            return predictSignedVarInt( 0 );
-        }
-
-        int idSize = predictSignedVarInt( ( (io.gomint.server.inventory.item.ItemStack) itemStack ).getMaterial() );
-        int dataSize = predictSignedVarInt( ( itemStack.getData() << 8 ) + ( itemStack.getAmount() & 0xff ) );
-
-        NBTTagCompound compound = itemStack.getNbtData();
-        if ( compound == null ) {
-            return idSize + dataSize + 2;
-        } else {
-            try {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                compound.writeTo( byteArrayOutputStream, false, ByteOrder.LITTLE_ENDIAN );
-
-                return idSize + dataSize + 2 + byteArrayOutputStream.size();
-            } catch ( IOException e ) {
-                return idSize + dataSize + 2;
-            }
-        }
-    }
-
-    /**
      * Write a array of item stacks to the buffer
      *
      * @param itemStacks which should be written to the buffer
@@ -233,22 +195,6 @@ public abstract class Packet {
     }
 
     /**
-     * Predict the size of an item stack array
-     *
-     * @param v array of item stacks to get the size for
-     * @return size of item stack array
-     */
-    int predictItemStacksSize( ItemStack[] v ) {
-        int size = predictVarIntSize( v.length );
-        for ( ItemStack itemStack : v ) {
-            size += predictItemStack( itemStack );
-        }
-
-        return size;
-    }
-
-
-    /**
      * Write a array of integers to the buffer
      *
      * @param integers which should be written to the buffer
@@ -264,82 +210,6 @@ public abstract class Packet {
 
         for ( Integer integer : integers ) {
             buffer.writeSignedVarInt( integer );
-        }
-    }
-
-
-    /**
-     * Predict the byte size of a variable signed integer
-     *
-     * @param v number which should be predicted
-     * @return size in bytes
-     */
-    int predictSignedVarInt( int v ) {
-        long val = (long) ( v << 1 ^ v >> 31 );
-        return predictVarLongSize( val );
-    }
-
-    /**
-     * Predict the byte size of the variable number representation
-     *
-     * @param input the number to predict
-     * @return the amount of bytes
-     */
-    int predictVarIntSize( int input ) {
-        int size = 1;
-        int value = input;
-
-        while ( ( value & -128 ) != 0 ) {
-            value >>>= 7;
-            size++;
-        }
-
-        return size;
-    }
-
-    /**
-     * Predict the byte size of the variable number representation
-     *
-     * @param input the number to predict
-     * @return the amount of bytes
-     */
-    int predictVarLongSize( long input ) {
-        int size = 1;
-        long value = input;
-
-        while ( ( value & -128 ) != 0 ) {
-            value >>>= 7;
-            size++;
-        }
-
-        return size;
-    }
-
-    /**
-     * Predict the byte size of an variable long
-     *
-     * @param input which should be predicted in size
-     * @return size in bytes
-     */
-    int predictSignedVarLong( long input ) {
-        BigInteger origin = BigInteger.valueOf( input );
-        BigInteger left = origin.shiftLeft( 1 );
-        BigInteger right = origin.shiftRight( 63 );
-        BigInteger val = left.xor( right );
-
-        if ( val.compareTo( UNSIGNED_LONG_MAX_VALUE ) > 0 ) {
-            throw new IllegalArgumentException( "The value is too big" );
-        } else {
-            int size = 1;
-
-            val = val.and( UNSIGNED_LONG_MAX_VALUE );
-            BigInteger i = BigInteger.valueOf( -128L );
-
-            for ( ; !val.and( i ).equals( BigInteger.ZERO ); val = val.shiftRight( 7 ) ) {
-                size++;
-            }
-
-            return size + 1;
         }
     }
 
@@ -377,12 +247,6 @@ public abstract class Packet {
         buffer.writeSignedVarInt( position.getX() );
         buffer.writeUnsignedVarInt( position.getY() );
         buffer.writeSignedVarInt( position.getZ() );
-    }
-
-    public int predictString( String v ) {
-        byte[] data = v.getBytes( StandardCharsets.UTF_8 );
-        int size = predictVarIntSize( data.length );
-        return size + data.length;
     }
 
     public void writeEntityLinks( List<EntityLink> links, PacketBuffer buffer ) {

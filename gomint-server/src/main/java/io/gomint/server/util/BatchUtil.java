@@ -51,12 +51,7 @@ public class BatchUtil {
         }
 
         for ( Packet packet : packets ) {
-            int estimate = packet.estimateLength();
-            if ( estimate == -1 ) {
-                LOGGER.warn( "Packet " + packet.getClass().getSimpleName() + " has returned negative estimation" );
-            }
-
-            PacketBuffer buffer = new PacketBuffer( estimate == -1 ? 64 : estimate + 3 );
+            PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
             packet.serialize( buffer );

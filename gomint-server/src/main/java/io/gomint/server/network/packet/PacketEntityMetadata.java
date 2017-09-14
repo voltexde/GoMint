@@ -40,4 +40,5 @@ public class PacketEntityMetadata extends Packet {
         this.metadata = new MetadataContainer();
         this.metadata.deserialize( buffer );
     }
+
 }

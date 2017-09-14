@@ -133,11 +133,11 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
             }
         }
 
+        // TODO: Event to cancel the crafting if needed
+
+
         // We can craft this
         if ( craftable ) {
-            // TODO: Event to cancel the crafting if needed
-
-            // TODO: There is a difference in the UI selected, "Classic" mode does put crafting result into the cursor inventory
             for ( ItemStack itemStack : output ) {
                 connection.getEntity().getCraftingResultInventory().addItem( itemStack );
             }

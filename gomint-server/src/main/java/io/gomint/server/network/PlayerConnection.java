@@ -214,7 +214,7 @@ public class PlayerConnection {
         if ( !( packet instanceof PacketBatch ) ) {
             this.send( BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
         } else {
-            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 3 );
+            PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             packet.serialize( buffer );
 
@@ -233,7 +233,7 @@ public class PlayerConnection {
         if ( !( packet instanceof PacketBatch ) ) {
             this.send( reliability, orderingChannel, BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
         } else {
-            PacketBuffer buffer = new PacketBuffer( packet.estimateLength() == -1 ? 64 : packet.estimateLength() + 3 );
+            PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             packet.serialize( buffer );
 
