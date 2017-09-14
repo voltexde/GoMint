@@ -27,9 +27,4 @@ public class PacketEncryptionRequest extends Packet {
         this.jwt = buffer.readString();
     }
 
-    @Override
-    public int estimateLength() {
-        return predictString( this.jwt );
-    }
-
 }

@@ -34,9 +34,4 @@ public class PacketInventorySetSlot extends Packet {
         this.itemStack = readItemStack( buffer );
     }
 
-    @Override
-    public int estimateLength() {
-        return 1 + predictSignedVarInt( this.slot ) + predictItemStack( this.itemStack );
-    }
-
 }

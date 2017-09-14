@@ -40,11 +40,4 @@ public class PacketMobArmorEquipment extends Packet {
         this.boots = readItemStack( buffer );
     }
 
-    @Override
-    public int estimateLength() {
-        return predictVarLongSize( this.entityId ) + predictItemStack( this.helmet ) +
-                predictItemStack( this.boots ) + predictItemStack( this.chestplate ) +
-                predictItemStack( this.leggings );
-    }
-
 }

@@ -60,6 +60,7 @@ public class EntityManager {
         // --------------------------------------
         // Update all entities:
         Set<Entity> movedEntities = null;
+        Set<Entity> metadataChangedEntities = null;
         this.currentlyTicking = true;
 
         LongObjCursor<Entity> cursor = this.entitiesById.cursor();
@@ -70,6 +71,14 @@ public class EntityManager {
                 entity.update( currentTimeMS, dT );
 
                 if ( !entity.isDead() ) {
+                    if ( entity.getMetadata().isDirty() ) {
+                        if ( metadataChangedEntities == null ) {
+                            metadataChangedEntities = new HashSet<>();
+                        }
+
+                        metadataChangedEntities.add( entity );
+                    }
+
                     if ( entity.getTransform().isDirty() ) {
                         if ( movedEntities == null ) {
                             movedEntities = new HashSet<>();
@@ -94,6 +103,35 @@ public class EntityManager {
         // Merge created entities
         this.entitiesById.putAll( this.spawnedInThisTick );
         this.spawnedInThisTick.clear();
+
+        // --------------------------------------
+        // Metadata batches:
+        if ( metadataChangedEntities != null && metadataChangedEntities.size() >  0 ) {
+            for ( Entity entity : metadataChangedEntities ) {
+                int chunkX = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionX() );
+                int chunkZ = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionZ() );
+
+                // Create PacketEntityMetadata
+                PacketEntityMetadata packetEntityMetadata = new PacketEntityMetadata();
+                packetEntityMetadata.setEntityId( entity.getEntityId() );
+                packetEntityMetadata.setMetadata( entity.getMetadata() );
+
+                // Send to all players
+                for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
+                    if ( entity instanceof EntityPlayer ) {
+                        if ( entityPlayer.isHidden( (Player) entity ) ) {
+                            continue;
+                        }
+                    }
+
+                    Chunk playerChunk = entityPlayer.getChunk();
+                    if ( Math.abs( playerChunk.getX() - chunkX ) <= entityPlayer.getViewDistance() &&
+                            Math.abs( playerChunk.getZ() - chunkZ ) <= entityPlayer.getViewDistance() ) {
+                        entityPlayer.getConnection().addToSendQueue( packetEntityMetadata );
+                    }
+                }
+            }
+        }
 
         // --------------------------------------
         // Create movement batches:

@@ -94,7 +94,7 @@ public class MetadataContainer {
     public static final int DATA_MAX_AIRDATA_MAX_AIR = 43;
 
     private ByteObjMap<MetadataValue> entries;
-    @Getter private boolean dirty;
+    private boolean dirty;
 
     /**
      * Constructs a new, empty metadata container.
@@ -539,6 +539,17 @@ public class MetadataContainer {
         }
 
         return true;
+    }
+
+    /**
+     * Return true when the metadata changed. Also resets the dirty flag
+     *
+     * @return true when changed, false when not
+     */
+    public boolean isDirty() {
+        boolean result = this.dirty;
+        this.dirty = false;
+        return result;
     }
 
 }
