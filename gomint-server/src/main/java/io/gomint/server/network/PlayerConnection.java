@@ -69,6 +69,7 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketInventoryTransaction.class, new PacketInventoryTransactionHandler() );
         PACKET_HANDLERS.put( PacketContainerOpen.class, new PacketContainerOpenHandler() );
         PACKET_HANDLERS.put( PacketContainerClose.class, new PacketContainerCloseHandler() );
+        PACKET_HANDLERS.put( PacketHotbar.class, new PacketHotbarHandler() );
     }
 
     // Network manager that created this connection:
@@ -429,12 +430,11 @@ public class PlayerConnection {
     private void handlePacket( long currentTimeMillis, Packet packet ) {
         PacketHandler handler = PACKET_HANDLERS.get( packet.getClass() );
         if ( handler != null ) {
-            LOGGER.debug( "Handling: " + packet );
             handler.handle( packet, currentTimeMillis, this );
             return;
         }
 
-        LOGGER.warn( "No handler for " + packet.getClass() );
+        LOGGER.warn( "No handler for " + packet );
     }
 
     /**
