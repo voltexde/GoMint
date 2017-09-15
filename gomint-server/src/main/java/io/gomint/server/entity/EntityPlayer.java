@@ -22,6 +22,7 @@ import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.ItemAcaciaDoor;
 import io.gomint.inventory.item.ItemWoodPlanks;
 import io.gomint.math.*;
+import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.*;
@@ -41,10 +42,7 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -69,17 +67,12 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     // Player Information
     private String username;
     private UUID uuid;
-    @Setter
-    private PlayerSkin skin;
+    private String xboxId;
+    @Setter private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter
-    private AdventureSettings adventureSettings;
-    @Getter
-    @Setter
-    private Entity hoverEntity;
-    @Getter
-    @Setter
-    private boolean sneaking;
+    @Getter private AdventureSettings adventureSettings;
+    @Getter @Setter private Entity hoverEntity;
+    @Getter @Setter private boolean sneaking;
 
     // Hidden players
     private LongSet hiddenPlayers;
@@ -106,15 +99,18 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
      * @param world      The world the entity should spawn in
      * @param connection The specific player connection associated with this entity
      * @param username   The name the user has chosen
+     * @param xboxId     The xbox id from xbox live which has logged in
      * @param uuid       The uuid which has been sent from the client
      */
     public EntityPlayer( WorldAdapter world,
                          PlayerConnection connection,
                          String username,
+                         String xboxId,
                          UUID uuid ) {
         super( EntityType.PLAYER, world );
         this.connection = connection;
         this.username = username;
+        this.xboxId = xboxId;
         this.uuid = uuid;
         this.viewDistance = this.world.getServer().getServerConfig().getViewDistance();
         this.adventureSettings = new AdventureSettings( this );
@@ -431,8 +427,6 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
      * Fully init inventory and recipes and other stuff which we need to have a full loaded player
      */
     public void fullyInit() {
-        LOGGER.debug( "Current position: " + this.getTransform().getPosition() );
-
         this.inventory = new PlayerInventory( this );
         this.armorInventory = new ArmorInventory( this );
         this.craftingInventory = new CraftingInputInventory( this );
@@ -466,6 +460,14 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         this.getAdventureSettings().update();
         this.updateAttributes();
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
+
+        // Update player list
+        PacketPlayerlist playerlist = new PacketPlayerlist();
+        playerlist.setMode( (byte) 0 );
+        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), username, xboxId, skin ) );
+        }} );
+        this.getConnection().send( playerlist );
 
         // Spawn for others
         this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );
@@ -564,6 +566,10 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     public ContainerInventory getContainerId( byte windowId ) {
         return this.windowIds.get( windowId );
+    }
+
+    public String getXboxID() {
+        return this.xboxId;
     }
 
 }

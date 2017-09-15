@@ -65,7 +65,7 @@ public class PacketText extends Packet {
             case PLAYER_CHAT:
                 buffer.writeString( this.sender );
                 buffer.writeString( this.message );
-                buffer.writeString( "" );
+                buffer.writeString( this.xuid );
                 break;
 
             case LOCALIZABLE_MESSAGE:
