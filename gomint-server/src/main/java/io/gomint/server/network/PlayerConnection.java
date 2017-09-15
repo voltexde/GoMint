@@ -70,17 +70,13 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketContainerOpen.class, new PacketContainerOpenHandler() );
         PACKET_HANDLERS.put( PacketContainerClose.class, new PacketContainerCloseHandler() );
         PACKET_HANDLERS.put( PacketHotbar.class, new PacketHotbarHandler() );
+        PACKET_HANDLERS.put( PacketText.class, new PacketTextHandler() );
     }
 
     // Network manager that created this connection:
-    @Getter
-    private final NetworkManager networkManager;
-    @Getter
-    @Setter
-    private EncryptionHandler encryptionHandler;
-    @Getter
-    private final GoMintServer server;
-    private float lastUpdateDt;
+    @Getter private final NetworkManager networkManager;
+    @Getter @Setter private EncryptionHandler encryptionHandler;
+    @Getter private final GoMintServer server;
 
     // Actual connection for wire transfer:
     @Getter
@@ -90,18 +86,13 @@ public class PlayerConnection {
     private final LongSet playerChunks;
 
     // Connection State:
-    @Getter
-    @Setter
-    private PlayerConnectionState state;
+    @Getter @Setter private PlayerConnectionState state;
     private int sentChunks;
     private BlockingQueue<Packet> sendQueue;
-    @Setter
-    private int neededChunksSent;
+    @Setter private int neededChunksSent;
 
     // Entity
-    @Getter
-    @Setter
-    private EntityPlayer entity;
+    @Getter @Setter private EntityPlayer entity;
     private LongSet currentlySendingPlayerChunks;
 
     /**
@@ -212,7 +203,6 @@ public class PlayerConnection {
      */
     public void send( Packet packet ) {
         if ( !( packet instanceof PacketBatch ) ) {
-            LOGGER.debug( "Sending " + packet );
             this.send( BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
         } else {
             PacketBuffer buffer = new PacketBuffer( 64 );
