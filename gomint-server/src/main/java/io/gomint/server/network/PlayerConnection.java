@@ -159,7 +159,6 @@ public class PlayerConnection {
         }
 
         // Check if we need to send chunks
-
         if ( this.entity != null ) {
             if ( this.entity.getChunkSendQueue().size() > 0 ) {
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
@@ -213,6 +212,7 @@ public class PlayerConnection {
      */
     public void send( Packet packet ) {
         if ( !( packet instanceof PacketBatch ) ) {
+            LOGGER.debug( "Sending " + packet );
             this.send( BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
         } else {
             PacketBuffer buffer = new PacketBuffer( 64 );
@@ -261,7 +261,6 @@ public class PlayerConnection {
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
-            LOGGER.debug( this.sentChunks + " - Needed " + this.neededChunksSent );
             if ( this.sentChunks >= this.neededChunksSent ) {
                 int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
                 int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
@@ -600,7 +599,7 @@ public class PlayerConnection {
         move.setZ( location.getZ() );
         move.setYaw( location.getYaw() );
         move.setPitch( location.getPitch() );
-        move.setMode( (byte) 2 );
+        move.setMode( (byte) 1 );
         move.setOnGround( this.getEntity().isOnGround() );
         move.setRidingEntityId( 0 );    // TODO: Implement riding entities correctly
         this.send( move );
@@ -645,7 +644,7 @@ public class PlayerConnection {
         packet.setGamerules( world.getGamerules() );
         packet.setTexturePacksRequired( true );
 
-        this.entity.setPosition( world.getSpawnLocation().add( 0, 1.62f, 0 ) );
+        this.entity.setPosition( world.getSpawnLocation() );
         this.send( packet );
     }
 

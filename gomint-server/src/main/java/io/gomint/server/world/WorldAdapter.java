@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import com.koloboke.collect.map.ObjObjMap;
 import com.koloboke.collect.map.hash.HashObjObjMaps;
 import io.gomint.entity.Player;
+import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.AxisAlignedBB;
@@ -158,7 +159,7 @@ public abstract class WorldAdapter implements World {
 
     @Override
     public Location getSpawnLocation() {
-        return this.spawn;
+        return this.spawn.clone();
     }
 
     @Override
@@ -831,7 +832,7 @@ public abstract class WorldAdapter implements World {
         }
 
         if ( !interacted || entity.isSneaking() ) {
-            boolean canBePlaced = ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).getBlockId() < 256;
+            boolean canBePlaced = ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).getBlockId() < 256 && !(itemInHand instanceof ItemAir);
             if ( canBePlaced ) {
                 Block blockReplace = blockClicked.getSide( face );
                 io.gomint.server.world.block.Block replaceBlock = (io.gomint.server.world.block.Block) blockReplace;

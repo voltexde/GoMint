@@ -17,33 +17,14 @@ import java.util.Set;
  */
 public class TransactionGroup {
 
-    private final EntityPlayer player;
-    @Getter
-    private final long creationTime;
-
-    @Getter
-    private boolean hasExecuted = false;
-    @Getter
-    private final Set<Inventory> inventories = new HashSet<>();
     private final List<Transaction> transactions = new ArrayList<>();
 
     // Need / have for this transactions
-    @Getter
-    private List<ItemStack> haveItems = new ArrayList<>();
+    @Getter private List<ItemStack> haveItems = new ArrayList<>();
     private List<ItemStack> needItems = new ArrayList<>();
 
     // Matched
     private boolean matchItems;
-
-    /**
-     * Generate a new transaction group
-     *
-     * @param player The player for which those transactions are
-     */
-    public TransactionGroup( EntityPlayer player ) {
-        this.player = player;
-        this.creationTime = System.currentTimeMillis();
-    }
 
     /**
      * Add a new transaction to this group
@@ -58,9 +39,6 @@ public class TransactionGroup {
 
         // Add this transaction and also the inventory
         this.transactions.add( transaction );
-        if ( transaction.hasInventory() ) {
-            this.inventories.add( transaction.getInventory() );
-        }
     }
 
     private void calcMatchItems() {
@@ -132,7 +110,7 @@ public class TransactionGroup {
      *
      * @return true if the transaction is complete and can be executed
      */
-    public boolean canExecute() {
+    private boolean canExecute() {
         this.calcMatchItems();
         return this.matchItems && this.haveItems.isEmpty() && this.needItems.isEmpty() && !this.transactions.isEmpty();
     }

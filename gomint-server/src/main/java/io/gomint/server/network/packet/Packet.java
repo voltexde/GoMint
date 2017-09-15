@@ -19,9 +19,7 @@ import io.gomint.world.Gamerule;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -31,8 +29,6 @@ import java.util.function.BiConsumer;
  * @version 1.0
  */
 public abstract class Packet {
-
-    private static final BigInteger UNSIGNED_LONG_MAX_VALUE = new BigInteger( "FFFFFFFFFFFFFFFF", 16 );
 
     /**
      * Internal MC:PE id of this packet

@@ -16,7 +16,7 @@ public class PacketContainerOpen extends Packet {
     private byte windowId;
     private byte type;
     private BlockPosition location;
-    private long entityId;
+    private long entityId = -1;
 
     /**
      * Construct a new container open packet
@@ -27,7 +27,10 @@ public class PacketContainerOpen extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-
+        buffer.writeByte( this.windowId );
+        buffer.writeByte( this.type );
+        writeBlockPosition( this.location, buffer );
+        buffer.writeSignedVarLong( this.entityId );
     }
 
     @Override

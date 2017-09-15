@@ -7,6 +7,12 @@
 
 package io.gomint.server.entity;
 
+import com.koloboke.collect.map.ByteObjMap;
+import com.koloboke.collect.map.IntObjMap;
+import com.koloboke.collect.map.ObjByteMap;
+import com.koloboke.collect.map.hash.HashByteObjMaps;
+import com.koloboke.collect.map.hash.HashIntObjMaps;
+import com.koloboke.collect.map.hash.HashObjByteMaps;
 import com.koloboke.collect.set.LongSet;
 import com.koloboke.collect.set.hash.HashLongSets;
 import io.gomint.GoMint;
@@ -22,6 +28,7 @@ import io.gomint.server.inventory.*;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
+import io.gomint.server.network.type.WindowType;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.ChunkAdapter;
@@ -84,20 +91,14 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private Inventory cursorInventory;
     private Inventory craftingInputInventory;
     private Inventory craftingResultInventory;
-    @Setter
-    @Getter
-    private TransactionGroup transactions;
+    @Setter @Getter private TransactionGroup transactions;
+    private ByteObjMap<ContainerInventory> windowIds;
+    private ObjByteMap<ContainerInventory> containerIds;
 
     // Block break data
-    @Setter
-    @Getter
-    private BlockPosition breakVector;
-    @Setter
-    @Getter
-    private long startBreak;
-    @Setter
-    @Getter
-    private long breakTime;
+    @Setter @Getter private BlockPosition breakVector;
+    @Setter @Getter private long startBreak;
+    @Setter @Getter private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -334,6 +335,31 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         return inventory;
     }
 
+    @Override
+    public void openInventory( io.gomint.inventory.Inventory inventory ) {
+        if ( inventory instanceof ContainerInventory ) {
+            // We need to generate a window id for the client
+            byte foundId = -1;
+            for ( byte i = WindowMagicNumbers.FIRST.getId(); i < WindowMagicNumbers.LAST.getId(); i++ ) {
+                if ( !this.windowIds.containsKey( i ) ) {
+                    foundId = i;
+                    break;
+                }
+            }
+
+            // No id found?
+            if ( foundId == -1 ) {
+                return;
+            }
+
+            // Trigger open
+            ContainerInventory containerInventory = (ContainerInventory) inventory;
+            this.windowIds.put( foundId, containerInventory );
+            this.containerIds.put( containerInventory, foundId );
+            containerInventory.addViewer( this, foundId );
+        }
+    }
+
     /**
      * Get the players armor
      *
@@ -405,12 +431,16 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
      * Fully init inventory and recipes and other stuff which we need to have a full loaded player
      */
     public void fullyInit() {
+        LOGGER.debug( "Current position: " + this.getTransform().getPosition() );
+
         this.inventory = new PlayerInventory( this );
         this.armorInventory = new ArmorInventory( this );
         this.craftingInventory = new CraftingInputInventory( this );
         this.cursorInventory = new CursorInventory( this );
         this.craftingInputInventory = new CraftingInputInventory( this );
         this.craftingResultInventory = new CursorInventory( this );
+        this.windowIds = HashByteObjMaps.newMutableMap();
+        this.containerIds = HashObjByteMaps.newMutableMap();
         this.connection.getServer().getCreativeInventory().addViewer( this );
 
         // Testing items
@@ -419,7 +449,11 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         this.inventory.setItem( 1, GoMint.instance().createItemStack( ItemAcaciaDoor.class, 1 ) );
 
         // Now its time for the join event since the play is fully loaded
-        this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
+        PlayerJoinEvent event = this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
+        if ( event.isCancelled() ) {
+            this.connection.disconnect( event.getKickReason() );
+            return;
+        }
 
         int gameModeNumber = EnumConnectors.GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
         this.getAdventureSettings().setWorldImmutable( gameModeNumber == 0x03 );
@@ -508,6 +542,28 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
      */
     public void cleanup() {
         this.connection.getServer().getCreativeInventory().removeViewer( this );
+    }
+
+    /**
+     * Get the window id of specified inventory
+     *
+     * @param inventory
+     * @return
+     */
+    public byte getWindowId( ContainerInventory inventory ) {
+        return this.containerIds.getByte( inventory );
+    }
+
+    public void closeInventory( byte windowId ) {
+        ContainerInventory containerInventory = this.windowIds.remove( windowId );
+        if ( containerInventory != null ) {
+            containerInventory.removeViewer( this );
+            this.containerIds.remove( containerInventory, windowId );
+        }
+    }
+
+    public ContainerInventory getContainerId( byte windowId ) {
+        return this.windowIds.get( windowId );
     }
 
 }
