@@ -4,6 +4,7 @@ import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.passive.EntityItem;
+import io.gomint.server.inventory.ContainerInventory;
 import io.gomint.server.inventory.Inventory;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.inventory.transaction.DropItemTransaction;
@@ -31,7 +32,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
         switch ( packet.getType() ) {
             case PacketInventoryTransaction.TYPE_NORMAL:
                 TransactionGroup transactionGroup;
-                connection.getEntity().setTransactions( transactionGroup = new TransactionGroup( connection.getEntity() ) );
+                connection.getEntity().setTransactions( transactionGroup = new TransactionGroup() );
                 for ( PacketInventoryTransaction.NetworkTransaction transaction : packet.getActions() ) {
                     Inventory inventory = null;
 
@@ -41,19 +42,15 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                         case -3:    // Removed from crafting
                             inventory = connection.getEntity().getCraftingInventory();
                             break;
-
                         case -4:    // Set output slot
                             inventory = connection.getEntity().getCraftingResultInventory();
                             break;
-
                         case -5:    // Crafting result input
                             inventory = connection.getEntity().getCraftingInputInventory();
                             break;
-
                         case -100:  // Crafting container dropped contents
                             inventory = connection.getEntity().getCraftingInventory();
                             break;
-
                         case 0:     // Player window id
                             inventory = connection.getEntity().getInventory();
                             break;
@@ -65,7 +62,13 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                             break;
 
                         default:
-                            LOGGER.warn( "Unknown window id: " + transaction.getWindowId() );
+                            // Check for container windows
+                            ContainerInventory containerInventory = connection.getEntity().getContainerId( (byte) transaction.getWindowId() );
+                            if ( containerInventory != null ) {
+                                inventory = containerInventory;
+                            } else {
+                                LOGGER.warn( "Unknown window id: " + transaction.getWindowId() );
+                            }
                     }
 
                     switch ( transaction.getSourceType() ) {
@@ -102,7 +105,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 }
 
                 if ( packet.getActionType() == 0 ) {
-
                     // Can we safely interact?
                     if ( connection.getEntity().canInteract( packet.getBlockPosition().toVector().add( .5f, .5f, .5f ), 13 ) && connection.getEntity().getGamemode() != Gamemode.SPECTATOR ) {
                         ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();

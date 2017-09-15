@@ -8,6 +8,7 @@
 package io.gomint.server.network;
 
 import io.gomint.event.network.PingEvent;
+import io.gomint.event.player.PlayerPreLoginEvent;
 import io.gomint.jraknet.*;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
@@ -88,7 +89,7 @@ public class NetworkManager {
             throw new IllegalStateException( "Cannot re-initialize network manager" );
         }
 
-        this.socket = new ServerSocket( maxConnections );
+        this.socket = new ServerSocket( maxConnections < 0 ? 20 : maxConnections );
         this.socket.setEventLoopFactory( this.server.getThreadFactory() );
         this.socket.setEventHandler( new SocketEventHandler() {
             @Override
@@ -233,6 +234,17 @@ public class NetworkManager {
     private void handleSocketEvent( SocketEvent event ) {
         switch ( event.getType() ) {
             case NEW_INCOMING_CONNECTION:
+                PlayerPreLoginEvent playerPreLoginEvent = this.getServer().getPluginManager().callEvent(
+                        new PlayerPreLoginEvent( event.getConnection().getAddress() )
+                );
+
+                if ( playerPreLoginEvent.isCancelled() ) {
+                    // Since the user has not gotten any packets we are not able to be sure if we can send him a disconnect notification
+                    // so we decide to close the raknet connection without any notice
+                    event.getConnection().disconnect( null );
+                    return;
+                }
+
                 this.handleNewConnection( event.getConnection() );
                 break;
 

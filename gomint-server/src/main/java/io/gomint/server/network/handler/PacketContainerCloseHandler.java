@@ -12,12 +12,12 @@ public class PacketContainerCloseHandler implements PacketHandler<PacketContaine
 
     @Override
     public void handle( PacketContainerClose packet, long currentTimeMillis, PlayerConnection connection ) {
-        System.out.println( packet );
-
         if ( packet.getWindowId() == -1 ) {
             // Client closed its crafting view
             connection.getEntity().getCraftingInventory().resizeAndClear( 4 );
             connection.getEntity().getCraftingResultInventory().resizeAndClear( 4 );
+        } else {
+            connection.getEntity().closeInventory( packet.getWindowId() );
         }
     }
 

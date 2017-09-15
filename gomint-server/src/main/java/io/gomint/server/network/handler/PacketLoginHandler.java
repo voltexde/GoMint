@@ -42,17 +42,6 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
     @Override
     public void handle( PacketLogin packet, long currentTimeMillis, PlayerConnection connection ) {
-        PlayerPreLoginEvent playerPreLoginEvent = connection.getNetworkManager().getServer().getPluginManager().callEvent(
-                new PlayerPreLoginEvent( connection.getConnection().getAddress() )
-        );
-
-        if ( playerPreLoginEvent.isCancelled() ) {
-            // Since the user has not gotten any packets we are not able to be sure if we can send him a disconnect notification
-            // so we decide to close the raknet connection without any notice
-            connection.disconnect( null );
-            return;
-        }
-
         // Check versions
         LOGGER.debug( "Trying to login with protocol version: " + packet.getProtocol() );
         if ( packet.getProtocol() != Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {

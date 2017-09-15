@@ -7,6 +7,7 @@
 
 package io.gomint.entity;
 
+import io.gomint.inventory.Inventory;
 import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
@@ -93,5 +94,19 @@ public interface Player extends Entity {
      * @param to The location where the player should be teleported to
      */
     void teleport( Location to );
+
+    /**
+     * Get the players inventory
+     *
+     * @return players inventory
+     */
+    Inventory getInventory();
+
+    /**
+     * Opens a inventory for the player
+     *
+     * @param inventory which should be opened
+     */
+    void openInventory( Inventory inventory );
 
 }

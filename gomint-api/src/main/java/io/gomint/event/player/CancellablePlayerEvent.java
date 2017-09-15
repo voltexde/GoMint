@@ -19,11 +19,11 @@ import lombok.ToString;
  */
 @EqualsAndHashCode( callSuper = false )
 @ToString( callSuper = true )
-public class PlayerEvent extends Event {
+public class CancellablePlayerEvent extends CancellableEvent {
 
     private final Player player;
 
-    public PlayerEvent( Player player ) {
+    public CancellablePlayerEvent( Player player ) {
         this.player = player;
     }
 

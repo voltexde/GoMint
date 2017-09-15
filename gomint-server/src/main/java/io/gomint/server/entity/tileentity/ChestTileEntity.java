@@ -7,7 +7,10 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.ChestInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.MaterialMagicNumbers;
@@ -24,7 +27,7 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-class ChestTileEntity extends TileEntity implements InventoryHolder {
+public class ChestTileEntity extends TileEntity implements InventoryHolder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( ChestTileEntity.class );
     private ChestInventory inventory;
@@ -64,11 +67,11 @@ class ChestTileEntity extends TileEntity implements InventoryHolder {
                 LOGGER.warn( "Found item without slot information: " + material + " @ " + this.location + " setting it to the next free slot" );
                 this.inventory.addItem( Items.create( material,
                         itemCompound.getShort( "Damage", (short) 0 ),
-                        itemCompound.getByte( "Count", (byte) 0 ), null ) );
+                        itemCompound.getByte( "Count", (byte) 1 ), null ) );
             } else {
                 this.inventory.setItem( slot, Items.create( material,
                         itemCompound.getShort( "Damage", (short) 0 ),
-                        itemCompound.getByte( "Count", (byte) 0 ), null ) );
+                        itemCompound.getByte( "Count", (byte) 1 ), null ) );
             }
         }
     }
@@ -76,6 +79,14 @@ class ChestTileEntity extends TileEntity implements InventoryHolder {
     @Override
     public void update( long currentMillis, float dF ) {
 
+    }
+
+    @Override
+    public void interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+        // Open the chest inventory for the entity
+        if ( entity instanceof EntityPlayer ) {
+            ( (EntityPlayer) entity ).openInventory( this.inventory );
+        }
     }
 
     @Override
