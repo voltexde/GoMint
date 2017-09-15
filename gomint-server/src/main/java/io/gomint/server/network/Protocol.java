@@ -31,6 +31,7 @@ public final class Protocol {
     public static final byte PACKET_RESOURCEPACK_INFO = (byte) 0x06;
     public static final byte PACKET_RESOURCEPACK_STACK = (byte) 0x07;
     public static final byte PACKET_RESOURCEPACK_RESPONSE = (byte) 0x08;
+    public static final byte PACKET_TEXT = (byte) 0x09;
     public static final byte PACKET_WORLD_TIME = (byte) 0x0a;
     public static final byte PACKET_START_GAME = (byte) 0x0b;
     public static final byte PACKET_SPAWN_PLAYER = (byte) 0x0c;
@@ -89,6 +90,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_TEXT:
+                return new PacketText();
+
             case PACKET_HOTBAR:
                 return new PacketHotbar();
 
