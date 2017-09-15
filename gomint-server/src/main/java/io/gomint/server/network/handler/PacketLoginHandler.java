@@ -115,11 +115,19 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
         }
 
         // Create additional data wrappers
-        PlayerSkin playerSkin = new PlayerSkin( skinToken.getClaim( "SkinId" ), Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinData" ) ) );
+        String capeData = skinToken.getClaim( "CapeData" );
+        PlayerSkin playerSkin = new PlayerSkin(
+                skinToken.getClaim( "SkinId" ),
+                Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinData" ) ),
+                capeData.isEmpty() ? null : Base64.getDecoder().decode( capeData ),
+                skinToken.getClaim( "SkinGeometryName" ),
+                Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinGeometry" ) )
+        );
 
         // Create entity:
         WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();
-        connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(), chainValidator.getUuid() ) );
+        connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(),
+                chainValidator.getXboxId(), chainValidator.getUuid() ) );
         connection.getEntity().setSkin( playerSkin );
         connection.getEntity().setNameTagVisible( true );
         connection.getEntity().setNameTagAlwaysVisible( true );

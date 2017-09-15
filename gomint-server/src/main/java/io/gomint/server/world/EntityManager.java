@@ -315,6 +315,7 @@ public class EntityManager {
                             add( new PacketPlayerlist.Entry( entityPlayer.getUUID(),
                                     entityPlayer.getEntityId(),
                                     entityPlayer.getName(),
+                                    entityPlayer.getXboxID(),
                                     entityPlayer.getSkin() ) );
                         }} );
                     }
@@ -327,7 +328,8 @@ public class EntityManager {
                         listEntry = new ArrayList<>();
                     }
 
-                    listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(), player.getName(), player.getSkin() ) );
+                    listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(),
+                            player.getName(), player.getXboxID(), player.getSkin() ) );
                 }
             }
 

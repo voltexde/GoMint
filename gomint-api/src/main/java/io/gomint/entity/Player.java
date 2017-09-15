@@ -109,4 +109,11 @@ public interface Player extends Entity {
      */
     void openInventory( Inventory inventory );
 
+    /**
+     * Get the unique XBOX live id. Is empty string if not in xbox live mode
+     *
+     * @return xbox live id or empty string
+     */
+    String getXboxID();
+
 }
