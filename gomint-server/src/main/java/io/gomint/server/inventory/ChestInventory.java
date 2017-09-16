@@ -12,6 +12,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.ChestTileEntity;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryContent;
+import io.gomint.server.network.packet.PacketInventorySetSlot;
 import io.gomint.server.network.type.WindowType;
 
 /**
@@ -36,7 +37,13 @@ public class ChestInventory extends ContainerInventory {
 
     @Override
     public void sendContents( int slot, PlayerConnection playerConnection ) {
+        byte windowId = playerConnection.getEntity().getWindowId( this );
 
+        PacketInventorySetSlot inventorySetSlot = new PacketInventorySetSlot();
+        inventorySetSlot.setWindowId( windowId );
+        inventorySetSlot.setSlot( slot );
+        inventorySetSlot.setItemStack( this.getItem( slot ) );
+        playerConnection.send( inventorySetSlot );
     }
 
     @Override
