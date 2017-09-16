@@ -54,6 +54,9 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
             case STOP_SNEAK:
                 connection.getEntity().setSneaking( false );
                 break;
+            case JUMP:
+                // TODO: Decide what todo with this information
+                break;
             default:
                 LOGGER.warn( "Unhandled action: " + packet );
                 break;
