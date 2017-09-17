@@ -9,7 +9,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Data
-public class BlockPosition {
+public class BlockPosition implements Cloneable {
 
     public static final BlockPosition UP = new BlockPosition( 0, 1, 0 );
     public static final BlockPosition DOWN = new BlockPosition( 0, -1, 0 );
@@ -31,4 +31,18 @@ public class BlockPosition {
         this.z += other.z;
         return this;
     }
+
+    @Override
+    public BlockPosition clone() {
+        try {
+            BlockPosition blockPosition = (BlockPosition) super.clone();
+            blockPosition.x = this.x;
+            blockPosition.y = this.y;
+            blockPosition.z = this.z;
+            return blockPosition;
+        } catch ( CloneNotSupportedException e ) {
+            throw new AssertionError( "Failed to clone block position!" );
+        }
+    }
+
 }

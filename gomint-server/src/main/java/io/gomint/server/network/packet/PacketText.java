@@ -30,19 +30,6 @@ public class PacketText extends Packet {
         super( Protocol.PACKET_TEXT );
     }
 
-    /**
-     * Shorthand constructor for PLAYER_CHAT messages.
-     *
-     * @param sender  The sender of the chat message
-     * @param message The actual chat message
-     */
-    public PacketText( String sender, String message ) {
-        this();
-        this.type = Type.PLAYER_CHAT;
-        this.sender = sender;
-        this.message = message;
-    }
-
     public String getSubtitle() {
         return this.sender;
     }
@@ -54,7 +41,7 @@ public class PacketText extends Packet {
     @Override
     public void serialize( PacketBuffer buffer ) {
         buffer.writeByte( this.type.getId() );
-        buffer.writeBoolean( true );
+        buffer.writeBoolean( false );
         switch ( this.type ) {
             case CLIENT_MESSAGE:
             case TIP_MESSAGE:

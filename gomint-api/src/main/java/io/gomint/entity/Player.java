@@ -116,4 +116,19 @@ public interface Player extends Entity {
      */
     String getXboxID();
 
+    /**
+     * Send a message to the client, this uses the normal {@link ChatType} enum.
+     *
+     * @param message which should be send to the client
+     */
+    void sendMessage( String message );
+
+    /**
+     * Send a message with a given type to the client
+     *
+     * @param message which should be send
+     * @param type of the message
+     */
+    void sendMessage( ChatType type, String ... message );
+
 }

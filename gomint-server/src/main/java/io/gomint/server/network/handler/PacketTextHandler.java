@@ -18,7 +18,7 @@ public class PacketTextHandler implements PacketHandler<PacketText> {
                 // Simply relay for now
                 for ( Player player : connection.getServer().getPlayers() ) {
                     if ( player instanceof EntityPlayer ) {
-                        ( (EntityPlayer) player ).getConnection().send( packet );
+                        ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
                     }
                 }
         }
