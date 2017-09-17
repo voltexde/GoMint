@@ -16,6 +16,7 @@ import com.koloboke.collect.map.hash.HashObjByteMaps;
 import com.koloboke.collect.set.LongSet;
 import com.koloboke.collect.set.hash.HashLongSets;
 import io.gomint.GoMint;
+import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.entity.Player;
 import io.gomint.event.player.PlayerJoinEvent;
@@ -570,6 +571,42 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     public String getXboxID() {
         return this.xboxId;
+    }
+
+    @Override
+    public void sendMessage( String message ) {
+        PacketText packetText = new PacketText();
+        packetText.setMessage( message );
+        packetText.setType( PacketText.Type.CLIENT_MESSAGE );
+        this.connection.addToSendQueue( packetText );
+    }
+
+    @Override
+    public void sendMessage( ChatType type, String... message ) {
+        PacketText packetText = new PacketText();
+        packetText.setMessage( message[0] );
+        switch ( type ) {
+            case TIP:
+                packetText.setType( PacketText.Type.TIP_MESSAGE );
+                break;
+            case NORMAL:
+                packetText.setType( PacketText.Type.CLIENT_MESSAGE );
+                break;
+            case SYSTEM:
+                packetText.setType( PacketText.Type.SYSTEM_MESSAGE );
+                break;
+            case POPUP:
+                packetText.setType( PacketText.Type.POPUP_NOTICE );
+
+                if ( message.length > 1 ) {
+                    packetText.setSubtitle( message[1] );
+                } else {
+                    packetText.setSubtitle( "" );
+                }
+                break;
+        }
+
+        this.connection.addToSendQueue( packetText );
     }
 
 }

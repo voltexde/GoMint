@@ -11,6 +11,7 @@ import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
+import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityLink;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
@@ -257,6 +258,16 @@ public abstract class Packet {
                 buffer.writeByte( link.getUnknown2() );
             }
         }
+    }
+
+    void writeVector( Vector vector, PacketBuffer buffer ) {
+        buffer.writeLFloat( vector.getX() );
+        buffer.writeLFloat( vector.getY() );
+        buffer.writeLFloat( vector.getZ() );
+    }
+
+    Vector readVector( PacketBuffer buffer ) {
+        return new Vector( buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat() );
     }
 
 }
