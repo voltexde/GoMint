@@ -633,6 +633,7 @@ public class PlayerConnection {
         packet.setTemplateName( "" );
         packet.setGamerules( world.getGamerules() );
         packet.setTexturePacksRequired( true );
+        packet.setCommandsEnabled( true );
 
         this.entity.setPosition( world.getSpawnLocation() );
         this.send( packet );

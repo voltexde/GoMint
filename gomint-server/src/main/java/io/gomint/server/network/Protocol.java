@@ -71,6 +71,7 @@ public final class Protocol {
     public static final byte PACKET_PLAYER_LIST = (byte) 0x3F;
     public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
     public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
+    public static final byte PACKET_AVAILABLE_COMMANDS = (byte) 0x4c;
 
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     // CHECKSTYLE:ON
