@@ -3,13 +3,16 @@ package io.gomint.server.network.packet;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.network.type.CommandData;
+import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
+@Data
 public class PacketAvailableCommands extends Packet {
 
     private List<String> enumValues;
@@ -20,7 +23,7 @@ public class PacketAvailableCommands extends Packet {
     /**
      * Construct a new packet
      */
-    protected PacketAvailableCommands() {
+    public PacketAvailableCommands() {
         super( Protocol.PACKET_AVAILABLE_COMMANDS );
     }
 
@@ -51,8 +54,27 @@ public class PacketAvailableCommands extends Packet {
         // Now write command data
         buffer.writeUnsignedVarInt( this.commandData.size() );
         for ( CommandData data : this.commandData ) {
+            // Command meta
             buffer.writeString( data.getName() );
             buffer.writeString( data.getDescription() );
+
+            // Flags?
+            buffer.writeByte( data.getFlags() );
+            buffer.writeByte( data.getPermission() );
+
+            // Alias enum index
+            buffer.writeLInt( data.getAliasIndex() );
+
+            // Write parameters and overload
+            buffer.writeUnsignedVarInt( data.getParameters().size() );
+            for ( List<CommandData.Parameter> parameters : data.getParameters() ) {
+                buffer.writeUnsignedVarInt( parameters.size() );
+                for ( CommandData.Parameter parameter : parameters ) {
+                    buffer.writeString( parameter.getName() );
+                    buffer.writeLInt( parameter.getType() );
+                    buffer.writeBoolean( parameter.isOptional() );
+                }
+            }
         }
     }
 

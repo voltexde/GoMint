@@ -14,6 +14,7 @@ import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityLink;
 import io.gomint.server.inventory.item.Items;
+import io.gomint.server.network.type.CommandOrigin;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Gamerule;
 
@@ -268,6 +269,18 @@ public abstract class Packet {
 
     Vector readVector( PacketBuffer buffer ) {
         return new Vector( buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat() );
+    }
+
+    CommandOrigin readCommandOrigin( PacketBuffer buffer ) {
+        // I currently don't know what the data looks like
+        // All stuff i have seen is 3 0 bytes and 0x0 0x0 0x03 when the server responds
+        return new CommandOrigin( buffer.readByte(), buffer.readByte(), buffer.readByte() );
+    }
+
+    void writeCommandOrigin( CommandOrigin commandOrigin, PacketBuffer buffer ) {
+        buffer.writeByte( commandOrigin.getUnknown1() );
+        buffer.writeByte( commandOrigin.getUnknown2() );
+        buffer.writeByte( commandOrigin.getType() );
     }
 
 }

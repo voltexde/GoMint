@@ -34,8 +34,22 @@ public interface ParamValidator {
      * Validates given input
      *
      * @param input from the command
-     * @return true if its valid, false when the execution should be rejected
+     * @return non null object of validation on success (string for example) or null when validation failed
      */
-    boolean validate( String input );
+    Object validate( List<String> input );
+
+    /**
+     * Is this param optional?
+     *
+     * @return true when its optional, false when not
+     */
+    boolean isOptional();
+
+    /**
+     * Return how much parts of the command this validator plans to consume
+     *
+     * @return amount of parts which should be consumed
+     */
+    int consumesParts();
 
 }

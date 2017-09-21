@@ -225,6 +225,20 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 tickLock.unlock();
             }
         }
+
+        // Safe shutdown
+        this.networkManager.close();
+        this.pluginManager.close();
+        this.worldManager.close();
+
+        this.executorService.shutdown();
+
+        try {
+            this.executorService.awaitTermination( 5, TimeUnit.SECONDS );
+            this.executorService.shutdownNow();
+        } catch ( InterruptedException e ) {
+            e.printStackTrace();
+        }
     }
 
     private boolean initNetworking() {

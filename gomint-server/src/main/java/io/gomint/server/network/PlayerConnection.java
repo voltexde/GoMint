@@ -71,6 +71,7 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketContainerClose.class, new PacketContainerCloseHandler() );
         PACKET_HANDLERS.put( PacketHotbar.class, new PacketHotbarHandler() );
         PACKET_HANDLERS.put( PacketText.class, new PacketTextHandler() );
+        PACKET_HANDLERS.put( PacketCommandRequest.class, new PacketCommandRequestHandler() );
     }
 
     // Network manager that created this connection:
@@ -199,7 +200,7 @@ public class PlayerConnection {
     /**
      * Sends the given packet to the player.
      *
-     * @param packet The packet to send to the player
+     * @param packet The packet tstopo send to the player
      */
     public void send( Packet packet ) {
         if ( !( packet instanceof PacketBatch ) ) {

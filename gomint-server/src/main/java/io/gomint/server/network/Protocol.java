@@ -17,8 +17,8 @@ public final class Protocol {
 
     // CHECKSTYLE:OFF
     // MC:PE Protocol ID
-    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 136;
-    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.2.0.31";
+    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 137;
+    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.2.0.81";
 
     // ========================================= PACKET IDS ========================================= //
     public static final byte PACKET_BATCH = (byte) 0xfe;
@@ -72,6 +72,8 @@ public final class Protocol {
     public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
     public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
     public static final byte PACKET_AVAILABLE_COMMANDS = (byte) 0x4c;
+    public static final byte PACKET_COMMAND_REQUEST = (byte) 0x4d;
+    public static final byte PACKET_COMMAND_OUTPUT = (byte) 0x4f;
 
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     // CHECKSTYLE:ON
@@ -91,6 +93,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_COMMAND_REQUEST:
+                return new PacketCommandRequest();
+
             case PACKET_TEXT:
                 return new PacketText();
 
