@@ -16,6 +16,11 @@ import java.util.Collection;
  */
 public class ListCommand extends CommandExecutor {
 
+    /**
+     * Command to list all online players
+     *
+     * @param commandManager which should register this command
+     */
     public ListCommand( CommandManager commandManager ) {
         Command command = new Command( "list" );
         command.description( "List online players" ).executor( this ).permission( "gomint.commands.list" );
@@ -43,7 +48,7 @@ public class ListCommand extends CommandExecutor {
                         break;
                     }
 
-                    output.success( "§7[§aSYSTEM§7] §f" + player1.getName() );
+                    output.success( "§7[§aSYSTEM§7] §f%%s", player1.getName() );
                 }
             }
         } else {
@@ -54,7 +59,7 @@ public class ListCommand extends CommandExecutor {
                     break;
                 }
 
-                output.success( "§7[§aSYSTEM§7] §f" + player1.getName() );
+                output.success( "§7[§aSYSTEM§7] §f%%s", player1.getName() );
             }
         }
 
