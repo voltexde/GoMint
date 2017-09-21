@@ -3,6 +3,7 @@ package io.gomint.server.network.handler;
 import com.google.common.base.Joiner;
 import io.gomint.command.CommandOutput;
 import io.gomint.command.CommandOutputMessage;
+import io.gomint.command.CommandOverload;
 import io.gomint.command.ParamValidator;
 import io.gomint.server.command.CommandHolder;
 import io.gomint.server.network.PlayerConnection;
@@ -63,62 +64,84 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
             }
 
             // Now we need to parse all additional parameters
-            String restData = removedFirstChar.substring( selected.getName().length() + 1 );
+            String restData;
+            if ( removedFirstChar.length() > selected.getName().length() ) {
+                restData = removedFirstChar.substring( selected.getName().length() + 1 );
+            } else {
+                restData = "";
+            }
+
             String[] params = restData.split( " " );
-            Iterator<String> paramIterator = Arrays.asList( params ).iterator();
 
-            Object[] commandInput = new Object[selected.getValidators().size()];
-            int currentIndex = 0;
+            PacketCommandOutput output = new PacketCommandOutput();
+            CommandOutput commandOutput = null;
 
-            for ( ParamValidator validator : selected.getValidators().values() ) {
-                List<String> input = new ArrayList<>();
-                for ( int i = 0; i < validator.consumesParts(); i++ ) {
-                    if ( !paramIterator.hasNext() ) {
-                        PacketCommandOutput output = new PacketCommandOutput();
-                        output.setSuccess( false );
-                        output.setOutputs( new ArrayList<OutputMessage>() {{
-                            add( new OutputMessage( "Not enough parameters for command '%%s'", false, new ArrayList<String>(){{
-                                add( packet.getInputCommand() );
-                            }} ) );
-                        }} );
+            if ( selected.getOverload() != null ) {
+                overloads: for ( CommandOverload overload : selected.getOverload() ) {
+                    Iterator<String> paramIterator = Arrays.asList( params ).iterator();
 
-                        connection.send( output );
-                        return;
-                    } else {
-                        input.add( paramIterator.next() );
+                    if ( overload.getParameters() != null ) {
+                        Object[] commandInput = new Object[overload.getParameters().size()];
+                        int currentIndex = 0;
+
+                        for ( ParamValidator validator : overload.getParameters().values() ) {
+                            List<String> input = new ArrayList<>();
+                            for ( int i = 0; i < validator.consumesParts(); i++ ) {
+                                if ( !paramIterator.hasNext() ) {
+                                    output.setSuccess( false );
+                                    output.setOutputs( new ArrayList<OutputMessage>() {{
+                                        add( new OutputMessage( "Not enough parameters for command '%%s'", false, new ArrayList<String>() {{
+                                            add( packet.getInputCommand() );
+                                        }} ) );
+                                    }} );
+
+                                    continue overloads;
+                                } else {
+                                    input.add( paramIterator.next() );
+                                }
+                            }
+
+                            Object result = validator.validate( input );
+                            if ( result == null ) {
+                                output.setSuccess( false );
+                                output.setOutputs( new ArrayList<OutputMessage>() {{
+                                    add( new OutputMessage( "Validation of parameter '%%s' from input '%%s' failed", false, new ArrayList<String>() {{
+                                        add( Joiner.on( ", " ).join( input ) );
+                                        add( packet.getInputCommand() );
+                                    }} ) );
+                                }} );
+
+                                continue overloads;
+                            }
+
+                            commandInput[currentIndex] = result;
+                            currentIndex++;
+                        }
+
+                        commandOutput = selected.getExecutor().execute( connection.getEntity(), commandInput );
+                        break;
                     }
                 }
 
-                Object result = validator.validate( input );
-                if ( result == null ) {
-                    PacketCommandOutput output = new PacketCommandOutput();
-                    output.setSuccess( false );
-                    output.setOutputs( new ArrayList<OutputMessage>() {{
-                        add( new OutputMessage( "Validation of parameter '%%s' from input '%%s' failed", false, new ArrayList<String>(){{
-                            add( Joiner.on( ", " ).join( input ) );
-                            add( packet.getInputCommand() );
-                        }} ) );
-                    }} );
+                if ( commandOutput == null && output.isSuccess() ) {
+                    commandOutput = selected.getExecutor().execute( connection.getEntity() );
+                }
+            } else {
+                commandOutput = selected.getExecutor().execute( connection.getEntity() );
+            }
 
-                    connection.send( output );
-                    return;
+            if ( commandOutput != null ) {
+                output.setSuccess( commandOutput.isSuccess() );
+
+                // Remap outputs
+                List<OutputMessage> outputMessages = new ArrayList<>();
+                for ( CommandOutputMessage commandOutputMessage : commandOutput.getMessages() ) {
+                    outputMessages.add( new OutputMessage( commandOutputMessage.getFormat(), commandOutputMessage.isSuccess(), commandOutputMessage.getParameters() ) );
                 }
 
-                commandInput[currentIndex] = result;
-                currentIndex++;
+                output.setOutputs( outputMessages );
             }
 
-            CommandOutput commandOutput = selected.getExecutor().execute( connection.getEntity(), commandInput );
-            PacketCommandOutput output = new PacketCommandOutput();
-            output.setSuccess( commandOutput.isSuccess() );
-
-            // Remap outputs
-            List<OutputMessage> outputMessages = new ArrayList<>();
-            for ( CommandOutputMessage commandOutputMessage : commandOutput.getMessages() ) {
-                outputMessages.add( new OutputMessage( commandOutputMessage.getFormat(), commandOutputMessage.isSuccess(), commandOutputMessage.getParameters() ) );
-            }
-
-            output.setOutputs( outputMessages );
             connection.send( output );
         }
     }

@@ -20,7 +20,7 @@ public class Command {
 
     private final String name;
     private String description;
-    private Map<String, ParamValidator> parameters;
+    private List<CommandOverload> overload;
     private final Set<String> alias = new HashSet<>();
     private String permission;
     private CommandExecutor executor;
@@ -57,23 +57,6 @@ public class Command {
     }
 
     /**
-     * Add a param to the command. Params are passed to their validators when the command gets
-     * executed.
-     *
-     * @param name of the parameter
-     * @param validator which should decide if the parameter is valid
-     * @return the command currently build
-     */
-    public Command param( String name, ParamValidator validator ) {
-        if ( this.parameters == null ) {
-            this.parameters = new HashMap<>();
-        }
-
-        this.parameters.put( name, validator );
-        return this;
-    }
-
-    /**
      * Add an alias to the command
      *
      * @param alias which should be added
@@ -100,6 +83,23 @@ public class Command {
      */
     public void build() {
 
+    }
+
+    /**
+     * Add a version of this command. You can add multiple version of a command using this system. For example:
+     * - /list
+     * - /list <filter: string>
+     *
+     * @return overload storage for parameter definition
+     */
+    public CommandOverload overload() {
+        if ( this.overload == null ) {
+            this.overload = new ArrayList<>();
+        }
+
+        CommandOverload commandOverload = new CommandOverload();
+        this.overload.add( commandOverload );
+        return commandOverload;
     }
 
 }
