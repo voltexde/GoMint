@@ -35,8 +35,23 @@ public class EnumValidator implements ParamValidator {
     }
 
     @Override
-    public boolean validate( String input ) {
-        return this.values.contains( input );
+    public Object validate( List<String> input ) {
+        String toCheck = input.get( 0 );
+        if ( this.values.contains( toCheck ) ) {
+            return toCheck;
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean isOptional() {
+        return false;
+    }
+
+    @Override
+    public int consumesParts() {
+        return 1;
     }
 
 }

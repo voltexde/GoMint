@@ -482,6 +482,11 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         batch.setPayload( this.connection.getEncryptionHandler().encryptInputForClient(
                 this.world.getServer().getRecipeManager().getCraftingRecipesBatch().getPayload() ) );
         this.connection.send( batch );
+
+        // Send commands
+        PacketAvailableCommands packetAvailableCommands = this.connection.getServer().
+                getPluginManager().getCommandManager().createPacket( this );
+        this.connection.send( packetAvailableCommands );
     }
 
     @Override
@@ -607,6 +612,11 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         }
 
         this.connection.addToSendQueue( packetText );
+    }
+
+    @Override
+    public boolean hasPermission( String permission ) {
+        return true;
     }
 
 }

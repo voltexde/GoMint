@@ -33,8 +33,23 @@ public class StringValidator implements ParamValidator {
     }
 
     @Override
-    public boolean validate( String input ) {
-        return this.pattern.matcher( input ).matches();
+    public Object validate( List<String> input ) {
+        String toCheck = input.get( 0 );
+        if ( this.pattern.matcher( toCheck ).matches() ) {
+            return toCheck;
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean isOptional() {
+        return false;
+    }
+
+    @Override
+    public int consumesParts() {
+        return 1;
     }
 
 }

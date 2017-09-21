@@ -1,7 +1,9 @@
 package io.gomint.server.command;
 
 import io.gomint.command.CommandExecutor;
+import io.gomint.command.CommandPermission;
 import io.gomint.command.ParamValidator;
+import io.gomint.server.entity.CommandPermissionMagicNumbers;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -16,8 +18,10 @@ import java.util.Set;
 public class CommandHolder {
 
     private String name;
+    private String description;
     private Set<String> alias;
 
+    private CommandPermissionMagicNumbers commandPermission;
     private String permission;
     private CommandExecutor executor;
     private Map<String, ParamValidator> validators;

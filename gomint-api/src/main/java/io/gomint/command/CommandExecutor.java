@@ -8,6 +8,6 @@ import io.gomint.entity.Player;
  */
 public abstract class CommandExecutor {
 
-    abstract void execute( Player player, Object... arguments );
+    public abstract CommandOutput execute( Player player, Object... arguments );
 
 }

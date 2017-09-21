@@ -858,4 +858,9 @@ public abstract class WorldAdapter implements World {
         return entityItem;
     }
 
+    public void close() {
+        // Stop async worker
+        this.asyncWorkerRunning = false;
+    }
+
 }

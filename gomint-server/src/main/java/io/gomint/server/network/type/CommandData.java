@@ -1,27 +1,30 @@
 package io.gomint.server.network.type;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
-@AllArgsConstructor
-@Getter
+@RequiredArgsConstructor
+@Data
 public class CommandData {
 
-    private String name;
-    private String description;
+    private final String name;
+    private final String description;
     private byte flags;
-    private byte perission;
-    private int aliasIndex;
-    private List<Parameter> parameters;
+    private byte permission;
+    private int aliasIndex = -1;
+    private List<List<Parameter>> parameters;
 
     @AllArgsConstructor
     @Getter
-    public class Parameter {
+    public static class Parameter {
         private String name;
         private int type;
         private boolean optional;
