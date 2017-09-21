@@ -16,7 +16,7 @@ import java.util.List;
 public class PacketCommandOutput extends Packet {
 
     private CommandOrigin origin = new CommandOrigin( (byte) 0, (byte) 0, (byte) 3 ); // This is always type 3 (server)
-    private boolean success;
+    private boolean success = true;
     private List<OutputMessage> outputs;
 
     /**

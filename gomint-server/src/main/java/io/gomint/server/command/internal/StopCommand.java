@@ -16,9 +16,9 @@ import io.gomint.server.command.CommandManager;
 public class StopCommand extends CommandExecutor {
 
     public StopCommand( CommandManager commandManager ) {
-        Command command = new Command( "stop test" );
+        Command command = new Command( "stop" );
         command.description( "Stops the GoMint server" )
-                .param( "test", new StringValidator( "[A-Z]+" ) )
+                .permission( "gomint.commands.stop" )
                 .executor( this );
 
         commandManager.register( null, command );

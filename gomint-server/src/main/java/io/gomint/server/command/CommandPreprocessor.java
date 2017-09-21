@@ -1,5 +1,6 @@
 package io.gomint.server.command;
 
+import io.gomint.command.CommandOverload;
 import io.gomint.command.ParamValidator;
 import io.gomint.server.network.packet.PacketAvailableCommands;
 import io.gomint.server.network.type.CommandData;
@@ -83,14 +84,18 @@ public class CommandPreprocessor {
 
         // Now we need to search for enum validators
         for ( CommandHolder command : commands ) {
-            if ( command.getValidators() != null ) {
-                for ( Map.Entry<String, ParamValidator> entry : command.getValidators().entrySet() ) {
-                    if ( entry.getValue().hasValues() ) {
-                        for ( String s : entry.getValue().values() ) {
-                            this.addEnum( entry.getKey(), s );
-                        }
+            if ( command.getOverload() != null ) {
+                for ( CommandOverload overload : command.getOverload() ) {
+                    if ( overload.getParameters() != null ) {
+                        for ( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
+                            if ( entry.getValue().hasValues() ) {
+                                for ( String s : entry.getValue().values() ) {
+                                    this.addEnum( entry.getKey(), s );
+                                }
 
-                        this.enumIndexes.put( command.getName() + "#" + entry.getKey(), this.enums.getIndex( entry.getKey() ) );
+                                this.enumIndexes.put( command.getName() + "#" + entry.getKey(), this.enums.getIndex( entry.getKey() ) );
+                            }
+                        }
                     }
                 }
             }
@@ -116,38 +121,42 @@ public class CommandPreprocessor {
             // Do we need to hack a bit here?
             List<List<CommandData.Parameter>> overloads = new ArrayList<>();
 
-            if ( command.getValidators() != null ) {
-                List<CommandData.Parameter> parameters = new ArrayList<>();
-                for ( Map.Entry<String, ParamValidator> entry : command.getValidators().entrySet() ) {
-                    // Build together type
-                    int paramType = ARG_FLAG_VALID; // We don't support postfixes yet
+            if ( command.getOverload() != null ) {
+                for ( CommandOverload overload : command.getOverload() ) {
+                    List<CommandData.Parameter> parameters = new ArrayList<>();
+                    if ( overload.getParameters() != null ) {
+                        for ( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
+                            // Build together type
+                            int paramType = ARG_FLAG_VALID; // We don't support postfixes yet
 
-                    switch ( entry.getValue().getType() ) {
-                        case INT:
-                            paramType |= ARG_TYPE_INT;
-                            break;
-                        case BOOL:
-                        case STRING_ENUM:
-                            paramType |= ARG_FLAG_ENUM;
-                            paramType |= this.enumIndexes.get( command.getName() + "#" + entry.getKey() );
-                            break;
-                        case TARGET:
-                            paramType |= ARG_TYPE_TARGET;
-                            break;
-                        case STRING:
-                            paramType |= ARG_TYPE_STRING;
-                            break;
-                        case BLOCK_POS:
-                            paramType |= ARG_TYPE_POSITION;
-                            break;
-                        default:
-                            paramType |= ARG_TYPE_VALUE;
+                            switch ( entry.getValue().getType() ) {
+                                case INT:
+                                    paramType |= ARG_TYPE_INT;
+                                    break;
+                                case BOOL:
+                                case STRING_ENUM:
+                                    paramType |= ARG_FLAG_ENUM;
+                                    paramType |= this.enumIndexes.get( command.getName() + "#" + entry.getKey() );
+                                    break;
+                                case TARGET:
+                                    paramType |= ARG_TYPE_TARGET;
+                                    break;
+                                case STRING:
+                                    paramType |= ARG_TYPE_STRING;
+                                    break;
+                                case BLOCK_POS:
+                                    paramType |= ARG_TYPE_POSITION;
+                                    break;
+                                default:
+                                    paramType |= ARG_TYPE_VALUE;
+                            }
+
+                            parameters.add( new CommandData.Parameter( entry.getKey(), paramType, entry.getValue().isOptional() ) );
+                        }
                     }
 
-                    parameters.add( new CommandData.Parameter( entry.getKey(), paramType, entry.getValue().isOptional() ) );
+                    overloads.add( parameters );
                 }
-
-                overloads.add( parameters );
             }
 
             commandData.setParameters( overloads );

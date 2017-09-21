@@ -63,7 +63,7 @@ public class CommandManager {
                     holder.getCommandPermission(),
                     holder.getPermission(),
                     holder.getExecutor(),
-                    holder.getValidators()
+                    holder.getOverload()
             );
 
             this.commands.put( cmdName, commandHolder );
@@ -78,7 +78,7 @@ public class CommandManager {
                 CommandPermissionMagicNumbers.NORMAL,
                 commandBuilder.getPermission(),
                 commandBuilder.getExecutor(),
-                commandBuilder.getParameters() );
+                commandBuilder.getOverload() );
 
         // Store the command for usage
         this.commands.put( commandBuilder.getName(), holder );
