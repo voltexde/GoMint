@@ -139,4 +139,11 @@ public interface Player extends Entity {
      */
     boolean hasPermission( String permission );
 
+    /**
+     * Get the view distance of this player
+     *
+     * @return radius of chunks this player can see
+     */
+    int getViewDistance();
+
 }

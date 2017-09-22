@@ -72,6 +72,7 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketHotbar.class, new PacketHotbarHandler() );
         PACKET_HANDLERS.put( PacketText.class, new PacketTextHandler() );
         PACKET_HANDLERS.put( PacketCommandRequest.class, new PacketCommandRequestHandler() );
+        PACKET_HANDLERS.put( PacketWorldSoundEvent.class, new PacketWorldSoundEventHandler() );
     }
 
     // Network manager that created this connection:
@@ -200,7 +201,7 @@ public class PlayerConnection {
     /**
      * Sends the given packet to the player.
      *
-     * @param packet The packet tstopo send to the player
+     * @param packet The packet which should be send to the player
      */
     public void send( Packet packet ) {
         if ( !( packet instanceof PacketBatch ) ) {
@@ -262,6 +263,9 @@ public class PlayerConnection {
                 this.getEntity().fullyInit();
 
                 this.state = PlayerConnectionState.PLAYING;
+
+                // Send missing chunks to fill view distance
+                this.checkForNewChunks( null );
             }
         }
     }

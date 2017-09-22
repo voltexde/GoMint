@@ -42,7 +42,7 @@ public final class Protocol {
     public static final byte PACKET_ENTITY_MOVEMENT = (byte) 0x12;
     public static final byte PACKET_MOVE_PLAYER = (byte) 0x13;
     public static final byte PACKET_UPDATE_BLOCK = (byte) 0x15;
-    public static final byte PACKET_WORLD_SOUND_EVENT = (byte) 0x19;
+    public static final byte PACKET_WORLD_SOUND_EVENT = (byte) 0x18;
 
     public static final byte PACKET_UPDATE_ATTRIBUTES = (byte) 0x1D;
     public static final byte PACKET_INVENTORY_TRANSACTION = (byte) 0x1E;
