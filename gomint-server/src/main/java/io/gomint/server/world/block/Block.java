@@ -1,18 +1,23 @@
 package io.gomint.server.world.block;
 
-import io.gomint.math.BlockPosition;
-import io.gomint.server.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketUpdateBlock;
+import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.storage.TemporaryStorage;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * @author geNAZt
@@ -42,6 +47,24 @@ public abstract class Block implements io.gomint.world.block.Block {
     }
 
     /**
+     * Method which gets called when a entity steps on a block
+     *
+     * @param entity which stepped on the block
+     */
+    public void stepOn( Entity entity ) {
+
+    }
+
+    /**
+     * method which gets called when a entity got off a block which it {@link #stepOn(Entity)}.
+     *
+     * @param entity which got off the block
+     */
+    public void gotOff( Entity entity ) {
+
+    }
+
+    /**
      * Called when a entity decides to interact with the block
      *
      * @param entity  The entity which interacts with it
@@ -51,6 +74,20 @@ public abstract class Block implements io.gomint.world.block.Block {
      */
     public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
         return false;
+    }
+
+    public <T, R> R storeInTemporaryStorage( String key, Function<T, R> func ) {
+        // Check world storage
+        BlockPosition blockPosition = this.location.toBlockPosition();
+        TemporaryStorage temporaryStorage = ( (WorldAdapter) this.location.getWorld() ).getTemporaryBlockStorage( blockPosition );
+        return temporaryStorage.store( key, func );
+    }
+
+    public <T> T getFromTemporaryStorage( String key ) {
+        // Check world storage
+        BlockPosition blockPosition = this.location.toBlockPosition();
+        TemporaryStorage temporaryStorage = ( (WorldAdapter) this.location.getWorld() ).getTemporaryBlockStorage( blockPosition );
+        return (T) temporaryStorage.get( key );
     }
 
     @Override
@@ -122,7 +159,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Get the attached tile entity to this block
      *
-     * @param <T>   The type of the tile entity
+     * @param <T> The type of the tile entity
      * @return null when there is not tile entity attached, otherwise the stored tile entity
      */
     public <T extends TileEntity> T getTileEntity() {

@@ -1,7 +1,10 @@
 package io.gomint.server.world.block;
 
 import io.gomint.math.AxisAlignedBB;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
+
+import java.util.function.Function;
 
 /**
  * @author geNAZt
@@ -28,6 +31,39 @@ public class WoodenPressurePlate extends Block {
     @Override
     public boolean isSolid() {
         return false;
+    }
+
+    @Override
+    public void stepOn( Entity entity ) {
+        // Check for additional temporary data
+        Integer amountOfEntitiesOn = this.storeInTemporaryStorage( "amountOfEntitiesOn", new Function<Integer, Integer>() {
+            @Override
+            public Integer apply( Integer old ) {
+                if ( old == null ) return 1;
+                return old + 1;
+            }
+        } );
+
+        if ( amountOfEntitiesOn > 0 && this.getBlockData() != 1 ) {
+            this.setBlockData( (byte) 1 );
+            this.updateBlock();
+        }
+    }
+
+    @Override
+    public void gotOff( Entity entity ) {
+        Integer amountOfEntitiesOn = this.storeInTemporaryStorage( "amountOfEntitiesOn", new Function<Integer, Integer>() {
+            @Override
+            public Integer apply( Integer old ) {
+                if ( old - 1 == 0 ) return null;
+                return old - 1;
+            }
+        } );
+
+        if ( amountOfEntitiesOn == null && this.getBlockData() == 1 ) {
+            this.setBlockData( (byte) 0 );
+            this.updateBlock();
+        }
     }
 
     @Override

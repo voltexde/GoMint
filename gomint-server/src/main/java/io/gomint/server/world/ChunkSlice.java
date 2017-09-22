@@ -1,8 +1,11 @@
 package io.gomint.server.world;
 
+import com.koloboke.collect.map.ShortObjMap;
+import com.koloboke.collect.map.hash.HashShortObjMaps;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.world.block.Blocks;
+import io.gomint.server.world.storage.TemporaryStorage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -10,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -28,7 +32,8 @@ class ChunkSlice {
     private NibbleArray blockLight = new NibbleArray( 4096 );
     private NibbleArray skyLight = new NibbleArray( 4096 );
 
-    private TileEntity[] tileEntities = new TileEntity[4096];
+    private ShortObjMap<TileEntity> tileEntities = HashShortObjMaps.newMutableMap();
+    private ShortObjMap<TemporaryStorage> temporaryStorages = HashShortObjMaps.newMutableMap();
 
     private int getIndex( int x, int y, int z ) {
         return ( x << 8 ) + ( z << 4 ) + y;
@@ -54,24 +59,25 @@ class ChunkSlice {
         }
 
         return (T) Blocks.get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
-                this.blockLight.get( index ), this.tileEntities[index], new Location( this.chunk.world, fullX, fullY, fullZ ) );
+                this.blockLight.get( index ), this.tileEntities.get( (short) index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
     }
 
     Collection<TileEntity> getTileEntities() {
         List<TileEntity> tileEntities = new ArrayList<>();
 
-        for ( TileEntity tileEntity : this.tileEntities ) {
-            if ( tileEntity != null ) {
+        this.tileEntities.values().cursor().forEachForward( new Consumer<TileEntity>() {
+            @Override
+            public void accept( TileEntity tileEntity ) {
                 tileEntities.add( tileEntity );
             }
-        }
+        } );
 
         return tileEntities;
     }
 
     void addTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         int index = getIndex( x, y, z );
-        this.tileEntities[index] = tileEntity;
+        this.tileEntities.put( (short) index, tileEntity );
     }
 
     void setBlock( int x, int y, int z, byte blockId ) {
@@ -124,6 +130,18 @@ class ChunkSlice {
         }
 
         return baos.toByteArray();
+    }
+
+    public TemporaryStorage getTemporaryStorage( int x, int y, int z ) {
+        int index = getIndex( x, y, z );
+
+        TemporaryStorage storage = this.temporaryStorages.get( (short) index );
+        if ( storage == null ) {
+            storage = new TemporaryStorage();
+            this.temporaryStorages.put( (short) index, storage );
+        }
+
+        return storage;
     }
 
 }

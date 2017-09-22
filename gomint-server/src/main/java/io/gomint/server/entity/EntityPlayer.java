@@ -35,6 +35,7 @@ import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.util.Numbers;
 import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
@@ -550,6 +551,9 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
      */
     public void cleanup() {
         this.connection.getServer().getCreativeInventory().removeViewer( this );
+
+        Block block = this.world.getBlockAt( this.getPosition().toBlockPosition() );
+        block.gotOff( this );
     }
 
     /**
