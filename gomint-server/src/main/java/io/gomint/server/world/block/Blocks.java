@@ -7,10 +7,17 @@ import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.util.AllPermission;
 import io.gomint.server.world.block.generator.BlockGenerator;
 import javassist.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.CodeSigner;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 
 /**
  * @author geNAZt
@@ -36,12 +43,12 @@ public class Blocks {
             try {
                 generatorCT.addMethod( CtNewMethod.make( "public Object generate( byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {" +
                         "io.gomint.server.world.block.Block block = new " + clazz.getName() + "();" +
-                        "            block.setBlockData( blockData );\n" +
-                        "            block.setTileEntity( tileEntity );\n" +
-                        "            block.setWorld( (io.gomint.server.world.WorldAdapter) location.getWorld() );\n" +
-                        "            block.setLocation( location );\n" +
-                        "            block.setSkyLightLevel( skyLightLevel );\n" +
-                        "            block.setBlockLightLevel( blockLightLevel );" +
+                        "block.setBlockData( blockData );\n" +
+                        "block.setTileEntity( tileEntity );\n" +
+                        "block.setWorld( (io.gomint.server.world.WorldAdapter) location.getWorld() );\n" +
+                        "block.setLocation( location );\n" +
+                        "block.setSkyLightLevel( skyLightLevel );\n" +
+                        "block.setBlockLightLevel( blockLightLevel );" +
                         "return block;" +
                         "}", generatorCT ) );
 
@@ -52,8 +59,10 @@ public class Blocks {
             }
 
             try {
-                return (BlockGenerator) generatorCT.toClass().newInstance();
-            } catch ( InstantiationException | IllegalAccessException | CannotCompileException e ) {
+                // Use the same code source as the Gomint JAR
+                CodeSource codeSource = new CodeSource( new URL( "file:///generated/blocks/" ), (CodeSigner[]) null );
+                return (BlockGenerator) generatorCT.toClass( ClassLoader.getSystemClassLoader(), new ProtectionDomain( codeSource, new AllPermission() ) ).newInstance();
+            } catch ( InstantiationException | IllegalAccessException | CannotCompileException | MalformedURLException e ) {
                 e.printStackTrace();
             }
 

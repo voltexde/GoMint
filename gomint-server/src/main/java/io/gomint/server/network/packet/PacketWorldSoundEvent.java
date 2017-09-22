@@ -18,7 +18,7 @@ public class PacketWorldSoundEvent extends Packet {
     private int extraData = -1;
     private int pitch = -1;
     private boolean unknownBool;
-    private boolean unknownBool2;
+    private boolean disableRelativeVolume;
 
     public PacketWorldSoundEvent() {
         super( Protocol.PACKET_WORLD_SOUND_EVENT );
@@ -33,7 +33,7 @@ public class PacketWorldSoundEvent extends Packet {
         buffer.writeSignedVarInt( this.extraData );
         buffer.writeSignedVarInt( this.pitch );
         buffer.writeBoolean( this.unknownBool );
-        buffer.writeBoolean( this.unknownBool2 );
+        buffer.writeBoolean( this.disableRelativeVolume );
     }
 
     @Override
@@ -43,7 +43,7 @@ public class PacketWorldSoundEvent extends Packet {
         this.extraData = buffer.readSignedVarInt();
         this.pitch = buffer.readSignedVarInt();
         this.unknownBool = buffer.readBoolean();
-        this.unknownBool2 = buffer.readBoolean();
+        this.disableRelativeVolume = buffer.readBoolean();
     }
 
 }

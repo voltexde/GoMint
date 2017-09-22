@@ -12,7 +12,6 @@ import com.koloboke.collect.map.hash.HashObjObjMaps;
 import io.gomint.entity.Player;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
@@ -42,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Predicate;
 
 /**
  * @author BlackyPaw
@@ -50,23 +50,6 @@ import java.util.concurrent.*;
 public abstract class WorldAdapter implements World {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( WorldAdapter.class );
-
-    // CHECKSTYLE:OFF
-    private static final Set<Byte> CAN_TICK_RANDOM = new HashSet<>( Arrays.asList(
-            (byte) 2,       // Grass
-            (byte) 60,      // Farmland
-            (byte) 110,     // Mycelium
-
-            (byte) 6,       // Sapling
-
-            (byte) 16,      // Leaves
-            (byte) 161,     // Acacia leaves
-
-            (byte) 78,      // Top snow
-            (byte) 79,      // Ice
-            (byte) 11,      // Stationary Lava
-            (byte) 10       // Lava
-    ) );
 
     // Shared objects
     @Getter
@@ -259,6 +242,7 @@ public abstract class WorldAdapter implements World {
         // Update all blocks
 
         // Random blocks
+        // Random blocks
         for ( long chunkHash : this.chunkCache.getChunkHashes() ) {
             int x = (int) ( chunkHash >> 32 );
             int z = (int) ( chunkHash ) + Integer.MIN_VALUE;
@@ -276,15 +260,30 @@ public abstract class WorldAdapter implements World {
                             int blockZ = blockHash >> 16 & 0x0f;
 
                             byte blockId = chunkSlice.getBlock( blockX, blockY, blockZ );
-                            if ( CAN_TICK_RANDOM.contains( blockId ) ) {
-                                Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
-                                if ( block instanceof io.gomint.server.world.block.Block ) {
-                                    long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
-                                    if ( next > currentTimeMS ) {
-                                        Location location = block.getLocation();
-                                        WorldAdapter.this.tickQueue.add( next, CoordinateUtils.toLong( (int) location.getX(), (int) location.getY(), (int) location.getZ() ) );
+                            switch ( blockId ) {
+                                case 2:             // Grass
+                                case 60:            // Farmland
+                                case 110:           // Mycelium
+                                case 6:             // Sapling
+                                case 16:            // Leaves
+                                case (byte) 161:    // Acacia leaves
+                                case 78:            // Top snow
+                                case 79:            // Ice
+                                case 11:            // Stationary lava
+                                case 10:            // Lava
+                                case 9:             // Stationary water
+                                case 8:             // Water
+                                    Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
+                                    if ( block instanceof io.gomint.server.world.block.Block ) {
+                                        long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
+                                        if ( next > currentTimeMS ) {
+                                            Location location = block.getLocation();
+                                            WorldAdapter.this.tickQueue.add( next, CoordinateUtils.toLong( (int) location.getX(), (int) location.getY(), (int) location.getZ() ) );
+                                        }
                                     }
-                                }
+
+                                default:
+                                    break;
                             }
                         }
                     }
@@ -369,10 +368,10 @@ public abstract class WorldAdapter implements World {
      */
     public void addPlayer( EntityPlayer player ) {
         // Schedule sending spawn region chunks:
-        final int minChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) - player.getViewDistance();
-        final int minChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) - player.getViewDistance();
-        final int maxChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) + player.getViewDistance();
-        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) + player.getViewDistance();
+        final int minChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) - 4;
+        final int minChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) - 4;
+        final int maxChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) + 4;
+        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) + 4;
 
         for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
             for ( int j = minChunkX; j <= maxChunkX; ++j ) {
@@ -615,16 +614,26 @@ public abstract class WorldAdapter implements World {
     // ==================================== NETWORKING HELPERS ==================================== //
 
     /**
-     * Broadcasts the given packet to all players in this world.
+     * Send a packet to all players which can see the position
      *
-     * @param reliability     The reliability to send the packet with
-     * @param orderingChannel The ordering channel to send the packet on
-     * @param packet          The packet to send
+     * @param position  where the packet will have its impact
+     * @param packet    which should be sent
+     * @param predicate which decides over each entity if they will get the packet sent or not
      */
-    public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
-        // Send directly:
-        for ( EntityPlayer player : this.players.keySet() ) {
-            player.getConnection().send( reliability, orderingChannel, packet );
+    public void sendToVisible( Vector position, Packet packet, Predicate<Entity> predicate ) {
+        int posX = CoordinateUtils.fromBlockToChunk( (int) position.getX() );
+        int posZ = CoordinateUtils.fromBlockToChunk( (int) position.getZ() );
+
+        for ( Player player : this.getPlayers() ) {
+            Location location = player.getLocation();
+            int currentX = CoordinateUtils.fromBlockToChunk( (int) location.getX() );
+            int currentZ = CoordinateUtils.fromBlockToChunk( (int) location.getZ() );
+
+            if ( Math.abs( posX - currentX ) <= player.getViewDistance() &&
+                    Math.abs( posZ - currentZ ) <= player.getViewDistance() &&
+                    predicate.test( (Entity) player ) ) {
+                ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
+            }
         }
     }
 
@@ -699,7 +708,12 @@ public abstract class WorldAdapter implements World {
         updateBlock.setBlockId( block.getBlockId() );
         updateBlock.setPrioAndMetadata( (byte) ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() ) ) );
 
-        broadcast( PacketReliability.RELIABLE_ORDERED, 0, updateBlock );
+        sendToVisible( pos.toVector(), updateBlock, new Predicate<Entity>() {
+            @Override
+            public boolean test( Entity entity ) {
+                return true;
+            }
+        } );
 
         // Check for tile entity
         if ( block.getTileEntity() != null ) {
@@ -707,7 +721,12 @@ public abstract class WorldAdapter implements World {
             tileEntityData.setPosition( pos );
             tileEntityData.setTileEntity( block.getTileEntity() );
 
-            broadcast( PacketReliability.RELIABLE_ORDERED, 0, tileEntityData );
+            sendToVisible( pos.toVector(), tileEntityData, new Predicate<Entity>() {
+                @Override
+                public boolean test( Entity entity ) {
+                    return true;
+                }
+            } );
         }
     }
 
@@ -832,7 +851,7 @@ public abstract class WorldAdapter implements World {
         }
 
         if ( !interacted || entity.isSneaking() ) {
-            boolean canBePlaced = ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).getBlockId() < 256 && !(itemInHand instanceof ItemAir);
+            boolean canBePlaced = ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).getBlockId() < 256 && !( itemInHand instanceof ItemAir );
             if ( canBePlaced ) {
                 Block blockReplace = blockClicked.getSide( face );
                 io.gomint.server.world.block.Block replaceBlock = (io.gomint.server.world.block.Block) blockReplace;
