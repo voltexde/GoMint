@@ -4,6 +4,7 @@ import io.gomint.event.player.PlayerMoveEvent;
 import io.gomint.math.Location;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMovePlayer;
+import io.gomint.server.world.block.Block;
 
 /**
  * @author geNAZt
@@ -57,6 +58,13 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
                 (int) from.getZ() != (int) to.getZ() ||
                 !to.getWorld().equals( from.getWorld() ) ) {
             connection.checkForNewChunks( from );
+
+            // Check for interaction
+            Block block = from.getWorld().getBlockAt( from.toBlockPosition() );
+            block.gotOff( connection.getEntity() );
+
+            block = to.getWorld().getBlockAt( to.toBlockPosition() );
+            block.stepOn( connection.getEntity() );
         }
     }
 

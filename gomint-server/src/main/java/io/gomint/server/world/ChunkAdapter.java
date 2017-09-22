@@ -16,6 +16,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
+import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
@@ -344,6 +345,11 @@ public abstract class ChunkAdapter implements Chunk {
     public <T extends Block> T getBlockAt( int x, int y, int z ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         return slice.getBlockInstance( x, y & 0x000000F, z );
+    }
+
+    public TemporaryStorage getTemporaryStorage( int x, int y, int z ) {
+        ChunkSlice slice = ensureSlice( y >> 4 );
+        return slice.getTemporaryStorage( x, y - 16 * ( y >> 4 ), z );
     }
 
     // ==================================== MISCELLANEOUS ==================================== //

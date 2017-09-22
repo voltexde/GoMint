@@ -27,6 +27,7 @@ import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
+import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.util.Numbers;
 import io.gomint.world.Chunk;
 import io.gomint.world.Gamerule;
@@ -880,6 +881,17 @@ public abstract class WorldAdapter implements World {
     public void close() {
         // Stop async worker
         this.asyncWorkerRunning = false;
+    }
+
+    public TemporaryStorage getTemporaryBlockStorage( BlockPosition position ) {
+        // Get chunk
+        int x = position.getX(), y = position.getY(), z = position.getZ();
+        ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
+        if ( chunk == null ) {
+            chunk = this.loadChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ), true );
+        }
+
+        return chunk.getTemporaryStorage( x & 0xF, y, z & 0xF );
     }
 
 }
