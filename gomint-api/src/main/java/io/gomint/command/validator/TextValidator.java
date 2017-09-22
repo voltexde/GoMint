@@ -1,26 +1,21 @@
 package io.gomint.command.validator;
 
+import com.google.common.base.Joiner;
 import io.gomint.command.ParamType;
 import io.gomint.command.ParamValidator;
 import io.gomint.entity.Entity;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
-public class StringValidator extends ParamValidator {
-
-    private final Pattern pattern;
-
-    public StringValidator( String regex ) {
-        this.pattern = Pattern.compile( regex );
-    }
+public class TextValidator extends ParamValidator {
 
     @Override
     public ParamType getType() {
-        return ParamType.STRING;
+        return ParamType.TEXT;
     }
 
     @Override
@@ -35,17 +30,12 @@ public class StringValidator extends ParamValidator {
 
     @Override
     public Object validate( List<String> input, Entity entity ) {
-        String toCheck = input.get( 0 );
-        if ( this.pattern.matcher( toCheck ).matches() ) {
-            return toCheck;
-        }
-
-        return null;
+        return Joiner.on( " " ).join( input );
     }
 
     @Override
     public int consumesParts() {
-        return 1;
+        return -1;
     }
 
 }

@@ -9,6 +9,7 @@ import io.gomint.entity.Player;
 import io.gomint.server.command.CommandManager;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author geNAZt
@@ -31,15 +32,15 @@ public class ListCommand extends CommandExecutor {
     }
 
     @Override
-    public CommandOutput execute( Player player, Object... arguments ) {
+    public CommandOutput execute( Player player, Map<String, Object> arguments ) {
         CommandOutput output = new CommandOutput();
 
         Collection<Player> players = GoMint.instance().getPlayers();
         output.success( "§7[§aSYSTEM§7] §fCurrently online: §e%%s", players.size() );
 
-        if ( arguments.length > 0 ) {
+        if ( arguments.containsKey( "filter" ) ) {
             // There is a filter present
-            String filter = (String) arguments[0];
+            String filter = (String) arguments.get( "filter" );
             int i = 0;
             for ( Player player1 : players ) {
                 if ( player1.getName().startsWith( filter ) ) {

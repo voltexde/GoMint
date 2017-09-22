@@ -147,6 +147,9 @@ public class CommandPreprocessor {
                                 case BLOCK_POS:
                                     paramType |= ARG_TYPE_POSITION;
                                     break;
+                                case TEXT:
+                                    paramType |= ARG_TYPE_TEXT;
+                                    break;
                                 default:
                                     paramType |= ARG_TYPE_VALUE;
                             }
