@@ -81,41 +81,52 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                     Iterator<String> paramIterator = Arrays.asList( params ).iterator();
 
                     if ( overload.getParameters() != null ) {
-                        Object[] commandInput = new Object[overload.getParameters().size()];
-                        int currentIndex = 0;
+                        Map<String, Object> commandInput = new HashMap<>();
 
-                        for ( ParamValidator validator : overload.getParameters().values() ) {
+                        for ( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
                             List<String> input = new ArrayList<>();
-                            for ( int i = 0; i < validator.consumesParts(); i++ ) {
-                                if ( !paramIterator.hasNext() ) {
+                            ParamValidator validator = entry.getValue();
+
+                            if ( validator.consumesParts() > 0 ) {
+                                for ( int i = 0; i < validator.consumesParts(); i++ ) {
+                                    if ( !paramIterator.hasNext() ) {
+                                        if ( !validator.isOptional() ) {
+                                            output.setSuccess( false );
+                                            output.setOutputs( new ArrayList<OutputMessage>() {{
+                                                add( new OutputMessage( "Not enough parameters for command '%%s'", false, new ArrayList<String>() {{
+                                                    add( packet.getInputCommand() );
+                                                }} ) );
+                                            }} );
+
+                                            continue overloads;
+                                        }
+                                    } else {
+                                        input.add( paramIterator.next() );
+                                    }
+                                }
+                            } else {
+                                // Consume as much as possible for thing like TEXT, RAWTEXT
+                                while ( paramIterator.hasNext() ) {
+                                    input.add( paramIterator.next() );
+                                }
+                            }
+
+                            if ( input.size() == validator.consumesParts() || validator.consumesParts() < 0 ) {
+                                Object result = validator.validate( input, connection.getEntity() );
+                                if ( result == null ) {
                                     output.setSuccess( false );
                                     output.setOutputs( new ArrayList<OutputMessage>() {{
-                                        add( new OutputMessage( "Not enough parameters for command '%%s'", false, new ArrayList<String>() {{
+                                        add( new OutputMessage( "Validation of parameter '%%s' from input '%%s' failed", false, new ArrayList<String>() {{
+                                            add( Joiner.on( ", " ).join( input ) );
                                             add( packet.getInputCommand() );
                                         }} ) );
                                     }} );
 
                                     continue overloads;
-                                } else {
-                                    input.add( paramIterator.next() );
                                 }
+
+                                commandInput.put( entry.getKey(), result );
                             }
-
-                            Object result = validator.validate( input );
-                            if ( result == null ) {
-                                output.setSuccess( false );
-                                output.setOutputs( new ArrayList<OutputMessage>() {{
-                                    add( new OutputMessage( "Validation of parameter '%%s' from input '%%s' failed", false, new ArrayList<String>() {{
-                                        add( Joiner.on( ", " ).join( input ) );
-                                        add( packet.getInputCommand() );
-                                    }} ) );
-                                }} );
-
-                                continue overloads;
-                            }
-
-                            commandInput[currentIndex] = result;
-                            currentIndex++;
                         }
 
                         commandOutput = selected.getExecutor().execute( connection.getEntity(), commandInput );
@@ -124,10 +135,10 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                 }
 
                 if ( commandOutput == null && output.isSuccess() ) {
-                    commandOutput = selected.getExecutor().execute( connection.getEntity() );
+                    commandOutput = selected.getExecutor().execute( connection.getEntity(), new HashMap<>(  ) );
                 }
             } else {
-                commandOutput = selected.getExecutor().execute( connection.getEntity() );
+                commandOutput = selected.getExecutor().execute( connection.getEntity(), new HashMap<>(  ) );
             }
 
             if ( commandOutput != null ) {

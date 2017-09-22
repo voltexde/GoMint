@@ -3,24 +3,19 @@ package io.gomint.command.validator;
 import io.gomint.command.ParamType;
 import io.gomint.command.ParamValidator;
 import io.gomint.entity.Entity;
+import io.gomint.entity.Player;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
-public class StringValidator extends ParamValidator {
-
-    private final Pattern pattern;
-
-    public StringValidator( String regex ) {
-        this.pattern = Pattern.compile( regex );
-    }
+public class TargetValidator extends ParamValidator {
 
     @Override
     public ParamType getType() {
-        return ParamType.STRING;
+        return ParamType.TARGET;
     }
 
     @Override
@@ -35,9 +30,14 @@ public class StringValidator extends ParamValidator {
 
     @Override
     public Object validate( List<String> input, Entity entity ) {
-        String toCheck = input.get( 0 );
-        if ( this.pattern.matcher( toCheck ).matches() ) {
-            return toCheck;
+        if ( input.get( 0 ).equals( "@s" ) ) {
+            return entity;
+        }
+
+        for ( Player player : entity.getWorld().getPlayers() ) {
+            if ( player.getName().equals( input.get( 0 ) ) ) {
+                return player;
+            }
         }
 
         return null;

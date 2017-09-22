@@ -5,22 +5,16 @@ import io.gomint.command.ParamValidator;
 import io.gomint.entity.Entity;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
-public class StringValidator extends ParamValidator {
-
-    private final Pattern pattern;
-
-    public StringValidator( String regex ) {
-        this.pattern = Pattern.compile( regex );
-    }
+public class IntegerValidator extends ParamValidator {
 
     @Override
     public ParamType getType() {
-        return ParamType.STRING;
+        return ParamType.INT;
     }
 
     @Override
@@ -36,11 +30,12 @@ public class StringValidator extends ParamValidator {
     @Override
     public Object validate( List<String> input, Entity entity ) {
         String toCheck = input.get( 0 );
-        if ( this.pattern.matcher( toCheck ).matches() ) {
-            return toCheck;
-        }
 
-        return null;
+        try {
+            return Integer.parseInt( toCheck );
+        } catch ( NumberFormatException e ) {
+            return null;
+        }
     }
 
     @Override

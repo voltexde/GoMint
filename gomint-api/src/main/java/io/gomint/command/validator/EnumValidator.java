@@ -2,6 +2,7 @@ package io.gomint.command.validator;
 
 import io.gomint.command.ParamType;
 import io.gomint.command.ParamValidator;
+import io.gomint.entity.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  * @author geNAZt
  */
-public class EnumValidator implements ParamValidator {
+public class EnumValidator extends ParamValidator {
 
     private final List<String> values = new ArrayList<>();
 
@@ -35,18 +36,13 @@ public class EnumValidator implements ParamValidator {
     }
 
     @Override
-    public Object validate( List<String> input ) {
+    public Object validate( List<String> input, Entity entity ) {
         String toCheck = input.get( 0 );
         if ( this.values.contains( toCheck ) ) {
             return toCheck;
         }
 
         return null;
-    }
-
-    @Override
-    public boolean isOptional() {
-        return false;
     }
 
     @Override

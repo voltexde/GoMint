@@ -9,6 +9,8 @@ import io.gomint.entity.Player;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.command.CommandManager;
 
+import java.util.Map;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -25,7 +27,7 @@ public class StopCommand extends CommandExecutor {
     }
 
     @Override
-    public CommandOutput execute( Player player, Object... arguments ) {
+    public CommandOutput execute( Player player, Map<String, Object> arguments ) {
         ( (GoMintServer) GoMint.instance() ).shutdown();
         return new CommandOutput().success( "§7[§aSYSTEM§7] §fServer will be stopped" );
     }

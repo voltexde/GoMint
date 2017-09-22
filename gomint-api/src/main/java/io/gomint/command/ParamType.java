@@ -34,6 +34,16 @@ public enum ParamType {
     /**
      * String
      */
-    STRING
+    STRING,
+
+    /**
+     * Text which consumes all remaining input
+     */
+    TEXT,
+
+    /**
+     * 4 byte decimal with normal precision
+     */
+    FLOAT
 
 }
