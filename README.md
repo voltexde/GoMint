@@ -2,17 +2,10 @@
   <br>
   
   ![GoMint](https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png)
-    
-Build Version | Build Result
------------- | -------------
-Feature Build 1.2 | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=1.2)](https://travis-ci.org/GoMint/GoMint)
-Master Build | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=master)](https://travis-ci.org/GoMint/GoMint)
-
-  <br>
+    <br>
     GoMint
   <br>
 </h1>
-
 <p align="center">
 
 [![GitHub Stars](https://img.shields.io/github/stars/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/stargazers)
@@ -20,6 +13,11 @@ Master Build | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=m
 [![Current Version](https://img.shields.io/badge/version-1.2.0-green.svg)](https://github.com/GoMint/GoMint) 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 </p>
+
+Build Version | Build Result
+------------ | -------------
+Feature Build 1.2 | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=1.2)](https://travis-ci.org/GoMint/GoMint)
+Master Build | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=master)](https://travis-ci.org/GoMint/GoMint)
 
 GoMint is a Minecraft PocketEdition server implementation that is still work in progress.
 The goal is to provide a full, modifiable server with plugin support for Java.
