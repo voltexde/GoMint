@@ -84,7 +84,7 @@
         <dependency>
             <groupId>org.iq80.leveldb</groupId>
             <artifactId>leveldb</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10-GOMINT</version>
         </dependency>
 
         <dependency>
