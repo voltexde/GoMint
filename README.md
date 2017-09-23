@@ -1,4 +1,4 @@
-<h1 align="left">
+<h1 align="center">
   <br>
   
   ![GoMint](https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png)
