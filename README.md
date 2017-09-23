@@ -1,27 +1,17 @@
-<h1 align="center">
-  <br>
-  <a href="https://github.com/GoMint/GoMint">
-  <img src="https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png" alt="Markdownify" width="200"></a>
-  <br>
-  GoMint
-  <br>
-</h1>
+![NSGIF](https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png)
+GoMint is a Minecraft PocketEdition server implementation that is still work in progress.
 
-<h4 align="center">GoMint is a Minecraft PocketEdition server implementation that is still work in progress.</h4>
-
-[![GitHub Stars](https://img.shields.io/github/stars/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/stargazers)
-
-[![GitHub Issues](https://img.shields.io/github/issues/GoMint/GoMint.svg)](https://travis-ci.org/GoMint/GoMint/issues)
-
-[![Current Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/IgorAntun/node-chat) 
-
+[![GitHub Stars](https://img.shields.io/github/stars/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/stargazers) 
+[![GitHub Issues](https://img.shields.io/github/issues/GoMint/GoMint.svg)](https://travis-ci.org/GoMint/GoMint/issues) 
+[![Current Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/IgorAntun/node-chat)  
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Feature Build 1.2
 
 [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=1.2)](https://travis-ci.org/GoMint/GoMint)
-<br>
-Master Build<br>
+
+Master Build
+
 [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=master)](https://travis-ci.org/GoMint/GoMint)
 
 The goal is to provide a full, modifiable server with plugin support for Java.
