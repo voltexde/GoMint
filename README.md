@@ -1,8 +1,27 @@
-# GoMint
+<h1 align="center">
+  <br>
+  <a href="https://github.com/GoMint/GoMint">
+  <img src="https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png" alt="Markdownify" width="200"></a>
+  <br>
+  GoMint
+  <br>
+</h1>
 
-GoMint is a Minecraft PocketEdition server implementation that is still work in progress. The goal is
-to provide a full, modifiable server with plugin support for Java.
+<h4 align="center">GoMint is a Minecraft PocketEdition server implementation that is still work in progress.</h4>
+[![GitHub Stars](https://img.shields.io/github/stars/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/stargazers) 
+[![GitHub Issues](https://img.shields.io/github/issues/GoMint/GoMint.svg)](https://travis-ci.org/GoMint/GoMint/issues)
+[![Current Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/IgorAntun/node-chat) 
+[![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://opensource.org/licenses/MIT)
 
+<br>
+Feature Build 1.2
+
+[![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=1.2)](https://travis-ci.org/GoMint/GoMint)
+<br>
+Master Build<br>
+[![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=master)](https://travis-ci.org/GoMint/GoMint)
+
+The goal is to provide a full, modifiable server with plugin support for Java.
 The project is divided into four modules:
 
 ##### gomint-api
