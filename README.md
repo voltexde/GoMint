@@ -1,11 +1,6 @@
-<p align="center">
+<p float="left">
 
 ![GoMint](https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png)
-
-[![GitHub Stars](https://img.shields.io/github/stars/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/stargazers)
-[![GitHub Issues](https://img.shields.io/github/issues/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/issues) 
-[![Current Version](https://img.shields.io/badge/version-1.2.0-green.svg)](https://github.com/GoMint/GoMint) 
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Build Version | Build Result
 ------------ | -------------
@@ -13,6 +8,15 @@ Feature Build 1.2 | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?bra
 Master Build | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=master)](https://travis-ci.org/GoMint/GoMint)
 
 </p>
+
+<p align="center">
+
+[![GitHub Stars](https://img.shields.io/github/stars/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/issues) 
+[![Current Version](https://img.shields.io/badge/version-1.2.0-green.svg)](https://github.com/GoMint/GoMint) 
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+</p>
+
 GoMint is a Minecraft PocketEdition server implementation that is still work in progress.
 The goal is to provide a full, modifiable server with plugin support for Java.
 The project is divided into four modules:
