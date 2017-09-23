@@ -1,13 +1,15 @@
-<p float="left">
-
-![GoMint](https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png)
-
+<h1 align="center">
+  <br>
+  
+  ![GoMint](https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png)
+  <br>
+  
 Build Version | Build Result
 ------------ | -------------
 Feature Build 1.2 | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=1.2)](https://travis-ci.org/GoMint/GoMint)
 Master Build | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=master)](https://travis-ci.org/GoMint/GoMint)
-
-</p>
+  <br>
+</h1>
 
 <p align="center">
 
