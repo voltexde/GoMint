@@ -11,7 +11,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/stargazers) 
 [![GitHub Issues](https://img.shields.io/github/issues/GoMint/GoMint.svg)](https://travis-ci.org/GoMint/GoMint/issues)
 [![Current Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/IgorAntun/node-chat) 
-[![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 <br>
 Feature Build 1.2
