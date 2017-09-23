@@ -1,8 +1,8 @@
 ![GoMint](https://gomint.io/wp-content/uploads/2015/08/cropped-GoMint_Transparent.png)
 
 [![GitHub Stars](https://img.shields.io/github/stars/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/stargazers)
-[![GitHub Issues](https://img.shields.io/github/issues/GoMint/GoMint.svg)](https://travis-ci.org/GoMint/GoMint/issues) 
-[![Current Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/IgorAntun/node-chat) 
+[![GitHub Issues](https://img.shields.io/github/issues/GoMint/GoMint.svg)](https://github.com/GoMint/GoMint/issues) 
+[![Current Version](https://img.shields.io/badge/version-1.2.0-green.svg)](https://github.com/GoMint/GoMint) 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Build Version | Build Result
