@@ -24,7 +24,7 @@ public class PacketEncryptionRequest extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer ) {
-
+        this.jwt = buffer.readString();
     }
 
 }
