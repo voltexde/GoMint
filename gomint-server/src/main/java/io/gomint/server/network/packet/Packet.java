@@ -15,6 +15,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityLink;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.type.CommandOrigin;
+import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Gamerule;
 
@@ -99,7 +100,9 @@ public abstract class Packet {
         if ( extraLen > 0 ) {
             ByteArrayInputStream bin = new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), extraLen );
             try {
-                nbt = NBTTagCompound.readFrom( bin, false, ByteOrder.LITTLE_ENDIAN );
+                NBTReader nbtReader = new NBTReader( bin, ByteOrder.LITTLE_ENDIAN );
+                nbtReader.setUseVarint( true );
+                nbt = nbtReader.parse();
             } catch ( IOException e ) {
                 e.printStackTrace();
             }

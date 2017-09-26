@@ -7,6 +7,7 @@
 
 package io.gomint.server.world;
 
+import com.koloboke.collect.map.hash.HashLongObjMaps;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
@@ -25,6 +26,7 @@ import io.gomint.world.block.Block;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import com.koloboke.collect.map.LongObjMap;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,22 +41,23 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
+@RequiredArgsConstructor
 @EqualsAndHashCode( callSuper = false, of = { "x", "z" } )
-public abstract class ChunkAdapter implements Chunk {
+public class ChunkAdapter implements Chunk {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( ChunkAdapter.class );
 
     // CHECKSTYLE:OFF
     // World
-    protected WorldAdapter world;
+    protected final WorldAdapter world;
 
     // Networking
     protected boolean dirty;
     protected SoftReference<PacketBatch> cachedPacket;
 
     // Chunk
-    protected int x;
-    protected int z;
+    protected final int x;
+    protected final int z;
     protected long inhabitedTime;
 
     // Biomes
@@ -72,7 +75,7 @@ public abstract class ChunkAdapter implements Chunk {
     protected long lastSavedTimestamp;
 
     // Entities
-    protected LongObjMap<io.gomint.entity.Entity> entities;
+    protected LongObjMap<io.gomint.entity.Entity> entities = HashLongObjMaps.newMutableMap();
 
     // CHECKSTYLE:ON
 

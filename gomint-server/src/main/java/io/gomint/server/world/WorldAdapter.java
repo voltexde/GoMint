@@ -27,6 +27,7 @@ import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
+import io.gomint.server.world.generator.ChunkGenerator;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.util.Numbers;
 import io.gomint.world.Chunk;
@@ -66,6 +67,7 @@ public abstract class WorldAdapter implements World {
 
     // Chunk Handling
     protected ChunkCache chunkCache;
+    protected ChunkGenerator chunkGenerator;
 
     // Entity Handling
     protected EntityManager entityManager;
@@ -892,6 +894,18 @@ public abstract class WorldAdapter implements World {
         }
 
         return chunk.getTemporaryStorage( x & 0xF, y, z & 0xF );
+    }
+
+    public ChunkAdapter generate( int x, int z ) {
+        if ( this.chunkGenerator != null ) {
+            ChunkAdapter chunkAdapter = this.chunkGenerator.generate( x, z );
+            if ( chunkAdapter != null ) {
+                this.chunkCache.putChunk( chunkAdapter );
+                return chunkAdapter;
+            }
+        }
+
+        return null;
     }
 
 }
