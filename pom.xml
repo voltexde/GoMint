@@ -48,16 +48,6 @@
             <version>1.16.0</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.blackypaw</groupId>
-            <artifactId>simpleconfig</artifactId>
-            <version>1.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>io.gomint</groupId>
-            <artifactId>taglib</artifactId>
-            <version>1.1.0</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -69,14 +59,6 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <createDependencyReducedPom>false</createDependencyReducedPom>
                 </configuration>
             </plugin>
         </plugins>
