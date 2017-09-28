@@ -273,9 +273,9 @@ public abstract class WorldAdapter implements World {
                                 case 78:            // Top snow
                                 case 79:            // Ice
                                 case 11:            // Stationary lava
-                                case 10:            // Lava
+                                case 10:            // FlowingLava
                                 case 9:             // Stationary water
-                                case 8:             // Water
+                                case 8:             // FlowingWater
                                     Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
                                     if ( block instanceof io.gomint.server.world.block.Block ) {
                                         long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
@@ -906,6 +906,22 @@ public abstract class WorldAdapter implements World {
         }
 
         return null;
+    }
+
+    public void sendLevelEvent( BlockPosition position, int levelEvent, int data ) {
+        Vector vec = position.toVector();
+
+        PacketWorldEvent worldEvent = new PacketWorldEvent();
+        worldEvent.setData( data );
+        worldEvent.setEventId( levelEvent );
+        worldEvent.setPosition( vec );
+
+        sendToVisible( vec, worldEvent, new Predicate<Entity>() {
+            @Override
+            public boolean test( Entity entity ) {
+                return true;
+            }
+        } );
     }
 
 }

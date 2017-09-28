@@ -7,7 +7,6 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
@@ -50,7 +49,14 @@ public enum TileEntities {
     /**
      * Represents a flower pot. Contains data about which item it holds
      */
-    FLOWER_POT( "FlowerPot", FlowerPotTileEntity.class );
+    FLOWER_POT( "FlowerPot", FlowerPotTileEntity.class ),
+
+    /**
+     * Represents a command block. Contains data like command string, output etc.
+     */
+    COMMAND_BLOCK( "CommandBlockTileEntity", CommandBlockTileEntity.class ),
+
+    ITEM_FRAME( "ItemFrame", ItemFrameTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;

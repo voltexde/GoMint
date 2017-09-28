@@ -57,7 +57,6 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketMovePlayer.class, new PacketMovePlayerHandler() );
         PACKET_HANDLERS.put( PacketSetChunkRadius.class, new PacketSetChunkRadiusHandler() );
         PACKET_HANDLERS.put( PacketPlayerAction.class, new PacketPlayerActionHandler() );
-        PACKET_HANDLERS.put( PacketRemoveBlock.class, new PacketRemoveBlockHandler() );
         PACKET_HANDLERS.put( PacketMobArmorEquipment.class, new PacketMobArmorEquipmentHandler() );
         PACKET_HANDLERS.put( PacketAdventureSettings.class, new PacketAdventureSettingsHandler() );
         PACKET_HANDLERS.put( PacketResourcePackResponse.class, new PacketResourcePackResponseHandler() );
@@ -424,6 +423,7 @@ public class PlayerConnection {
     private void handlePacket( long currentTimeMillis, Packet packet ) {
         PacketHandler handler = PACKET_HANDLERS.get( packet.getClass() );
         if ( handler != null ) {
+            LOGGER.debug( "Handling: " + packet );
             handler.handle( packet, currentTimeMillis, this );
             return;
         }

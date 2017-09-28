@@ -1,0 +1,23 @@
+package io.gomint.server.inventory.item;
+
+import io.gomint.server.registry.RegisterInfo;
+import io.gomint.taglib.NBTTagCompound;
+
+/**
+ * @author geNAZt
+ * @version 1.0
+ */
+@RegisterInfo( id = 225 )
+public class ItemLimeGlazedTerracotta extends ItemStack {
+
+    // CHECKSTYLE:OFF
+    public ItemLimeGlazedTerracotta( short data, int amount ) {
+        super( 225, data, amount );
+    }
+
+    public ItemLimeGlazedTerracotta( short data, int amount, NBTTagCompound nbt ) {
+        super( 225, data, amount, nbt );
+    }
+    // CHECKSTYLE:ON
+
+}

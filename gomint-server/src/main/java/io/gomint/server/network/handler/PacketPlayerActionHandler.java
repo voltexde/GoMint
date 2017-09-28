@@ -1,8 +1,16 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerInteractEvent;
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Location;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketPlayerAction;
+import io.gomint.server.network.packet.PacketUpdateBlock;
+import io.gomint.server.world.LevelEvent;
+import io.gomint.world.Gamemode;
+import io.gomint.world.block.Air;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +36,14 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                         if ( connection.getEntity().getStartBreak() == 0 ) {
                             connection.getEntity().setBreakVector( packet.getPosition() );
                             connection.getEntity().setStartBreak( currentTimeMillis );
+
+                            io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( packet.getPosition() );
+
+                            long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand() );
+                            LOGGER.debug( "Sending break time: " + breakTime );
+
+                            // Tell the client which break time we want
+                            connection.getEntity().getWorld().sendLevelEvent( packet.getPosition(), LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
                         }
                     }
                 }
@@ -36,6 +52,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
             case ABORT_BREAK:
                 connection.getEntity().setBreakVector( null );
+                connection.getEntity().setStartBreak( 0 );
 
             case STOP_BREAK:
                 if ( connection.getEntity().getBreakVector() == null ) {
@@ -47,6 +64,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
                 connection.getEntity().setBreakTime( ( currentTimeMillis - connection.getEntity().getStartBreak() ) );
                 connection.getEntity().setStartBreak( 0 );
+
                 break;
             case START_SNEAK:
                 connection.getEntity().setSneaking( true );
@@ -55,6 +73,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 connection.getEntity().setSneaking( false );
                 break;
             case JUMP:
+            case CONTINUE_BREAK:
                 // TODO: Decide what todo with this information
                 break;
             default:
@@ -62,5 +81,5 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 break;
         }
     }
-    
+
 }

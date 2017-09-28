@@ -1,22 +1,25 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemReduceBreaktime;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.inventory.item.ItemSword;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketUpdateBlock;
-import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.storage.TemporaryStorage;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -26,12 +29,22 @@ import java.util.function.Function;
 public abstract class Block implements io.gomint.world.block.Block {
 
     // CHECKSTYLE:OFF
-    @Setter protected WorldAdapter world;
-    @Setter @Getter protected Location location;
-    @Setter @Getter private byte blockData;
-    @Setter private TileEntity tileEntity;
-    @Setter @Getter private byte skyLightLevel;
-    @Setter @Getter private byte blockLightLevel;
+    @Setter
+    protected WorldAdapter world;
+    @Setter
+    @Getter
+    protected Location location;
+    @Setter
+    @Getter
+    private byte blockData;
+    @Setter
+    private TileEntity tileEntity;
+    @Setter
+    @Getter
+    private byte skyLightLevel;
+    @Setter
+    @Getter
+    private byte blockLightLevel;
     // CHECKSTYLE:ON
 
     /**
@@ -252,6 +265,49 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     public byte calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
         return (byte) item.getData();
+    }
+
+    public long getFinalBreakTime( ItemStack item ) {
+        // Get basis break time ( breaking with right tool )
+        double base = getBreakTime();
+
+        Class<? extends ItemStack>[] interfacez = getToolInterfaces();
+        if ( interfacez != null ) {
+            for ( Class<? extends ItemStack> aClass : interfacez ) {
+                if ( aClass.isAssignableFrom( item.getClass() ) ) {
+                    double divisor = ( (ItemReduceBreaktime) item ).getDivisor();
+                    return (long) ( base / divisor );
+                }
+            }
+        }
+
+        base *= 3.33;
+
+        // Check if item is sword
+        if ( item instanceof ItemSword ) {
+            base *= 0.5;
+        }
+
+        return (long) base;
+    }
+
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return null;
+    }
+
+    public boolean onBreak() {
+        return true;
+    }
+
+    /**
+     * Get drops from the block when it broke
+     *
+     * @return a list of drops
+     */
+    public List<ItemStack> getDrops() {
+        return new ArrayList<ItemStack>(){{
+            add( Items.create( getBlockId(), getBlockData(), (byte) 1, null ) );
+        }};
     }
 
 }

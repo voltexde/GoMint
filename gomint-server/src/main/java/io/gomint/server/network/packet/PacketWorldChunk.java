@@ -33,7 +33,7 @@ public class PacketWorldChunk extends Packet {
         buffer.writeSignedVarInt( this.x );
         buffer.writeSignedVarInt( this.z );
         buffer.writeUnsignedVarInt( this.data.length );
-        buffer.writeBytes( data );
+        buffer.writeBytes( this.data );
     }
 
     @Override

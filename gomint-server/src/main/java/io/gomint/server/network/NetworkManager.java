@@ -12,6 +12,7 @@ import io.gomint.event.player.PlayerPreLoginEvent;
 import io.gomint.jraknet.*;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.packet.Packet;
+import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
 import lombok.Setter;
 import com.koloboke.collect.LongCursor;
@@ -89,7 +90,12 @@ public class NetworkManager {
             throw new IllegalStateException( "Cannot re-initialize network manager" );
         }
 
+        System.setProperty( "java.net.preferIPv4Stack", "true" );               // We currently don't use ipv6
+        System.setProperty( "io.netty.selectorAutoRebuildThreshold", "0" );     // Never rebuild selectors
+        ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.DISABLED );   // Eats performance
+
         this.socket = new ServerSocket( maxConnections < 0 ? 20 : maxConnections );
+        this.socket.setMojangModificationEnabled( true );
         this.socket.setEventLoopFactory( this.server.getThreadFactory() );
         this.socket.setEventHandler( new SocketEventHandler() {
             @Override

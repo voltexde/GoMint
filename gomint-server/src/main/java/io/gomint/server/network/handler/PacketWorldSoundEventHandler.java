@@ -18,7 +18,7 @@ public class PacketWorldSoundEventHandler implements PacketHandler<PacketWorldSo
         connection.getEntity().getWorld().sendToVisible( packet.getPosition(), packet, new Predicate<Entity>() {
             @Override
             public boolean test( Entity entity ) {
-                return !entity.equals( connection.getEntity() );
+                return true;
             }
         } );
     }

@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 273 )
- public class ItemStoneShovel extends ItemStack implements io.gomint.inventory.item.ItemStoneShovel {
+ public class ItemStoneShovel extends ItemReduceTierStone implements io.gomint.inventory.item.ItemStoneShovel {
 
     // CHECKSTYLE:OFF
     public ItemStoneShovel( short data, int amount ) {

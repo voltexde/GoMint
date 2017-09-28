@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 290 )
- public class ItemWoodenHoe extends ItemStack implements io.gomint.inventory.item.ItemWoodenHoe {
+ public class ItemWoodenHoe extends ItemReduceTierWooden implements io.gomint.inventory.item.ItemWoodenHoe {
 
     // CHECKSTYLE:OFF
     public ItemWoodenHoe( short data, int amount ) {
