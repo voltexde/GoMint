@@ -10,8 +10,8 @@ package io.gomint.server.world.leveldb;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
-import com.koloboke.collect.map.hash.HashLongObjMaps;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,13 +22,17 @@ import java.nio.ByteOrder;
  * @author geNAZt
  * @version 1.0
  */
-public class LevelDBChunk extends ChunkAdapter {
+public class LevelDBChunkAdapter extends ChunkAdapter {
 
-    LevelDBChunk( WorldAdapter worldAdapter, int x, int z ) {
-        this.world = worldAdapter;
-        this.x = x;
-        this.z = z;
-        this.entities = HashLongObjMaps.newMutableMap();
+    /**
+     * Create a new level db backed chunk
+     *
+     * @param worldAdapter which loaded this chunk
+     * @param x position of chunk
+     * @param z position of chunk
+     */
+    public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z ) {
+        super( worldAdapter, x, z );
     }
 
     /**
@@ -91,12 +95,13 @@ public class LevelDBChunk extends ChunkAdapter {
 
     void loadTileEntities( byte[] tileEntityData ) {
         ByteArrayInputStream bais = new ByteArrayInputStream( tileEntityData );
-        while ( bais.available() > 0 ) {
+        NBTReader nbtReader = new NBTReader( bais, ByteOrder.LITTLE_ENDIAN );
+        while ( true ) {
             try {
-                NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( bais, false, ByteOrder.LITTLE_ENDIAN );
-                // DumpUtil.dumpNBTCompund( nbtTagCompound );
+                NBTTagCompound compound = nbtReader.parse();
+                this.addTileEntity( compound );
             } catch ( IOException e ) {
-                e.printStackTrace();
+                break;
             }
         }
     }

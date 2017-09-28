@@ -52,6 +52,31 @@ public class DumpUtil {
         buffer.resetPosition();
     }
 
+    public static void dumpByteArray( byte[] bytes, int skip ) {
+        int count = 0;
+        StringBuilder stringBuilder = new StringBuilder();
+
+        int skipped = 0;
+        for ( byte aByte : bytes ) {
+            if ( skipped++ < skip ) {
+                continue;
+            }
+
+            String hex = Integer.toHexString( aByte & 255 );
+            if ( hex.length() == 1 ) {
+                hex = "0" + hex;
+            }
+
+            stringBuilder.append( hex ).append( " " );
+            if ( count++ == 32 ) {
+                stringBuilder.append( "\n" );
+                count = 0;
+            }
+        }
+
+        System.out.println( stringBuilder );
+    }
+
     public static void dumpByteArray( byte[] bytes ) {
         int count = 0;
         StringBuilder stringBuilder = new StringBuilder();
@@ -63,7 +88,7 @@ public class DumpUtil {
             }
 
             stringBuilder.append( hex ).append( " " );
-            if ( count++ == 16 ) {
+            if ( count++ == 32 ) {
                 stringBuilder.append( "\n" );
                 count = 0;
             }

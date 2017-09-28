@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
@@ -39,7 +40,17 @@ public enum TileEntities {
     /**
      * Represents a noteblock. This TileEntity holds only the note of the block
      */
-    NOTEBLOCK( "Music", NoteblockTileEntity.class );
+    NOTEBLOCK( "Music", NoteblockTileEntity.class ),
+
+    /**
+     * Represents a ender chest. This TileEntity does not contain any other informations
+     */
+    ENDER_CHEST( "EnderChest", EnderChestTileEntity.class ),
+
+    /**
+     * Represents a flower pot. Contains data about which item it holds
+     */
+    FLOWER_POT( "FlowerPot", FlowerPotTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;
@@ -89,7 +100,7 @@ public enum TileEntities {
             }
         }
 
-        // LOGGER.warn( "Unknown tile entity found: " + id );
+        LOGGER.warn( "Unknown tile entity found: " + id );
         return null;
     }
 

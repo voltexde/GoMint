@@ -11,10 +11,11 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
+import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.WorldLoadException;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
 import io.gomint.taglib.NBTTagCompound;
-import com.koloboke.collect.map.hash.HashLongObjMaps;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,25 +28,24 @@ import java.util.List;
  * @author BlackyPaw
  * @version 1.0
  */
-class AnvilChunk extends ChunkAdapter {
+public class AnvilChunkAdapter extends ChunkAdapter {
 
     private static final DataConverter CONVERTER = new DataConverter();
 
     private boolean converted;
+    private boolean invalid;
 
     /**
      * Load a Chunk from a NBTTagCompound. This is used when loaded from a Regionfile.
      *
-     * @param world     The world in which this Chunk resides
-     * @param nbtStream The NBT Stream which reads and emits data from the chunk
+     * @param worldAdapter which loaded this chunk
+     * @param x position of chunk
+     * @param z position of chunk
      */
-    AnvilChunk( AnvilWorldAdapter world, NBTStream nbtStream ) {
-        this.world = world;
+    public AnvilChunkAdapter( WorldAdapter worldAdapter, int x, int z ) {
+        super( worldAdapter, x, z );
         this.lastSavedTimestamp = System.currentTimeMillis();
         this.loadedTime = this.lastSavedTimestamp;
-        this.entities = HashLongObjMaps.newMutableMap();
-        this.loadFromNBT( nbtStream );
-        this.dirty = false;
     }
 
     // ==================================== I/O ==================================== //
@@ -120,7 +120,7 @@ class AnvilChunk extends ChunkAdapter {
      * @param nbtStream The stream which loads the chunk
      */
     // CHECKSTYLE:OFF
-    private void loadFromNBT( NBTStream nbtStream ) {
+    void loadFromNBT( NBTStream nbtStream ) throws WorldLoadException {
         // Fill in default values
         this.biomes = new byte[256];
         Arrays.fill( this.biomes, (byte) -1 );
@@ -136,19 +136,27 @@ class AnvilChunk extends ChunkAdapter {
             public void onNBTValue( String path, Object object ) {
                 switch ( path ) {
                     case ".Level.xPos":
-                        AnvilChunk.this.x = (int) object;
+                        int xPos = (int) object;
+                        if ( AnvilChunkAdapter.this.x != xPos ) {
+                            AnvilChunkAdapter.this.invalid = true;
+                        }
+
                         break;
                     case ".Level.zPos":
-                        AnvilChunk.this.z = (int) object;
+                        int zPos = (int) object;
+                        if ( AnvilChunkAdapter.this.z != zPos ) {
+                            AnvilChunkAdapter.this.invalid = true;
+                        }
+
                         break;
                     case ".Level.Biomes":
-                        AnvilChunk.this.biomes = (byte[]) object;
+                        AnvilChunkAdapter.this.biomes = (byte[]) object;
                         break;
                     case ".Level.InhabitedTime":
-                        AnvilChunk.this.inhabitedTime = (long) object;
+                        AnvilChunkAdapter.this.inhabitedTime = (long) object;
                         break;
                     case ".Level.GoMintConverted":
-                        AnvilChunk.this.converted = true;
+                        AnvilChunkAdapter.this.converted = true;
                         break;
                     default:
                         if ( path.startsWith( ".Level.Sections" ) ) {
@@ -255,6 +263,10 @@ class AnvilChunk extends ChunkAdapter {
             nbtStream.parse();
         } catch ( Exception e ) {
             e.printStackTrace();
+        }
+
+        if ( this.invalid ) {
+            throw new WorldLoadException( "Position stored in chunk does not match region file offset position" );
         }
 
         if ( currentSectionCache[0].getBlocks() != null ) {

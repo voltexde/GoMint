@@ -7,6 +7,7 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.server.world.WorldLoadException;
 import io.gomint.taglib.NBTStream;
 
 import java.io.*;
@@ -51,8 +52,9 @@ class RegionFile {
      * @param z The z-coordinate of the chunk
      * @return The chunk if found
      * @throws IOException Thrown in case an I/O error occurs or the chunk was not found
+     * @throws WorldLoadException Thrown in the case that the chunk loaded was corrupted
      */
-    AnvilChunk loadChunk( int x, int z ) throws IOException {
+    AnvilChunkAdapter loadChunk( int x, int z ) throws IOException, WorldLoadException {
         long fileOffset = ( ( x & 31 ) + ( ( z & 31 ) << 5 ) ) << 2;
 
         // Navigate to entry in location table:
@@ -94,12 +96,9 @@ class RegionFile {
         }
 
         NBTStream nbtStream = new NBTStream( new BufferedInputStream( input ), ByteOrder.BIG_ENDIAN );
-        AnvilChunk anvilChunk = new AnvilChunk( this.world, nbtStream );
-        if ( anvilChunk.getX() != x || anvilChunk.getZ() != z ) {
-            throw new IllegalStateException( "The loaded chunk for " + x + "; " + z + " did load as " + anvilChunk.getX() + "; " + anvilChunk.getZ() );
-        }
-
-        return anvilChunk;
+        AnvilChunkAdapter chunkAdapter = new AnvilChunkAdapter( this.world, x, z );
+        chunkAdapter.loadFromNBT( nbtStream );
+        return chunkAdapter;
     }
 
     /**
@@ -109,7 +108,7 @@ class RegionFile {
      * @param writeTimestamp Boolean which decides whether or not to write the timestamp
      * @throws IOException A exception which get thrown when a I/O error occurred
      */
-    void saveChunk( AnvilChunk chunk, boolean writeTimestamp ) throws IOException {
+    void saveChunk( AnvilChunkAdapter chunk, boolean writeTimestamp ) throws IOException {
         int x = chunk.getX();
         int z = chunk.getZ();
 

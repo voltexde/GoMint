@@ -30,5 +30,15 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
         </dependency>
+        <dependency>
+            <groupId>com.blackypaw</groupId>
+            <artifactId>simpleconfig</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gomint</groupId>
+            <artifactId>taglib</artifactId>
+            <version>1.1.0</version>
+        </dependency>
     </dependencies>
 </project>

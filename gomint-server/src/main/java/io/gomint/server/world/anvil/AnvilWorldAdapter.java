@@ -9,12 +9,11 @@ package io.gomint.server.world.anvil;
 
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
-import io.gomint.server.world.ChunkAdapter;
-import io.gomint.server.world.ChunkCache;
-import io.gomint.server.world.CoordinateUtils;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.*;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteOrder;
@@ -25,6 +24,8 @@ import java.util.zip.GZIPInputStream;
  * @version 1.0
  */
 public final class AnvilWorldAdapter extends WorldAdapter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( AnvilWorldAdapter.class );
 
     // ==================================== FIELDS ==================================== //
 
@@ -146,20 +147,26 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                     regionFile = this.regionFileRead;
                 }
 
-                chunk = regionFile.loadChunk( x, z );
+                try {
+                    chunk = regionFile.loadChunk( x, z );
+                } catch ( WorldLoadException e ) {
+                    // This means the chunk is corrupted, generate a new one?
+                    LOGGER.error( "Found corrupted chunk in %s, generating a new one if needed", String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) );
+                }
+
                 if ( chunk != null ) {
                     this.chunkCache.putChunk( chunk );
                 } else if ( generate ) {
-                    // TODO: Implement chunk generation here
+                    return this.generate( x, z );
                 }
 
                 return chunk;
             } catch ( IOException e ) {
                 if ( generate ) {
-                    // TODO: Implement chunk generation here
+                    return this.generate( x, z );
+                } else {
+                    return null;
                 }
-
-                return null;
             }
         }
 
@@ -190,7 +197,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                 regionFile = this.regionFileRead;
             }
 
-            regionFile.saveChunk( (AnvilChunk) chunk, true );
+            regionFile.saveChunk( (AnvilChunkAdapter) chunk, true );
         } catch ( IOException e ) {
             this.logger.error( "Failed to save chunk to region file", e );
         }
