@@ -18,7 +18,7 @@ public class GrassBlock extends Block {
 
     @Override
     public long update( UpdateReason updateReason, long currentTimeMS, float dT ) {
-        Block block = world.getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
+        Block block = this.world.getBlockAt( this.location.toBlockPosition().add( BlockPosition.UP ) );
         byte lightLevel = block.getSkyLightLevel();
 
         if ( lightLevel >= 9 ) {

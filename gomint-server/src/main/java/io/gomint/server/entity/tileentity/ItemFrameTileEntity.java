@@ -81,7 +81,5 @@ public class ItemFrameTileEntity extends TileEntity {
         }
 
         compound.addValue( "Item", itemCompound );
-
-        LOGGER.debug( "Sending item frame for " + this.getLocation() );
     }
 }

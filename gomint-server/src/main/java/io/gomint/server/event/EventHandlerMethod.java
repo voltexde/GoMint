@@ -51,7 +51,7 @@ class EventHandlerMethod implements Comparable<EventHandlerMethod> {
             ctClass.addField( CtField.make( "public " + instance.getClass().getName() + " obj;", ctClass ) );
             ctClass.addMethod( CtMethod.make( "public void call( io.gomint.event.Event e ) { obj." + method.getName() + "( (" + method.getParameterTypes()[0].getName() + ") e ); }", ctClass ) );
 
-            this.proxy = (EventProxy) ctClass.toClass( instance.getClass().getClassLoader() ).newInstance();
+            this.proxy = (EventProxy) ctClass.toClass( instance.getClass().getClassLoader(), null ).newInstance();
             this.proxy.getClass().getDeclaredField( "obj" ).set( this.proxy, instance );
         } catch ( Exception e ) {
             LOGGER.error( "Could not construct new proxy for " + method.toString(), e );

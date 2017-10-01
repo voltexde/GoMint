@@ -110,6 +110,17 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 } else if ( packet.getActionType() == 1 ) { // Click in air
 
                 } else if ( packet.getActionType() == 2 ) { // Break block
+                    // Breaking blocks too fast / missing start_break
+                    if ( connection.getEntity().getBreakVector() == null ) {
+                        resetBlocks( packet, connection );
+
+                        if ( packet.getActions().length > 0 ) {
+                            connection.getEntity().getInventory().sendContents( connection );
+                        }
+
+                        return;
+                    }
+
                     if ( connection.getEntity().getGamemode() != Gamemode.CREATIVE ) {
                         // Check for transactions first
                         if ( packet.getActions().length > 1 ) {
@@ -153,12 +164,17 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                         long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand() );
                         LOGGER.debug( "Break time: " + connection.getEntity().getBreakTime() + "; should: " + breakTime + " for " + block.getClass().getSimpleName() );
                         if ( connection.getEntity().getBreakTime() < breakTime - 50 ) { // Client can lag one tick behind it seems
+                            connection.getEntity().setBreakVector( null );
+                            resetBlocks( packet, connection );
+
                             if ( packet.getActions().length > 0 ) {
-                                resetBlocks( packet, connection );
                                 connection.getEntity().getInventory().sendContents( connection );
-                                return;
                             }
+
+                            return;
                         } else {
+                            connection.getEntity().setBreakVector( null );
+
                             if ( block.onBreak() ) {
                                 // TODO: Add drops
                                 Location dropLocation = new Location( connection.getEntity().getWorld(),
@@ -173,31 +189,37 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                                 block.setType( Air.class, (byte) 0 );
 
                                 // Check if transaction wants to set air
-                                io.gomint.server.inventory.item.ItemStack target = (io.gomint.server.inventory.item.ItemStack) packet.getActions()[0].getNewItem();
-                                if ( target.getMaterial() == 0 ) {
-                                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), target );
-                                } else {
-                                    // Check if transaction wants to increment data of the item
-                                    if ( target.getData() == itemInHand.getData() + 1 &&
-                                            ( ( target.getNbtData() == null && itemInHand.getNbtData() == null ) ||
-                                                    target.getNbtData().equals( itemInHand.getNbtData() ) ) ) {
+                                if ( packet.getActions().length > 0 ) {
+                                    io.gomint.server.inventory.item.ItemStack target = (io.gomint.server.inventory.item.ItemStack) packet.getActions()[0].getNewItem();
+                                    if ( target.getMaterial() == 0 ) {
                                         connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), target );
+                                    } else {
+                                        // Check if transaction wants to increment data of the item
+                                        if ( target.getData() == itemInHand.getData() + 1 &&
+                                                ( ( target.getNbtData() == null && itemInHand.getNbtData() == null ) ||
+                                                        target.getNbtData().equals( itemInHand.getNbtData() ) ) ) {
+                                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), target );
+                                        }
                                     }
                                 }
                             } else {
+                                resetBlocks( packet, connection );
+
                                 if ( packet.getActions().length > 0 ) {
-                                    resetBlocks( packet, connection );
                                     connection.getEntity().getInventory().sendContents( connection );
-                                    return;
                                 }
+
+                                return;
                             }
                         }
                     } else {
+                        resetBlocks( packet, connection );
+
                         if ( packet.getActions().length > 0 ) {
-                            resetBlocks( packet, connection );
                             connection.getEntity().getInventory().sendContents( connection );
-                            return;
                         }
+
+                        return;
                     }
                 }
 

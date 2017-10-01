@@ -72,6 +72,7 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketText.class, new PacketTextHandler() );
         PACKET_HANDLERS.put( PacketCommandRequest.class, new PacketCommandRequestHandler() );
         PACKET_HANDLERS.put( PacketWorldSoundEvent.class, new PacketWorldSoundEventHandler() );
+        PACKET_HANDLERS.put( PacketAnimate.class, new PacketAnimateHandler() );
     }
 
     // Network manager that created this connection:
@@ -423,7 +424,6 @@ public class PlayerConnection {
     private void handlePacket( long currentTimeMillis, Packet packet ) {
         PacketHandler handler = PACKET_HANDLERS.get( packet.getClass() );
         if ( handler != null ) {
-            LOGGER.debug( "Handling: " + packet );
             handler.handle( packet, currentTimeMillis, this );
             return;
         }

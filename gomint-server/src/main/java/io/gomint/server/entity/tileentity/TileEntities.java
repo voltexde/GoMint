@@ -56,6 +56,9 @@ public enum TileEntities {
      */
     COMMAND_BLOCK( "CommandBlockTileEntity", CommandBlockTileEntity.class ),
 
+    /**
+     * Represents a item frame. It holds a item and rotation states
+     */
     ITEM_FRAME( "ItemFrame", ItemFrameTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );

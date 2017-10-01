@@ -15,7 +15,7 @@ public class PacketWorldSoundEventHandler implements PacketHandler<PacketWorldSo
     @Override
     public void handle( PacketWorldSoundEvent packet, long currentTimeMillis, PlayerConnection connection ) {
         // Relay to all other players which can see this entity
-        connection.getEntity().getWorld().sendToVisible( packet.getPosition(), packet, new Predicate<Entity>() {
+        connection.getEntity().getWorld().sendToVisible( packet.getPosition().toBlockPosition(), packet, new Predicate<Entity>() {
             @Override
             public boolean test( Entity entity ) {
                 return true;

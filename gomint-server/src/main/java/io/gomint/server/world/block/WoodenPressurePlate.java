@@ -55,6 +55,9 @@ public class WoodenPressurePlate extends Block {
         Integer amountOfEntitiesOn = this.storeInTemporaryStorage( "amountOfEntitiesOn", new Function<Integer, Integer>() {
             @Override
             public Integer apply( Integer old ) {
+                // For some weird reason a player can enter and leave a block in the same tick
+                if ( old == null ) return null;
+
                 if ( old - 1 == 0 ) return null;
                 return old - 1;
             }
