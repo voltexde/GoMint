@@ -160,6 +160,7 @@ public abstract class Block implements io.gomint.world.block.Block {
             if ( instance.needsTileEntity() ) {
                 TileEntity tileEntity = instance.createTileEntity();
                 if ( tileEntity != null ) {
+                    instance.setTileEntity( tileEntity );
                     worldAdapter.storeTileEntity( pos, tileEntity );
                 }
             }

@@ -869,11 +869,10 @@ public abstract class WorldAdapter implements World {
     public TemporaryStorage getTemporaryBlockStorage( BlockPosition position ) {
         // Get chunk
         int x = position.getX(), y = position.getY(), z = position.getZ();
-        ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
-        if ( chunk == null ) {
-            chunk = this.loadChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ), true );
-        }
+        int xChunk = CoordinateUtils.fromBlockToChunk( x );
+        int zChunk = CoordinateUtils.fromBlockToChunk( z );
 
+        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
         return chunk.getTemporaryStorage( x & 0xF, y, z & 0xF );
     }
 
@@ -905,8 +904,14 @@ public abstract class WorldAdapter implements World {
         } );
     }
 
-    public void storeTileEntity( BlockPosition pos, TileEntity tileEntity ) {
+    public void storeTileEntity( BlockPosition position, TileEntity tileEntity ) {
+        // Get chunk
+        int x = position.getX(), y = position.getY(), z = position.getZ();
+        int xChunk = CoordinateUtils.fromBlockToChunk( x );
+        int zChunk = CoordinateUtils.fromBlockToChunk( z );
 
+        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
+        chunk.setTileEntity( x & 0xF, y, z & 0xF, tileEntity );
     }
 
 }

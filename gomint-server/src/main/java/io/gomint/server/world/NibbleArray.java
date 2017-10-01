@@ -21,7 +21,7 @@ public class NibbleArray {
      *
      * @param length The desired length of the array
      */
-    public NibbleArray( int length ) {
+    public NibbleArray( short length ) {
         this.length = length;
         this.data = new byte[( this.length + 1 ) >> 1];
     }
@@ -42,7 +42,7 @@ public class NibbleArray {
      * @param index The index of the nibble to be set
      * @param value The value to set
      */
-    public void set( int index, byte value ) {
+    public void set( short index, byte value ) {
         value &= 0xF;
         this.data[index / 2] &= (byte) ( 0xF << ( ( index + 1 ) % 2 * 4 ) );
         this.data[index / 2] |= (byte) ( value << ( index % 2 * 4 ) );
@@ -54,7 +54,7 @@ public class NibbleArray {
      * @param index The index of the nibble to get
      * @return The nibble's value
      */
-    public byte get( int index ) {
+    public byte get( short index ) {
         return (byte) ( this.data[index / 2] >> ( ( index & 1 ) << 2 ) & 0xF );
     }
 
@@ -76,18 +76,4 @@ public class NibbleArray {
         return this.length;
     }
 
-    /**
-     * Return a byte array with all values as a single key. This is double the length as {@link #raw()}.
-     *
-     * @return Full length data array
-     */
-    public byte[] toByteArray() {
-        byte[] fullData = new byte[this.length];
-
-        for ( int i = 0; i < this.length; i++ ) {
-            fullData[i] = get( i );
-        }
-
-        return fullData;
-    }
 }

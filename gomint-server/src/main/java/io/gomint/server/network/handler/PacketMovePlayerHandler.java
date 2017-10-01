@@ -65,10 +65,14 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
                 entity.getPositionZ() + ( entity.getWidth() / 2 )
         );
 
-        if ( (int) from.getX() != (int) to.getX() ||
-                (int) from.getZ() != (int) to.getZ() ||
-                !to.getWorld().equals( from.getWorld() ) ) {
-            connection.checkForNewChunks( from );
+        boolean changeWorld = !to.getWorld().equals( from.getWorld() );
+        boolean changeXZ = (int) from.getX() != (int) to.getX() || (int) from.getZ() != (int) to.getZ();
+        boolean changeY = (int) from.getY() != (int) to.getY();
+
+        if ( changeWorld || changeXZ || changeY ) {
+            if ( changeWorld || changeXZ ) {
+                connection.checkForNewChunks( from );
+            }
 
             // Check for interaction
             Block block = from.getWorld().getBlockAt( from.toBlockPosition() );

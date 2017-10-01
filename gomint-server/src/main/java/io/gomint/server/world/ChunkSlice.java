@@ -22,21 +22,23 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 class ChunkSlice {
 
-    @Getter private final ChunkAdapter chunk;
-    @Getter private final int sectionY;
+    @Getter
+    private final ChunkAdapter chunk;
+    @Getter
+    private final int sectionY;
 
     private boolean isAllAir = true;
 
     private byte[] blocks = null;
     private NibbleArray data = null;
-    private NibbleArray blockLight = new NibbleArray( 4096 );
-    private NibbleArray skyLight = new NibbleArray( 4096 );
+    private NibbleArray blockLight = new NibbleArray( (short) 4096 );
+    private NibbleArray skyLight = new NibbleArray( (short) 4096 );
 
     private ShortObjMap<TileEntity> tileEntities = HashShortObjMaps.newMutableMap();
     private ShortObjMap<TemporaryStorage> temporaryStorages = HashShortObjMaps.newMutableMap();
 
-    private int getIndex( int x, int y, int z ) {
-        return ( x << 8 ) + ( z << 4 ) + y;
+    private short getIndex( int x, int y, int z ) {
+        return (short) ( ( x << 8 ) + ( z << 4 ) + y );
     }
 
     byte getBlock( int x, int y, int z ) {
@@ -48,7 +50,7 @@ class ChunkSlice {
     }
 
     <T extends io.gomint.world.block.Block> T getBlockInstance( int x, int y, int z ) {
-        int index = getIndex( x, y, z );
+        short index = getIndex( x, y, z );
 
         int fullX = CoordinateUtils.getChunkMin( this.chunk.getX() ) + x;
         int fullY = CoordinateUtils.getChunkMin( this.sectionY ) + y;
@@ -96,11 +98,11 @@ class ChunkSlice {
     }
 
     void setData( int x, int y, int z, byte data ) {
-        int index = getIndex( x, y, z );
+        short index = getIndex( x, y, z );
 
         if ( !this.isAllAir ) {
             if ( this.data == null ) {
-                this.data = new NibbleArray( 4096 );
+                this.data = new NibbleArray( (short) 4096 );
             }
         }
 
@@ -133,12 +135,12 @@ class ChunkSlice {
     }
 
     public TemporaryStorage getTemporaryStorage( int x, int y, int z ) {
-        int index = getIndex( x, y, z );
+        short index = getIndex( x, y, z );
 
-        TemporaryStorage storage = this.temporaryStorages.get( (short) index );
+        TemporaryStorage storage = this.temporaryStorages.get( index );
         if ( storage == null ) {
             storage = new TemporaryStorage();
-            this.temporaryStorages.put( (short) index, storage );
+            this.temporaryStorages.put( index, storage );
         }
 
         return storage;
