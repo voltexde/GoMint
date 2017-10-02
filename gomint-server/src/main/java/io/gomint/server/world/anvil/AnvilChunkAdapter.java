@@ -39,8 +39,8 @@ public class AnvilChunkAdapter extends ChunkAdapter {
      * Load a Chunk from a NBTTagCompound. This is used when loaded from a Regionfile.
      *
      * @param worldAdapter which loaded this chunk
-     * @param x position of chunk
-     * @param z position of chunk
+     * @param x            position of chunk
+     * @param z            position of chunk
      */
     public AnvilChunkAdapter( WorldAdapter worldAdapter, int x, int z ) {
         super( worldAdapter, x, z );
@@ -74,13 +74,13 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
         for ( int sectionY = 0; sectionY < 16; ++sectionY ) {
             byte[] blocks = new byte[4096];
-            NibbleArray data = new NibbleArray( 4096 );
+            NibbleArray data = new NibbleArray( (short) 4096 );
             int baseIndex = sectionY * 16;
 
             for ( int y = baseIndex; y < baseIndex + 16; ++y ) {
                 for ( int x = 0; x < 16; ++x ) {
                     for ( int z = 0; z < 16; ++z ) {
-                        int blockIndex = ( y - baseIndex ) << 8 | z << 4 | x;
+                        short blockIndex = (short) ( ( y - baseIndex ) << 8 | z << 4 | x );
 
                         byte blockId = this.getBlock( x, y, z );
                         byte blockData = this.getData( x, y, z );
@@ -348,7 +348,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             for ( int i = 0; i < 16; ++i ) {
                 for ( int k = 0; k < 16; ++k ) {
                     int y = sectionY + j;
-                    int blockIndex = j << 8 | k << 4 | i;
+                    short blockIndex = (short) (j << 8 | k << 4 | i);
 
                     int blockId = ( ( add != null ? add.get( blockIndex ) << 8 : 0 ) | blocks[blockIndex] ) & 0xFF;
                     byte blockData = data.get( blockIndex );

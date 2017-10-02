@@ -2,14 +2,10 @@ package io.gomint.server.inventory.transaction;
 
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.inventory.Inventory;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author geNAZt

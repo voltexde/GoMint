@@ -65,8 +65,7 @@
         <dependency>
             <groupId>io.gomint</groupId>
             <artifactId>jraknet</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>4.1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -130,10 +129,20 @@
                         </goals>
                         <configuration>
                             <artifactSet>
-                                <includes>
-                                    <include>*:*</include>
-                                </includes>
+                                <excludes>
+                                    <exclude>org.bouncycastle:*</exclude>
+                                </excludes>
                             </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

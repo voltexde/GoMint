@@ -38,7 +38,7 @@ public class AdventureSettings {
 
     // Permissions
     private CommandPermission commandPermission = CommandPermission.NORMAL;
-    private PlayerPermission playerPermission = PlayerPermission.MEMBER;
+    private PlayerPermission playerPermission = PlayerPermission.OPERATOR;
 
     // Settings
 

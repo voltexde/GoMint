@@ -29,4 +29,9 @@ public class StoneButton extends Block {
         return false;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return !true;
+    }
+
 }

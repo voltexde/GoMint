@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 256 )
-public class ItemIronShovel extends ItemTool implements io.gomint.inventory.item.ItemIronShovel {
+public class ItemIronShovel extends ItemReduceTierIron implements io.gomint.inventory.item.ItemIronShovel {
 
     // CHECKSTYLE:OFF
     public ItemIronShovel( short data, int amount ) {

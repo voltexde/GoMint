@@ -53,7 +53,7 @@ public class PacketStartGame extends Packet {
     private String levelId;
     private String worldName;
     private String templateName;
-    private boolean unknown1;
+    private boolean unknown1 = true;
     private long currentTick;
     private int enchantmentSeed;
 

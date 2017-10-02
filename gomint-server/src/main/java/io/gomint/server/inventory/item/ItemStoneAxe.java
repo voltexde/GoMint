@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 275 )
- public class ItemStoneAxe extends ItemStack implements io.gomint.inventory.item.ItemStoneAxe {
+ public class ItemStoneAxe extends ItemReduceTierStone implements io.gomint.inventory.item.ItemStoneAxe {
 
     // CHECKSTYLE:OFF
     public ItemStoneAxe( short data, int amount ) {

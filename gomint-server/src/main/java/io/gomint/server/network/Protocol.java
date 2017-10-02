@@ -43,7 +43,7 @@ public final class Protocol {
     public static final byte PACKET_MOVE_PLAYER = (byte) 0x13;
     public static final byte PACKET_UPDATE_BLOCK = (byte) 0x15;
     public static final byte PACKET_WORLD_SOUND_EVENT = (byte) 0x18;
-
+    public static final byte PACKET_WORLD_EVENT = (byte) 0x19;
     public static final byte PACKET_UPDATE_ATTRIBUTES = (byte) 0x1D;
     public static final byte PACKET_INVENTORY_TRANSACTION = (byte) 0x1E;
     public static final byte PACKET_MOB_EQUIPMENT = (byte) 0x1F;
@@ -67,7 +67,7 @@ public final class Protocol {
     public static final byte PACKET_WORLD_CHUNK = (byte) 0x3A;
     public static final byte PACKET_SET_COMMANDS_ENABLED = (byte) 0x3B;
     public static final byte PACKET_SET_DIFFICULTY = (byte) 0x3C;
-    public static final byte PACKET_SET_GAMEMODE = (byte) 0x3D;
+    public static final byte PACKET_SET_GAMEMODE = (byte) 0x3E;
     public static final byte PACKET_PLAYER_LIST = (byte) 0x3F;
     public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
     public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;

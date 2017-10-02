@@ -57,7 +57,6 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketMovePlayer.class, new PacketMovePlayerHandler() );
         PACKET_HANDLERS.put( PacketSetChunkRadius.class, new PacketSetChunkRadiusHandler() );
         PACKET_HANDLERS.put( PacketPlayerAction.class, new PacketPlayerActionHandler() );
-        PACKET_HANDLERS.put( PacketRemoveBlock.class, new PacketRemoveBlockHandler() );
         PACKET_HANDLERS.put( PacketMobArmorEquipment.class, new PacketMobArmorEquipmentHandler() );
         PACKET_HANDLERS.put( PacketAdventureSettings.class, new PacketAdventureSettingsHandler() );
         PACKET_HANDLERS.put( PacketResourcePackResponse.class, new PacketResourcePackResponseHandler() );
@@ -73,6 +72,7 @@ public class PlayerConnection {
         PACKET_HANDLERS.put( PacketText.class, new PacketTextHandler() );
         PACKET_HANDLERS.put( PacketCommandRequest.class, new PacketCommandRequestHandler() );
         PACKET_HANDLERS.put( PacketWorldSoundEvent.class, new PacketWorldSoundEventHandler() );
+        PACKET_HANDLERS.put( PacketAnimate.class, new PacketAnimateHandler() );
     }
 
     // Network manager that created this connection:

@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 279 )
- public class ItemDiamondAxe extends ItemStack implements io.gomint.inventory.item.ItemDiamondAxe {
+ public class ItemDiamondAxe extends ItemReduceTierDiamond implements io.gomint.inventory.item.ItemDiamondAxe {
 
     // CHECKSTYLE:OFF
     public ItemDiamondAxe( short data, int amount ) {

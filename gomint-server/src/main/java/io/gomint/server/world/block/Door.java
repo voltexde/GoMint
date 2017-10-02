@@ -6,6 +6,7 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.math.Vector2;
+import io.gomint.world.block.Air;
 
 /**
  * @author geNAZt
@@ -73,9 +74,9 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
             }
         } else {
             if ( directionPlane.getX() > 0 ) {
-                return (byte) 2;
-            } else {
                 return (byte) 4;
+            } else {
+                return (byte) 2;
             }
         }
     }
@@ -88,6 +89,19 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
     @Override
     public long getBreakTime() {
         return 4500;
+    }
+
+    @Override
+    public boolean onBreak() {
+        if ( isTop() ) {
+            Block otherPart = getLocation().getWorld().getBlockAt( getLocation().toBlockPosition().add( BlockPosition.DOWN ) );
+            otherPart.setType( Air.class, (byte) 0 );
+        } else {
+            Block otherPart = getLocation().getWorld().getBlockAt( getLocation().toBlockPosition().add( BlockPosition.UP ) );
+            otherPart.setType( Air.class, (byte) 0 );
+        }
+
+        return true;
     }
 
 }

@@ -8,10 +8,8 @@
 package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
-import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.math.Vector;
-import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.inventory.EnderChestInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.Items;
@@ -52,6 +50,7 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
 
         // Skip non existent items for PE
         if ( material == 0 ) {
+            this.holdingItem = Items.create( 0, (short) 0, (byte) 1, null );
             return;
         }
 
@@ -69,7 +68,7 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
     }
 
     @Override
-    public void interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+    public void interact( Entity entity, int face, Vector facePos, io.gomint.inventory.item.ItemStack item ) {
 
     }
 

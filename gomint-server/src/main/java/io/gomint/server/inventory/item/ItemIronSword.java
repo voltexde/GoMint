@@ -1,5 +1,6 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemSword;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -8,7 +9,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 267 )
- public class ItemIronSword extends ItemStack implements io.gomint.inventory.item.ItemIronSword {
+ public class ItemIronSword extends ItemReduceTierIron implements io.gomint.inventory.item.ItemIronSword, ItemSword {
 
     // CHECKSTYLE:OFF
     public ItemIronSword( short data, int amount ) {

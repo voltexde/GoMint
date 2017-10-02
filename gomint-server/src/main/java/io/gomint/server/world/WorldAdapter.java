@@ -22,6 +22,7 @@ import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.passive.EntityItem;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
@@ -150,11 +151,7 @@ public abstract class WorldAdapter implements World {
 
     @Override
     public <T extends Block> T getBlockAt( BlockPosition pos ) {
-        int x = pos.getX();
-        int y = pos.getY();
-        int z = pos.getZ();
-
-        return this.getBlockAt( x, y, z );
+        return this.getBlockAt( pos.getX(), pos.getY(), pos.getZ() );
     }
 
     @Override
@@ -164,53 +161,40 @@ public abstract class WorldAdapter implements World {
             return (T) Blocks.get( 0, (byte) 0, (byte) ( y > 255 ? 15 : 0 ), (byte) 0, null, new Location( this, x, y, z ) );
         }
 
-        ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
-        if ( chunk == null ) {
-            chunk = this.loadChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ), true );
-        }
+        int xChunk = CoordinateUtils.fromBlockToChunk( x );
+        int zChunk = CoordinateUtils.fromBlockToChunk( z );
 
-        // Get correct block out of the blocks factory
+        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
         return chunk.getBlockAt( x & 0xF, y, z & 0xF );
     }
 
     /**
      * Set the block id for the given location
      *
-     * @param vector  Position of the block
+     * @param position  Position of the block
      * @param blockId The new block id
      */
-    public void setBlockId( Vector vector, int blockId ) {
-        int x = (int) vector.getX();
-        int y = (int) vector.getY();
-        int z = (int) vector.getZ();
+    public void setBlockId( BlockPosition position, int blockId ) {
+        final ChunkAdapter chunk = this.loadChunk(
+                CoordinateUtils.fromBlockToChunk( position.getX() ),
+                CoordinateUtils.fromBlockToChunk( position.getZ() ),
+                true );
 
-        final ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
-        if ( chunk == null ) {
-            // TODO: Generate world
-            return;
-        }
-
-        chunk.setBlock( x & 0xF, y, z & 0xF, blockId );
+        chunk.setBlock( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, blockId );
     }
 
     /**
      * Set the data byte for the given block
      *
-     * @param vector Position of the block
+     * @param position Position of the block
      * @param data   The new data of the block
      */
-    public void setBlockData( Vector vector, byte data ) {
-        int x = (int) vector.getX();
-        int y = (int) vector.getY();
-        int z = (int) vector.getZ();
+    public void setBlockData( BlockPosition position, byte data ) {
+        int xChunk = CoordinateUtils.fromBlockToChunk( position.getX() );
+        int zChunk = CoordinateUtils.fromBlockToChunk( position.getZ() );
 
-        final ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
-        if ( chunk == null ) {
-            // TODO: Generate world
-            return;
-        }
-
-        chunk.setData( x & 0xF, y, z & 0xF, data );
+        final ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
+        chunk.setData( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, data );
     }
 
     private void initGamerules() {
@@ -273,9 +257,9 @@ public abstract class WorldAdapter implements World {
                                 case 78:            // Top snow
                                 case 79:            // Ice
                                 case 11:            // Stationary lava
-                                case 10:            // Lava
+                                case 10:            // FlowingLava
                                 case 9:             // Stationary water
-                                case 8:             // Water
+                                case 8:             // FlowingWater
                                     Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
                                     if ( block instanceof io.gomint.server.world.block.Block ) {
                                         long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
@@ -521,10 +505,7 @@ public abstract class WorldAdapter implements World {
      */
     public void movePlayerToChunk( int x, int z, EntityPlayer player ) {
         ChunkAdapter oldChunk = this.players.get( player );
-        ChunkAdapter newChunk = this.getChunk( x, z );
-        if ( newChunk == null ) {
-            newChunk = this.loadChunk( x, z, true );
-        }
+        ChunkAdapter newChunk = this.loadChunk( x, z, true );
 
         if ( oldChunk == null ) {
             newChunk.addPlayer( player );
@@ -623,9 +604,9 @@ public abstract class WorldAdapter implements World {
      * @param packet    which should be sent
      * @param predicate which decides over each entity if they will get the packet sent or not
      */
-    public void sendToVisible( Vector position, Packet packet, Predicate<Entity> predicate ) {
-        int posX = CoordinateUtils.fromBlockToChunk( (int) position.getX() );
-        int posZ = CoordinateUtils.fromBlockToChunk( (int) position.getZ() );
+    public void sendToVisible( BlockPosition position, Packet packet, Predicate<Entity> predicate ) {
+        int posX = CoordinateUtils.fromBlockToChunk( position.getX() );
+        int posZ = CoordinateUtils.fromBlockToChunk( position.getZ() );
 
         for ( Player player : this.getPlayers() ) {
             Location location = player.getLocation();
@@ -711,7 +692,7 @@ public abstract class WorldAdapter implements World {
         updateBlock.setBlockId( block.getBlockId() );
         updateBlock.setPrioAndMetadata( (byte) ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() ) ) );
 
-        sendToVisible( pos.toVector(), updateBlock, new Predicate<Entity>() {
+        sendToVisible( pos, updateBlock, new Predicate<Entity>() {
             @Override
             public boolean test( Entity entity ) {
                 return true;
@@ -724,7 +705,7 @@ public abstract class WorldAdapter implements World {
             tileEntityData.setPosition( pos );
             tileEntityData.setTileEntity( block.getTileEntity() );
 
-            sendToVisible( pos.toVector(), tileEntityData, new Predicate<Entity>() {
+            sendToVisible( pos, tileEntityData, new Predicate<Entity>() {
                 @Override
                 public boolean test( Entity entity ) {
                     return true;
@@ -888,11 +869,10 @@ public abstract class WorldAdapter implements World {
     public TemporaryStorage getTemporaryBlockStorage( BlockPosition position ) {
         // Get chunk
         int x = position.getX(), y = position.getY(), z = position.getZ();
-        ChunkAdapter chunk = this.getChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ) );
-        if ( chunk == null ) {
-            chunk = this.loadChunk( CoordinateUtils.fromBlockToChunk( x ), CoordinateUtils.fromBlockToChunk( z ), true );
-        }
+        int xChunk = CoordinateUtils.fromBlockToChunk( x );
+        int zChunk = CoordinateUtils.fromBlockToChunk( z );
 
+        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
         return chunk.getTemporaryStorage( x & 0xF, y, z & 0xF );
     }
 
@@ -906,6 +886,32 @@ public abstract class WorldAdapter implements World {
         }
 
         return null;
+    }
+
+    public void sendLevelEvent( BlockPosition position, int levelEvent, int data ) {
+        Vector vec = position.toVector();
+
+        PacketWorldEvent worldEvent = new PacketWorldEvent();
+        worldEvent.setData( data );
+        worldEvent.setEventId( levelEvent );
+        worldEvent.setPosition( vec );
+
+        sendToVisible( position, worldEvent, new Predicate<Entity>() {
+            @Override
+            public boolean test( Entity entity ) {
+                return true;
+            }
+        } );
+    }
+
+    public void storeTileEntity( BlockPosition position, TileEntity tileEntity ) {
+        // Get chunk
+        int x = position.getX(), y = position.getY(), z = position.getZ();
+        int xChunk = CoordinateUtils.fromBlockToChunk( x );
+        int zChunk = CoordinateUtils.fromBlockToChunk( z );
+
+        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
+        chunk.setTileEntity( x & 0xF, y, z & 0xF, tileEntity );
     }
 
 }

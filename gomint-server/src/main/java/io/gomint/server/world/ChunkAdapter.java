@@ -7,11 +7,13 @@
 
 package io.gomint.server.world;
 
+import com.koloboke.collect.map.LongObjMap;
 import com.koloboke.collect.map.hash.HashLongObjMaps;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.CommandBlockTileEntity;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
@@ -25,7 +27,6 @@ import io.gomint.world.Chunk;
 import io.gomint.world.block.Block;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import com.koloboke.collect.map.LongObjMap;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,6 +239,10 @@ public class ChunkAdapter implements Chunk {
 
         TileEntity tileEntity1 = TileEntities.construct( tileEntity, this.world );
         if ( tileEntity1 != null ) {
+            if ( tileEntity1 instanceof CommandBlockTileEntity ) {
+                LOGGER.debug( "Custom name: " + ( (CommandBlockTileEntity) tileEntity1 ).getCustomName() );
+            }
+
             ChunkSlice slice = ensureSlice( y >> 4 );
             slice.addTileEntity( x, y - slice.getSectionY() * 16, z, tileEntity1 );
         }
@@ -465,6 +470,12 @@ public class ChunkAdapter implements Chunk {
 
     public PacketBatch getCachedPacket() {
         return cachedPacket.get();
+    }
+
+
+    public void setTileEntity( int x, int y, int z, TileEntity tileEntity ) {
+        ChunkSlice slice = ensureSlice( y >> 4 );
+        slice.addTileEntity( x, y - 16 * ( y >> 4 ), z, tileEntity );
     }
 
 }

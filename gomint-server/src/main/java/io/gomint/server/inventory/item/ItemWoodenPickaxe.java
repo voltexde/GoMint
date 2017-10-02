@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 270 )
-public class ItemWoodenPickaxe extends ItemTool implements io.gomint.inventory.item.ItemWoodenPickaxe {
+public class ItemWoodenPickaxe extends ItemReduceTierWooden implements io.gomint.inventory.item.ItemWoodenPickaxe {
 
     // CHECKSTYLE:OFF
     public ItemWoodenPickaxe( short data, int amount ) {

@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 285 )
- public class ItemGoldenPickaxe extends ItemStack implements io.gomint.inventory.item.ItemGoldenPickaxe {
+ public class ItemGoldenPickaxe extends ItemReduceTierGolden implements io.gomint.inventory.item.ItemGoldenPickaxe {
 
     // CHECKSTYLE:OFF
     public ItemGoldenPickaxe( short data, int amount ) {

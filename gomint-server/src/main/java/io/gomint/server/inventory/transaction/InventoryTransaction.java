@@ -21,7 +21,6 @@ public class InventoryTransaction implements Transaction {
     private final int slot;
     private final ItemStack sourceItem;
     private final ItemStack targetItem;
-    private final long creationTime;
 
     @Override
     public boolean hasInventory() {

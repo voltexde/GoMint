@@ -16,7 +16,7 @@ public enum EntityFlag {
     BREATHING( 33 ),
 
     HAS_COLLISION( 45 ),
-    AFFECTED_BY_GRAVITY( 46 ),;
+    AFFECTED_BY_GRAVITY( 46 );
 
     @Getter
     private final int id;

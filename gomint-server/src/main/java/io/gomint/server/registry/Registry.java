@@ -5,6 +5,8 @@ import com.koloboke.collect.map.IntObjMap;
 import com.koloboke.collect.map.ObjIntMap;
 import com.koloboke.collect.map.hash.HashIntObjMaps;
 import com.koloboke.collect.map.hash.HashObjIntMaps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -14,6 +16,8 @@ import java.util.Collection;
  * @version 1.0
  */
 public class Registry<R> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
     private final GeneratorCallback<R> generatorCallback;
     private final IntObjMap<R> generators = HashIntObjMaps.newMutableMap();
@@ -52,6 +56,10 @@ public class Registry<R> {
         }
 
         int id = clazz.getAnnotation( RegisterInfo.class ).id();
+        R oldGen = this.generators.get( id );
+        if ( oldGen != null ) {
+            LOGGER.debug( "Duplicated register info for id: " + id + " -> " + clazz.getName() + "; old: " + oldGen.getClass().getName() );
+        }
 
         R generator = this.generatorCallback.generate( id, clazz );
         if ( generator != null ) {
