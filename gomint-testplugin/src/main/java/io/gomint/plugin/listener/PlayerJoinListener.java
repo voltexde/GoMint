@@ -6,6 +6,7 @@ import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.ItemAcaciaDoor;
 import io.gomint.inventory.item.ItemWoodPlanks;
 import io.gomint.inventory.item.ItemWoodenAxe;
+import io.gomint.world.Gamemode;
 
 /**
  * @author geNAZt
@@ -18,6 +19,8 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 0, ItemWoodPlanks.create( 12 ) );
         event.getPlayer().getInventory().setItem( 1, ItemAcaciaDoor.create( 1 ) );
         event.getPlayer().getInventory().setItem( 2, ItemWoodenAxe.create( 1 ) );
+
+        event.getPlayer().setGamemode( Gamemode.CREATIVE );
     }
 
 }

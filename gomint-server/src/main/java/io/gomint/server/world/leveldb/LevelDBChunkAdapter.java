@@ -28,8 +28,8 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
      * Create a new level db backed chunk
      *
      * @param worldAdapter which loaded this chunk
-     * @param x position of chunk
-     * @param z position of chunk
+     * @param x            position of chunk
+     * @param z            position of chunk
      */
     public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z ) {
         super( worldAdapter, x, z );
@@ -80,9 +80,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             for ( int i = 0; i < 16; ++i ) {
                 for ( int k = 0; k < 16; ++k ) {
                     int y = ( sectionY << 4 ) + j;
-                    int blockIndex = k << 8 | i << 4 | j; // j k i - k j i - i k j -
-
-
+                    short blockIndex = (short) ( k << 8 | i << 4 | j ); // j k i - k j i - i k j -
                     this.setBlock( k, y, i, blockData[blockIndex] );
 
                     if ( meta.get( blockIndex ) != 0 ) {
