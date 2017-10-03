@@ -86,7 +86,6 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private Inventory cursorInventory;
     private Inventory craftingInputInventory;
     private Inventory craftingResultInventory;
-    @Setter @Getter private TransactionGroup transactions;
     private ByteObjMap<ContainerInventory> windowIds;
     private ObjByteMap<ContainerInventory> containerIds;
 

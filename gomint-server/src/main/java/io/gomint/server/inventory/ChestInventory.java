@@ -10,6 +10,7 @@ package io.gomint.server.inventory;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.ChestTileEntity;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryContent;
 import io.gomint.server.network.packet.PacketInventorySetSlot;
@@ -53,7 +54,7 @@ public class ChestInventory extends ContainerInventory {
 
     @Override
     public BlockPosition getContainerPosition() {
-        ChestTileEntity tileEntity = (ChestTileEntity) this.owner;
+        TileEntity tileEntity = (TileEntity) this.owner;
         return tileEntity.getLocation().toBlockPosition();
     }
 

@@ -11,6 +11,8 @@ import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.server.inventory.MaterialMagicNumbers;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
@@ -34,11 +36,45 @@ public abstract class TileEntity {
      */
     TileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
         this.location = new Location(
-                world,
-                tagCompound.getInteger( "x", 0 ),
-                tagCompound.getInteger( "y", -1 ),
-                tagCompound.getInteger( "z", 0 )
+            world,
+            tagCompound.getInteger( "x", 0 ),
+            tagCompound.getInteger( "y", -1 ),
+            tagCompound.getInteger( "z", 0 )
         );
+    }
+
+    io.gomint.server.inventory.item.ItemStack getItemStack( NBTTagCompound compound ) {
+        // Check for correct ids
+
+        // This is needed since minecraft changed from storing raw ids to string keys somewhere in 1.7 / 1.8
+        int material;
+        try {
+            material = compound.getShort( "id", (short) 0 );
+        } catch ( ClassCastException e ) {
+            material = MaterialMagicNumbers.valueOfWithId( compound.getString( "id", "minecraft:air" ) );
+        }
+
+        // Skip non existent items for PE
+        if ( material == 0 ) {
+            return Items.create( 0, (short) 0, (byte) 0, null );
+        }
+
+        short data = compound.getShort( "Damage", (short) 0 );
+        byte amount = compound.getByte( "Count", (byte) 1 );
+
+        return Items.create( material, data, amount, compound.getCompound( "tag", false ) );
+    }
+
+
+    void putItemStack( io.gomint.server.inventory.item.ItemStack itemStack, NBTTagCompound compound ) {
+        compound.addValue( "id", (short) itemStack.getMaterial() );
+        compound.addValue( "Damage", itemStack.getData() );
+        compound.addValue( "Count", itemStack.getAmount() );
+
+        if ( itemStack.getNbtData() != null ) {
+            NBTTagCompound itemTag = itemStack.getNbtData().deepClone( "tag" );
+            compound.addValue( "tag", itemTag );
+        }
     }
 
     /**

@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum CommandPermissionMagicNumbers {
+public enum CommandPermission {
 
     NORMAL( 0 ),
     OPERATOR( 1 ),

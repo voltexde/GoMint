@@ -147,7 +147,7 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
             clone.material = this.material;
             clone.data = this.data;
             clone.amount = this.amount;
-            clone.nbt = ( this.nbt == null ? null : this.nbt.deepClone() );
+            clone.nbt = ( this.nbt == null ? null : this.nbt.deepClone( "" ) );
             return clone;
         } catch ( CloneNotSupportedException e ) {
             throw new AssertionError( "Clone of ItemStack failed", e );

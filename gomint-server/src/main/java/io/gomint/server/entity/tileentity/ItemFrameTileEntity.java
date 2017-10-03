@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ItemFrameTileEntity extends TileEntity {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( ItemFrameTileEntity.class );
-
     private ItemStack holdingItem;
     private float itemDropChance;
     private byte itemRotation;
@@ -73,13 +71,7 @@ public class ItemFrameTileEntity extends TileEntity {
         compound.addValue( "ItemRotation", this.itemRotation );
 
         NBTTagCompound itemCompound = new NBTTagCompound( "Item" );
-        itemCompound.addValue( "id", (short) this.holdingItem.getMaterial() );
-        itemCompound.addValue( "Count", this.holdingItem.getAmount() );
-        itemCompound.addValue( "Damage", this.holdingItem.getData() );
-        if ( this.holdingItem.getNbtData() != null ) {
-            itemCompound.addValue( "tag", this.holdingItem.getNbtData() );
-        }
-
+        putItemStack( this.holdingItem, itemCompound );
         compound.addValue( "Item", itemCompound );
     }
 }

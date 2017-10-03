@@ -1,8 +1,7 @@
 package io.gomint.server.entity;
 
-import io.gomint.command.CommandPermission;
-import io.gomint.player.PlayerPermission;
 import io.gomint.server.network.packet.PacketAdventureSettings;
+import io.gomint.server.player.PlayerPermission;
 import io.gomint.server.util.EnumConnectors;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ public class AdventureSettings {
 
     // Permissions
     private CommandPermission commandPermission = CommandPermission.NORMAL;
-    private PlayerPermission playerPermission = PlayerPermission.OPERATOR;
+    private PlayerPermission playerPermission = PlayerPermission.MEMBER;
 
     // Settings
 
@@ -121,7 +120,7 @@ public class AdventureSettings {
             flags |= NO_CLIP;              // No clip
         }
 
-        if ( this.worldBuilder ) {      // TODO: Find out what world builder is
+        if ( this.worldBuilder ) {          // TODO: Find out what world builder is
             flags |= WORLD_BUILDER;
         }
 
@@ -167,8 +166,8 @@ public class AdventureSettings {
 
         adventureSettingsPacket.setFlags( flags );
         adventureSettingsPacket.setFlags2( flags2 );
-        adventureSettingsPacket.setCommandPermission( EnumConnectors.COMMANDPERMISSION_CONNECTOR.convert( this.commandPermission ).getId() );
-        adventureSettingsPacket.setPlayerPermission( EnumConnectors.PLAYERPERMISSION_CONNECTOR.convert( this.playerPermission ).getId() );
+        adventureSettingsPacket.setCommandPermission( this.commandPermission.getId() );
+        adventureSettingsPacket.setPlayerPermission( this.playerPermission.getId() );
         adventureSettingsPacket.setEntityId( this.player.getEntityId() );
         this.player.getConnection().send( adventureSettingsPacket );
     }

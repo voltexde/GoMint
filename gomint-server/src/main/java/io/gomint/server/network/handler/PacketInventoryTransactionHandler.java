@@ -31,8 +31,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
     public void handle( PacketInventoryTransaction packet, long currentTimeMillis, PlayerConnection connection ) {
         switch ( packet.getType() ) {
             case PacketInventoryTransaction.TYPE_NORMAL:
-                TransactionGroup transactionGroup;
-                connection.getEntity().setTransactions( transactionGroup = new TransactionGroup() );
+                TransactionGroup transactionGroup = new TransactionGroup();
                 for ( PacketInventoryTransaction.NetworkTransaction transaction : packet.getActions() ) {
                     Inventory inventory = getInventory( transaction, connection.getEntity() );
 
