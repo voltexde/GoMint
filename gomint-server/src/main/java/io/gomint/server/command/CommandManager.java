@@ -3,7 +3,7 @@ package io.gomint.server.command;
 import com.google.common.reflect.ClassPath;
 import io.gomint.command.Command;
 import io.gomint.plugin.Plugin;
-import io.gomint.server.entity.CommandPermissionMagicNumbers;
+import io.gomint.server.entity.CommandPermission;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketAvailableCommands;
 
@@ -75,7 +75,7 @@ public class CommandManager {
                 commandBuilder.getName(),
                 commandBuilder.getDescription(),
                 commandBuilder.getAlias(),
-                CommandPermissionMagicNumbers.NORMAL,
+                CommandPermission.NORMAL,
                 commandBuilder.getPermission(),
                 commandBuilder.getExecutor(),
                 commandBuilder.getOverload() );

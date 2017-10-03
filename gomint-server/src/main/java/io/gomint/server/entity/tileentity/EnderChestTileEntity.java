@@ -22,9 +22,8 @@ import org.slf4j.LoggerFactory;
  * @author geNAZt
  * @version 1.0
  */
-public class EnderChestTileEntity extends TileEntity implements InventoryHolder {
+public class EnderChestTileEntity extends ContainerTileEntity implements InventoryHolder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( EnderChestTileEntity.class );
     private EnderChestInventory inventory;
 
     /**

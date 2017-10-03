@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
  */
 public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( FlowerPotTileEntity.class );
     private ItemStack holdingItem;
 
     /**
@@ -76,5 +75,7 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
     public void toCompound( NBTTagCompound compound ) {
         super.toCompound( compound );
         compound.addValue( "id", "FlowerPot" );
+        compound.addValue( "item", (short) this.holdingItem.getMaterial() );
+        compound.addValue( "mData", (int) this.holdingItem.getData() );
     }
 }

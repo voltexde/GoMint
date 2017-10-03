@@ -12,7 +12,7 @@ import java.util.List;
  * @version 1.0
  */
 @Getter
-public class CommandBlockTileEntity extends TileEntity {
+public class CommandBlockTileEntity extends ContainerTileEntity {
 
     private String command;
     private int successCount;
@@ -27,7 +27,6 @@ public class CommandBlockTileEntity extends TileEntity {
     private boolean conditionalMode;
     private int commandMode;
 
-    private String customName;
     private int version;
 
     /**
@@ -63,7 +62,6 @@ public class CommandBlockTileEntity extends TileEntity {
         this.commandMode = tagCompound.getInteger( "LPCommandMode", 0 );
 
         //
-        this.customName = tagCompound.getString( "CustomName", null );
         this.version = tagCompound.getInteger( "Version", 1 );
     }
 
@@ -100,10 +98,6 @@ public class CommandBlockTileEntity extends TileEntity {
         compound.addValue( "LPCommandMode", this.commandMode );
 
         //
-        if ( this.customName != null ) {
-            compound.addValue( "CustomName", this.customName );
-        }
-
         compound.addValue( "Version", this.version );
     }
 

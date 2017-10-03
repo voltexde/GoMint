@@ -101,7 +101,7 @@ public abstract class Packet {
             ByteArrayInputStream bin = new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), extraLen );
             try {
                 NBTReader nbtReader = new NBTReader( bin, ByteOrder.LITTLE_ENDIAN );
-                nbtReader.setUseVarint( true );
+                // nbtReader.setUseVarint( true );
                 nbt = nbtReader.parse();
             } catch ( IOException e ) {
                 e.printStackTrace();

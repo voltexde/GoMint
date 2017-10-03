@@ -54,12 +54,27 @@ public enum TileEntities {
     /**
      * Represents a command block. Contains data like command string, output etc.
      */
-    COMMAND_BLOCK( "CommandBlockTileEntity", CommandBlockTileEntity.class ),
+    COMMAND_BLOCK( "CommandBlock", CommandBlockTileEntity.class ),
 
     /**
      * Represents a item frame. It holds a item and rotation states
      */
-    ITEM_FRAME( "ItemFrame", ItemFrameTileEntity.class );
+    ITEM_FRAME( "ItemFrame", ItemFrameTileEntity.class ),
+
+    /**
+     * Enchantment table. Stores nothing except a optional custom name
+     */
+    ENCHANT_TABLE( "EnchantTable", EnchantTableTileEntity.class ),
+
+    /**
+     * Holds nothing :)
+     */
+    DAYLIGHT_DETECTOR( "DaylightDetector", DaylightDetectorTileEntity.class ),
+
+    /**
+     * More or less a cooler chest
+     */
+    SHULKER_BOX( "ShulkerBox", ShulkerBoxTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;
@@ -107,6 +122,10 @@ public enum TileEntities {
                 }
 
             }
+        }
+
+        if ( "ShulkerBox".equals( id ) ) {
+            System.out.println( "FOUND! - " );
         }
 
         LOGGER.warn( "Unknown tile entity found: " + id );
