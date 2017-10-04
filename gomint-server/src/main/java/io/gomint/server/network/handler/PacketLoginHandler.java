@@ -8,7 +8,6 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerLoginEvent;
-import io.gomint.event.player.PlayerPreLoginEvent;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.jwt.*;
 import io.gomint.server.network.EncryptionHandler;
@@ -19,6 +18,7 @@ import io.gomint.server.network.packet.PacketEncryptionRequest;
 import io.gomint.server.network.packet.PacketLogin;
 import io.gomint.server.network.packet.PacketPlayState;
 import io.gomint.server.player.PlayerSkin;
+import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.world.WorldAdapter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -29,7 +29,9 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.security.Key;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
@@ -58,109 +60,129 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             return;
         }
 
-        // More data please
-        ByteBuffer byteBuffer = ByteBuffer.wrap( packet.getPayload() );
-        byteBuffer.order( ByteOrder.LITTLE_ENDIAN );
-        byte[] stringBuffer = new byte[byteBuffer.getInt()];
-        byteBuffer.get( stringBuffer );
+        // Async login sequence
+        connection.getServer().getExecutorService().execute( new Runnable() {
+            @Override
+            public void run() {
+                // More data please
+                ByteBuffer byteBuffer = ByteBuffer.wrap( packet.getPayload() );
+                byteBuffer.order( ByteOrder.LITTLE_ENDIAN );
+                byte[] stringBuffer = new byte[byteBuffer.getInt()];
+                byteBuffer.get( stringBuffer );
 
-        // Parse chain and validate
-        String jwt = new String( stringBuffer );
-        JSONObject json;
-        try {
-            json = this.parseJwtString( jwt );
-        } catch ( ParseException e ) {
-            e.printStackTrace();
-            return;
-        }
-
-        Object jsonChainRaw = json.get( "chain" );
-        if ( jsonChainRaw == null || !( jsonChainRaw instanceof JSONArray ) ) {
-            return;
-        }
-
-        MojangChainValidator chainValidator = new MojangChainValidator( connection.getServer().getEncryptionKeyFactory() );
-        JSONArray jsonChain = (JSONArray) jsonChainRaw;
-        for ( Object jsonTokenRaw : jsonChain ) {
-            if ( jsonTokenRaw instanceof String ) {
+                // Parse chain and validate
+                String jwt = new String( stringBuffer );
+                JSONObject json;
                 try {
-                    JwtToken token = JwtToken.parse( (String) jsonTokenRaw );
-                    chainValidator.addToken( token );
-                } catch ( IllegalArgumentException e ) {
+                    json = parseJwtString( jwt );
+                } catch ( ParseException e ) {
                     e.printStackTrace();
+                    return;
                 }
+
+                Object jsonChainRaw = json.get( "chain" );
+                if ( jsonChainRaw == null || !( jsonChainRaw instanceof JSONArray ) ) {
+                    return;
+                }
+
+                MojangChainValidator chainValidator = new MojangChainValidator( connection.getServer().getEncryptionKeyFactory() );
+                JSONArray jsonChain = (JSONArray) jsonChainRaw;
+                for ( Object jsonTokenRaw : jsonChain ) {
+                    if ( jsonTokenRaw instanceof String ) {
+                        try {
+                            JwtToken token = JwtToken.parse( (String) jsonTokenRaw );
+                            chainValidator.addToken( token );
+                        } catch ( IllegalArgumentException e ) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                boolean valid = chainValidator.validate();
+
+                // Parse skin
+                byte[] skin = new byte[byteBuffer.getInt()];
+                byteBuffer.get( skin );
+
+                JwtToken skinToken = JwtToken.parse( new String( skin ) );
+                String key = (String) skinToken.getHeader().getProperty( "x5u" );
+                Key trusted = chainValidator.getTrustedKeys().get( key );
+                boolean validSkin = true;
+
+                try {
+                    skinToken.validateSignature( JwtAlgorithm.ES384, trusted );
+                } catch ( JwtSignatureException e ) {
+                    validSkin = false;
+                }
+
+                // Sync up for disconnecting etc.
+                boolean finalValidSkin = validSkin;
+                connection.getServer().getSyncTaskManager().addTask( new SyncScheduledTask( new Runnable() {
+                    @Override
+                    public void run() {
+                        // Invalid skin
+                        if ( !finalValidSkin && connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
+                            connection.disconnect( "Skin is invalid or corrupted" );
+                            return;
+                        }
+
+                        // Check if valid user (xbox live)
+                        if ( !valid && connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
+                            connection.disconnect( "Only valid XBOX Logins are allowed" );
+                            return;
+                        }
+
+                        // Create additional data wrappers
+                        String capeData = skinToken.getClaim( "CapeData" );
+                        PlayerSkin playerSkin = new PlayerSkin(
+                            skinToken.getClaim( "SkinId" ),
+                            Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinData" ) ),
+                            capeData.isEmpty() ? null : Base64.getDecoder().decode( capeData ),
+                            skinToken.getClaim( "SkinGeometryName" ),
+                            Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinGeometry" ) )
+                        );
+
+                        // Create entity:
+                        WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();
+                        connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(),
+                            chainValidator.getXboxId(), chainValidator.getUuid() ) );
+                        connection.getEntity().setSkin( playerSkin );
+                        connection.getEntity().setNameTagVisible( true );
+                        connection.getEntity().setNameTagAlwaysVisible( true );
+
+                        // Post login event
+                        PlayerLoginEvent event = connection.getNetworkManager().getServer().getPluginManager().callEvent( new PlayerLoginEvent( connection.getEntity() ) );
+                        if ( event.isCancelled() ) {
+                            connection.disconnect( event.getKickMessage() );
+                            return;
+                        }
+
+                        if ( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory().getKeyPair() == null ) {
+                            // No encryption
+                            connection.setState( PlayerConnectionState.RESOURCE_PACK );
+                            connection.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
+                            connection.sendResourcePacks();
+                        } else {
+                            // Enable encryption
+                            EncryptionHandler encryptionHandler = new EncryptionHandler( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory() );
+                            encryptionHandler.supplyClientKey( chainValidator.getClientPublicKey() );
+                            if ( encryptionHandler.beginClientsideEncryption() ) {
+                                // Get the needed data for the encryption start
+                                connection.setState( PlayerConnectionState.ENCRPYTION_INIT );
+                                connection.setEncryptionHandler( encryptionHandler );
+
+                                // Forge a JWT
+                                String encryptionRequestJWT = FORGER.forge( encryptionHandler.getServerPublic(), encryptionHandler.getServerPrivate(), encryptionHandler.getClientSalt() );
+
+                                PacketEncryptionRequest packetEncryptionRequest = new PacketEncryptionRequest();
+                                packetEncryptionRequest.setJwt( encryptionRequestJWT );
+                                connection.send( packetEncryptionRequest );
+                            }
+                        }
+                    }
+                }, 1, -1, TimeUnit.MILLISECONDS ) );
             }
-        }
-
-        // Check if valid user (xbox live)
-        if ( !chainValidator.validate() && connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
-            connection.disconnect( "Only valid XBOX Logins are allowed" );
-            return;
-        }
-
-        // Parse skin
-        byte[] skin = new byte[byteBuffer.getInt()];
-        byteBuffer.get( skin );
-
-        JwtToken skinToken = JwtToken.parse( new String( skin ) );
-
-        try {
-            skinToken.validateSignature( JwtAlgorithm.ES384, chainValidator.getTrustedKeys().get( skinToken.getHeader().getProperty( "x5u" ) ) );
-        } catch ( JwtSignatureException e ) {
-            // Invalid skin
-            if ( connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
-                connection.disconnect( "Skin is invalid or corrupted" );
-                return;
-            }
-        }
-
-        // Create additional data wrappers
-        String capeData = skinToken.getClaim( "CapeData" );
-        PlayerSkin playerSkin = new PlayerSkin(
-                skinToken.getClaim( "SkinId" ),
-                Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinData" ) ),
-                capeData.isEmpty() ? null : Base64.getDecoder().decode( capeData ),
-                skinToken.getClaim( "SkinGeometryName" ),
-                Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinGeometry" ) )
-        );
-
-        // Create entity:
-        WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();
-        connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(),
-                chainValidator.getXboxId(), chainValidator.getUuid() ) );
-        connection.getEntity().setSkin( playerSkin );
-        connection.getEntity().setNameTagVisible( true );
-        connection.getEntity().setNameTagAlwaysVisible( true );
-
-        // Post login event
-        PlayerLoginEvent event = connection.getNetworkManager().getServer().getPluginManager().callEvent( new PlayerLoginEvent( connection.getEntity() ) );
-        if ( event.isCancelled() ) {
-            connection.disconnect( event.getKickMessage() );
-            return;
-        }
-
-        if ( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory().getKeyPair() == null ) {
-            // No encryption
-            connection.setState( PlayerConnectionState.RESOURCE_PACK );
-            connection.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
-            connection.sendResourcePacks();
-        } else {
-            // Enable encryption
-            EncryptionHandler encryptionHandler = new EncryptionHandler( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory() );
-            encryptionHandler.supplyClientKey( chainValidator.getClientPublicKey() );
-            if ( encryptionHandler.beginClientsideEncryption() ) {
-                // Get the needed data for the encryption start
-                connection.setState( PlayerConnectionState.ENCRPYTION_INIT );
-                connection.setEncryptionHandler( encryptionHandler );
-
-                // Forge a JWT
-                String encryptionRequestJWT = FORGER.forge( encryptionHandler.getServerPublic(), encryptionHandler.getServerPrivate(), encryptionHandler.getClientSalt() );
-
-                PacketEncryptionRequest packetEncryptionRequest = new PacketEncryptionRequest();
-                packetEncryptionRequest.setJwt( encryptionRequestJWT );
-                connection.send( packetEncryptionRequest );
-            }
-        }
+        } );
     }
 
     /**

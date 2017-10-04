@@ -478,10 +478,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         this.getConnection().sendMovePlayer( this.getLocation() );
 
         // Send crafting recipes
-        PacketBatch batch = new PacketBatch();
-        batch.setPayload( this.connection.getEncryptionHandler().encryptInputForClient(
-                this.world.getServer().getRecipeManager().getCraftingRecipesBatch().getPayload() ) );
-        this.connection.send( batch );
+        this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
 
         // Send commands
         PacketAvailableCommands packetAvailableCommands = this.connection.getServer().

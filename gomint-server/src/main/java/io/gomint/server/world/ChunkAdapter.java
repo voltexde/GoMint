@@ -54,7 +54,7 @@ public class ChunkAdapter implements Chunk {
 
     // Networking
     protected boolean dirty;
-    protected SoftReference<PacketBatch> cachedPacket;
+    protected SoftReference<PacketWorldChunk> cachedPacket;
 
     // Chunk
     protected final int x;
@@ -137,11 +137,10 @@ public class ChunkAdapter implements Chunk {
      *
      * @param batch The batch which has been generated to be sent to the clients
      */
-    public void setCachedPacket( PacketBatch batch ) {
+    public void setCachedPacket( PacketWorldChunk batch ) {
         this.dirty = false;
         this.cachedPacket = new SoftReference<>( batch );
     }
-
 
     /**
      * Gets the time at which this chunk was last written out to disk.
@@ -468,7 +467,7 @@ public class ChunkAdapter implements Chunk {
         return this.entities.size() == 0 ? null : this.entities.values();
     }
 
-    public PacketBatch getCachedPacket() {
+    public PacketWorldChunk getCachedPacket() {
         return cachedPacket.get();
     }
 

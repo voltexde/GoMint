@@ -24,7 +24,6 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.*;
-import io.gomint.server.util.BatchUtil;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
@@ -362,7 +361,7 @@ public abstract class WorldAdapter implements World {
 
         for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
             for ( int j = minChunkX; j <= maxChunkX; ++j ) {
-                this.sendChunk( j, i, player, true );
+                this.sendChunk( j, i, player, false );
             }
         }
     }
@@ -589,9 +588,7 @@ public abstract class WorldAdapter implements World {
      */
     private void packageChunk( ChunkAdapter chunk, Delegate2<Long, ChunkAdapter> callback ) {
         PacketWorldChunk packet = chunk.createPackagedData();
-        PacketBatch batch = BatchUtil.batch( null, packet );
-
-        chunk.setCachedPacket( batch );
+        chunk.setCachedPacket( packet );
         callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk );
     }
 
