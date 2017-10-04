@@ -19,8 +19,6 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
     @Override
     public void handle( PacketPlayerAction packet, long currentTimeMillis, PlayerConnection connection ) {
-        LOGGER.debug( packet.toString() );
-
         switch ( packet.getAction() ) {
             case START_BREAK:
                 // Sanity checks (against crashes)
@@ -48,10 +46,17 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 break;
 
             case ABORT_BREAK:
-                connection.getEntity().setBreakVector( null );
-                connection.getEntity().setStartBreak( 0 );
-
             case STOP_BREAK:
+                // Send abort break animation
+                if ( connection.getEntity().getBreakVector() != null ) {
+                    connection.getEntity().getWorld().sendLevelEvent( connection.getEntity().getBreakVector(), LevelEvent.BLOCK_STOP_BREAK, 0 );
+                }
+
+                // Reset when abort
+                if ( packet.getAction() == PacketPlayerAction.PlayerAction.ABORT_BREAK ) {
+                    connection.getEntity().setBreakVector( null );
+                }
+
                 if ( connection.getEntity().getBreakVector() == null ) {
                     // This happens when instant break is enabled
                     connection.getEntity().setBreakTime( 0 );

@@ -177,8 +177,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                             return;
                         } else {
-                            connection.getEntity().setBreakVector( null );
-
                             if ( block.onBreak() ) {
                                 // TODO: Add drops
                                 Location dropLocation = new Location( connection.getEntity().getWorld(),
@@ -215,6 +213,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                                 return;
                             }
+
+                            connection.getEntity().setBreakVector( null );
                         }
                     } else {
                         resetBlocks( packet, connection );

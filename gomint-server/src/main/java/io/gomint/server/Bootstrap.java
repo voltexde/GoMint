@@ -7,6 +7,9 @@
 
 package io.gomint.server;
 
+import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.util.DumpUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;

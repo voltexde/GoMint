@@ -25,9 +25,9 @@ public class PacketWorldEvent extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer ) {
-        buffer.writeUnsignedVarInt( this.eventId );
+        buffer.writeSignedVarInt( this.eventId );
         writeVector( this.position, buffer );
-        buffer.writeUnsignedVarInt( this.data );
+        buffer.writeSignedVarInt( this.data );
     }
 
     @Override
