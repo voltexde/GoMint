@@ -12,6 +12,7 @@ import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
 
+import java.net.InetSocketAddress;
 import java.util.UUID;
 
 /**
@@ -145,5 +146,21 @@ public interface Player extends Entity {
      * @return radius of chunks this player can see
      */
     int getViewDistance();
+
+    /**
+     * Transfer player to another server
+     *
+     * @param inetSocketAddress
+     */
+
+    void transfer( InetSocketAddress inetSocketAddress);
+
+    /**
+     * Set player health
+     *
+     * @param amount
+     */
+
+    void setHealth( double amount );
 
 }
