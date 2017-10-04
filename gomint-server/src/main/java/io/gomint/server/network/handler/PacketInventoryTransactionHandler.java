@@ -155,7 +155,12 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     if ( block != null ) {
                         // Check for special break rights (creative)
                         if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE ) {
-                            block.setType( Air.class, (byte) 0 );
+                            if ( block.onBreak() ) {
+                                block.setType( Air.class, (byte) 0 );
+                            } else {
+                                resetBlocks( packet, connection );
+                            }
+
                             return;
                         }
 
@@ -172,8 +177,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                             return;
                         } else {
-                            connection.getEntity().setBreakVector( null );
-
                             if ( block.onBreak() ) {
                                 // TODO: Add drops
                                 Location dropLocation = new Location( connection.getEntity().getWorld(),
@@ -210,6 +213,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                                 return;
                             }
+
+                            connection.getEntity().setBreakVector( null );
                         }
                     } else {
                         resetBlocks( packet, connection );
