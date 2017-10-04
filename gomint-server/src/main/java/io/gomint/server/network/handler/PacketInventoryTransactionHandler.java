@@ -155,7 +155,12 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     if ( block != null ) {
                         // Check for special break rights (creative)
                         if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE ) {
-                            block.setType( Air.class, (byte) 0 );
+                            if ( block.onBreak() ) {
+                                block.setType( Air.class, (byte) 0 );
+                            } else {
+                                resetBlocks( packet, connection );
+                            }
+
                             return;
                         }
 

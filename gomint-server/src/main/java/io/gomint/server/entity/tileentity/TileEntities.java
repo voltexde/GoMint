@@ -124,7 +124,7 @@ public enum TileEntities {
             }
         }
 
-        if ( "ShulkerBox".equals( id ) ) {
+        if ( "Beacon".equals( id ) ) {
             System.out.println( "FOUND! - " );
         }
 

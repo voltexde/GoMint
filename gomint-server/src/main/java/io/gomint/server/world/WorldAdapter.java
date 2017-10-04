@@ -616,7 +616,8 @@ public abstract class WorldAdapter implements World {
             if ( Math.abs( posX - currentX ) <= player.getViewDistance() &&
                     Math.abs( posZ - currentZ ) <= player.getViewDistance() &&
                     predicate.test( (Entity) player ) ) {
-                ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
+                LOGGER.debug( "Sending broadcast packet [" + packet + "] to " + player.getName() );
+                ( (EntityPlayer) player ).getConnection().send( packet );
             }
         }
     }

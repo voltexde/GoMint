@@ -1,16 +1,11 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerInteractEvent;
-import io.gomint.inventory.item.ItemStack;
-import io.gomint.math.Location;
-import io.gomint.math.Vector;
-import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketPlayerAction;
-import io.gomint.server.network.packet.PacketUpdateBlock;
 import io.gomint.server.world.LevelEvent;
+import io.gomint.server.world.block.Block;
 import io.gomint.world.Gamemode;
-import io.gomint.world.block.Air;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +19,15 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
     @Override
     public void handle( PacketPlayerAction packet, long currentTimeMillis, PlayerConnection connection ) {
+        LOGGER.debug( packet.toString() );
+
         switch ( packet.getAction() ) {
             case START_BREAK:
                 // Sanity checks (against crashes)
                 if ( connection.getEntity().canInteract( packet.getPosition().toVector().add( .5f, .5f, .5f ), 13 ) ) {
                     PlayerInteractEvent event = connection.getServer()
-                            .getPluginManager().callEvent( new PlayerInteractEvent( connection.getEntity(),
-                                    PlayerInteractEvent.ClickType.LEFT, connection.getEntity().getWorld().getBlockAt( packet.getPosition() ) ) );
+                        .getPluginManager().callEvent( new PlayerInteractEvent( connection.getEntity(),
+                            PlayerInteractEvent.ClickType.LEFT, connection.getEntity().getWorld().getBlockAt( packet.getPosition() ) ) );
 
                     if ( !event.isCancelled() ) {
                         if ( connection.getEntity().getStartBreak() == 0 ) {
@@ -72,10 +69,28 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
             case STOP_SNEAK:
                 connection.getEntity().setSneaking( false );
                 break;
-            case JUMP:
+
             case CONTINUE_BREAK:
-                // TODO: Decide what todo with this information
+                // When the player is in creative this is the only way to get needed data since it doesn't send a
+                // START_BREAK
+                if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE && connection.getEntity().getBreakVector() == null ) {
+                    connection.getEntity().setBreakVector( packet.getPosition() );
+                }
+
+                // Broadcast break effects
+                if ( connection.getEntity().getBreakVector() != null ) {
+                    Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getBreakVector() );
+                    connection.getEntity().getWorld().sendLevelEvent(
+                        connection.getEntity().getBreakVector(),
+                        LevelEvent.PARTICLE_PUNCH_BLOCK,
+                        block.getBlockId() | ( block.getBlockData() << 8 ) | ( packet.getFace() << 16 ) );
+                }
+
                 break;
+
+            case JUMP:
+                break;
+
             default:
                 LOGGER.warn( "Unhandled action: " + packet );
                 break;
