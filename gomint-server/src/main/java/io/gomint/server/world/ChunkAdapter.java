@@ -416,6 +416,11 @@ public class ChunkAdapter implements Chunk {
         return slice.getTemporaryStorage( x, y - 16 * ( y >> 4 ), z );
     }
 
+    public void resetTemporaryStorage( int x, int y, int z ) {
+        ChunkSlice slice = ensureSlice( y >> 4 );
+        slice.resetTemporaryStorage( x, y - 16 * ( y >> 4 ), z );
+    }
+
     // ==================================== MISCELLANEOUS ==================================== //
 
     /**

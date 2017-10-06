@@ -914,4 +914,14 @@ public abstract class WorldAdapter implements World {
         }
     }
 
+    public void resetTemporaryStorage( BlockPosition position ) {
+        // Get chunk
+        int x = position.getX(), y = position.getY(), z = position.getZ();
+        int xChunk = CoordinateUtils.fromBlockToChunk( x );
+        int zChunk = CoordinateUtils.fromBlockToChunk( z );
+
+        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
+        chunk.resetTemporaryStorage( x & 0xF, y, z & 0xF );
+    }
+
 }

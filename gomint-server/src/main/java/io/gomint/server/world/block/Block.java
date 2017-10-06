@@ -153,6 +153,7 @@ public abstract class Block implements io.gomint.world.block.Block {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
             worldAdapter.setBlockId( pos, instance.getBlockId() );
             worldAdapter.setBlockData( pos, data );
+            worldAdapter.resetTemporaryStorage( pos );
 
             instance.setLocation( this.location );
 

@@ -22,10 +22,8 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 class ChunkSlice {
 
-    @Getter
-    private final ChunkAdapter chunk;
-    @Getter
-    private final int sectionY;
+    @Getter private final ChunkAdapter chunk;
+    @Getter private final int sectionY;
 
     private boolean isAllAir = true;
 
@@ -41,6 +39,14 @@ class ChunkSlice {
         return (short) ( ( x << 8 ) + ( z << 4 ) + y );
     }
 
+    /**
+     * Get the ID of the specific block in question
+     *
+     * @param x coordinate in this slice (capped to 16)
+     * @param y coordinate in this slice (capped to 16)
+     * @param z coordinate in this slice (capped to 16)
+     * @return id of the block
+     */
     byte getBlock( int x, int y, int z ) {
         if ( this.isAllAir ) {
             return 0;
@@ -61,7 +67,7 @@ class ChunkSlice {
         }
 
         return (T) Blocks.get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
-                this.blockLight.get( index ), this.tileEntities.get( (short) index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
+                this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
     }
 
     Collection<TileEntity> getTileEntities() {
@@ -144,6 +150,11 @@ class ChunkSlice {
         }
 
         return storage;
+    }
+
+    public void resetTemporaryStorage( int x, int y, int z ) {
+        short index = getIndex( x, y, z );
+        this.temporaryStorages.remove( index );
     }
 
 }
