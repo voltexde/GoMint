@@ -167,6 +167,11 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         attributeInstance.setValue( (float) amount );
     }
 
+    @Override
+    public int getPing() {
+        return (int) this.connection.getConnection().getPing();
+    }
+
     /**
      * Sets the view distance used to calculate the chunk to be sent to the player.
      *
@@ -496,10 +501,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         this.getConnection().sendMovePlayer( this.getLocation() );
 
         // Send crafting recipes
-        PacketBatch batch = new PacketBatch();
-        batch.setPayload( this.connection.getEncryptionHandler().encryptInputForClient(
-                this.world.getServer().getRecipeManager().getCraftingRecipesBatch().getPayload() ) );
-        this.connection.send( batch );
+        this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
 
         // Send commands
         PacketAvailableCommands packetAvailableCommands = this.connection.getServer().

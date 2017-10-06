@@ -29,4 +29,9 @@ public class ActivatorRail extends Block {
         return false;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

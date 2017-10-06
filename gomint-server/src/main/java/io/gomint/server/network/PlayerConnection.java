@@ -22,9 +22,10 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
-import io.gomint.server.util.BatchUtil;
+import io.gomint.server.player.DeviceInfo;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
+import io.gomint.server.util.Values;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
@@ -81,8 +82,8 @@ public class PlayerConnection {
     @Getter private final GoMintServer server;
 
     // Actual connection for wire transfer:
-    @Getter
-    private final Connection connection;
+    @Getter private final Connection connection;
+    @Getter private final PostProcessWorker postProcessWorker;
 
     // World data
     private final LongSet playerChunks;
@@ -91,11 +92,15 @@ public class PlayerConnection {
     @Getter @Setter private PlayerConnectionState state;
     private int sentChunks;
     private BlockingQueue<Packet> sendQueue;
-    @Setter private int neededChunksSent;
 
     // Entity
     @Getter @Setter private EntityPlayer entity;
     private LongSet currentlySendingPlayerChunks;
+    private long sentInClientTick;
+
+    // Additional data
+    @Getter @Setter private DeviceInfo deviceInfo;
+    private float lastUpdateDT = 0;
 
     /**
      * Constructs a new player connection.
@@ -107,8 +112,10 @@ public class PlayerConnection {
     PlayerConnection( NetworkManager networkManager, Connection connection, PlayerConnectionState initialState ) {
         this.networkManager = networkManager;
         this.connection = connection;
+        this.postProcessWorker = new PostProcessWorker( this );
         this.state = initialState;
         this.server = networkManager.getServer();
+        this.server.getExecutorService().execute( this.postProcessWorker );
 
         this.playerChunks = HashLongSets.newMutableSet();
         this.currentlySendingPlayerChunks = HashLongSets.newMutableSet();
@@ -154,18 +161,21 @@ public class PlayerConnection {
         // Check if we need to send chunks
         if ( this.entity != null ) {
             if ( this.entity.getChunkSendQueue().size() > 0 ) {
+                int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 20 : 4;
+                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 20 : 4;
+                int alreadySent = 0;
+
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );
 
                 // Check if we have a slot
                 Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
-                int alreadySent = 0;
-                while ( queue.size() > 0 && alreadySent < 19 ) {
+                while ( queue.size() > 0 && alreadySent < maximumInTick && this.sentInClientTick < maximumInClientTick ) {
                     ChunkAdapter chunk = queue.poll();
                     if ( chunk == null ) continue;
 
                     if ( Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
-                            Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ) {
+                        Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ) {
                         continue;
                     }
 
@@ -182,19 +192,24 @@ public class PlayerConnection {
                     }
 
                     alreadySent++;
+                    this.sentInClientTick++;
                 }
             }
         }
 
         // Send all queued packets
         if ( this.sendQueue != null && this.sendQueue.size() > 0 ) {
-            PacketBatch batch = BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, this.sendQueue );
-
-            if ( connection.isConnected() ) {
-                send( batch );
-            }
-
+            Packet[] packets = new Packet[this.sendQueue.size()];
+            this.sendQueue.toArray( packets );
+            this.postProcessWorker.getQueuedPacketBatches().add( packets );
             this.sendQueue.clear();
+        }
+
+        // Reset sentInClientTick
+        this.lastUpdateDT += dT;
+        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+            this.sentInClientTick = 0;
+            this.lastUpdateDT = 0;
         }
     }
 
@@ -205,7 +220,7 @@ public class PlayerConnection {
      */
     public void send( Packet packet ) {
         if ( !( packet instanceof PacketBatch ) ) {
-            this.send( BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
+            this.postProcessWorker.getQueuedPacketBatches().add( new Packet[]{ packet } );
         } else {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
@@ -224,7 +239,7 @@ public class PlayerConnection {
      */
     public void send( PacketReliability reliability, int orderingChannel, Packet packet ) {
         if ( !( packet instanceof PacketBatch ) ) {
-            this.send( reliability, orderingChannel, BatchUtil.batch( ( this.state != PlayerConnectionState.ENCRPYTION_INIT ) ? this.encryptionHandler : null, packet ) );
+            this.postProcessWorker.getQueuedPacketBatches().add( new Packet[]{ packet } );
         } else {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
@@ -241,10 +256,8 @@ public class PlayerConnection {
      * @param chunkHash The hash of the chunk to keep track of what the player has loaded
      * @param chunkData The chunk data packet to send to the player
      */
-    public void sendWorldChunk( long chunkHash, PacketBatch chunkData ) {
-        PacketBatch batch = new PacketBatch();
-        batch.setPayload( this.encryptionHandler.encryptInputForClient( chunkData.getPayload() ) );
-        this.send( batch );
+    public void sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
+        this.send( chunkData );
 
         synchronized ( this.playerChunks ) {
             this.currentlySendingPlayerChunks.removeLong( chunkHash );
@@ -253,7 +266,7 @@ public class PlayerConnection {
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
-            if ( this.sentChunks >= this.neededChunksSent ) {
+            if ( this.sentChunks >= 81 ) {
                 int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
                 int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
@@ -460,7 +473,7 @@ public class PlayerConnection {
                 @Override
                 public int compare( Pair<Integer, Integer> o1, Pair<Integer, Integer> o2 ) {
                     if ( Objects.equals( o1.getFirst(), o2.getFirst() ) &&
-                            Objects.equals( o1.getSecond(), o2.getSecond() ) ) {
+                        Objects.equals( o1.getSecond(), o2.getSecond() ) ) {
                         return 0;
                     }
 
@@ -484,7 +497,7 @@ public class PlayerConnection {
                 long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
 
                 if ( !this.playerChunks.contains( hash ) &&
-                        !this.currentlySendingPlayerChunks.contains( hash ) ) {
+                    !this.currentlySendingPlayerChunks.contains( hash ) ) {
                     this.currentlySendingPlayerChunks.add( hash );
                     worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity, false );
                 }
@@ -508,9 +521,9 @@ public class PlayerConnection {
                 int z = (int) ( longCursor.elem() ) + Integer.MIN_VALUE;
 
                 if ( x > currentXChunk + viewDistance ||
-                        x < currentXChunk - viewDistance ||
-                        z > currentZChunk + viewDistance ||
-                        z < currentZChunk - viewDistance ) {
+                    x < currentXChunk - viewDistance ||
+                    z > currentZChunk + viewDistance ||
+                    z < currentZChunk - viewDistance ) {
                     // TODO: Check for Packets to send to the client to unload the chunk?
                     longCursor.remove();
                 }
@@ -637,7 +650,7 @@ public class PlayerConnection {
         packet.setWorldName( world.getWorldName() );
         packet.setTemplateName( "" );
         packet.setGamerules( world.getGamerules() );
-        packet.setTexturePacksRequired( true );
+        packet.setTexturePacksRequired( false );
         packet.setCommandsEnabled( true );
 
         this.entity.setPosition( world.getSpawnLocation() );
@@ -655,6 +668,8 @@ public class PlayerConnection {
             this.entity.despawn();
             this.entity = null;
         }
+
+        this.postProcessWorker.close();
     }
 
     /**

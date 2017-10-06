@@ -282,6 +282,11 @@ public abstract class Block implements io.gomint.world.block.Block {
         // Get basis break time ( breaking with right tool )
         double base = getBreakTime();
 
+        // Instant break
+        if ( base == 0 ) {
+            return 0;
+        }
+
         Class<? extends ItemStack>[] interfacez = getToolInterfaces();
         if ( interfacez != null ) {
             for ( Class<? extends ItemStack> aClass : interfacez ) {

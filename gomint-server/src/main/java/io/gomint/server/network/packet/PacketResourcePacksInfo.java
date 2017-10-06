@@ -33,6 +33,7 @@ public class PacketResourcePacksInfo extends Packet {
                 buffer.writeString( entry.getVersion().getVersion() );
                 buffer.writeLLong( entry.getSize() );
                 buffer.writeString( "" );
+                buffer.writeString( "" );
             }
         }
 
@@ -42,6 +43,7 @@ public class PacketResourcePacksInfo extends Packet {
                 buffer.writeString( entry.getVersion().getId().toString() );
                 buffer.writeString( entry.getVersion().getVersion() );
                 buffer.writeLLong( entry.getSize() );
+                buffer.writeString( "" );
                 buffer.writeString( "" );
             }
         }

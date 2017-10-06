@@ -31,6 +31,11 @@ public class Air extends Block implements io.gomint.world.block.Air {
     }
 
     @Override
+    public boolean onBreak() {
+        return false;
+    }
+
+    @Override
     public boolean canBeReplaced( ItemStack item ) {
         return true;
     }

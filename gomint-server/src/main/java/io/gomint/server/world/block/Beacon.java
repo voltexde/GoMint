@@ -24,4 +24,9 @@ public class Beacon extends Block {
         return true;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import com.koloboke.collect.map.LongObjMap;
 import com.koloboke.collect.map.hash.HashLongObjMaps;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.math.Location;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
@@ -17,8 +18,9 @@ import io.gomint.server.entity.tileentity.CommandBlockTileEntity;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
-import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
+import io.gomint.server.util.random.FastRandom;
+import io.gomint.server.util.Values;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.taglib.NBTWriter;
@@ -54,7 +56,7 @@ public class ChunkAdapter implements Chunk {
 
     // Networking
     protected boolean dirty;
-    protected SoftReference<PacketBatch> cachedPacket;
+    protected SoftReference<PacketWorldChunk> cachedPacket;
 
     // Chunk
     protected final int x;
@@ -78,7 +80,62 @@ public class ChunkAdapter implements Chunk {
     // Entities
     protected LongObjMap<io.gomint.entity.Entity> entities = HashLongObjMaps.newMutableMap();
 
+    // Ticking
+    private float lastUpdateDT = 0;
+
     // CHECKSTYLE:ON
+
+    /**
+     * Ticks this chunk for random block updates
+     *
+     * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
+     * @param dT            The delta from the full second which has been calculated in the last tick
+     */
+    public void update( long currentTimeMS, float dT ) {
+        this.lastUpdateDT += dT;
+        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+            for ( ChunkSlice chunkSlice : this.getChunkSlices() ) {
+                if ( chunkSlice != null ) {
+                    for ( int i = 0; i < 3; ++i ) {
+                        int blockHash = FastRandom.current().nextInt( 0xFFF );
+                        int blockX = blockHash & 0x0f;
+                        int blockY = ( blockHash >> 4 ) & 0x0f;
+                        int blockZ = ( blockHash >> 8 ) & 0x0f;
+
+                        byte blockId = chunkSlice.getBlock( blockX, blockY, blockZ );
+                        switch ( blockId ) {
+                            case (byte) 244:    // Beetroot
+                            case 2:             // Grass
+                            case 60:            // Farmland
+                            case 110:           // Mycelium
+                            case 6:             // Sapling
+                            case 16:            // Leaves
+                            case (byte) 161:    // Acacia leaves
+                            case 78:            // Top snow
+                            case 79:            // Ice
+                            case 11:            // Stationary lava
+                            case 10:            // FlowingLava
+                            case 9:             // Stationary water
+                            case 8:             // FlowingWater
+                                Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
+                                if ( block instanceof io.gomint.server.world.block.Block ) {
+                                    long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
+                                    if ( next > currentTimeMS ) {
+                                        Location location = block.getLocation();
+                                        ChunkAdapter.this.world.tickQueue.add( next, CoordinateUtils.toLong( (int) location.getX(), (int) location.getY(), (int) location.getZ() ) );
+                                    }
+                                }
+
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+
+            this.lastUpdateDT = 0;
+        }
+    }
 
     private ChunkSlice ensureSlice( int y ) {
         ChunkSlice slice = this.chunkSlices[y];
@@ -137,11 +194,10 @@ public class ChunkAdapter implements Chunk {
      *
      * @param batch The batch which has been generated to be sent to the clients
      */
-    public void setCachedPacket( PacketBatch batch ) {
+    public void setCachedPacket( PacketWorldChunk batch ) {
         this.dirty = false;
         this.cachedPacket = new SoftReference<>( batch );
     }
-
 
     /**
      * Gets the time at which this chunk was last written out to disk.
@@ -468,7 +524,7 @@ public class ChunkAdapter implements Chunk {
         return this.entities.size() == 0 ? null : this.entities.values();
     }
 
-    public PacketBatch getCachedPacket() {
+    public PacketWorldChunk getCachedPacket() {
         return cachedPacket.get();
     }
 

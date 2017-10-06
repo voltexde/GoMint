@@ -20,4 +20,9 @@ import io.gomint.taglib.NBTTagCompound;
     }
     // CHECKSTYLE:ON
 
+    @Override
+    public int getBlockId() {
+        return 244;
+    }
+
 }

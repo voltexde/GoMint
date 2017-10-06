@@ -177,19 +177,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                             return;
                         } else {
-                            if ( block.onBreak() ) {
-                                // TODO: Add drops
-                                Location dropLocation = new Location( connection.getEntity().getWorld(),
-                                        connection.getEntity().getBreakVector().getX(),
-                                        connection.getEntity().getBreakVector().getY(),
-                                        connection.getEntity().getBreakVector().getZ() );
-                                for ( ItemStack itemStack : block.getDrops() ) {
-                                    EntityItem item = connection.getEntity().getWorld().createItemDrop( dropLocation, itemStack );
-                                    item.setVelocity( new Vector( 0.1f, 0.3f, 0.1f ) );
-                                }
-
-                                block.setType( Air.class, (byte) 0 );
-
+                            if ( connection.getEntity().getWorld().breakBlock( connection.getEntity().getBreakVector() ) ) {
                                 // Check if transaction wants to set air
                                 if ( packet.getActions().length > 0 ) {
                                     io.gomint.server.inventory.item.ItemStack target = (io.gomint.server.inventory.item.ItemStack) packet.getActions()[0].getNewItem();

@@ -23,7 +23,6 @@ public class PacketSetChunkRadiusHandler implements PacketHandler<PacketSetChunk
 
             // Start sending chunks
             connection.getEntity().getWorld().addPlayer( connection.getEntity() );
-            connection.setNeededChunksSent( connection.getEntity().getChunkSendQueue().size() );
         }
     }
 

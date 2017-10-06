@@ -7,11 +7,9 @@
 
 package io.gomint.server.world;
 
-import io.gomint.server.util.LongList;
+import io.gomint.server.util.collection.LongList;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author geNAZt

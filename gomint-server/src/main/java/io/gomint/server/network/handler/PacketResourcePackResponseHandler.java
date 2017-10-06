@@ -20,11 +20,15 @@ public class PacketResourcePackResponseHandler implements PacketHandler<PacketRe
         // TODO: Implement resource pack sending
         switch ( packet.getStatus() ) {
             case HAVE_ALL_PACKS:
+                LOGGER.debug( "Login state: HAVE_ALL_PACKS reached" );
+
                 PacketResourcePackStack packetResourcePackStack = new PacketResourcePackStack();
                 connection.send( packetResourcePackStack );
                 break;
 
             case COMPLETED:
+                LOGGER.debug( "Login state: COMPLETED reached" );
+
                 // Proceed with login
                 connection.setState( PlayerConnectionState.LOGIN );
                 LOGGER.info( "Logging in as " + connection.getEntity().getName() );
@@ -32,7 +36,6 @@ public class PacketResourcePackResponseHandler implements PacketHandler<PacketRe
                 connection.sendWorldInitialization();
                 connection.sendWorldTime( 0 );
                 connection.getEntity().updateAttributes();
-                connection.sendCommandsEnabled();
 
                 break;
         }
