@@ -167,6 +167,11 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         attributeInstance.setValue( (float) amount );
     }
 
+    @Override
+    public int getPing() {
+        return (int) this.connection.getConnection().getPing();
+    }
+
     /**
      * Sets the view distance used to calculate the chunk to be sent to the player.
      *

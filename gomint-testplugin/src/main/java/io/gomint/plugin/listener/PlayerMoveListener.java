@@ -21,7 +21,7 @@ public class PlayerMoveListener implements EventListener {
         Block block = event.getTo().getWorld().getBlockAt( toBlock.clone().add( BlockPosition.DOWN ) );
 
         event.getPlayer().sendMessage( ChatType.POPUP,
-                "§fX: §a" + toBlock.getX() + " §e- §fY: §a" + toBlock.getY() + " §e- §fZ: §a" + toBlock.getZ(),
+                "§fX: §a" + toBlock.getX() + " §e- §fY: §a" + toBlock.getY() + " §e- §fZ: §a" + toBlock.getZ() + " | " + event.getPlayer().getPing() + " ms",
                 "§fWalking on block: §a" + block.getClass() );
     }
 

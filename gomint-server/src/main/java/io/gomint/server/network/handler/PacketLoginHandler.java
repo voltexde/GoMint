@@ -17,6 +17,7 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.PacketEncryptionRequest;
 import io.gomint.server.network.packet.PacketLogin;
 import io.gomint.server.network.packet.PacketPlayState;
+import io.gomint.server.player.DeviceInfo;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.world.WorldAdapter;
@@ -141,6 +142,12 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                             skinToken.getClaim( "SkinGeometryName" ),
                             Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinGeometry" ) )
                         );
+
+                        // Create needed device info
+                        DeviceInfo deviceInfo = new DeviceInfo(
+                            Math.toIntExact( skinToken.getClaim( "DeviceOS" ) ),
+                            skinToken.getClaim( "DeviceModel" ) );
+                        connection.setDeviceInfo( deviceInfo );
 
                         // Create entity:
                         WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();

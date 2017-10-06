@@ -38,7 +38,9 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                             LOGGER.debug( "Sending break time: " + breakTime );
 
                             // Tell the client which break time we want
-                            connection.getEntity().getWorld().sendLevelEvent( packet.getPosition(), LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
+                            if ( breakTime > 0 ) {
+                                connection.getEntity().getWorld().sendLevelEvent( packet.getPosition(), LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
+                            }
                         }
                     }
                 }

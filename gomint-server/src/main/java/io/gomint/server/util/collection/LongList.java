@@ -1,4 +1,4 @@
-package io.gomint.server.util;
+package io.gomint.server.util.collection;
 
 import java.util.Arrays;
 

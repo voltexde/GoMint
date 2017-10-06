@@ -45,4 +45,9 @@ public class AcaciaDoor extends Door {
         above.setType( AcaciaDoor.class, (byte) 0x08 );
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

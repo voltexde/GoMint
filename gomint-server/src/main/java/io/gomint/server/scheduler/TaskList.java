@@ -7,7 +7,7 @@
 
 package io.gomint.server.scheduler;
 
-import io.gomint.server.util.ObjectBuffer;
+import io.gomint.server.util.collection.ObjectBuffer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

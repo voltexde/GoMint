@@ -51,8 +51,6 @@ import java.util.function.Predicate;
  */
 public abstract class WorldAdapter implements World {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( WorldAdapter.class );
-
     // Shared objects
     @Getter
     protected final GoMintServer server;
@@ -73,9 +71,8 @@ public abstract class WorldAdapter implements World {
     protected EntityManager entityManager;
 
     // Block ticking
-    @Getter
-    protected TickList tickQueue = new TickList();
-    private int randomUpdateNumber = ThreadLocalRandom.current().nextInt();
+    TickList tickQueue = new TickList();
+    private final Set<Long> neighbourUpdates = new HashSet<>();
 
     // I/O
     private boolean asyncWorkerRunning;
@@ -96,7 +93,6 @@ public abstract class WorldAdapter implements World {
         this.startAsyncWorker( server.getExecutorService() );
         this.initGamerules();
     }
-    // CHECKSTYLE:ON
 
     // ==================================== GENERAL ACCESSORS ==================================== //
 
@@ -170,14 +166,14 @@ public abstract class WorldAdapter implements World {
     /**
      * Set the block id for the given location
      *
-     * @param position  Position of the block
-     * @param blockId The new block id
+     * @param position Position of the block
+     * @param blockId  The new block id
      */
     public void setBlockId( BlockPosition position, int blockId ) {
         final ChunkAdapter chunk = this.loadChunk(
-                CoordinateUtils.fromBlockToChunk( position.getX() ),
-                CoordinateUtils.fromBlockToChunk( position.getZ() ),
-                true );
+            CoordinateUtils.fromBlockToChunk( position.getX() ),
+            CoordinateUtils.fromBlockToChunk( position.getZ() ),
+            true );
 
         chunk.setBlock( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, blockId );
     }
@@ -186,7 +182,7 @@ public abstract class WorldAdapter implements World {
      * Set the data byte for the given block
      *
      * @param position Position of the block
-     * @param data   The new data of the block
+     * @param data     The new data of the block
      */
     public void setBlockData( BlockPosition position, byte data ) {
         int xChunk = CoordinateUtils.fromBlockToChunk( position.getX() );
@@ -228,52 +224,13 @@ public abstract class WorldAdapter implements World {
         // Update all blocks
 
         // Random blocks
-        // Random blocks
         for ( long chunkHash : this.chunkCache.getChunkHashes() ) {
             int x = (int) ( chunkHash >> 32 );
             int z = (int) ( chunkHash ) + Integer.MIN_VALUE;
 
             ChunkAdapter chunkAdapter = chunkCache.getChunk( x, z );
             if ( chunkAdapter != null ) {
-                for ( ChunkSlice chunkSlice : chunkAdapter.getChunkSlices() ) {
-                    if ( chunkSlice != null ) {
-                        WorldAdapter.this.randomUpdateNumber = WorldAdapter.this.randomUpdateNumber * 3 + 1013904223;
-                        int blockHash = WorldAdapter.this.randomUpdateNumber >> 2;
-
-                        for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
-                            int blockX = blockHash & 0x0f;
-                            int blockY = blockHash >> 8 & 0x0f;
-                            int blockZ = blockHash >> 16 & 0x0f;
-
-                            byte blockId = chunkSlice.getBlock( blockX, blockY, blockZ );
-                            switch ( blockId ) {
-                                case 2:             // Grass
-                                case 60:            // Farmland
-                                case 110:           // Mycelium
-                                case 6:             // Sapling
-                                case 16:            // Leaves
-                                case (byte) 161:    // Acacia leaves
-                                case 78:            // Top snow
-                                case 79:            // Ice
-                                case 11:            // Stationary lava
-                                case 10:            // FlowingLava
-                                case 9:             // Stationary water
-                                case 8:             // FlowingWater
-                                    Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
-                                    if ( block instanceof io.gomint.server.world.block.Block ) {
-                                        long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
-                                        if ( next > currentTimeMS ) {
-                                            Location location = block.getLocation();
-                                            WorldAdapter.this.tickQueue.add( next, CoordinateUtils.toLong( (int) location.getX(), (int) location.getY(), (int) location.getZ() ) );
-                                        }
-                                    }
-
-                                default:
-                                    break;
-                            }
-                        }
-                    }
-                }
+                chunkAdapter.update( currentTimeMS, dT );
             }
         }
 
@@ -301,6 +258,30 @@ public abstract class WorldAdapter implements World {
                 }
                 // CHECKSTYLE:ON
             }
+        }
+
+        // Neighbour updates
+        if ( this.neighbourUpdates.size() > 0 ) {
+            for ( Long blockToUpdate : this.neighbourUpdates ) {
+                Block block = getBlockAt( CoordinateUtils.fromLong( blockToUpdate ) );
+                if ( block != null ) {
+                    // CHECKSTYLE:OFF
+                    try {
+                        io.gomint.server.world.block.Block block1 = (io.gomint.server.world.block.Block) block;
+                        long next = block1.update( UpdateReason.NEIGHBOUR_UPDATE, currentTimeMS, dT );
+
+                        // Reschedule if needed
+                        if ( next > currentTimeMS ) {
+                            this.tickQueue.add( next, blockToUpdate );
+                        }
+                    } catch ( Exception e ) {
+                        logger.error( "Error whilst ticking block @ " + blockToUpdate, e );
+                    }
+                    // CHECKSTYLE:ON
+                }
+            }
+
+            this.neighbourUpdates.clear();
         }
 
         // ---------------------------------------
@@ -611,9 +592,9 @@ public abstract class WorldAdapter implements World {
             int currentZ = CoordinateUtils.fromBlockToChunk( (int) location.getZ() );
 
             if ( Math.abs( posX - currentX ) <= player.getViewDistance() &&
-                    Math.abs( posZ - currentZ ) <= player.getViewDistance() &&
-                    predicate.test( (Entity) player ) ) {
-                ( (EntityPlayer) player ).getConnection().send( packet );
+                Math.abs( posZ - currentZ ) <= player.getViewDistance() &&
+                predicate.test( (Entity) player ) ) {
+                ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
             }
         }
     }
@@ -681,7 +662,7 @@ public abstract class WorldAdapter implements World {
     public void updateBlock( BlockPosition pos ) {
         io.gomint.server.world.block.Block block = getBlockAt( pos );
 
-        LOGGER.debug( "Updating block @ " + pos + " data: " + block.getBlockData() );
+        logger.debug( "Updating block @ " + pos + " data: " + block.getBlockData() );
 
         // Update the block
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
@@ -845,7 +826,13 @@ public abstract class WorldAdapter implements World {
 
                 // We got the block we want to replace
                 // Let the item build up the block
-                return Blocks.replaceWithItem( entity, replaceBlock, itemInHand, clickPosition );
+                boolean success = Blocks.replaceWithItem( entity, replaceBlock, itemInHand, clickPosition );
+                if ( success ) {
+                    // Schedule neighbour updates
+
+                }
+
+                return success;
             }
         }
 
@@ -909,6 +896,22 @@ public abstract class WorldAdapter implements World {
 
         ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
         chunk.setTileEntity( x & 0xF, y, z & 0xF, tileEntity );
+    }
+
+    public boolean breakBlock( BlockPosition position ) {
+        io.gomint.server.world.block.Block block = getBlockAt( position );
+        if ( block.onBreak() ) {
+            for ( ItemStack itemStack : block.getDrops() ) {
+                EntityItem item = this.createItemDrop( block.getLocation(), itemStack );
+                item.setVelocity( new Vector( 0.1f, 0.3f, 0.1f ) );
+            }
+
+            block.setType( io.gomint.world.block.Air.class, (byte) 0 );
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

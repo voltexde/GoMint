@@ -152,7 +152,6 @@ public interface Player extends Entity {
      *
      * @param inetSocketAddress
      */
-
     void transfer( InetSocketAddress inetSocketAddress);
 
     /**
@@ -160,7 +159,13 @@ public interface Player extends Entity {
      *
      * @param amount
      */
-
     void setHealth( double amount );
+
+    /**
+     * Return the network latency
+     *
+     * @return
+     */
+    int getPing();
 
 }

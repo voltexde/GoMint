@@ -19,4 +19,9 @@ public class Bedrock extends Block {
         return -1;
     }
 
+    @Override
+    public boolean onBreak() {
+        return false;
+    }
+
 }

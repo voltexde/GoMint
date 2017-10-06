@@ -16,12 +16,23 @@ public class Bed extends Block {
 
     @Override
     public long getBreakTime() {
-        return 300;
+        return 350;
     }
 
     @Override
     public boolean isTransparent() {
         return true;
+    }
+
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
+    @Override
+    public boolean onBreak() {
+        // There is another part we need to find
+        return false;
     }
 
 }

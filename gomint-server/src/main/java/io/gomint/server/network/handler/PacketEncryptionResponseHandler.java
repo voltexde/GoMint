@@ -11,6 +11,8 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.PacketEncryptionResponse;
 import io.gomint.server.network.packet.PacketPlayState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -18,12 +20,16 @@ import io.gomint.server.network.packet.PacketPlayState;
  */
 public class PacketEncryptionResponseHandler implements PacketHandler<PacketEncryptionResponse> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( PacketEncryptionResponseHandler.class );
+
     @Override
     public void handle( PacketEncryptionResponse packet, long currentTimeMillis, PlayerConnection connection ) {
         connection.getPostProcessWorker().setEncryptionHandler( connection.getEncryptionHandler() );
-        connection.setState( PlayerConnectionState.RESOURCE_PACK );
+        connection.setState( PlayerConnectionState.LOGIN );
         connection.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
         connection.sendResourcePacks();
+
+        LOGGER.debug( "Login state: ENCRYPTION_RESPONSE reached" );
     }
 
 }

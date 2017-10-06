@@ -22,8 +22,10 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
+import io.gomint.server.player.DeviceInfo;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
+import io.gomint.server.util.Values;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
@@ -75,35 +77,30 @@ public class PlayerConnection {
     }
 
     // Network manager that created this connection:
-    @Getter
-    private final NetworkManager networkManager;
-    @Getter
-    @Setter
-    private EncryptionHandler encryptionHandler;
-    @Getter
-    private final GoMintServer server;
+    @Getter private final NetworkManager networkManager;
+    @Getter @Setter private EncryptionHandler encryptionHandler;
+    @Getter private final GoMintServer server;
 
     // Actual connection for wire transfer:
-    @Getter
-    private final Connection connection;
-    @Getter
-    private final PostProcessWorker postProcessWorker;
+    @Getter private final Connection connection;
+    @Getter private final PostProcessWorker postProcessWorker;
 
     // World data
     private final LongSet playerChunks;
 
     // Connection State:
-    @Getter
-    @Setter
-    private PlayerConnectionState state;
+    @Getter @Setter private PlayerConnectionState state;
     private int sentChunks;
     private BlockingQueue<Packet> sendQueue;
 
     // Entity
-    @Getter
-    @Setter
-    private EntityPlayer entity;
+    @Getter @Setter private EntityPlayer entity;
     private LongSet currentlySendingPlayerChunks;
+    private long sentInClientTick;
+
+    // Additional data
+    @Getter @Setter private DeviceInfo deviceInfo;
+    private float lastUpdateDT = 0;
 
     /**
      * Constructs a new player connection.
@@ -164,13 +161,16 @@ public class PlayerConnection {
         // Check if we need to send chunks
         if ( this.entity != null ) {
             if ( this.entity.getChunkSendQueue().size() > 0 ) {
+                int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 20 : 4;
+                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 20 : 4;
+                int alreadySent = 0;
+
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );
 
                 // Check if we have a slot
                 Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
-                int alreadySent = 0;
-                while ( queue.size() > 0 && alreadySent < 19 ) {
+                while ( queue.size() > 0 && alreadySent < maximumInTick && this.sentInClientTick < maximumInClientTick ) {
                     ChunkAdapter chunk = queue.poll();
                     if ( chunk == null ) continue;
 
@@ -192,6 +192,7 @@ public class PlayerConnection {
                     }
 
                     alreadySent++;
+                    this.sentInClientTick++;
                 }
             }
         }
@@ -202,6 +203,13 @@ public class PlayerConnection {
             this.sendQueue.toArray( packets );
             this.postProcessWorker.getQueuedPacketBatches().add( packets );
             this.sendQueue.clear();
+        }
+
+        // Reset sentInClientTick
+        this.lastUpdateDT += dT;
+        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+            this.sentInClientTick = 0;
+            this.lastUpdateDT = 0;
         }
     }
 
@@ -642,7 +650,7 @@ public class PlayerConnection {
         packet.setWorldName( world.getWorldName() );
         packet.setTemplateName( "" );
         packet.setGamerules( world.getGamerules() );
-        packet.setTexturePacksRequired( true );
+        packet.setTexturePacksRequired( false );
         packet.setCommandsEnabled( true );
 
         this.entity.setPosition( world.getSpawnLocation() );

@@ -4,7 +4,7 @@ import io.gomint.command.CommandOverload;
 import io.gomint.command.ParamValidator;
 import io.gomint.server.network.packet.PacketAvailableCommands;
 import io.gomint.server.network.type.CommandData;
-import io.gomint.server.util.IndexedHashMap;
+import io.gomint.server.util.collection.IndexedHashMap;
 import lombok.Getter;
 
 import java.util.ArrayList;

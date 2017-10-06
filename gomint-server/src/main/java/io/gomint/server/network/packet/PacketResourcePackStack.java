@@ -26,19 +26,21 @@ public class PacketResourcePackStack extends Packet {
     public void serialize( PacketBuffer buffer ) {
         buffer.writeBoolean( this.mustAccept );
 
-        buffer.writeLShort( (short) ( this.behaviourPackEntries == null ? 0 : this.behaviourPackEntries.size() ) );
+        buffer.writeUnsignedVarInt( ( this.behaviourPackEntries == null ? 0 : this.behaviourPackEntries.size() ) );
         if ( this.behaviourPackEntries != null ) {
             for ( ResourcePack entry : this.behaviourPackEntries ) {
                 buffer.writeString( entry.getVersion().getId().toString() );
                 buffer.writeString( entry.getVersion().getVersion() );
+                buffer.writeString( "" );
             }
         }
 
-        buffer.writeLShort( (short) ( this.resourcePackEntries == null ? 0 : this.resourcePackEntries.size() ) );
+        buffer.writeUnsignedVarInt( (short) ( this.resourcePackEntries == null ? 0 : this.resourcePackEntries.size() ) );
         if ( this.resourcePackEntries != null ) {
             for ( ResourcePack entry : this.resourcePackEntries ) {
                 buffer.writeString( entry.getVersion().getId().toString() );
                 buffer.writeString( entry.getVersion().getVersion() );
+                buffer.writeString( "" );
             }
         }
     }

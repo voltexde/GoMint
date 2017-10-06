@@ -6,7 +6,7 @@ package io.gomint.inventory.item;
  *
  * This interface is attached to items which modify the breaking time of items (like pickaxe, shovels, shears etc.)
  */
-public interface ItemReduceBreaktime {
+public interface ItemReduceBreaktime extends ItemStack {
 
     /**
      * Get the divisor of which the item reduces the break times
