@@ -7,10 +7,6 @@
 
 package io.gomint.server.entity;
 
-import com.koloboke.collect.map.ByteObjMap;
-import com.koloboke.collect.map.ObjByteMap;
-import com.koloboke.collect.map.hash.HashByteObjMaps;
-import com.koloboke.collect.map.hash.HashObjByteMaps;
 import com.koloboke.collect.set.LongSet;
 import com.koloboke.collect.set.hash.HashLongSets;
 import io.gomint.GoMint;
@@ -21,15 +17,16 @@ import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.ItemAcaciaDoor;
 import io.gomint.inventory.item.ItemWoodPlanks;
 import io.gomint.math.*;
-import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.*;
-import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.util.collection.ContainerIDMap;
+import io.gomint.server.util.collection.ContainerObjectMap;
+import io.gomint.server.util.collection.HiddenPlayerSet;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
@@ -38,11 +35,12 @@ import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -58,8 +56,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 @EqualsAndHashCode( callSuper = false, of = { "uuid" } )
 public class EntityPlayer extends EntityHuman implements Player, InventoryHolder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
-
     private final PlayerConnection connection;
     private int viewDistance;
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
@@ -68,14 +64,20 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private String username;
     private UUID uuid;
     private String xboxId;
-    @Setter private PlayerSkin skin;
+    @Setter
+    private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter private AdventureSettings adventureSettings;
-    @Getter @Setter private Entity hoverEntity;
-    @Getter @Setter private boolean sneaking;
+    @Getter
+    private AdventureSettings adventureSettings;
+    @Getter
+    @Setter
+    private Entity hoverEntity;
+    @Getter
+    @Setter
+    private boolean sneaking;
 
     // Hidden players
-    private LongSet hiddenPlayers;
+    private HiddenPlayerSet hiddenPlayers;
 
     // Inventory
     private PlayerInventory inventory;
@@ -84,13 +86,19 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private Inventory cursorInventory;
     private Inventory craftingInputInventory;
     private Inventory craftingResultInventory;
-    private ByteObjMap<ContainerInventory> windowIds;
-    private ObjByteMap<ContainerInventory> containerIds;
+    private ContainerObjectMap windowIds;
+    private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter @Getter private BlockPosition breakVector;
-    @Setter @Getter private long startBreak;
-    @Setter @Getter private long breakTime;
+    @Setter
+    @Getter
+    private BlockPosition breakVector;
+    @Setter
+    @Getter
+    private long startBreak;
+    @Setter
+    @Getter
+    private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -159,7 +167,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     @Override
     public void setHealth( double amount ) {
-        if( amount < 1 ) {
+        if ( amount < 1 ) {
             amount = 0;
         }
 
@@ -243,7 +251,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         EntityPlayer other = (EntityPlayer) player;
         if ( other.getWorld().equals( this.getWorld() ) ) {
             if ( this.hiddenPlayers == null ) {
-                this.hiddenPlayers = HashLongSets.newMutableSet();
+                this.hiddenPlayers = HiddenPlayerSet.withExpectedSize( 5 );
             }
 
             this.hiddenPlayers.add( other.getEntityId() );
@@ -374,8 +382,8 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
             // Trigger open
             ContainerInventory containerInventory = (ContainerInventory) inventory;
-            this.windowIds.put( foundId, containerInventory );
-            this.containerIds.put( containerInventory, foundId );
+            this.windowIds.justPut( foundId, containerInventory );
+            this.containerIds.justPut( containerInventory, foundId );
             containerInventory.addViewer( this, foundId );
         }
     }
@@ -457,8 +465,8 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         this.cursorInventory = new CursorInventory( this );
         this.craftingInputInventory = new CraftingInputInventory( this );
         this.craftingResultInventory = new CursorInventory( this );
-        this.windowIds = HashByteObjMaps.newMutableMap();
-        this.containerIds = HashObjByteMaps.newMutableMap();
+        this.windowIds = ContainerObjectMap.withExpectedSize( 2 );
+        this.containerIds = ContainerIDMap.withExpectedSize( 2 );
         this.connection.getServer().getCreativeInventory().addViewer( this );
 
         // Testing items
@@ -488,7 +496,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         // Update player list
         PacketPlayerlist playerlist = new PacketPlayerlist();
         playerlist.setMode( (byte) 0 );
-        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
             add( new PacketPlayerlist.Entry( uuid, getEntityId(), username, xboxId, skin ) );
         }} );
         this.getConnection().send( playerlist );
@@ -505,7 +513,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
         // Send commands
         PacketAvailableCommands packetAvailableCommands = this.connection.getServer().
-                getPluginManager().getCommandManager().createPacket( this );
+            getPluginManager().getCommandManager().createPacket( this );
         this.connection.send( packetAvailableCommands );
     }
 
@@ -589,7 +597,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         ContainerInventory containerInventory = this.windowIds.remove( windowId );
         if ( containerInventory != null ) {
             containerInventory.removeViewer( this );
-            this.containerIds.remove( containerInventory, windowId );
+            this.containerIds.justRemove( containerInventory );
         }
     }
 
@@ -631,6 +639,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
                 } else {
                     packetText.setSubtitle( "" );
                 }
+
                 break;
         }
 

@@ -101,10 +101,11 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                         return;
                     }
 
-                    // TODO: Check if we have other transactions in here
-                    itemInHand.setAmount( itemInHand.getAmount() - 1 );
+                    (( io.gomint.server.inventory.item.ItemStack) itemInHand).afterPlacement();
                     if ( itemInHand.getAmount() <= 0 ) {
                         connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                    } else {
+                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
                     }
                 } else if ( packet.getActionType() == 1 ) { // Click in air
 

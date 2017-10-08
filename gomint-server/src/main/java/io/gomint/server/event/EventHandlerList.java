@@ -19,7 +19,7 @@ import java.util.*;
  * @author BlackyPaw
  * @version 1.0
  */
-class EventHandlerList {
+public class EventHandlerList {
 
     // If the handler list is dirty we need to sort it by the event handler priorities:
     private boolean dirty;

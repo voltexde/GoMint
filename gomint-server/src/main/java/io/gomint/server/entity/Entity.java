@@ -75,9 +75,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * How high can this entity "climb" in one movement?
      */
     protected float stepHeight = 0;
-
     protected boolean onGround;
-    private float yOffset; // This offset is needed for jumping blocks up
 
     /**
      * Collision states
@@ -234,7 +232,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
             // Check if we can jump
             boolean notFallingFlag = ( this.onGround || ( dY != movY && movY < 0 ) );
-            if ( this.stepHeight > 0 && notFallingFlag && this.yOffset < 0.05 && ( movX != dX || movZ != dZ ) ) {
+            if ( this.stepHeight > 0 && notFallingFlag && ( movX != dX || movZ != dZ ) ) {
                 float oldDX = dX;
                 float oldDY = dY;
                 float oldDZ = dZ;
@@ -279,9 +277,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
                     dY = oldDY;
                     dZ = oldDZ;
                     this.boundingBox.setBounds( oldBoundingBox1 );
-                } else {
-                    // Move the bounding box up by .5
-                    this.yOffset += 0.5;
                 }
             }
 
@@ -289,7 +284,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
             if ( dX != 0.0 || dY != 0.0 || dZ != 0.0 ) {
                 this.transform.setPosition(
                         ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
-                        this.boundingBox.getMinY() + this.yOffset,
+                        this.boundingBox.getMinY(),
                         ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
                 );
             }

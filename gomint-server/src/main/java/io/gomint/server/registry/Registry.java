@@ -5,6 +5,8 @@ import com.koloboke.collect.map.IntObjMap;
 import com.koloboke.collect.map.ObjIntMap;
 import com.koloboke.collect.map.hash.HashIntObjMaps;
 import com.koloboke.collect.map.hash.HashObjIntMaps;
+import io.gomint.server.util.collection.GeneratorAPIClassMap;
+import io.gomint.server.util.collection.GeneratorMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +22,8 @@ public class Registry<R> {
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
     private final GeneratorCallback<R> generatorCallback;
-    private final IntObjMap<R> generators = HashIntObjMaps.newMutableMap();
-    private final ObjIntMap<Class<?>> apiReferences = HashObjIntMaps.newMutableMap();
+    private final GeneratorMap<R> generators = GeneratorMap.withExpectedSize( 250 );
+    private final GeneratorAPIClassMap<Class<?>> apiReferences = GeneratorAPIClassMap.withExpectedSize( 250 );
 
     /**
      * Build a new generator registry

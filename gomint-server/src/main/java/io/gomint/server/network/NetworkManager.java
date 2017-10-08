@@ -7,21 +7,17 @@
 
 package io.gomint.server.network;
 
+import com.koloboke.collect.LongCursor;
+import com.koloboke.function.LongObjConsumer;
 import io.gomint.event.network.PingEvent;
 import io.gomint.event.player.PlayerPreLoginEvent;
 import io.gomint.jraknet.*;
 import io.gomint.server.GoMintServer;
-import io.gomint.server.network.packet.Packet;
+import io.gomint.server.util.collection.GUIDSet;
+import io.gomint.server.util.collection.PlayerConnectionMap;
 import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
 import lombok.Setter;
-import com.koloboke.collect.LongCursor;
-import com.koloboke.collect.map.LongObjCursor;
-import com.koloboke.collect.map.LongObjMap;
-import com.koloboke.collect.map.hash.HashLongObjMaps;
-import com.koloboke.collect.set.LongSet;
-import com.koloboke.collect.set.hash.HashLongSets;
-import com.koloboke.function.LongObjConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +37,9 @@ public class NetworkManager {
     private final Logger logger = LoggerFactory.getLogger( NetworkManager.class );
 
     // Connections which were closed and should be removed during next tick:
-    private final LongSet closedConnections = HashLongSets.newMutableSet();
+    private final GUIDSet closedConnections = GUIDSet.withExpectedSize( 5 );
     private ServerSocket socket;
-    private LongObjMap<PlayerConnection> playersByGuid = HashLongObjMaps.newMutableMap();
+    private PlayerConnectionMap playersByGuid = PlayerConnectionMap.withExpectedSize( 20 );
 
     // Incoming connections to be added to the player map during next tick:
     private Queue<PlayerConnection> incomingConnections = new ConcurrentLinkedQueue<>();
@@ -138,7 +134,7 @@ public class NetworkManager {
         // Handle updates to player map:
         while ( !this.incomingConnections.isEmpty() ) {
             PlayerConnection connection = this.incomingConnections.poll();
-            this.playersByGuid.put( connection.getConnection().getGuid(), connection );
+            this.playersByGuid.justPut( connection.getConnection().getGuid(), connection );
         }
 
         synchronized ( this.closedConnections ) {
@@ -169,31 +165,6 @@ public class NetworkManager {
         if ( this.socket != null ) {
             this.socket.close();
             this.socket = null;
-        }
-    }
-
-    /**
-     * Broadcasts the given packet to all players. Yields the same effect as invoking
-     * {@link #broadcast(PacketReliability, int, Packet)} with {@link PacketReliability#RELIABLE} and
-     * orderingChannel set to zero.
-     *
-     * @param packet The packet to broadcast
-     */
-    public void broadcast( Packet packet ) {
-        this.broadcast( PacketReliability.RELIABLE, 0, packet );
-    }
-
-    /**
-     * Broadcasts the given packet to all players.
-     *
-     * @param reliability     Raknet Reliability with which this packet should be send
-     * @param orderingChannel In which channel should this packet be send
-     * @param packet          The packet to broadcast
-     */
-    public void broadcast( PacketReliability reliability, int orderingChannel, Packet packet ) {
-        LongObjCursor<PlayerConnection> cursor = this.playersByGuid.cursor();
-        while ( cursor.moveNext() ) {
-            cursor.value().send( reliability, orderingChannel, packet );
         }
     }
 

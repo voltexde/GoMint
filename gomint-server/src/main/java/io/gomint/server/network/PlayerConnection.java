@@ -8,8 +8,6 @@
 package io.gomint.server.network;
 
 import com.koloboke.collect.LongCursor;
-import com.koloboke.collect.set.LongSet;
-import com.koloboke.collect.set.hash.HashLongSets;
 import io.gomint.entity.Entity;
 import io.gomint.event.player.PlayerKickEvent;
 import io.gomint.event.player.PlayerQuitEvent;
@@ -26,6 +24,7 @@ import io.gomint.server.player.DeviceInfo;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.Values;
+import io.gomint.server.util.collection.ChunkHashSet;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
@@ -86,7 +85,7 @@ public class PlayerConnection {
     @Getter private final PostProcessWorker postProcessWorker;
 
     // World data
-    private final LongSet playerChunks;
+    private final ChunkHashSet playerChunks;
 
     // Connection State:
     @Getter @Setter private PlayerConnectionState state;
@@ -95,7 +94,7 @@ public class PlayerConnection {
 
     // Entity
     @Getter @Setter private EntityPlayer entity;
-    private LongSet currentlySendingPlayerChunks;
+    private ChunkHashSet currentlySendingPlayerChunks;
     private long sentInClientTick;
 
     // Additional data
@@ -117,8 +116,8 @@ public class PlayerConnection {
         this.server = networkManager.getServer();
         this.server.getExecutorService().execute( this.postProcessWorker );
 
-        this.playerChunks = HashLongSets.newMutableSet();
-        this.currentlySendingPlayerChunks = HashLongSets.newMutableSet();
+        this.playerChunks = ChunkHashSet.withExpectedSize( 100 );
+        this.currentlySendingPlayerChunks = ChunkHashSet.withExpectedSize( 100 );
     }
 
     /**

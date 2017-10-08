@@ -5,6 +5,8 @@ import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.UpdateReason;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -13,6 +15,8 @@ import io.gomint.server.world.UpdateReason;
  * This is a generic class for anything that can grow with metadata like crops, beetroot etc.
  */
 public abstract class Growable extends Block {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( Growable.class );
 
     @Override
     public boolean beforePlacement( ItemStack item, Location location ) {
@@ -30,12 +34,12 @@ public abstract class Growable extends Block {
         } else if ( updateReason == UpdateReason.RANDOM ) {
             // Check for growth state
             if ( this.getBlockData() < 0x07 ) {
-                int random = FastRandom.current().nextInt( 3 );
+                float growthDivider = getGrowthDivider();
+                int random = FastRandom.current().nextInt( (int) ( ( 25f / growthDivider ) + 1 ) );
 
                 // Grow it
-                if ( random == 1 ) { // 33.3% chance of growing
+                if ( random == 0 ) {
                     // TODO: Some sort of growth event
-
                     this.setBlockData( (byte) ( this.getBlockData() + 1 ) );
                     this.updateBlock();
                 }
@@ -43,6 +47,50 @@ public abstract class Growable extends Block {
         }
 
         return -1;
+    }
+
+    private float getGrowthDivider() {
+        float divider = 1f;
+        BlockPosition underCrops = this.location.toBlockPosition().add( BlockPosition.DOWN );
+
+        // Check for farmland blocks around (hydration states)
+        for ( int x = -1; x <= 1; ++x ) {
+            for ( int z = -1; z <= 1; ++z ) {
+                float currentBlockDivider = 0f;
+
+                Block block = this.world.getBlockAt( underCrops.clone().add( new BlockPosition( x, 0, z ) ) );
+                if ( block instanceof Farmland ) {
+                    currentBlockDivider = 1f;
+
+                    if ( block.getBlockData() > 0 ) {
+                        currentBlockDivider = 3f;
+                    }
+                }
+
+                // Surrounding blocks affect only to 25%
+                if ( x != 0 || z != 0 ) {
+                    currentBlockDivider /= 4f;
+                }
+
+                divider += currentBlockDivider;
+            }
+        }
+
+        // Check if there are similar crops around (slow down bigger farms)
+        // We check in a pattern which goes up and clockwise around
+        BlockPosition start = this.location.toBlockPosition().add( BlockPosition.NORTH );
+        if ( this.world.getBlockAt( start ).getBlockId() == getBlockId() ||
+            this.world.getBlockAt( start.add( BlockPosition.EAST ) ).getBlockId() == getBlockId() ||
+            this.world.getBlockAt( start.add( BlockPosition.SOUTH ) ).getBlockId() == getBlockId() ||
+            this.world.getBlockAt( start.add( BlockPosition.SOUTH ) ).getBlockId() == getBlockId() ||
+            this.world.getBlockAt( start.add( BlockPosition.WEST ) ).getBlockId() == getBlockId() ||
+            this.world.getBlockAt( start.add( BlockPosition.WEST ) ).getBlockId() == getBlockId() ||
+            this.world.getBlockAt( start.add( BlockPosition.NORTH ) ).getBlockId() == getBlockId() ||
+            this.world.getBlockAt( start.add( BlockPosition.NORTH ) ).getBlockId() == getBlockId() ) {
+            divider /= 2f;
+        }
+
+        return divider;
     }
 
 }

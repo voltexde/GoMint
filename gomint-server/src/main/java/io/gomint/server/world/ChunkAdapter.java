@@ -19,6 +19,7 @@ import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
+import io.gomint.server.util.collection.EntityIDMap;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.storage.TemporaryStorage;
@@ -78,10 +79,11 @@ public class ChunkAdapter implements Chunk {
     protected long lastSavedTimestamp;
 
     // Entities
-    protected LongObjMap<io.gomint.entity.Entity> entities = HashLongObjMaps.newMutableMap();
+    protected EntityIDMap entities = EntityIDMap.withExpectedSize( 20 );
 
     // Ticking
     private float lastUpdateDT = 0;
+    private int randomUpdateNumber = FastRandom.current().nextInt();
 
     // CHECKSTYLE:ON
 
@@ -96,8 +98,10 @@ public class ChunkAdapter implements Chunk {
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
             for ( ChunkSlice chunkSlice : this.getChunkSlices() ) {
                 if ( chunkSlice != null ) {
-                    for ( int i = 0; i < 3; ++i ) {
-                        int blockHash = FastRandom.current().nextInt( 0xFFF );
+                    ChunkAdapter.this.randomUpdateNumber = ChunkAdapter.this.randomUpdateNumber * 3 + 1013904223;
+                    int blockHash = ChunkAdapter.this.randomUpdateNumber >> 2;
+
+                    for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
                         int blockX = blockHash & 0x0f;
                         int blockY = ( blockHash >> 4 ) & 0x0f;
                         int blockZ = ( blockHash >> 8 ) & 0x0f;
@@ -154,7 +158,7 @@ public class ChunkAdapter implements Chunk {
      */
     public void addPlayer( EntityPlayer player ) {
         this.players.add( player );
-        this.entities.put( player.getEntityId(), player );
+        this.entities.justPut( player.getEntityId(), player );
     }
 
     /**
@@ -165,7 +169,7 @@ public class ChunkAdapter implements Chunk {
     public void removePlayer( EntityPlayer player ) {
         this.players.remove( player );
         this.lastPlayerOnThisChunk = System.currentTimeMillis();
-        this.entities.remove( player.getEntityId() );
+        this.entities.justRemove( player.getEntityId() );
     }
 
     /**
@@ -175,7 +179,7 @@ public class ChunkAdapter implements Chunk {
      */
     public void addEntity( Entity entity ) {
         LOGGER.debug( "Adding entity " + entity + " to chunk " + x + ", " + z );
-        this.entities.put( entity.getEntityId(), entity );
+        this.entities.justPut( entity.getEntityId(), entity );
     }
 
     /**
@@ -185,7 +189,7 @@ public class ChunkAdapter implements Chunk {
      */
     public void removeEntity( Entity entity ) {
         LOGGER.debug( "Removing entity " + entity + " from chunk " + x + ", " + z );
-        this.entities.remove( entity.getEntityId() );
+        this.entities.justRemove( entity.getEntityId() );
     }
 
     /**

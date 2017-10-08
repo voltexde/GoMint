@@ -1,9 +1,8 @@
 package io.gomint.server.world;
 
-import com.koloboke.collect.map.ShortObjMap;
-import com.koloboke.collect.map.hash.HashShortObjMaps;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.util.collection.ChunkSliceIndexMap;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.storage.TemporaryStorage;
 import lombok.Getter;
@@ -32,8 +31,8 @@ class ChunkSlice {
     private NibbleArray blockLight = new NibbleArray( (short) 4096 );
     private NibbleArray skyLight = new NibbleArray( (short) 4096 );
 
-    private ShortObjMap<TileEntity> tileEntities = HashShortObjMaps.newMutableMap();
-    private ShortObjMap<TemporaryStorage> temporaryStorages = HashShortObjMaps.newMutableMap();
+    private ChunkSliceIndexMap<TileEntity> tileEntities = ChunkSliceIndexMap.withExpectedSize( 20 );
+    private ChunkSliceIndexMap<TemporaryStorage> temporaryStorages = ChunkSliceIndexMap.withExpectedSize( 20 );
 
     private short getIndex( int x, int y, int z ) {
         return (short) ( ( x << 8 ) + ( z << 4 ) + y );
@@ -73,7 +72,7 @@ class ChunkSlice {
     Collection<TileEntity> getTileEntities() {
         List<TileEntity> tileEntities = new ArrayList<>();
 
-        this.tileEntities.values().cursor().forEachForward( new Consumer<TileEntity>() {
+        this.tileEntities.values().forEach( new Consumer<TileEntity>() {
             @Override
             public void accept( TileEntity tileEntity ) {
                 tileEntities.add( tileEntity );
@@ -85,7 +84,7 @@ class ChunkSlice {
 
     void addTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         int index = getIndex( x, y, z );
-        this.tileEntities.put( (short) index, tileEntity );
+        this.tileEntities.justPut( (short) index, tileEntity );
     }
 
     void setBlock( int x, int y, int z, byte blockId ) {
@@ -146,7 +145,7 @@ class ChunkSlice {
         TemporaryStorage storage = this.temporaryStorages.get( index );
         if ( storage == null ) {
             storage = new TemporaryStorage();
-            this.temporaryStorages.put( index, storage );
+            this.temporaryStorages.justPut( index, storage );
         }
 
         return storage;
@@ -154,7 +153,7 @@ class ChunkSlice {
 
     public void resetTemporaryStorage( int x, int y, int z ) {
         short index = getIndex( x, y, z );
-        this.temporaryStorages.remove( index );
+        this.temporaryStorages.justRemove( index );
     }
 
 }

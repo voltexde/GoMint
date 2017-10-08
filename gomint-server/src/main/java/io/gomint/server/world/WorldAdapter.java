@@ -7,8 +7,6 @@
 
 package io.gomint.server.world;
 
-import com.koloboke.collect.map.ObjObjMap;
-import com.koloboke.collect.map.hash.HashObjObjMaps;
 import io.gomint.entity.Player;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
@@ -19,12 +17,13 @@ import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
-import io.gomint.server.entity.Entity;
+import io.gomint.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.util.collection.PlayerMap;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.generator.ChunkGenerator;
@@ -80,14 +79,14 @@ public abstract class WorldAdapter implements World {
     private Queue<AsyncChunkPackageTask> chunkPackageTasks;
 
     // Player handling
-    private ObjObjMap<EntityPlayer, ChunkAdapter> players;
+    private PlayerMap players;
 
     protected WorldAdapter( GoMintServer server, File worldDir ) {
         this.server = server;
         this.logger = LoggerFactory.getLogger( "World-" + worldDir.getName() );
         this.worldDir = worldDir;
         this.entityManager = new EntityManager( this );
-        this.players = HashObjObjMaps.newMutableMap();
+        this.players = PlayerMap.withExpectedSize( this.server.getServerConfig().getMaxPlayers() );
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
         this.startAsyncWorker( server.getExecutorService() );
@@ -101,7 +100,7 @@ public abstract class WorldAdapter implements World {
      *
      * @return The Collection View of the Players currently on this world
      */
-    public Map<EntityPlayer, ChunkAdapter> getPlayers0() {
+    public PlayerMap getPlayers0() {
         return players;
     }
 
@@ -124,9 +123,12 @@ public abstract class WorldAdapter implements World {
         soundPacket.setExtraData( extraData );
         soundPacket.setPosition( location );
 
-        for ( EntityPlayer entityPlayer : this.getPlayers0().keySet() ) {
-            entityPlayer.getConnection().addToSendQueue( soundPacket );
-        }
+        sendToVisible( location.toBlockPosition(), soundPacket, new Predicate<Entity>() {
+            @Override
+            public boolean test( Entity entity ) {
+                return true;
+            }
+        } );
     }
 
     @Override
@@ -489,13 +491,13 @@ public abstract class WorldAdapter implements World {
 
         if ( oldChunk == null ) {
             newChunk.addPlayer( player );
-            this.players.put( player, newChunk );
+            this.players.justPut( player, newChunk );
         }
 
         if ( oldChunk != null && !oldChunk.equals( newChunk ) ) {
             oldChunk.removePlayer( player );
             newChunk.addPlayer( player );
-            this.players.put( player, newChunk );
+            this.players.justPut( player, newChunk );
         }
     }
 

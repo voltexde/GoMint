@@ -6,6 +6,8 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMovePlayer;
 import io.gomint.server.world.block.Block;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt

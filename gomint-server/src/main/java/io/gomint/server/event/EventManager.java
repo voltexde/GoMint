@@ -10,8 +10,7 @@ package io.gomint.server.event;
 import io.gomint.event.Event;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
-import com.koloboke.collect.map.IntObjMap;
-import com.koloboke.collect.map.hash.HashIntObjMaps;
+import io.gomint.server.util.collection.EventHandlerMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -31,7 +30,7 @@ public class EventManager {
     private final ReentrantLock queueLock = new ReentrantLock( true );
 
     // All event handlers that have been registered
-    private final IntObjMap<EventHandlerList> eventHandlers = HashIntObjMaps.newMutableMap();
+    private final EventHandlerMap eventHandlers = EventHandlerMap.withExpectedSize( 10 );
 
     // Not actually a queue, but used for the sake of cache efficiency provided by array lists over
     // actual queue implementations such as LinkedList
@@ -134,7 +133,7 @@ public class EventManager {
     private void triggerEvent0( Event event ) {
         // Assume we already acquired a readLock:
         int eventHash = event.getClass().hashCode();
-        EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
+        EventHandlerList eventHandlerList = this.eventHandlers.getEventHandler( eventHash );
         if ( eventHandlerList == null ) {
             return;
         }
@@ -147,10 +146,10 @@ public class EventManager {
         try {
             int eventHash = listenerMethod.getParameterTypes()[0].hashCode();
             EventHandler annotation = listenerMethod.getAnnotation( EventHandler.class );
-            EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
+            EventHandlerList eventHandlerList = this.eventHandlers.getEventHandler( eventHash );
             if ( eventHandlerList == null ) {
                 eventHandlerList = new EventHandlerList();
-                this.eventHandlers.put( eventHash, eventHandlerList );
+                this.eventHandlers.storeEventHandler( eventHash, eventHandlerList );
             }
 
             eventHandlerList.addHandler( listener.getClass().getName() + "#" + listenerMethod.getName() + "_" + eventHash, new EventHandlerMethod( listener, listenerMethod, annotation ) );
@@ -163,7 +162,7 @@ public class EventManager {
         this.collectionLock.writeLock().lock();
         try {
             int eventHash = listenerMethod.getParameterTypes()[0].hashCode();
-            EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
+            EventHandlerList eventHandlerList = this.eventHandlers.getEventHandler( eventHash );
             if ( eventHandlerList == null ) {
                 return;
             }

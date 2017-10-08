@@ -11,6 +11,7 @@ import io.gomint.server.entity.EntityFlag;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Vector;
+import io.gomint.server.util.collection.MetadataMap;
 import lombok.Getter;
 import lombok.ToString;
 import com.koloboke.collect.map.ByteObjMap;
@@ -93,7 +94,7 @@ public class MetadataContainer {
     public static final int DATA_SCALE = 39;
     public static final int DATA_MAX_AIRDATA_MAX_AIR = 43;
 
-    private ByteObjMap<MetadataValue> entries;
+    private MetadataMap entries;
     private boolean dirty;
 
     /**
@@ -110,7 +111,7 @@ public class MetadataContainer {
      * @param capacity The capacity to pre-allocate
      */
     public MetadataContainer( int capacity ) {
-        this.entries = HashByteObjMaps.newMutableMap( ( capacity > 32 ? 32 : capacity ) );
+        this.entries = MetadataMap.withExpectedSize( ( capacity > 32 ? 32 : capacity ) );
     }
 
     /**
@@ -152,7 +153,7 @@ public class MetadataContainer {
      * @param value The value to put into the container
      */
     public void put( int index, MetadataValue value ) {
-        this.entries.put( (byte) index, value );
+        this.entries.justPut( (byte) index, value );
         this.dirty = true;
     }
 
@@ -535,7 +536,7 @@ public class MetadataContainer {
             }
 
             value.deserialize( buffer );
-            this.entries.put( (byte) index, value );
+            this.entries.justPut( (byte) index, value );
         }
 
         return true;
