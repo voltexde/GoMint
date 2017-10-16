@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
  */
 public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( PacketMovePlayerHandler.class );
+
     @Override
     public void handle( PacketMovePlayer packet, long currentTimeMillis, PlayerConnection connection ) {
         EntityPlayer entity = connection.getEntity();

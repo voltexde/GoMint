@@ -28,8 +28,9 @@ public class CommandManager {
         // Register all internal commands
         try {
             for ( ClassPath.ClassInfo classInfo : ClassPath.from( ClassLoader.getSystemClassLoader() ).getTopLevelClasses( "io.gomint.server.command.internal" ) ) {
-                Class<?> cmdClass = classInfo.load();
-                cmdClass.getConstructor( CommandManager.class ).newInstance( this );
+                Class<? extends Command> cmdClass = (Class<? extends Command>) classInfo.load();
+                Command cmdObj = cmdClass.getConstructor(  ).newInstance(  );
+                register( null, cmdObj );
             }
         } catch ( IOException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
             e.printStackTrace();
@@ -39,9 +40,8 @@ public class CommandManager {
     public void register( Plugin plugin, Command commandBuilder ) {
         // Check if command is complete
         if ( commandBuilder.getName() == null ||
-                commandBuilder.getDescription() == null ||
-                commandBuilder.getExecutor() == null ) {
-            throw new IllegalStateException( "Name, description and executor can't be null" );
+                commandBuilder.getDescription() == null) {
+            throw new IllegalStateException( "Name or Description can't be null" );
         }
 
         // Check for name collision
@@ -77,7 +77,7 @@ public class CommandManager {
                 commandBuilder.getAlias(),
                 CommandPermission.NORMAL,
                 commandBuilder.getPermission(),
-                commandBuilder.getExecutor(),
+                commandBuilder,
                 commandBuilder.getOverload() );
 
         // Store the command for usage

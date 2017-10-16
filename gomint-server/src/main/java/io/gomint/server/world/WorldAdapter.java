@@ -874,15 +874,13 @@ public abstract class WorldAdapter implements World {
         return null;
     }
 
-    public void sendLevelEvent( BlockPosition position, int levelEvent, int data ) {
-        Vector vec = position.toVector();
-
+    public void sendLevelEvent( Vector position, int levelEvent, int data ) {
         PacketWorldEvent worldEvent = new PacketWorldEvent();
         worldEvent.setData( data );
         worldEvent.setEventId( levelEvent );
-        worldEvent.setPosition( vec );
+        worldEvent.setPosition( position );
 
-        sendToVisible( position, worldEvent, new Predicate<Entity>() {
+        sendToVisible( position.toBlockPosition(), worldEvent, new Predicate<Entity>() {
             @Override
             public boolean test( Entity entity ) {
                 return true;
@@ -900,13 +898,18 @@ public abstract class WorldAdapter implements World {
         chunk.setTileEntity( x & 0xF, y, z & 0xF, tileEntity );
     }
 
-    public boolean breakBlock( BlockPosition position ) {
+    public boolean breakBlock( BlockPosition position, boolean drops ) {
         io.gomint.server.world.block.Block block = getBlockAt( position );
         if ( block.onBreak() ) {
-            for ( ItemStack itemStack : block.getDrops() ) {
-                EntityItem item = this.createItemDrop( block.getLocation(), itemStack );
-                item.setVelocity( new Vector( 0.1f, 0.3f, 0.1f ) );
+            if ( drops ) {
+                for ( ItemStack itemStack : block.getDrops() ) {
+                    EntityItem item = this.createItemDrop( block.getLocation(), itemStack );
+                    item.setVelocity( new Vector( 0.1f, 0.3f, 0.1f ) );
+                }
             }
+
+            // Break animation (this also plays the break sound in the client)
+            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | (block.getBlockData() << 8) );
 
             block.setType( io.gomint.world.block.Air.class, (byte) 0 );
 

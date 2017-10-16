@@ -94,7 +94,7 @@ public class ChunkCache {
         int spawnAreaSize = this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea();
 
         // Copy over the current loaded chunk hashes
-        LongSet toRemoveHashes = null;
+        ChunkHashSet toRemoveHashes = null;
         long[] keys = this.cachedChunks.keys();
 
         for ( long chunkHash : keys ) {
@@ -135,7 +135,7 @@ public class ChunkCache {
 
             // Ask this chunk if he wants to be gced
             if ( toRemoveHashes == null ) {
-                toRemoveHashes = HashLongSets.newMutableSet();
+                toRemoveHashes = ChunkHashSet.withExpectedSize( 10 );
             }
 
             toRemoveHashes.add( chunkHash );

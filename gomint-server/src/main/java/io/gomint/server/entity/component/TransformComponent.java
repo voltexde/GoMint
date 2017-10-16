@@ -27,6 +27,7 @@ public class TransformComponent implements EntityComponent, Transformable {
     private float pitch;
 
     private boolean dirty;
+    private boolean sentMotion;
 
     /**
      * Construct a basic transformer component
@@ -216,6 +217,16 @@ public class TransformComponent implements EntityComponent, Transformable {
     @Override
     public Vector getMotion() {
         return new Vector( this.motionX, this.motionY, this.motionZ );
+    }
+
+    @Override
+    public boolean hasMotionBeenSent() {
+        return this.sentMotion;
+    }
+
+    @Override
+    public void markMotionSent() {
+        this.sentMotion = true;
     }
 
     /**

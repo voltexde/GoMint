@@ -23,11 +23,13 @@ public abstract class MetadataMap {
         return new KolobokeMetadataMap( expectedSize );
     }
 
+    // CHECKSTYLE:OFF
     public abstract boolean containsKey( byte key );
     public abstract void justPut( byte key, MetadataValue value );
     public abstract MetadataValue get( byte key );
     public abstract int size();
     public abstract void forEach( ByteObjConsumer<? super MetadataValue> c );
     public abstract void clear();
+    // CHECKSTYLE:ON
 
 }

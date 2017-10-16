@@ -7,7 +7,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 235 )
+@RegisterInfo( id = 228 )
 public class ItemSilverGlazedTerracotta extends ItemStack {
 
     // CHECKSTYLE:OFF

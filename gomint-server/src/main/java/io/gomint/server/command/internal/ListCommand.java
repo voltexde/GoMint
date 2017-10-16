@@ -2,11 +2,10 @@ package io.gomint.server.command.internal;
 
 import io.gomint.GoMint;
 import io.gomint.command.Command;
-import io.gomint.command.CommandExecutor;
 import io.gomint.command.CommandOutput;
+import io.gomint.command.annotation.*;
 import io.gomint.command.validator.StringValidator;
 import io.gomint.entity.Player;
-import io.gomint.server.command.CommandManager;
 
 import java.util.Collection;
 import java.util.Map;
@@ -15,21 +14,14 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
-public class ListCommand extends CommandExecutor {
-
-    /**
-     * Command to list all online players
-     *
-     * @param commandManager which should register this command
-     */
-    public ListCommand( CommandManager commandManager ) {
-        Command command = new Command( "list" );
-        command.description( "List online players" ).executor( this ).permission( "gomint.commands.list" );
-        command.overload();                                                             // Default /list without any parameters
-        command.overload().param( "filter", new StringValidator( "[A-Za-z0-9_]+" ) );   // Name filter
-
-        commandManager.register( null, command );
-    }
+@Name( "list" )
+@Description( "List online players" )
+@Permission( "gomint.commands.list" )
+@Overload() // Empty overload for "/list"
+@Overload( {
+    @Parameter( name = "filter", validator = StringValidator.class, arguments = { "[A-Za-z0-9_]+" } )
+} )     // Overload for "/list <filter>"
+public class ListCommand extends Command {
 
     @Override
     public CommandOutput execute( Player player, Map<String, Object> arguments ) {

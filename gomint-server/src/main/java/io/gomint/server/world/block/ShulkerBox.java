@@ -4,7 +4,6 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
-import io.gomint.server.entity.tileentity.ChestTileEntity;
 import io.gomint.server.entity.tileentity.ShulkerBoxTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
@@ -12,6 +11,7 @@ import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 @RegisterInfo( id = 218 )
 public class ShulkerBox extends Block {
@@ -43,10 +43,10 @@ public class ShulkerBox extends Block {
     }
 
     @Override
-    public TileEntity createTileEntity() {
+    TileEntity createTileEntity( NBTTagCompound compound ) {
         BlockPosition position = this.location.toBlockPosition();
 
-        NBTTagCompound compound = new NBTTagCompound( "" );
+        compound = new NBTTagCompound( "" );
 
         // Add generic tile entity stuff
         compound.addValue( "x", position.getX() );

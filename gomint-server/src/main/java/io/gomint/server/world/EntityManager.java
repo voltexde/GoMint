@@ -40,7 +40,7 @@ public class EntityManager {
      *
      * @param world the world for which this manager is
      */
-    public EntityManager( WorldAdapter world ) {
+    EntityManager( WorldAdapter world ) {
         this.world = world;
         this.entitiesById = EntityIDMap.withExpectedSize( 20 );
         this.spawnedInThisTick = EntityIDMap.withExpectedSize( 20 );
@@ -97,45 +97,18 @@ public class EntityManager {
 
         // --------------------------------------
         // Merge created entities
-        this.spawnedInThisTick.cursor().forEachForward( new LongObjConsumer<Entity>() {
-            @Override
-            public void accept( long l, Entity entity ) {
-                entitiesById.justPut( l, entity );
-            }
-        } );
-        this.spawnedInThisTick.clear();
+        this.mergeSpawnedEntities();
 
         // --------------------------------------
         // Metadata batches:
-        if ( metadataChangedEntities != null && metadataChangedEntities.size() > 0 ) {
-            for ( io.gomint.server.entity.Entity entity : metadataChangedEntities ) {
-                int chunkX = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionX() );
-                int chunkZ = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionZ() );
-
-                // Create PacketEntityMetadata
-                PacketEntityMetadata packetEntityMetadata = new PacketEntityMetadata();
-                packetEntityMetadata.setEntityId( entity.getEntityId() );
-                packetEntityMetadata.setMetadata( entity.getMetadata() );
-
-                // Send to all players
-                for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-                    if ( entity instanceof EntityPlayer ) {
-                        if ( entityPlayer.isHidden( (Player) entity ) ) {
-                            continue;
-                        }
-                    }
-
-                    Chunk playerChunk = entityPlayer.getChunk();
-                    if ( Math.abs( playerChunk.getX() - chunkX ) <= entityPlayer.getViewDistance() &&
-                        Math.abs( playerChunk.getZ() - chunkZ ) <= entityPlayer.getViewDistance() ) {
-                        entityPlayer.getConnection().addToSendQueue( packetEntityMetadata );
-                    }
-                }
-            }
-        }
+        this.sendMetaChanges( metadataChangedEntities );
 
         // --------------------------------------
         // Create movement batches:
+        this.sendMovementChanges( movedEntities );
+    }
+
+    private void sendMovementChanges( Set<io.gomint.server.entity.Entity> movedEntities ) {
         if ( movedEntities != null && movedEntities.size() > 0 ) {
             for ( io.gomint.server.entity.Entity movedEntity : movedEntities ) {
                 // Check if we need to move chunks
@@ -197,11 +170,6 @@ public class EntityManager {
                 packetEntityMovement.setHeadYaw( movedEntity.getHeadYaw() );
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
 
-                // Prepare motion packet
-                PacketEntityMotion packetEntityMotion = new PacketEntityMotion();
-                packetEntityMotion.setEntityId( movedEntity.getEntityId() );
-                packetEntityMotion.setVelocity( movedEntity.getVelocity() );
-
                 // Check which player we need to inform about this movement
                 for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
                     if ( movedEntity instanceof EntityPlayer ) {
@@ -214,11 +182,49 @@ public class EntityManager {
                     if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
                         Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
                         entityPlayer.getConnection().addToSendQueue( packetEntityMovement );
-                        entityPlayer.getConnection().addToSendQueue( packetEntityMotion );
                     }
                 }
             }
         }
+    }
+
+    private void sendMetaChanges( Set<io.gomint.server.entity.Entity> metadataChangedEntities ) {
+        if ( metadataChangedEntities != null && metadataChangedEntities.size() > 0 ) {
+            for ( io.gomint.server.entity.Entity entity : metadataChangedEntities ) {
+                int chunkX = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionX() );
+                int chunkZ = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionZ() );
+
+                // Create PacketEntityMetadata
+                PacketEntityMetadata packetEntityMetadata = new PacketEntityMetadata();
+                packetEntityMetadata.setEntityId( entity.getEntityId() );
+                packetEntityMetadata.setMetadata( entity.getMetadata() );
+
+                // Send to all players
+                for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
+                    if ( entity instanceof EntityPlayer ) {
+                        if ( entityPlayer.isHidden( (Player) entity ) ) {
+                            continue;
+                        }
+                    }
+
+                    Chunk playerChunk = entityPlayer.getChunk();
+                    if ( Math.abs( playerChunk.getX() - chunkX ) <= entityPlayer.getViewDistance() &&
+                        Math.abs( playerChunk.getZ() - chunkZ ) <= entityPlayer.getViewDistance() ) {
+                        entityPlayer.getConnection().addToSendQueue( packetEntityMetadata );
+                    }
+                }
+            }
+        }
+    }
+
+    private void mergeSpawnedEntities() {
+        this.spawnedInThisTick.cursor().forEachForward( new LongObjConsumer<Entity>() {
+            @Override
+            public void accept( long l, Entity entity ) {
+                entitiesById.justPut( l, entity );
+            }
+        } );
+        this.spawnedInThisTick.clear();
     }
 
     /**

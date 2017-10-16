@@ -9,7 +9,6 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.util.Numbers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +25,7 @@ import java.util.Map;
  */
 public abstract class EntityLiving extends Entity implements InventoryHolder {
 
-    private static Logger LOGGER = LoggerFactory.getLogger( EntityLiving.class );
+    private static final Logger LOGGER = LoggerFactory.getLogger( EntityLiving.class );
 
     // AI of the entity:
     protected AIBehaviourComponent behaviour;
@@ -87,10 +86,8 @@ public abstract class EntityLiving extends Entity implements InventoryHolder {
 
     @Override
     public void update( long currentTimeMS, float dT ) {
-        if ( !( this instanceof EntityHuman ) ) {
-            super.update( currentTimeMS, dT );
-            this.behaviour.update( currentTimeMS, dT );
-        }
+        super.update( currentTimeMS, dT );
+        this.behaviour.update( currentTimeMS, dT );
 
         // Check for client tick stuff
         this.lastUpdateDT += dT;

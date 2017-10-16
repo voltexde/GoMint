@@ -1,6 +1,10 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -22,6 +26,16 @@ public class GlassPane extends Block {
     @Override
     public boolean isTransparent() {
         return true;
+    }
+
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
+    @Override
+    public List<ItemStack> getDrops() {
+        return new ArrayList<>();
     }
 
 }

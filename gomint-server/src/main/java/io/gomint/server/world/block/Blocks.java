@@ -7,6 +7,7 @@ import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.generator.BlockGenerator;
 import javassist.*;
 import org.slf4j.Logger;
@@ -95,7 +96,7 @@ public class Blocks {
             return false;
         }
 
-        byte data = newBlock.calculatePlacementData( entity, item, clickVector );
+        PlacementData data = newBlock.calculatePlacementData( entity, item, clickVector );
         block = block.setType( newBlock.getClass(), data );
         block.afterPlacement();
         return true;

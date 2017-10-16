@@ -33,4 +33,9 @@ public class Numbers {
         return BIG_ENOUGH_INT - (int) ( BIG_ENOUGH_FLOOR - x );
     }
 
+    public static boolean roughlyEquals( double a, double b, double threshold ) {
+        double diff = Math.abs( a - b );
+        return diff <= threshold;
+    }
+
 }

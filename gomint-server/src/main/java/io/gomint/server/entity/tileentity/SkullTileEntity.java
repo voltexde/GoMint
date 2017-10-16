@@ -1,5 +1,6 @@
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.math.MojangRotation;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -9,7 +10,7 @@ import io.gomint.taglib.NBTTagCompound;
  */
 public class SkullTileEntity extends TileEntity {
 
-    private float rotation;
+    private MojangRotation rotation;
     private byte skullType;
 
     /**
@@ -21,7 +22,7 @@ public class SkullTileEntity extends TileEntity {
     public SkullTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
         super( tagCompound, world );
 
-        this.rotation = tagCompound.getByte( "Rot", (byte) 0 ) * 22.5f;
+        this.rotation = new MojangRotation( tagCompound.getByte( "Rot", (byte) 0 ) );
         this.skullType = tagCompound.getByte( "SkullType", (byte) 0 );
     }
 
@@ -35,7 +36,7 @@ public class SkullTileEntity extends TileEntity {
         super.toCompound( compound );
 
         compound.addValue( "id", "Skull" );
-        compound.addValue( "Rot", (byte) ( (int) ( Math.floor( ( ( this.rotation ) ) * 16 / 360 ) + 0.5 ) & 0x0f ) );
+        compound.addValue( "Rot", this.rotation.getRotationValue() );
         compound.addValue( "SkullType", this.skullType );
     }
 

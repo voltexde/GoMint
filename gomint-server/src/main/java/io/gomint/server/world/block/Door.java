@@ -1,11 +1,12 @@
 package io.gomint.server.world.block;
 
-import io.gomint.math.BlockPosition;
-import io.gomint.server.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.math.Vector2;
+import io.gomint.server.entity.Entity;
+import io.gomint.server.world.PlacementData;
 import io.gomint.world.block.Air;
 
 /**
@@ -57,7 +58,7 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
     }
 
     @Override
-    public byte calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
+    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
         if ( entity == null ) {
             return super.calculatePlacementData( null, item, clickVector );
         }
@@ -68,15 +69,15 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
 
         if ( zAbs > xAbs ) {
             if ( directionPlane.getZ() > 0 ) {
-                return (byte) 1;
+                return new PlacementData( (byte) 1, null );
             } else {
-                return (byte) 3;
+                return new PlacementData( (byte) 3, null );
             }
         } else {
             if ( directionPlane.getX() > 0 ) {
-                return (byte) 4;
+                return new PlacementData( (byte) 4, null );
             } else {
-                return (byte) 2;
+                return new PlacementData( (byte) 2, null );
             }
         }
     }

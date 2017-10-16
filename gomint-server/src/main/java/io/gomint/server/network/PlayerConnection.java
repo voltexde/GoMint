@@ -436,6 +436,7 @@ public class PlayerConnection {
     private void handlePacket( long currentTimeMillis, Packet packet ) {
         PacketHandler handler = PACKET_HANDLERS.get( packet.getClass() );
         if ( handler != null ) {
+            LOGGER.debug( "Handling packet: " + packet );
             handler.handle( packet, currentTimeMillis, this );
             return;
         }

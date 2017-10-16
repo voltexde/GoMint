@@ -19,4 +19,9 @@ public class LilyPad extends Block {
         return true;
     }
 
+    @Override
+    public boolean isSolid() {
+        return false;
+    }
+
 }

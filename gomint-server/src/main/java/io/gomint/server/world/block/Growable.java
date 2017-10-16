@@ -29,7 +29,7 @@ public abstract class Growable extends Block {
         if ( updateReason == UpdateReason.NEIGHBOUR_UPDATE ) {
             // Check if farmland is still under us
             if ( !( this.world.getBlockAt( this.location.toBlockPosition().add( BlockPosition.DOWN ) ) instanceof Farmland ) ) {
-                this.world.breakBlock( this.location.toBlockPosition() );
+                this.world.breakBlock( this.location.toBlockPosition(), false );
             }
         } else if ( updateReason == UpdateReason.RANDOM ) {
             // Check for growth state
