@@ -22,6 +22,7 @@ import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.*;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
+import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.collection.ContainerIDMap;
@@ -64,17 +65,12 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private String username;
     private UUID uuid;
     private String xboxId;
-    @Setter
-    private PlayerSkin skin;
+    @Setter private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter
-    private AdventureSettings adventureSettings;
-    @Getter
-    @Setter
-    private Entity hoverEntity;
-    @Getter
-    @Setter
-    private boolean sneaking;
+    @Getter private AdventureSettings adventureSettings;
+    @Getter @Setter private Entity hoverEntity;
+    @Getter @Setter private boolean sneaking;
+    private final PermissionManager permissionManager = new PermissionManager( this );
 
     // Hidden players
     private HiddenPlayerSet hiddenPlayers;
@@ -90,15 +86,9 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter
-    @Getter
-    private BlockPosition breakVector;
-    @Setter
-    @Getter
-    private long startBreak;
-    @Setter
-    @Getter
-    private long breakTime;
+    @Setter @Getter private BlockPosition breakVector;
+    @Setter @Getter private long startBreak;
+    @Setter @Getter private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -312,6 +302,9 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
 
+        // Update permissions
+        this.permissionManager.update( currentTimeMS, dT );
+
         // Look around
         Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
         if ( nearbyEntities != null ) {
@@ -511,10 +504,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         // Send crafting recipes
         this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
 
-        // Send commands
-        PacketAvailableCommands packetAvailableCommands = this.connection.getServer().
-            getPluginManager().getCommandManager().createPacket( this );
-        this.connection.send( packetAvailableCommands );
+        this.sendCommands();
     }
 
     @Override
@@ -648,7 +638,17 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     @Override
     public boolean hasPermission( String permission ) {
-        return true;
+        return this.permissionManager.hasPermission( permission );
+    }
+
+    /**
+     * Send commands to the client
+     */
+    public void sendCommands() {
+        // Send commands
+        PacketAvailableCommands packetAvailableCommands = this.connection.getServer().
+            getPluginManager().getCommandManager().createPacket( this );
+        this.connection.send( packetAvailableCommands );
     }
 
 }

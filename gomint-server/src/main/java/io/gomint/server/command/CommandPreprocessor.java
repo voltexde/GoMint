@@ -54,7 +54,7 @@ public class CommandPreprocessor {
     // a integer list reflecting the index inside enumValues
     private List<String> enumValues = new ArrayList<>();
     private IndexedHashMap<String, List<Integer>> enums = new IndexedHashMap<>();
-    private Map<CommandHolder, Integer> aliasIndex = new HashMap<>();
+    // private Map<CommandHolder, Integer> aliasIndex = new HashMap<>();
     private Map<String, Integer> enumIndexes = new HashMap<>();
 
     // Cached commands packet
@@ -70,7 +70,7 @@ public class CommandPreprocessor {
         this.commandsPacket = new PacketAvailableCommands();
 
         // First we should scan all commands for aliases
-        for ( CommandHolder command : commands ) {
+        /*for ( CommandHolder command : commands ) {
             if ( command.getAlias() != null ) {
                 for ( String s : command.getAlias() ) {
                     this.addEnum( command.getName() + "CommandAlias", s );
@@ -78,7 +78,7 @@ public class CommandPreprocessor {
 
                 this.aliasIndex.put( command, this.enums.getIndex( command.getName() + "CommandAlias" ) );
             }
-        }
+        }*/
 
         this.commandsPacket.setEnumValues( this.enumValues );
 
@@ -112,11 +112,11 @@ public class CommandPreprocessor {
             commandData.setPermission( (byte) command.getCommandPermission().getId() );
 
             // Put in alias index
-            if ( command.getAlias() != null ) {
+            /*if ( command.getAlias() != null ) {
                 commandData.setAliasIndex( this.aliasIndex.get( command ) );
             } else {
                 commandData.setAliasIndex( -1 );
-            }
+            }*/
 
             // Do we need to hack a bit here?
             List<List<CommandData.Parameter>> overloads = new ArrayList<>();

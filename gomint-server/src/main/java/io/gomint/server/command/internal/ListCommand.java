@@ -16,15 +16,16 @@ import java.util.Map;
  */
 @Name( "list" )
 @Description( "List online players" )
+@Alias( "l" )
 @Permission( "gomint.commands.list" )
 @Overload() // Empty overload for "/list"
 @Overload( {
-    @Parameter( name = "filter", validator = StringValidator.class, arguments = { "[A-Za-z0-9_]+" } )
+    @Parameter( name = "filter", validator = StringValidator.class, arguments = { "[A-Za-z0-9_]+" }, optional = true )
 } )     // Overload for "/list <filter>"
 public class ListCommand extends Command {
 
     @Override
-    public CommandOutput execute( Player player, Map<String, Object> arguments ) {
+    public CommandOutput execute( Player player, String alias, Map<String, Object> arguments ) {
         CommandOutput output = new CommandOutput();
 
         Collection<Player> players = GoMint.instance().getPlayers();
@@ -37,7 +38,7 @@ public class ListCommand extends Command {
             for ( Player player1 : players ) {
                 if ( player1.getName().startsWith( filter ) ) {
                     if ( i++ > 20 ) {
-                        output.success( "§7[§aSYSTEM§7] §f ... and more. Please use §e'/list <filter: string>'" );
+                        output.success( "§7[§aSYSTEM§7] §f ... and more. Please use §e'/%%s <filter: string>'", alias );
                         break;
                     }
 
@@ -48,7 +49,7 @@ public class ListCommand extends Command {
             int i = 0;
             for ( Player player1 : players ) {
                 if ( i++ > 20 ) {
-                    output.success( "§7[§aSYSTEM§7] §f ... and more. Please use §e'/list <filter: string>'" );
+                    output.success( "§7[§aSYSTEM§7] §f ... and more. Please use §e'/%%s <filter: string>'", alias );
                     break;
                 }
 

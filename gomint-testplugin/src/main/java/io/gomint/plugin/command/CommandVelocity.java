@@ -18,7 +18,7 @@ import java.util.Map;
 public class CommandVelocity extends Command {
 
     @Override
-    public CommandOutput execute( Player player, Map<String, Object> arguments ) {
+    public CommandOutput execute( Player player, String alias, Map<String, Object> arguments ) {
         CommandOutput output = new CommandOutput();
         player.setVelocity( new Vector( 0, 2, 0 ) );
         output.success( "Applied velocity" );

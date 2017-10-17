@@ -45,7 +45,7 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
             PacketCommandOutput output = new PacketCommandOutput();
             output.setSuccess( false );
             output.setOutputs( new ArrayList<OutputMessage>() {{
-                add( new OutputMessage( "Command for input '%%s' could not be found", false, new ArrayList<String>(){{
+                add( new OutputMessage( "Command for input '%%s' could not be found", false, new ArrayList<String>() {{
                     add( packet.getInputCommand() );
                 }} ) );
             }} );
@@ -53,7 +53,7 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
             connection.send( output );
         } else {
             // Check for permission
-            if ( !connection.getEntity().hasPermission( selected.getPermission() ) ) {
+            if ( selected.getPermission() != null && !connection.getEntity().hasPermission( selected.getPermission() ) ) {
                 PacketCommandOutput output = new PacketCommandOutput();
                 output.setSuccess( false );
                 output.setOutputs( new ArrayList<OutputMessage>() {{
@@ -71,13 +71,14 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                 restData = "";
             }
 
-            String[] params = restData.split( " " );
+            String[] params = !restData.isEmpty() ? restData.split( " " ) : new String[0];
 
             PacketCommandOutput output = new PacketCommandOutput();
             CommandOutput commandOutput = null;
 
             if ( selected.getOverload() != null ) {
-                overloads: for ( CommandOverload overload : selected.getOverload() ) {
+                overloads:
+                for ( CommandOverload overload : selected.getOverload() ) {
                     Iterator<String> paramIterator = Arrays.asList( params ).iterator();
 
                     if ( overload.getParameters() != null ) {
@@ -129,16 +130,16 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                             }
                         }
 
-                        commandOutput = selected.getExecutor().execute( connection.getEntity(), commandInput );
+                        commandOutput = selected.getExecutor().execute( connection.getEntity(), selected.getName(), commandInput );
                         break;
                     }
                 }
 
                 if ( commandOutput == null && output.isSuccess() ) {
-                    commandOutput = selected.getExecutor().execute( connection.getEntity(), new HashMap<>(  ) );
+                    commandOutput = selected.getExecutor().execute( connection.getEntity(), selected.getName(), new HashMap<>() );
                 }
             } else {
-                commandOutput = selected.getExecutor().execute( connection.getEntity(), new HashMap<>(  ) );
+                commandOutput = selected.getExecutor().execute( connection.getEntity(), selected.getName(), new HashMap<>() );
             }
 
             if ( commandOutput != null ) {

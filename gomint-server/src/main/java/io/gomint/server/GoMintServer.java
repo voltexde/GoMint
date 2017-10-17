@@ -12,6 +12,7 @@ import io.gomint.GoMintInstanceHolder;
 import io.gomint.entity.Player;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.permission.GroupManager;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
@@ -25,6 +26,7 @@ import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
+import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.util.DumpUtil;
@@ -72,6 +74,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     // Game Information
     private RecipeManager recipeManager;
     private CreativeInventory creativeInventory;
+    private PermissionGroupManager permissionGroupManager;
 
     // Plugin Management
     @Getter private SimplePluginManager pluginManager;
@@ -154,6 +157,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         this.creativeInventory = new CreativeInventory( this );
+        this.permissionGroupManager = new PermissionGroupManager();
 
         // ------------------------------------ //
         // World Initialization
@@ -355,6 +359,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         } );
 
         return playerList;
+    }
+
+    @Override
+    public GroupManager getGroupManager() {
+        return this.permissionGroupManager;
     }
 
     /**

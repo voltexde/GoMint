@@ -1,7 +1,6 @@
 package io.gomint.server.command;
 
 import io.gomint.command.Command;
-import io.gomint.command.CommandExecutor;
 import io.gomint.command.CommandOverload;
 import io.gomint.server.entity.CommandPermission;
 import lombok.AllArgsConstructor;

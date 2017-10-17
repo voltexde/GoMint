@@ -9,7 +9,6 @@ import io.gomint.server.scheduler.TaskList;
 import junit.framework.Assert;
 import org.junit.Test;
 
-
 /**
  * @author geNAZt
  */
