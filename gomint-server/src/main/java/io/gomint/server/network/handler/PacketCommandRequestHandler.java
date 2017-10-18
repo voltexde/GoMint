@@ -31,9 +31,7 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
         CommandHolder selected = null;
         for ( CommandHolder commandHolder : connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
             if ( removedFirstChar.startsWith( commandHolder.getName() ) ) {
-                if ( selected == null ) {
-                    selected = commandHolder;
-                } else if ( selected.getName().length() < commandHolder.getName().length() ) {
+                if ( selected == null || selected.getName().length() < commandHolder.getName().length() ) {
                     selected = commandHolder;
                 }
             }
@@ -42,25 +40,17 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
         // Check if we selected a command
         if ( selected == null ) {
             // Send CommandOutput with failure
-            PacketCommandOutput output = new PacketCommandOutput();
-            output.setSuccess( false );
-            output.setOutputs( new ArrayList<OutputMessage>() {{
+            sendFailure( connection, new ArrayList<OutputMessage>() {{
                 add( new OutputMessage( "Command for input '%%s' could not be found", false, new ArrayList<String>() {{
                     add( packet.getInputCommand() );
                 }} ) );
             }} );
-
-            connection.send( output );
         } else {
             // Check for permission
             if ( selected.getPermission() != null && !connection.getEntity().hasPermission( selected.getPermission() ) ) {
-                PacketCommandOutput output = new PacketCommandOutput();
-                output.setSuccess( false );
-                output.setOutputs( new ArrayList<OutputMessage>() {{
+                sendFailure( connection, new ArrayList<OutputMessage>() {{
                     add( new OutputMessage( "No permission for this command", false, new ArrayList<>() ) );
                 }} );
-
-                connection.send( output );
             }
 
             // Now we need to parse all additional parameters
@@ -156,6 +146,13 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
 
             connection.send( output );
         }
+    }
+
+    private void sendFailure( PlayerConnection connection, List<OutputMessage> messages ) {
+        PacketCommandOutput output = new PacketCommandOutput();
+        output.setSuccess( false );
+        output.setOutputs( messages );
+        connection.addToSendQueue( output );
     }
 
 }

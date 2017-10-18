@@ -7,15 +7,10 @@
 
 package io.gomint.server.entity;
 
-import com.koloboke.collect.set.LongSet;
-import com.koloboke.collect.set.hash.HashLongSets;
-import io.gomint.GoMint;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.entity.Player;
 import io.gomint.event.player.PlayerJoinEvent;
-import io.gomint.inventory.item.ItemAcaciaDoor;
-import io.gomint.inventory.item.ItemWoodPlanks;
 import io.gomint.math.*;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
@@ -157,12 +152,13 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     @Override
     public void setHealth( double amount ) {
-        if ( amount < 1 ) {
-            amount = 0;
+        double filteredAmount = amount;
+        if ( filteredAmount < 0 ) {
+            filteredAmount = 0;
         }
 
         AttributeInstance attributeInstance = this.attributes.get( Attribute.HEALTH.getKey() );
-        attributeInstance.setValue( (float) amount );
+        attributeInstance.setValue( (float) filteredAmount );
     }
 
     @Override
@@ -462,11 +458,6 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         this.containerIds = ContainerIDMap.withExpectedSize( 2 );
         this.connection.getServer().getCreativeInventory().addViewer( this );
 
-        // Testing items
-        // TODO: Remove anytime soon
-        this.inventory.setItem( 0, GoMint.instance().createItemStack( ItemWoodPlanks.class, 12 ) );
-        this.inventory.setItem( 1, GoMint.instance().createItemStack( ItemAcaciaDoor.class, 1 ) );
-
         // Now its time for the join event since the play is fully loaded
         PlayerJoinEvent event = this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
         if ( event.isCancelled() ) {
@@ -571,18 +562,43 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
         Block block = this.world.getBlockAt( this.getPosition().toBlockPosition() );
         block.gotOff( this );
+
+        // Remove from player list
+        PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+        packetPlayerlist.setMode( (byte) 1 );
+        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), null, null, null ) );
+        }} );
+
+        // Check all other players
+        for ( Player player : this.connection.getServer().getPlayers() ) {
+            EntityPlayer entityPlayer = (EntityPlayer) player;
+            if ( !entityPlayer.equals( this ) ) {
+                entityPlayer.getConnection().addToSendQueue( packetPlayerlist );
+            }
+
+            // Check if player did hide this one
+            if ( entityPlayer.hiddenPlayers != null && entityPlayer.hiddenPlayers.contains( getEntityId() ) ) {
+                entityPlayer.hiddenPlayers.removeLong( getEntityId() );
+            }
+        }
     }
 
     /**
      * Get the window id of specified inventory
      *
-     * @param inventory
-     * @return
+     * @param inventory which we want to get the window id for
+     * @return window id of the container
      */
     public byte getWindowId( ContainerInventory inventory ) {
         return this.containerIds.getByte( inventory );
     }
 
+    /**
+     * Close a container inventory
+     *
+     * @param windowId which should be closed
+     */
     public void closeInventory( byte windowId ) {
         ContainerInventory containerInventory = this.windowIds.remove( windowId );
         if ( containerInventory != null ) {
@@ -591,10 +607,21 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         }
     }
 
+    /**
+     * Get a container by its id
+     *
+     * @param windowId which should be looked up
+     * @return container inventory or null when not found
+     */
     public ContainerInventory getContainerId( byte windowId ) {
         return this.windowIds.get( windowId );
     }
 
+    /**
+     * Xbox User ID
+     *
+     * @return xbox user id
+     */
     public String getXboxID() {
         return this.xboxId;
     }
@@ -630,6 +657,8 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
                     packetText.setSubtitle( "" );
                 }
 
+                break;
+            default:
                 break;
         }
 
