@@ -1,13 +1,6 @@
 package io.gomint.server.inventory;
 
-import com.koloboke.collect.map.ObjIntMap;
-import com.koloboke.collect.map.hash.HashObjIntMaps;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import io.gomint.server.util.collection.StringIDToNumericMap;
 
 /**
  * @author geNAZt
@@ -15,7 +8,7 @@ import java.nio.file.StandardOpenOption;
  */
 public class MaterialMagicNumbers {
 
-    private static final ObjIntMap<String> NEW_ID_MAPPING = HashObjIntMaps.newMutableMap();
+    private static final StringIDToNumericMap NEW_ID_MAPPING = StringIDToNumericMap.withExpectedSize(500);
 
     static {
         // CHECKSTYLE:OFF
@@ -392,7 +385,7 @@ public class MaterialMagicNumbers {
     }
 
     public static void register( int id, String newId ) {
-        NEW_ID_MAPPING.put( newId, id );
+        NEW_ID_MAPPING.justPut( newId, id );
     }
 
     public static int valueOfWithId( String newId ) {

@@ -12,6 +12,13 @@ public class PlayerInteractEvent extends CancellablePlayerEvent {
     private ClickType clickType;
     private Block block;
 
+    /**
+     * Create a new interaction event
+     *
+     * @param player    which interacted with something
+     * @param clickType which has been used
+     * @param block     on which the player interacted
+     */
     public PlayerInteractEvent( Player player, ClickType clickType, Block block ) {
         super( player );
         this.clickType = clickType;

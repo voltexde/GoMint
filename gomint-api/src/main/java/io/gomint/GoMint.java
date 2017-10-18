@@ -9,6 +9,7 @@ package io.gomint;
 
 import io.gomint.entity.Player;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.permission.GroupManager;
 import io.gomint.world.World;
 
 import java.util.Collection;
@@ -58,6 +59,13 @@ public interface GoMint {
      * @return collection of online players
      */
     Collection<Player> getPlayers();
+
+    /**
+     * Get the manager which manages permission groups
+     *
+     * @return permission group manager
+     */
+    GroupManager getGroupManager();
 
     /**
      * Get the GoMint server instance currently running

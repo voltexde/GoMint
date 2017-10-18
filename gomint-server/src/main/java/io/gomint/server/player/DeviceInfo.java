@@ -34,6 +34,11 @@ public class DeviceInfo {
         ANDROID,
 
         /**
+         * iOS, apple OS for iphones, ipads and some ipods
+         */
+        IOS,
+
+        /**
          * Windows. What else?
          */
         WINDOWS;
@@ -42,6 +47,8 @@ public class DeviceInfo {
             switch ( value ) {
                 case 1:
                     return ANDROID;
+                case 2:
+                    return IOS;
                 case 7:
                     return WINDOWS;
                 default:

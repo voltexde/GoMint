@@ -172,4 +172,12 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
         return this.material;
     }
 
+    /**
+     * This gets called when a item was placed down as a block
+     */
+    public void afterPlacement() {
+        // In a normal case the amount decreases
+        this.amount--;
+    }
+
 }

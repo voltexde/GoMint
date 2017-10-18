@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 325 )
- public class ItemBucket extends ItemStack implements io.gomint.inventory.item.ItemBucket {
+public class ItemBucket extends ItemStack implements io.gomint.inventory.item.ItemBucket {
 
     // CHECKSTYLE:OFF
     public ItemBucket( short data, int amount ) {
@@ -19,5 +19,56 @@ import io.gomint.taglib.NBTTagCompound;
         super( 325, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public void setContent( Content type ) {
+        switch ( type ) {
+            case LAVA:
+                this.setData( (short) 10 );
+                break;
+            case WATER:
+                this.setData( (short) 8 );
+                break;
+            case MILK:
+                this.setData( (short) 1 );
+                break;
+            default:
+                this.setData( (short) 0 );
+        }
+    }
+
+    @Override
+    public Content getContent() {
+        switch ( this.getData() ) {
+            case 10:
+                return Content.LAVA;
+            case 8:
+                return Content.WATER;
+            case 1:
+                return Content.MILK;
+        }
+
+        return Content.EMPTY;
+    }
+
+    @Override
+    public int getBlockId() {
+        switch ( this.getData() ) {
+            case 10:
+                return 10;
+            case 8:
+                return 8;
+            case 1:
+                return -1;  // Its not possible to empty out milk
+        }
+
+        return super.getBlockId();
+    }
+
+    @Override
+    public void afterPlacement() {
+        // We transform into an empty bucket
+        this.setData( (short) 0 );
+    }
 
 }

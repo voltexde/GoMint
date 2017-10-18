@@ -6,12 +6,16 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMovePlayer;
 import io.gomint.server.world.block.Block;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( PacketMovePlayerHandler.class );
 
     @Override
     public void handle( PacketMovePlayer packet, long currentTimeMillis, PlayerConnection connection ) {

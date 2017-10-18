@@ -39,7 +39,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
                             // Tell the client which break time we want
                             if ( breakTime > 0 ) {
-                                connection.getEntity().getWorld().sendLevelEvent( packet.getPosition(), LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
+                                connection.getEntity().getWorld().sendLevelEvent( packet.getPosition().toVector(), LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
                             }
                         }
                     }
@@ -51,7 +51,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
             case STOP_BREAK:
                 // Send abort break animation
                 if ( connection.getEntity().getBreakVector() != null ) {
-                    connection.getEntity().getWorld().sendLevelEvent( connection.getEntity().getBreakVector(), LevelEvent.BLOCK_STOP_BREAK, 0 );
+                    connection.getEntity().getWorld().sendLevelEvent( connection.getEntity().getBreakVector().toVector(), LevelEvent.BLOCK_STOP_BREAK, 0 );
                 }
 
                 // Reset when abort
@@ -88,7 +88,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 if ( connection.getEntity().getBreakVector() != null ) {
                     Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getBreakVector() );
                     connection.getEntity().getWorld().sendLevelEvent(
-                        connection.getEntity().getBreakVector(),
+                        connection.getEntity().getBreakVector().toVector(),
                         LevelEvent.PARTICLE_PUNCH_BLOCK,
                         block.getBlockId() | ( block.getBlockData() << 8 ) | ( packet.getFace() << 16 ) );
                 }
@@ -96,6 +96,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 break;
 
             case JUMP:
+                LOGGER.debug( "Jumping" );
                 break;
 
             default:

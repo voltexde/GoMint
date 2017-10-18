@@ -28,8 +28,9 @@ public class CommandManager {
         // Register all internal commands
         try {
             for ( ClassPath.ClassInfo classInfo : ClassPath.from( ClassLoader.getSystemClassLoader() ).getTopLevelClasses( "io.gomint.server.command.internal" ) ) {
-                Class<?> cmdClass = classInfo.load();
-                cmdClass.getConstructor( CommandManager.class ).newInstance( this );
+                Class<? extends Command> cmdClass = (Class<? extends Command>) classInfo.load();
+                Command cmdObj = cmdClass.getConstructor(  ).newInstance(  );
+                register( null, cmdObj );
             }
         } catch ( IOException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
             e.printStackTrace();
@@ -39,31 +40,41 @@ public class CommandManager {
     public void register( Plugin plugin, Command commandBuilder ) {
         // Check if command is complete
         if ( commandBuilder.getName() == null ||
-                commandBuilder.getDescription() == null ||
-                commandBuilder.getExecutor() == null ) {
-            throw new IllegalStateException( "Name, description and executor can't be null" );
+                commandBuilder.getDescription() == null) {
+            throw new IllegalStateException( "Name or Description can't be null" );
         }
 
+        this.internalRegister( plugin, commandBuilder.getName(), commandBuilder );
+
+        // TODO: Remove once aliases are fixed in 1.2
+        if ( commandBuilder.getAlias() != null ) {
+            for ( String s : commandBuilder.getAlias() ) {
+                this.internalRegister( plugin, s, commandBuilder );
+            }
+        }
+    }
+
+    private void internalRegister( Plugin plugin, String name, Command commandBuilder ) {
         // Check for name collision
-        CommandHolder holder = this.commands.get( commandBuilder.getName() );
+        CommandHolder holder = this.commands.get( name );
         if ( holder != null ) {
             // Remap the old command to its fallback
-            Plugin originalPlugin = this.commandPlugins.get( commandBuilder.getName() );
+            Plugin originalPlugin = this.commandPlugins.get( name );
             String cmdName;
             if ( originalPlugin != null ) {
-                cmdName = originalPlugin.getName() + ":" + holder.getName();
+                cmdName = originalPlugin.getName() + ":" + name;
             } else {
-                cmdName = "gomint:" + holder.getName();
+                cmdName = "gomint:" + name;
             }
 
             CommandHolder commandHolder = new CommandHolder(
-                    cmdName,
-                    holder.getDescription(),
-                    holder.getAlias(),
-                    holder.getCommandPermission(),
-                    holder.getPermission(),
-                    holder.getExecutor(),
-                    holder.getOverload()
+                cmdName,
+                holder.getDescription(),
+                holder.getAlias(),
+                holder.getCommandPermission(),
+                holder.getPermission(),
+                holder.getExecutor(),
+                holder.getOverload()
             );
 
             this.commands.put( cmdName, commandHolder );
@@ -72,25 +83,25 @@ public class CommandManager {
 
         // Create a new holder
         holder = new CommandHolder(
-                commandBuilder.getName(),
-                commandBuilder.getDescription(),
-                commandBuilder.getAlias(),
-                CommandPermission.NORMAL,
-                commandBuilder.getPermission(),
-                commandBuilder.getExecutor(),
-                commandBuilder.getOverload() );
+            name,
+            commandBuilder.getDescription(),
+            commandBuilder.getAlias(),
+            CommandPermission.NORMAL,
+            commandBuilder.getPermission(),
+            commandBuilder,
+            commandBuilder.getOverload() );
 
         // Store the command for usage
-        this.commands.put( commandBuilder.getName(), holder );
+        this.commands.put( name, holder );
         if ( plugin != null ) {
-            this.commandPlugins.put( commandBuilder.getName(), plugin );
+            this.commandPlugins.put( name, plugin );
         }
     }
 
     public PacketAvailableCommands createPacket( EntityPlayer player ) {
         List<CommandHolder> holders = new ArrayList<>();
         for ( CommandHolder holder : this.commands.values() ) {
-            if ( player.hasPermission( holder.getPermission() ) ) {
+            if ( holder.getPermission() == null || player.hasPermission( holder.getPermission() ) ) {
                 holders.add( holder );
             }
         }

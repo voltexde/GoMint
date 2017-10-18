@@ -7,8 +7,6 @@
 
 package io.gomint.server.world;
 
-import com.koloboke.collect.map.LongObjMap;
-import com.koloboke.collect.map.hash.HashLongObjMaps;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.server.async.Delegate2;
@@ -19,8 +17,9 @@ import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
-import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.util.Values;
+import io.gomint.server.util.collection.EntityIDMap;
+import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.taglib.NBTWriter;
@@ -55,8 +54,8 @@ public class ChunkAdapter implements Chunk {
     protected final WorldAdapter world;
 
     // Networking
-    protected boolean dirty;
-    protected SoftReference<PacketWorldChunk> cachedPacket;
+    boolean dirty;
+    SoftReference<PacketWorldChunk> cachedPacket;
 
     // Chunk
     protected final int x;
@@ -67,21 +66,21 @@ public class ChunkAdapter implements Chunk {
     protected byte[] biomes = new byte[16 * 16];
 
     // Blocks
-    @Getter
-    protected ChunkSlice[] chunkSlices = new ChunkSlice[16];
-    protected byte[] height = new byte[16 * 16 * 2];
+    @Getter protected ChunkSlice[] chunkSlices = new ChunkSlice[16];
+    private byte[] height = new byte[16 * 16 * 2];
 
     // Players / Chunk GC
     protected List<EntityPlayer> players = new ArrayList<>();
-    protected long lastPlayerOnThisChunk;
+    private long lastPlayerOnThisChunk;
     protected long loadedTime;
     protected long lastSavedTimestamp;
 
     // Entities
-    protected LongObjMap<io.gomint.entity.Entity> entities = HashLongObjMaps.newMutableMap();
+    protected EntityIDMap entities = EntityIDMap.withExpectedSize( 20 );
 
     // Ticking
     private float lastUpdateDT = 0;
+    private int randomUpdateNumber = FastRandom.current().nextInt();
 
     // CHECKSTYLE:ON
 
@@ -96,11 +95,13 @@ public class ChunkAdapter implements Chunk {
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
             for ( ChunkSlice chunkSlice : this.getChunkSlices() ) {
                 if ( chunkSlice != null ) {
-                    for ( int i = 0; i < 3; ++i ) {
-                        int blockHash = FastRandom.current().nextInt( 0xFFF );
+                    randomUpdateNumber = randomUpdateNumber * 3 + 1013904223;
+                    int blockHash = randomUpdateNumber >> 2;
+
+                    for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
                         int blockX = blockHash & 0x0f;
-                        int blockY = ( blockHash >> 4 ) & 0x0f;
-                        int blockZ = ( blockHash >> 8 ) & 0x0f;
+                        int blockY = ( blockHash >> 8 ) & 0x0f;
+                        int blockZ = ( blockHash >> 16 ) & 0x0f;
 
                         byte blockId = chunkSlice.getBlock( blockX, blockY, blockZ );
                         switch ( blockId ) {
@@ -122,7 +123,7 @@ public class ChunkAdapter implements Chunk {
                                     long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
                                     if ( next > currentTimeMS ) {
                                         Location location = block.getLocation();
-                                        ChunkAdapter.this.world.tickQueue.add( next, CoordinateUtils.toLong( (int) location.getX(), (int) location.getY(), (int) location.getZ() ) );
+                                        world.tickQueue.add( next, CoordinateUtils.toLong( (int) location.getX(), (int) location.getY(), (int) location.getZ() ) );
                                     }
                                 }
 
@@ -152,9 +153,9 @@ public class ChunkAdapter implements Chunk {
      *
      * @param player The player which we want to add to this chunk
      */
-    public void addPlayer( EntityPlayer player ) {
+    void addPlayer( EntityPlayer player ) {
         this.players.add( player );
-        this.entities.put( player.getEntityId(), player );
+        this.entities.justPut( player.getEntityId(), player );
     }
 
     /**
@@ -162,10 +163,10 @@ public class ChunkAdapter implements Chunk {
      *
      * @param player The player which we want to remove from this chunk
      */
-    public void removePlayer( EntityPlayer player ) {
+    void removePlayer( EntityPlayer player ) {
         this.players.remove( player );
         this.lastPlayerOnThisChunk = System.currentTimeMillis();
-        this.entities.remove( player.getEntityId() );
+        this.entities.justRemove( player.getEntityId() );
     }
 
     /**
@@ -173,9 +174,9 @@ public class ChunkAdapter implements Chunk {
      *
      * @param entity The entity which should be added
      */
-    public void addEntity( Entity entity ) {
+    void addEntity( Entity entity ) {
         LOGGER.debug( "Adding entity " + entity + " to chunk " + x + ", " + z );
-        this.entities.put( entity.getEntityId(), entity );
+        this.entities.justPut( entity.getEntityId(), entity );
     }
 
     /**
@@ -183,9 +184,9 @@ public class ChunkAdapter implements Chunk {
      *
      * @param entity The entity which should be removed
      */
-    public void removeEntity( Entity entity ) {
+    void removeEntity( Entity entity ) {
         LOGGER.debug( "Removing entity " + entity + " from chunk " + x + ", " + z );
-        this.entities.remove( entity.getEntityId() );
+        this.entities.justRemove( entity.getEntityId() );
     }
 
     /**
@@ -194,7 +195,7 @@ public class ChunkAdapter implements Chunk {
      *
      * @param batch The batch which has been generated to be sent to the clients
      */
-    public void setCachedPacket( PacketWorldChunk batch ) {
+    void setCachedPacket( PacketWorldChunk batch ) {
         this.dirty = false;
         this.cachedPacket = new SoftReference<>( batch );
     }
@@ -204,7 +205,7 @@ public class ChunkAdapter implements Chunk {
      *
      * @return The timestamp this chunk was last written out at
      */
-    public long getLastSavedTimestamp() {
+    long getLastSavedTimestamp() {
         return this.lastSavedTimestamp;
     }
 
@@ -213,7 +214,7 @@ public class ChunkAdapter implements Chunk {
      *
      * @param timestamp The timestamp to set
      */
-    public void setLastSavedTimestamp( long timestamp ) {
+    void setLastSavedTimestamp( long timestamp ) {
         this.lastSavedTimestamp = timestamp;
     }
 
@@ -228,7 +229,7 @@ public class ChunkAdapter implements Chunk {
      *
      * @param callback The callback to be invoked once the operation is complete
      */
-    public void packageChunk( Delegate2<Long, ChunkAdapter> callback ) {
+    void packageChunk( Delegate2<Long, ChunkAdapter> callback ) {
         if ( !this.dirty && this.cachedPacket != null ) {
             Packet packet = this.cachedPacket.get();
             if ( packet != null ) {
@@ -414,6 +415,11 @@ public class ChunkAdapter implements Chunk {
     public TemporaryStorage getTemporaryStorage( int x, int y, int z ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         return slice.getTemporaryStorage( x, y - 16 * ( y >> 4 ), z );
+    }
+
+    public void resetTemporaryStorage( int x, int y, int z ) {
+        ChunkSlice slice = ensureSlice( y >> 4 );
+        slice.resetTemporaryStorage( x, y - 16 * ( y >> 4 ), z );
     }
 
     // ==================================== MISCELLANEOUS ==================================== //

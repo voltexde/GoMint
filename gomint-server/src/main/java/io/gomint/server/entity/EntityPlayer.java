@@ -7,29 +7,22 @@
 
 package io.gomint.server.entity;
 
-import com.koloboke.collect.map.ByteObjMap;
-import com.koloboke.collect.map.ObjByteMap;
-import com.koloboke.collect.map.hash.HashByteObjMaps;
-import com.koloboke.collect.map.hash.HashObjByteMaps;
-import com.koloboke.collect.set.LongSet;
-import com.koloboke.collect.set.hash.HashLongSets;
-import io.gomint.GoMint;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.entity.Player;
 import io.gomint.event.player.PlayerJoinEvent;
-import io.gomint.inventory.item.ItemAcaciaDoor;
-import io.gomint.inventory.item.ItemWoodPlanks;
 import io.gomint.math.*;
-import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.*;
-import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
+import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
+import io.gomint.server.util.collection.ContainerIDMap;
+import io.gomint.server.util.collection.ContainerObjectMap;
+import io.gomint.server.util.collection.HiddenPlayerSet;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
@@ -38,11 +31,12 @@ import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -58,8 +52,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 @EqualsAndHashCode( callSuper = false, of = { "uuid" } )
 public class EntityPlayer extends EntityHuman implements Player, InventoryHolder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
-
     private final PlayerConnection connection;
     private int viewDistance;
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
@@ -73,9 +65,10 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     @Getter private AdventureSettings adventureSettings;
     @Getter @Setter private Entity hoverEntity;
     @Getter @Setter private boolean sneaking;
+    private final PermissionManager permissionManager = new PermissionManager( this );
 
     // Hidden players
-    private LongSet hiddenPlayers;
+    private HiddenPlayerSet hiddenPlayers;
 
     // Inventory
     private PlayerInventory inventory;
@@ -84,8 +77,8 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private Inventory cursorInventory;
     private Inventory craftingInputInventory;
     private Inventory craftingResultInventory;
-    private ByteObjMap<ContainerInventory> windowIds;
-    private ObjByteMap<ContainerInventory> containerIds;
+    private ContainerObjectMap windowIds;
+    private ContainerIDMap containerIds;
 
     // Block break data
     @Setter @Getter private BlockPosition breakVector;
@@ -159,12 +152,13 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     @Override
     public void setHealth( double amount ) {
-        if( amount < 1 ) {
-            amount = 0;
+        double filteredAmount = amount;
+        if ( filteredAmount < 0 ) {
+            filteredAmount = 0;
         }
 
         AttributeInstance attributeInstance = this.attributes.get( Attribute.HEALTH.getKey() );
-        attributeInstance.setValue( (float) amount );
+        attributeInstance.setValue( (float) filteredAmount );
     }
 
     @Override
@@ -243,7 +237,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         EntityPlayer other = (EntityPlayer) player;
         if ( other.getWorld().equals( this.getWorld() ) ) {
             if ( this.hiddenPlayers == null ) {
-                this.hiddenPlayers = HashLongSets.newMutableSet();
+                this.hiddenPlayers = HiddenPlayerSet.withExpectedSize( 5 );
             }
 
             this.hiddenPlayers.add( other.getEntityId() );
@@ -303,6 +297,9 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     @Override
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
+
+        // Update permissions
+        this.permissionManager.update( currentTimeMS, dT );
 
         // Look around
         Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
@@ -374,8 +371,8 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
             // Trigger open
             ContainerInventory containerInventory = (ContainerInventory) inventory;
-            this.windowIds.put( foundId, containerInventory );
-            this.containerIds.put( containerInventory, foundId );
+            this.windowIds.justPut( foundId, containerInventory );
+            this.containerIds.justPut( containerInventory, foundId );
             containerInventory.addViewer( this, foundId );
         }
     }
@@ -457,14 +454,9 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         this.cursorInventory = new CursorInventory( this );
         this.craftingInputInventory = new CraftingInputInventory( this );
         this.craftingResultInventory = new CursorInventory( this );
-        this.windowIds = HashByteObjMaps.newMutableMap();
-        this.containerIds = HashObjByteMaps.newMutableMap();
+        this.windowIds = ContainerObjectMap.withExpectedSize( 2 );
+        this.containerIds = ContainerIDMap.withExpectedSize( 2 );
         this.connection.getServer().getCreativeInventory().addViewer( this );
-
-        // Testing items
-        // TODO: Remove anytime soon
-        this.inventory.setItem( 0, GoMint.instance().createItemStack( ItemWoodPlanks.class, 12 ) );
-        this.inventory.setItem( 1, GoMint.instance().createItemStack( ItemAcaciaDoor.class, 1 ) );
 
         // Now its time for the join event since the play is fully loaded
         PlayerJoinEvent event = this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
@@ -488,7 +480,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         // Update player list
         PacketPlayerlist playerlist = new PacketPlayerlist();
         playerlist.setMode( (byte) 0 );
-        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
             add( new PacketPlayerlist.Entry( uuid, getEntityId(), username, xboxId, skin ) );
         }} );
         this.getConnection().send( playerlist );
@@ -503,10 +495,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         // Send crafting recipes
         this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
 
-        // Send commands
-        PacketAvailableCommands packetAvailableCommands = this.connection.getServer().
-                getPluginManager().getCommandManager().createPacket( this );
-        this.connection.send( packetAvailableCommands );
+        this.sendCommands();
     }
 
     @Override
@@ -573,30 +562,66 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
         Block block = this.world.getBlockAt( this.getPosition().toBlockPosition() );
         block.gotOff( this );
+
+        // Remove from player list
+        PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+        packetPlayerlist.setMode( (byte) 1 );
+        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), null, null, null ) );
+        }} );
+
+        // Check all other players
+        for ( Player player : this.connection.getServer().getPlayers() ) {
+            EntityPlayer entityPlayer = (EntityPlayer) player;
+            if ( !entityPlayer.equals( this ) ) {
+                entityPlayer.getConnection().addToSendQueue( packetPlayerlist );
+            }
+
+            // Check if player did hide this one
+            if ( entityPlayer.hiddenPlayers != null && entityPlayer.hiddenPlayers.contains( getEntityId() ) ) {
+                entityPlayer.hiddenPlayers.removeLong( getEntityId() );
+            }
+        }
     }
 
     /**
      * Get the window id of specified inventory
      *
-     * @param inventory
-     * @return
+     * @param inventory which we want to get the window id for
+     * @return window id of the container
      */
     public byte getWindowId( ContainerInventory inventory ) {
         return this.containerIds.getByte( inventory );
     }
 
+    /**
+     * Close a container inventory
+     *
+     * @param windowId which should be closed
+     */
     public void closeInventory( byte windowId ) {
         ContainerInventory containerInventory = this.windowIds.remove( windowId );
         if ( containerInventory != null ) {
             containerInventory.removeViewer( this );
-            this.containerIds.remove( containerInventory, windowId );
+            this.containerIds.justRemove( containerInventory );
         }
     }
 
+    /**
+     * Get a container by its id
+     *
+     * @param windowId which should be looked up
+     * @return container inventory or null when not found
+     */
     public ContainerInventory getContainerId( byte windowId ) {
         return this.windowIds.get( windowId );
     }
 
+    /**
+     * Xbox User ID
+     *
+     * @return xbox user id
+     */
     public String getXboxID() {
         return this.xboxId;
     }
@@ -631,6 +656,9 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
                 } else {
                     packetText.setSubtitle( "" );
                 }
+
+                break;
+            default:
                 break;
         }
 
@@ -639,7 +667,17 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
 
     @Override
     public boolean hasPermission( String permission ) {
-        return true;
+        return this.permissionManager.hasPermission( permission );
+    }
+
+    /**
+     * Send commands to the client
+     */
+    public void sendCommands() {
+        // Send commands
+        PacketAvailableCommands packetAvailableCommands = this.connection.getServer().
+            getPluginManager().getCommandManager().createPacket( this );
+        this.connection.send( packetAvailableCommands );
     }
 
 }

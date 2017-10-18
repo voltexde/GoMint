@@ -12,6 +12,7 @@ import io.gomint.GoMintInstanceHolder;
 import io.gomint.entity.Player;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.permission.GroupManager;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
@@ -25,6 +26,7 @@ import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
+import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.util.DumpUtil;
@@ -56,15 +58,14 @@ import java.util.function.Consumer;
  */
 public class GoMintServer implements GoMint, InventoryHolder {
 
-    private final Logger logger = LoggerFactory.getLogger( GoMintServer.class );
+    private static final Logger LOGGER = LoggerFactory.getLogger( GoMintServer.class );
+    private static Thread mainThread;
 
     // Configuration
-    @Getter
-    private ServerConfig serverConfig;
+    @Getter private ServerConfig serverConfig;
 
     // Networking
-    @Getter
-    private EncryptionKeyFactory encryptionKeyFactory;
+    @Getter private EncryptionKeyFactory encryptionKeyFactory;
     private NetworkManager networkManager;
 
     // World Management
@@ -73,19 +74,16 @@ public class GoMintServer implements GoMint, InventoryHolder {
     // Game Information
     private RecipeManager recipeManager;
     private CreativeInventory creativeInventory;
+    private PermissionGroupManager permissionGroupManager;
 
     // Plugin Management
-    @Getter
-    private SimplePluginManager pluginManager;
+    @Getter private SimplePluginManager pluginManager;
 
     // Task Scheduling
-    @Getter
-    private SyncTaskManager syncTaskManager;
+    @Getter private SyncTaskManager syncTaskManager;
     private AtomicBoolean running = new AtomicBoolean( true );
-    @Getter
-    private ExecutorService executorService;
-    @Getter
-    private ThreadFactory threadFactory;
+    @Getter private ExecutorService executorService;
+    @Getter private ThreadFactory threadFactory;
 
     /**
      * Starts the GoMint server
@@ -93,8 +91,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
      * @param args which should have been given over from the static Bootstrap
      */
     public GoMintServer( String[] args ) {
+        GoMintServer.mainThread = Thread.currentThread();
         GoMintInstanceHolder.setInstance( this );
-        logger.info( "Starting " + getVersion() );
+        LOGGER.info( "Starting " + getVersion() );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
         // ------------------------------------ //
@@ -120,7 +119,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         // Calculate the nanoseconds we need for the tick loop
         long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
-        logger.debug( "Setting skipNanos to: " + skipNanos );
+        LOGGER.debug( "Setting skipNanos to: " + skipNanos );
 
         // ------------------------------------ //
         // Start of encryption helpers
@@ -140,16 +139,16 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // Pre World Initialization
         // ------------------------------------ //
         // Load assets from file:
-        this.logger.info( "Loading assets library..." );
+        LOGGER.info( "Loading assets library..." );
         AssetsLibrary assetsLibrary = new AssetsLibrary();
         try {
             assetsLibrary.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
         } catch ( IOException e ) {
-            this.logger.error( "Failed to load assets library", e );
+            LOGGER.error( "Failed to load assets library", e );
             return;
         }
 
-        this.logger.info( "Initializing recipes..." );
+        LOGGER.info( "Initializing recipes..." );
         this.recipeManager = new RecipeManager( this );
 
         // Add all recipes from asset library:
@@ -158,6 +157,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         this.creativeInventory = new CreativeInventory( this );
+        this.permissionGroupManager = new PermissionGroupManager();
 
         // ------------------------------------ //
         // World Initialization
@@ -167,7 +167,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         try {
             this.worldManager.loadWorld( this.serverConfig.getWorld() );
         } catch ( Exception e ) {
-            this.logger.error( "Failed to load default world", e );
+            LOGGER.error( "Failed to load default world", e );
         }
         // CHECKSTYLE:ON
 
@@ -217,7 +217,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                     lastTickTime = (float) skipNanos / 1000000000.0F;
                 } else {
                     lastTickTime = (float) diff / 1000000000.0F;
-                    this.logger.warn( "Running behind: " + ( 1 / lastTickTime ) + " / " + ( 1 / ( skipNanos / 1000000000.0F ) ) + " tps" );
+                    LOGGER.warn( "Running behind: " + ( 1 / lastTickTime ) + " / " + ( 1 / ( skipNanos / 1000000000.0F ) ) + " tps" );
                 }
             } catch ( InterruptedException e ) {
                 // Ignored ._.
@@ -249,11 +249,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 File dumpDirectory = new File( this.serverConfig.getDumpDirectory() );
                 if ( !dumpDirectory.exists() ) {
                     if ( !dumpDirectory.mkdirs() ) {
-                        this.logger.error( "Failed to create dump directory; please double-check your filesystem permissions" );
+                        LOGGER.error( "Failed to create dump directory; please double-check your filesystem permissions" );
                         return false;
                     }
                 } else if ( !dumpDirectory.isDirectory() ) {
-                    this.logger.error( "Dump directory path does not point to a valid directory" );
+                    LOGGER.error( "Dump directory path does not point to a valid directory" );
                     return false;
                 }
 
@@ -261,7 +261,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 this.networkManager.setDumpDirectory( dumpDirectory );
             }
         } catch ( SocketException e ) {
-            this.logger.error( "Failed to initialize networking", e );
+            LOGGER.error( "Failed to initialize networking", e );
             return false;
         }
 
@@ -282,14 +282,14 @@ public class GoMintServer implements GoMint, InventoryHolder {
         try {
             this.serverConfig.initialize( new File( "server.cfg" ) );
         } catch ( IOException e ) {
-            logger.error( "server.cfg is corrupted: ", e );
+            LOGGER.error( "server.cfg is corrupted: ", e );
             System.exit( -1 );
         }
 
         try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
             this.serverConfig.write( fileWriter );
         } catch ( IOException e ) {
-            logger.warn( "Could not save server.cfg: ", e );
+            LOGGER.warn( "Could not save server.cfg: ", e );
         }
     }
 
@@ -313,7 +313,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             try {
                 return this.worldManager.loadWorld( name );
             } catch ( Exception e ) {
-                logger.warn( "Failed to load world: " + name, e );
+                LOGGER.warn( "Failed to load world: " + name, e );
                 return null;
             }
             // CHECKSTYLE:ON
@@ -361,6 +361,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         return playerList;
     }
 
+    @Override
+    public GroupManager getGroupManager() {
+        return this.permissionGroupManager;
+    }
+
     /**
      * Get the amount of players currently online
      *
@@ -378,6 +383,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     public CreativeInventory getCreativeInventory() {
         return this.creativeInventory;
+    }
+
+    public static boolean isMainThread() {
+        return GoMintServer.mainThread == Thread.currentThread();
     }
 
 }

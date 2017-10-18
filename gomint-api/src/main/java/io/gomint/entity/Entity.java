@@ -7,7 +7,6 @@
 
 package io.gomint.entity;
 
-import io.gomint.inventory.Inventory;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
@@ -41,7 +40,19 @@ public interface Entity {
      */
     Location getLocation();
 
+    /**
+     * Set a entities velocity
+     *
+     * @param velocity to set
+     */
     void setVelocity( Vector velocity );
+
+    /**
+     * Get current applied velocity
+     *
+     * @return applied velocity
+     */
+    Vector getVelocity();
 
     void setNameTagAlwaysVisible( boolean value );
 

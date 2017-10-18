@@ -24,10 +24,10 @@ public class ItemFrame extends Block {
     }
 
     @Override
-    public TileEntity createTileEntity() {
+    TileEntity createTileEntity( NBTTagCompound compound ) {
         BlockPosition position = this.location.toBlockPosition();
 
-        NBTTagCompound compound = new NBTTagCompound( "" );
+        compound = new NBTTagCompound( "" );
 
         // Add generic tile entity stuff
         compound.addValue( "x", position.getX() );

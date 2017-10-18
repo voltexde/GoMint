@@ -1,6 +1,3 @@
 language: java
 sudo: false
-branches:
-  except:
-    - legacy
-    - experimental
+script: mvn clean test -B

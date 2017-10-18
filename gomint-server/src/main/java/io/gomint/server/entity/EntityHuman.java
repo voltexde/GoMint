@@ -5,6 +5,7 @@ import io.gomint.server.world.WorldAdapter;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 public class EntityHuman extends EntityLiving {
 
@@ -25,7 +26,14 @@ public class EntityHuman extends EntityLiving {
         this.metadataContainer.putPosition( DATA_PLAYER_BED_POSITION, 0,0,0 );
     }
 
+    /**
+     * Set a player flag
+     *
+     * @param flag which should be set
+     * @param value to what it should be set, true or false
+     */
     public void setPlayerFlag( EntityFlag flag, boolean value ) {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_PLAYER_INDEX, flag, value );
     }
+
 }

@@ -1,9 +1,8 @@
 package io.gomint.server.world;
 
-import com.koloboke.collect.map.ShortObjMap;
-import com.koloboke.collect.map.hash.HashShortObjMaps;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.util.collection.ChunkSliceIndexMap;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.storage.TemporaryStorage;
 import lombok.Getter;
@@ -22,10 +21,8 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 class ChunkSlice {
 
-    @Getter
-    private final ChunkAdapter chunk;
-    @Getter
-    private final int sectionY;
+    @Getter private final ChunkAdapter chunk;
+    @Getter private final int sectionY;
 
     private boolean isAllAir = true;
 
@@ -34,13 +31,21 @@ class ChunkSlice {
     private NibbleArray blockLight = new NibbleArray( (short) 4096 );
     private NibbleArray skyLight = new NibbleArray( (short) 4096 );
 
-    private ShortObjMap<TileEntity> tileEntities = HashShortObjMaps.newMutableMap();
-    private ShortObjMap<TemporaryStorage> temporaryStorages = HashShortObjMaps.newMutableMap();
+    private ChunkSliceIndexMap<TileEntity> tileEntities = ChunkSliceIndexMap.withExpectedSize( 20 );
+    private ChunkSliceIndexMap<TemporaryStorage> temporaryStorages = ChunkSliceIndexMap.withExpectedSize( 20 );
 
     private short getIndex( int x, int y, int z ) {
         return (short) ( ( x << 8 ) + ( z << 4 ) + y );
     }
 
+    /**
+     * Get the ID of the specific block in question
+     *
+     * @param x coordinate in this slice (capped to 16)
+     * @param y coordinate in this slice (capped to 16)
+     * @param z coordinate in this slice (capped to 16)
+     * @return id of the block
+     */
     byte getBlock( int x, int y, int z ) {
         if ( this.isAllAir ) {
             return 0;
@@ -61,13 +66,13 @@ class ChunkSlice {
         }
 
         return (T) Blocks.get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
-                this.blockLight.get( index ), this.tileEntities.get( (short) index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
+                this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
     }
 
     Collection<TileEntity> getTileEntities() {
         List<TileEntity> tileEntities = new ArrayList<>();
 
-        this.tileEntities.values().cursor().forEachForward( new Consumer<TileEntity>() {
+        this.tileEntities.values().forEach( new Consumer<TileEntity>() {
             @Override
             public void accept( TileEntity tileEntity ) {
                 tileEntities.add( tileEntity );
@@ -79,7 +84,7 @@ class ChunkSlice {
 
     void addTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         int index = getIndex( x, y, z );
-        this.tileEntities.put( (short) index, tileEntity );
+        this.tileEntities.justPut( (short) index, tileEntity );
     }
 
     void setBlock( int x, int y, int z, byte blockId ) {
@@ -140,10 +145,15 @@ class ChunkSlice {
         TemporaryStorage storage = this.temporaryStorages.get( index );
         if ( storage == null ) {
             storage = new TemporaryStorage();
-            this.temporaryStorages.put( index, storage );
+            this.temporaryStorages.justPut( index, storage );
         }
 
         return storage;
+    }
+
+    public void resetTemporaryStorage( int x, int y, int z ) {
+        short index = getIndex( x, y, z );
+        this.temporaryStorages.justRemove( index );
     }
 
 }

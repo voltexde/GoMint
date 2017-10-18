@@ -15,6 +15,7 @@ import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityMetadata;
+import io.gomint.server.network.packet.PacketEntityMotion;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 /**
  * Base class for all entities. Defines accessors to attributes and components that are
@@ -42,7 +44,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     private static final Logger LOGGER = LoggerFactory.getLogger( Entity.class );
 
     // Useful stuff for movement. Those are values for per client tick
-    protected static final float GRAVITY = 0.04f;
+    protected static final float GRAVITY = 0.08f;
     protected static final float DRAG = 0.02f;
 
     private static final AtomicLong ENTITY_ID = new AtomicLong( 0 );
@@ -75,9 +77,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * How high can this entity "climb" in one movement?
      */
     protected float stepHeight = 0;
-
     protected boolean onGround;
-    private float yOffset; // This offset is needed for jumping blocks up
 
     /**
      * Collision states
@@ -180,16 +180,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
     public void update( long currentTimeMS, float dT ) {
         this.transform.update( currentTimeMS, dT );
 
-        // Check if we need to calc motion
         this.lastUpdateDt += dT;
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
-            // Calc motion
-            this.transform.manipulateMotion( 0, -Entity.GRAVITY, 0 );
-
-            // Check if we are stuck in a block
-            this.checkInsideBlock();
-
-            // Move by motion amount
+            // Check if we need to calc motion
             float movX = this.transform.getMotionX();
             float movY = this.transform.getMotionY();
             float movZ = this.transform.getMotionZ();
@@ -199,9 +192,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 return;
             }
 
-            float dX = this.transform.getMotionX();
-            float dY = this.transform.getMotionY();
-            float dZ = this.transform.getMotionZ();
+            float dX = movX;
+            float dY = movY;
+            float dZ = movZ;
 
             AxisAlignedBB oldBoundingBox = this.boundingBox.clone();
 
@@ -234,7 +227,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
             // Check if we can jump
             boolean notFallingFlag = ( this.onGround || ( dY != movY && movY < 0 ) );
-            if ( this.stepHeight > 0 && notFallingFlag && this.yOffset < 0.05 && ( movX != dX || movZ != dZ ) ) {
+            if ( this.stepHeight > 0 && notFallingFlag && ( movX != dX || movZ != dZ ) ) {
                 float oldDX = dX;
                 float oldDY = dY;
                 float oldDZ = dZ;
@@ -279,24 +272,42 @@ public abstract class Entity implements io.gomint.entity.Entity {
                     dY = oldDY;
                     dZ = oldDZ;
                     this.boundingBox.setBounds( oldBoundingBox1 );
-                } else {
-                    // Move the bounding box up by .5
-                    this.yOffset += 0.5;
                 }
             }
 
             // Move by new bounding box
             if ( dX != 0.0 || dY != 0.0 || dZ != 0.0 ) {
                 this.transform.setPosition(
-                        ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
-                        this.boundingBox.getMinY() + this.yOffset,
-                        ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
+                    ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
+                    this.boundingBox.getMinY(),
+                    ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
                 );
             }
 
             // Check for grounding states
             this.checkIfCollided( movX, movY, movZ, dX, dY, dZ );
             this.updateFallState( dY );
+
+            // Calc motion
+            this.transform.manipulateMotion( 0, -Entity.GRAVITY, 0 );
+
+            // Check if we are stuck in a block
+            this.checkInsideBlock();
+
+            // Calculate friction
+            float friction = 1 - DRAG;
+            if ( this.onGround && ( Math.abs( this.getMotionX() ) > 0.00001 || Math.abs( this.getMotionZ() ) > 0.00001 ) ) {
+                friction = this.world.getBlockAt( (int) this.getPositionX(),
+                    (int) ( this.getPositionY() - 1 ),
+                    (int) this.getPositionZ() ).getFrictionFactor() * 0.91f;
+            }
+
+            // Calculate new motion
+            float newMovX = this.transform.getMotionX() * friction;
+            float newMovY = this.transform.getMotionY() * ( 1 - DRAG );
+            float newMovZ = this.transform.getMotionZ() * friction;
+
+            this.transform.setMotion( newMovX, newMovY, newMovZ );
 
             // We did not move so we collided, set motion to 0 to escape hell
             if ( movX != dX ) {
@@ -311,19 +322,18 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 this.transform.setMotionZ( 0 );
             }
 
-            // Reset last update
             this.lastUpdateDt = 0;
         }
 
         // Check if we need to update the bounding box
         if ( this.transform.isDirty() ) {
             this.boundingBox.setBounds(
-                    this.getPositionX() - ( this.width / 2 ),
-                    this.getPositionY(),
-                    this.getPositionZ() - ( this.width / 2 ),
-                    this.getPositionX() + ( this.width / 2 ),
-                    this.getPositionY() + this.height,
-                    this.getPositionZ() + ( this.width / 2 )
+                this.getPositionX() - ( this.width / 2 ),
+                this.getPositionY(),
+                this.getPositionZ() - ( this.width / 2 ),
+                this.getPositionX() + ( this.width / 2 ),
+                this.getPositionY() + this.height,
+                this.getPositionZ() + ( this.width / 2 )
             );
 
             this.transform.move( 0, 0, 0 );
@@ -365,7 +375,44 @@ public abstract class Entity implements io.gomint.entity.Entity {
         // Are we stuck inside a block?
         Block block;
         if ( ( block = this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ ) ).isSolid() &&
-                block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
+            block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
+            // We need to check for "smooth" movement when its a player (it climbs .5 steps in .3 -> .420 -> .468 .487 .495 .498 .499 steps
+            if ( this instanceof EntityPlayer ) {
+                double diffY = block.getBoundingBox().getMaxY() - block.getBoundingBox().getMinY();
+                if ( diffY < 1.0 ) {
+                    double playerDiff = this.getPositionY() - this.getLocation().toBlockPosition().getY();
+                    if ( playerDiff > 0.5 ) {
+                        playerDiff -= 0.5;
+                    }
+
+                    if ( Numbers.roughlyEquals( playerDiff, 0.3f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.420f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.468f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.487f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.494f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.4991f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.4996f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.4998f, 0.002 ) ) {
+                        return;
+                    } else {
+                        LOGGER.debug( "Player diff: " + playerDiff );
+                    }
+                } else {
+                    double playerDiff = this.getPositionY() - this.getLocation().toBlockPosition().getY();
+                    if ( Numbers.roughlyEquals( playerDiff, 0.800f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.920f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.968f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.987f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.995f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.998f, 0.002 ) ||
+                        Numbers.roughlyEquals( playerDiff, 0.999f, 0.002 ) ) {
+                        return;
+                    } else {
+                        LOGGER.debug( "Player diff: " + playerDiff );
+                    }
+                }
+            }
+
             LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "(" + getEntityId() + ") @" + getLocation().toVector() + " is stuck in a block " + block.getClass().getSimpleName() + "@" + block.getLocation().toVector() + " -> " + block.getBoundingBox() );
 
             // Calc with how much force we can get out of here, this depends on how far we are in
@@ -424,34 +471,28 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
 
             // Push to the side we selected
-            if ( direction == 0 ) {
-                this.transform.manipulateMotion( (float) -force, 0, 0 );
-                return;
+            switch ( direction ) {
+                case 0:
+                    this.transform.setMotion( (float) -force, 0, 0 );
+                    break;
+                case 1:
+                    this.transform.setMotion( (float) force, 0, 0 );
+                    break;
+                case 2:
+                    this.transform.setMotion( 0, (float) -force, 0 );
+                    break;
+                case 3:
+                    this.transform.setMotion( 0, (float) force, 0 );
+                    break;
+                case 4:
+                    this.transform.setMotion( 0, 0, (float) -force );
+                    break;
+                case 5:
+                    this.transform.setMotion( 0, 0, (float) force );
+                    break;
             }
 
-            if ( direction == 1 ) {
-                this.transform.manipulateMotion( (float) force, 0, 0 );
-                return;
-            }
-
-            if ( direction == 2 ) {
-                this.transform.manipulateMotion( 0, (float) -force, 0 );
-                return;
-            }
-
-            if ( direction == 3 ) {
-                this.transform.manipulateMotion( 0, (float) force, 0 );
-                return;
-            }
-
-            if ( direction == 4 ) {
-                this.transform.manipulateMotion( 0, 0, (float) -force );
-                return;
-            }
-
-            if ( direction == 5 ) {
-                this.transform.manipulateMotion( 0, 0, (float) force );
-            }
+            this.broadCastMotion();
         }
     }
 
@@ -474,6 +515,21 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Override
     public void setVelocity( Vector velocity ) {
         this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
+        this.broadCastMotion();
+    }
+
+    private void broadCastMotion() {
+        PacketEntityMotion motion = new PacketEntityMotion();
+        motion.setEntityId( this.getEntityId() );
+        motion.setVelocity( this.transform.getMotion() );
+
+        LOGGER.debug( "Sending velocity: " + motion );
+        this.world.sendToVisible( this.transform.getPosition().toBlockPosition(), motion, new Predicate<io.gomint.entity.Entity>() {
+            @Override
+            public boolean test( io.gomint.entity.Entity entity ) {
+                return true;
+            }
+        } );
     }
 
     /**
@@ -620,7 +676,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     public Vector2 getDirectionPlane() {
         return ( new Vector2( (float) -Math.cos( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ),
-                (float) -Math.sin( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ) ) ).normalize();
+            (float) -Math.sin( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ) ) ).normalize();
     }
 
     /**

@@ -1,5 +1,6 @@
 package io.gomint.plugin;
 
+import io.gomint.plugin.command.CommandVelocity;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerMoveListener;
 
@@ -18,8 +19,12 @@ public class TestPlugin extends Plugin {
 
     @Override
     public void onInstall() {
+        // Register listener
         registerListener( new PlayerMoveListener() );
         registerListener( new PlayerJoinListener() );
+
+        // Register commands
+        registerCommand( new CommandVelocity() );
     }
 
     @Override

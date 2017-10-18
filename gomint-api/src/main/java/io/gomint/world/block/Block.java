@@ -72,6 +72,7 @@ public interface Block {
      * @param <T>       block generic type
      * @param blockType the new material of this block
      * @param data      optional data for the block
+     * @return the new placed block
      */
     <T extends Block> T setType( Class<T> blockType, byte data );
 

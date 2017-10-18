@@ -63,7 +63,7 @@ public class PacketAvailableCommands extends Packet {
             buffer.writeByte( data.getPermission() );
 
             // Alias enum index
-            buffer.writeLInt( data.getAliasIndex() );
+            buffer.writeLInt( -1 );     // TODO: Aliases are broken in 1.2, we fix this by taking each alias as seperate command
 
             // Write parameters and overload
             buffer.writeUnsignedVarInt( data.getParameters().size() );

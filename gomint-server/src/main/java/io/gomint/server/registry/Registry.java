@@ -1,10 +1,8 @@
 package io.gomint.server.registry;
 
 import com.google.common.reflect.ClassPath;
-import com.koloboke.collect.map.IntObjMap;
-import com.koloboke.collect.map.ObjIntMap;
-import com.koloboke.collect.map.hash.HashIntObjMaps;
-import com.koloboke.collect.map.hash.HashObjIntMaps;
+import io.gomint.server.util.collection.GeneratorAPIClassMap;
+import io.gomint.server.util.collection.GeneratorMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +18,8 @@ public class Registry<R> {
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
     private final GeneratorCallback<R> generatorCallback;
-    private final IntObjMap<R> generators = HashIntObjMaps.newMutableMap();
-    private final ObjIntMap<Class<?>> apiReferences = HashObjIntMaps.newMutableMap();
+    private final GeneratorMap<R> generators = GeneratorMap.withExpectedSize( 250 );
+    private final GeneratorAPIClassMap<Class<?>> apiReferences = GeneratorAPIClassMap.withExpectedSize( 250 );
 
     /**
      * Build a new generator registry
@@ -38,10 +36,12 @@ public class Registry<R> {
      * @param classPath which should be searched
      */
     public void register( String classPath ) {
+        LOGGER.debug( "Going to scan: " + classPath );
+
         // Search io.gomint.server.inventory.item
         try {
             for ( ClassPath.ClassInfo classInfo : ClassPath.from( ClassLoader.getSystemClassLoader() )
-                    .getTopLevelClasses( classPath) ) {
+                .getTopLevelClasses( classPath ) ) {
                 register( classInfo.load() );
             }
         } catch ( IOException e ) {
@@ -52,6 +52,7 @@ public class Registry<R> {
     public void register( Class<?> clazz ) {
         // We need register info
         if ( !clazz.isAnnotationPresent( RegisterInfo.class ) ) {
+            LOGGER.debug( "No register info annotation present" );
             return;
         }
 

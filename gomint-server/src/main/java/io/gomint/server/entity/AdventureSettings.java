@@ -2,7 +2,6 @@ package io.gomint.server.entity;
 
 import io.gomint.server.network.packet.PacketAdventureSettings;
 import io.gomint.server.player.PlayerPermission;
-import io.gomint.server.util.EnumConnectors;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +70,12 @@ public class AdventureSettings {
         this.player = entityPlayer;
     }
 
+    /**
+     * Adventure setting build up from a Packet
+     *
+     * @param flags  from the packet
+     * @param flags2 from the packet
+     */
     public AdventureSettings( int flags, int flags2 ) {
         // Flag 1
         this.worldImmutable = ( flags & WORLD_IMMUTABLE ) != 0;

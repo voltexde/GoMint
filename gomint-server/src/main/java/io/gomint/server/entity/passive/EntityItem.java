@@ -2,6 +2,7 @@ package io.gomint.server.entity.passive;
 
 import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityType;
 import io.gomint.server.network.packet.Packet;
@@ -23,6 +24,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
     private final ItemStack itemStack;
     @Getter
     private long pickupTime;
+    private boolean isReset;
 
     private float lastUpdateDt;
 
@@ -41,7 +43,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
 
     @Override
     public <T extends ItemStack> T getItemStack() {
-        return (T) (( io.gomint.server.inventory.item.ItemStack) this.itemStack).clone();
+        return (T) ( (io.gomint.server.inventory.item.ItemStack) this.itemStack ).clone();
     }
 
     @Override
@@ -54,27 +56,13 @@ public class EntityItem extends Entity implements EntityItemDrop {
         // Entity base tick (movement)
         super.update( currentTimeMS, dT );
 
-        // Check if we need to calc friction
         this.lastUpdateDt += dT;
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
-            // Calculate friction
-            float friction = 1 - DRAG;
-            if ( this.onGround && ( Math.abs( this.getMotionX() ) > 0.00001 || Math.abs( this.getMotionZ() ) > 0.00001 ) ) {
-                friction = this.world.getBlockAt( (int) this.getPositionX(),
-                        (int) ( this.getPositionY() - 1 ),
-                        (int) this.getPositionZ() ).getFrictionFactor() * friction;
+            if ( this.onGround && !this.isReset ) {
+                this.setVelocity( new Vector( 0, 0, 0 ) ); // Reset velocity
+                this.isReset = true;
             }
 
-            // Calculate new motion
-            float newMotX = this.getTransform().getMotionX() * friction;
-            float newMotY = this.getTransform().getMotionY() * 1 - DRAG;
-            float newMotZ = this.getTransform().getMotionZ() * friction;
-
-            if ( this.onGround ) {
-                newMotY *= -0.5f;
-            }
-
-            this.getTransform().setMotion( newMotX, newMotY, newMotZ );
             this.lastUpdateDt = 0;
         }
     }
