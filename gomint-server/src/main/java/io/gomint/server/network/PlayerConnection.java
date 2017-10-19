@@ -23,6 +23,7 @@ import io.gomint.server.network.packet.*;
 import io.gomint.server.player.DeviceInfo;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
+import io.gomint.server.util.StringUtil;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.ChunkHashSet;
 import io.gomint.server.world.ChunkAdapter;
@@ -50,29 +51,29 @@ import static io.gomint.server.network.Protocol.*;
 public class PlayerConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PlayerConnection.class );
-    private static final Map<Class<? extends Packet>, PacketHandler> PACKET_HANDLERS = new HashMap<>();
+    private static final PacketHandler[] PACKET_HANDLERS = new PacketHandler[256];
 
     static {
         // Register all packet handlers we need
-        PACKET_HANDLERS.put( PacketMovePlayer.class, new PacketMovePlayerHandler() );
-        PACKET_HANDLERS.put( PacketSetChunkRadius.class, new PacketSetChunkRadiusHandler() );
-        PACKET_HANDLERS.put( PacketPlayerAction.class, new PacketPlayerActionHandler() );
-        PACKET_HANDLERS.put( PacketMobArmorEquipment.class, new PacketMobArmorEquipmentHandler() );
-        PACKET_HANDLERS.put( PacketAdventureSettings.class, new PacketAdventureSettingsHandler() );
-        PACKET_HANDLERS.put( PacketResourcePackResponse.class, new PacketResourcePackResponseHandler() );
-        PACKET_HANDLERS.put( PacketCraftingEvent.class, new PacketCraftingEventHandler() );
-        PACKET_HANDLERS.put( PacketLogin.class, new PacketLoginHandler() );
-        PACKET_HANDLERS.put( PacketMobEquipment.class, new PacketMobEquipmentHandler() );
-        PACKET_HANDLERS.put( PacketInteract.class, new PacketInteractHandler() );
-        PACKET_HANDLERS.put( PacketEncryptionResponse.class, new PacketEncryptionResponseHandler() );
-        PACKET_HANDLERS.put( PacketInventoryTransaction.class, new PacketInventoryTransactionHandler() );
-        PACKET_HANDLERS.put( PacketContainerOpen.class, new PacketContainerOpenHandler() );
-        PACKET_HANDLERS.put( PacketContainerClose.class, new PacketContainerCloseHandler() );
-        PACKET_HANDLERS.put( PacketHotbar.class, new PacketHotbarHandler() );
-        PACKET_HANDLERS.put( PacketText.class, new PacketTextHandler() );
-        PACKET_HANDLERS.put( PacketCommandRequest.class, new PacketCommandRequestHandler() );
-        PACKET_HANDLERS.put( PacketWorldSoundEvent.class, new PacketWorldSoundEventHandler() );
-        PACKET_HANDLERS.put( PacketAnimate.class, new PacketAnimateHandler() );
+        PACKET_HANDLERS[Protocol.PACKET_MOVE_PLAYER & 0xff] = new PacketMovePlayerHandler();
+        PACKET_HANDLERS[Protocol.PACKET_SET_CHUNK_RADIUS & 0xff] = new PacketSetChunkRadiusHandler();
+        PACKET_HANDLERS[Protocol.PACKET_PLAYER_ACTION & 0xff] = new PacketPlayerActionHandler();
+        PACKET_HANDLERS[Protocol.PACKET_MOB_ARMOR_EQUIPMENT & 0xff] = new PacketMobArmorEquipmentHandler();
+        PACKET_HANDLERS[Protocol.PACKET_ADVENTURE_SETTINGS & 0xff] = new PacketAdventureSettingsHandler();
+        PACKET_HANDLERS[Protocol.PACKET_RESOURCEPACK_RESPONSE & 0xff] = new PacketResourcePackResponseHandler();
+        PACKET_HANDLERS[Protocol.PACKET_CRAFTING_EVENT & 0xff] = new PacketCraftingEventHandler();
+        PACKET_HANDLERS[Protocol.PACKET_LOGIN & 0xff] = new PacketLoginHandler();
+        PACKET_HANDLERS[Protocol.PACKET_MOB_EQUIPMENT & 0xff] = new PacketMobEquipmentHandler();
+        PACKET_HANDLERS[Protocol.PACKET_INTERACT & 0xff] = new PacketInteractHandler();
+        PACKET_HANDLERS[Protocol.PACKET_ENCRYPTION_RESPONSE & 0xff] = new PacketEncryptionResponseHandler();
+        PACKET_HANDLERS[Protocol.PACKET_INVENTORY_TRANSACTION & 0xff] = new PacketInventoryTransactionHandler();
+        PACKET_HANDLERS[Protocol.PACKET_CONTAINER_OPEN & 0xff] = new PacketContainerOpenHandler();
+        PACKET_HANDLERS[Protocol.PACKET_CONTAINER_CLOSE & 0xff] = new PacketContainerCloseHandler();
+        PACKET_HANDLERS[Protocol.PACKET_HOTBAR & 0xff] = new PacketHotbarHandler();
+        PACKET_HANDLERS[Protocol.PACKET_TEXT & 0xff] = new PacketTextHandler();
+        PACKET_HANDLERS[Protocol.PACKET_COMMAND_REQUEST & 0xff] = new PacketCommandRequestHandler();
+        PACKET_HANDLERS[Protocol.PACKET_WORLD_SOUND_EVENT & 0xff] = new PacketWorldSoundEventHandler();
+        PACKET_HANDLERS[Protocol.PACKET_ANIMATE & 0xff] = new PacketAnimateHandler();
     }
 
     // Network manager that created this connection:
@@ -255,7 +256,7 @@ public class PlayerConnection {
      * @param chunkHash The hash of the chunk to keep track of what the player has loaded
      * @param chunkData The chunk data packet to send to the player
      */
-    public void sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
+    private void sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
         this.send( chunkData );
 
         synchronized ( this.playerChunks ) {
@@ -421,7 +422,8 @@ public class PlayerConnection {
             this.handleSocketData( currentTimeMillis, pktBuf, true );
 
             if ( pktBuf.getRemaining() > 0 ) {
-                LOGGER.error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x" + Integer.toHexString( payData[0] ) + " reamining " + pktBuf.getRemaining() + " bytes" );
+                LOGGER.error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x" +
+                    Integer.toHexString( payData[0] ) + " reamining " + pktBuf.getRemaining() + " bytes" );
                 return;
             }
         }
@@ -433,10 +435,10 @@ public class PlayerConnection {
      * @param currentTimeMillis The time this packet arrived at the network manager
      * @param packet            The packet to handle
      */
+    @SuppressWarnings("unchecked")  // Needed for generic types not matching
     private void handlePacket( long currentTimeMillis, Packet packet ) {
-        PacketHandler handler = PACKET_HANDLERS.get( packet.getClass() );
+        PacketHandler handler = PACKET_HANDLERS[packet.getId() & 0xff];
         if ( handler != null ) {
-            LOGGER.debug( "Handling packet: " + packet );
             handler.handle( packet, currentTimeMillis, this );
             return;
         }
@@ -531,25 +533,19 @@ public class PlayerConnection {
         }
     }
 
+    /**
+     * Send resource packs
+     */
     public void sendResourcePacks() {
         // We have the chance of forcing resource and behaviour packs here
         PacketResourcePacksInfo packetResourcePacksInfo = new PacketResourcePacksInfo();
         this.send( packetResourcePacksInfo );
     }
 
-    public void sendCommandsEnabled() {
-        /*PacketSetCommandsEnabled packetSetCommandsEnabled = new PacketSetCommandsEnabled();
-        packetSetCommandsEnabled.setEnabled( false );   // TODO: Change after command system is there
-        this.send( packetSetCommandsEnabled );*/
-    }
-
-    public void sendDifficulty() {
-        PacketSetDifficulty packetSetDifficulty = new PacketSetDifficulty();
-        packetSetDifficulty.setDifficulty( 1 );
-        this.send( packetSetDifficulty );
-    }
-
-    public void sendChunkRadiusUpdate() {
+    /**
+     * Send chunk radius
+     */
+    private void sendChunkRadiusUpdate() {
         PacketConfirmChunkRadius packetConfirmChunkRadius = new PacketConfirmChunkRadius();
         packetConfirmChunkRadius.setChunkRadius( this.entity.getViewDistance() );
         this.send( packetConfirmChunkRadius );
@@ -646,7 +642,7 @@ public class PlayerConnection {
         packet.setSeed( 12345 );
         packet.setGenerator( 1 );
         packet.setDifficulty( 1 );
-        packet.setLevelId( Base64.getEncoder().encodeToString( world.getWorldName().getBytes() ) );
+        packet.setLevelId( Base64.getEncoder().encodeToString( StringUtil.getUTF8Bytes( world.getWorldName() ) ) );
         packet.setWorldName( world.getWorldName() );
         packet.setTemplateName( "" );
         packet.setGamerules( world.getGamerules() );

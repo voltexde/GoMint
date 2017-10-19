@@ -44,8 +44,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
     private static final Logger LOGGER = LoggerFactory.getLogger( Entity.class );
 
     // Useful stuff for movement. Those are values for per client tick
-    protected static final float GRAVITY = 0.08f;
-    protected static final float DRAG = 0.02f;
+    private static final float GRAVITY = 0.08f;
+    private static final float DRAG = 0.02f;
 
     private static final AtomicLong ENTITY_ID = new AtomicLong( 0 );
 
@@ -68,10 +68,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Bounding Box
      */
     protected AxisAlignedBB boundingBox;
-    @Getter
-    private float width;
-    @Getter
-    private float height;
+    @Getter private float width;
+    @Getter private float height;
 
     /**
      * How high can this entity "climb" in one movement?
@@ -94,21 +92,20 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Since MC:PE movements are eye instead of foot based we need to offset by this amount
      */
-    @Getter
-    protected float eyeHeight;
+    @Getter protected float eyeHeight;
 
     /**
      * Dead status
      */
-    @Getter
-    private boolean dead;
+    @Getter private boolean dead;
 
-    @Setter
-    protected WorldAdapter world;
+    @Setter protected WorldAdapter world;
     private TransformComponent transform;
     private float lastUpdateDt;
-    @Getter
-    private List<EntityLink> links;
+    @Getter private List<EntityLink> links;
+
+    // Some tracker for "smooth" movement
+    private int stuckInBlockTicks = 0;
 
     /**
      * Construct a new Entity
@@ -378,42 +375,12 @@ public abstract class Entity implements io.gomint.entity.Entity {
             block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
             // We need to check for "smooth" movement when its a player (it climbs .5 steps in .3 -> .420 -> .468 .487 .495 .498 .499 steps
             if ( this instanceof EntityPlayer ) {
-                double diffY = block.getBoundingBox().getMaxY() - block.getBoundingBox().getMinY();
-                if ( diffY < 1.0 ) {
-                    double playerDiff = this.getPositionY() - this.getLocation().toBlockPosition().getY();
-                    if ( playerDiff > 0.5 ) {
-                        playerDiff -= 0.5;
-                    }
-
-                    if ( Numbers.roughlyEquals( playerDiff, 0.3f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.420f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.468f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.487f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.494f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.4991f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.4996f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.4998f, 0.002 ) ) {
-                        return;
-                    } else {
-                        LOGGER.debug( "Player diff: " + playerDiff );
-                    }
-                } else {
-                    double playerDiff = this.getPositionY() - this.getLocation().toBlockPosition().getY();
-                    if ( Numbers.roughlyEquals( playerDiff, 0.800f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.920f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.968f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.987f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.995f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.998f, 0.002 ) ||
-                        Numbers.roughlyEquals( playerDiff, 0.999f, 0.002 ) ) {
-                        return;
-                    } else {
-                        LOGGER.debug( "Player diff: " + playerDiff );
-                    }
+                if ( this.stuckInBlockTicks++ <= 20 )  { // Yes we can "smooth" for up to 20 ticks, thanks mojang :D
+                    return;
                 }
             }
 
-            LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "(" + getEntityId() + ") @" + getLocation().toVector() + " is stuck in a block " + block.getClass().getSimpleName() + "@" + block.getLocation().toVector() + " -> " + block.getBoundingBox() );
+            LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "(" + getEntityId() + ") [" + this.stuckInBlockTicks + "] @" + getLocation().toVector() + " is stuck in a block " + block.getClass().getSimpleName() + "@" + block.getLocation().toVector() + " -> " + block.getBoundingBox() );
 
             // Calc with how much force we can get out of here, this depends on how far we are in
             float diffX = this.transform.getPositionX() - fullBlockX;
@@ -493,6 +460,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
 
             this.broadCastMotion();
+        } else {
+            this.stuckInBlockTicks = 0;
         }
     }
 

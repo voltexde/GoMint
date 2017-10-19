@@ -60,11 +60,17 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private String username;
     private UUID uuid;
     private String xboxId;
-    @Setter private PlayerSkin skin;
+    @Setter
+    private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter private AdventureSettings adventureSettings;
-    @Getter @Setter private Entity hoverEntity;
-    @Getter @Setter private boolean sneaking;
+    @Getter
+    private AdventureSettings adventureSettings;
+    @Getter
+    @Setter
+    private Entity hoverEntity;
+    @Getter
+    @Setter
+    private boolean sneaking;
     private final PermissionManager permissionManager = new PermissionManager( this );
 
     // Hidden players
@@ -81,9 +87,15 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter @Getter private BlockPosition breakVector;
-    @Setter @Getter private long startBreak;
-    @Setter @Getter private long breakTime;
+    @Setter
+    @Getter
+    private BlockPosition breakVector;
+    @Setter
+    @Getter
+    private long startBreak;
+    @Setter
+    @Getter
+    private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -235,16 +247,25 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     @Override
     public void hidePlayer( Player player ) {
         EntityPlayer other = (EntityPlayer) player;
-        if ( other.getWorld().equals( this.getWorld() ) ) {
-            if ( this.hiddenPlayers == null ) {
-                this.hiddenPlayers = HiddenPlayerSet.withExpectedSize( 5 );
-            }
 
-            this.hiddenPlayers.add( other.getEntityId() );
-
-            // Remove player from tablist and from ingame
-
+        if ( this.hiddenPlayers == null ) {
+            this.hiddenPlayers = HiddenPlayerSet.withExpectedSize( 5 );
         }
+
+        this.hiddenPlayers.add( other.getEntityId() );
+
+        // Remove the entity clientside
+        PacketDespawnEntity packetDespawnEntity = new PacketDespawnEntity();
+        packetDespawnEntity.setEntityId( other.getEntityId() );
+        getConnection().addToSendQueue( packetDespawnEntity );
+
+        // Remove from player list
+        PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+        packetPlayerlist.setMode( (byte) 1 );
+        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+            add( new PacketPlayerlist.Entry( other.getUUID(), other.getEntityId(), null, null, null ) );
+        }} );
+        getConnection().addToSendQueue( packetPlayerlist );
     }
 
     @Override
@@ -254,7 +275,16 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         }
 
         if ( this.hiddenPlayers.removeLong( player.getEntityId() ) ) {
+            EntityPlayer other = (EntityPlayer) player;
+
             // Send tablist and spawn packet
+            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+            packetPlayerlist.setMode( (byte) 0 );
+            packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+                add( new PacketPlayerlist.Entry( other.getUUID(), other.getEntityId(), other.getName(), other.getXboxID(), other.getSkin() ) );
+            }} );
+            getConnection().addToSendQueue( packetPlayerlist );
+            getConnection().addToSendQueue( other.createSpawnPacket() );
         }
     }
 
@@ -566,7 +596,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         // Remove from player list
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 1 );
-        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
             add( new PacketPlayerlist.Entry( uuid, getEntityId(), null, null, null ) );
         }} );
 

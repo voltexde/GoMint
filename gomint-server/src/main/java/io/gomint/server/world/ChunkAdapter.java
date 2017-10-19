@@ -66,7 +66,8 @@ public class ChunkAdapter implements Chunk {
     protected byte[] biomes = new byte[16 * 16];
 
     // Blocks
-    @Getter protected ChunkSlice[] chunkSlices = new ChunkSlice[16];
+    @Getter
+    protected ChunkSlice[] chunkSlices = new ChunkSlice[16];
     private byte[] height = new byte[16 * 16 * 2];
 
     // Players / Chunk GC
@@ -93,43 +94,57 @@ public class ChunkAdapter implements Chunk {
     public void update( long currentTimeMS, float dT ) {
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
-            for ( ChunkSlice chunkSlice : this.getChunkSlices() ) {
-                if ( chunkSlice != null ) {
-                    randomUpdateNumber = randomUpdateNumber * 3 + 1013904223;
-                    int blockHash = randomUpdateNumber >> 2;
+            for ( ChunkSlice chunkSlice : this.chunkSlices ) {
+                // When we hit a nulled slice there is only air left
+                if ( chunkSlice == null ) {
+                    break;
+                }
 
-                    for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
-                        int blockX = blockHash & 0x0f;
-                        int blockY = ( blockHash >> 8 ) & 0x0f;
-                        int blockZ = ( blockHash >> 16 ) & 0x0f;
+                // Skip for only air chunk slices
+                if ( chunkSlice.isAllAir() ) {
+                    continue;
+                }
 
-                        byte blockId = chunkSlice.getBlock( blockX, blockY, blockZ );
-                        switch ( blockId ) {
-                            case (byte) 244:    // Beetroot
-                            case 2:             // Grass
-                            case 60:            // Farmland
-                            case 110:           // Mycelium
-                            case 6:             // Sapling
-                            case 16:            // Leaves
-                            case (byte) 161:    // Acacia leaves
-                            case 78:            // Top snow
-                            case 79:            // Ice
-                            case 11:            // Stationary lava
-                            case 10:            // FlowingLava
-                            case 9:             // Stationary water
-                            case 8:             // FlowingWater
-                                Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
-                                if ( block instanceof io.gomint.server.world.block.Block ) {
-                                    long next = ( (io.gomint.server.world.block.Block) block ).update( UpdateReason.RANDOM, currentTimeMS, dT );
-                                    if ( next > currentTimeMS ) {
-                                        Location location = block.getLocation();
-                                        world.tickQueue.add( next, CoordinateUtils.toLong( (int) location.getX(), (int) location.getY(), (int) location.getZ() ) );
-                                    }
+                this.randomUpdateNumber = ( ( this.randomUpdateNumber << 2 ) - this.randomUpdateNumber ) + 1013904223;
+                int blockHash = this.randomUpdateNumber >> 2;
+                for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
+                    short index = (short) ( blockHash & 0xfff );
+                    byte blockId = chunkSlice.getBlockInternal( index );
+                    switch ( blockId ) {
+                        case (byte) 244:    // Beetroot
+                        case 2:             // Grass
+                        case 60:            // Farmland
+                        case 110:           // Mycelium
+                        case 6:             // Sapling
+                        case 16:            // Leaves
+                        case (byte) 161:    // Acacia leaves
+                        case 78:            // Top snow
+                        case 79:            // Ice
+                        case 11:            // Stationary lava
+                        case 10:            // FlowingLava
+                        case 9:             // Stationary water
+                        case 8:             // FlowingWater
+                            int blockX = ( blockHash >> 8 ) & 0x0f;
+                            int blockY = ( blockHash ) & 0x0f;
+                            int blockZ = ( blockHash >> 4 ) & 0x0f;
+
+                            Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
+                            if ( block instanceof io.gomint.server.world.block.Block ) {
+                                long next = ( (io.gomint.server.world.block.Block) block )
+                                    .update( UpdateReason.RANDOM, currentTimeMS, dT );
+
+                                if ( next > currentTimeMS ) {
+                                    Location location = block.getLocation();
+                                    this.world.tickQueue.add( next,
+                                        CoordinateUtils.toLong( (int) location.getX(),
+                                            (int) location.getY(),
+                                            (int) location.getZ() )
+                                    );
                                 }
+                            }
 
-                            default:
-                                break;
-                        }
+                        default:
+                            break;
                     }
                 }
             }
@@ -253,8 +268,8 @@ public class ChunkAdapter implements Chunk {
         int waitAfterLoad = this.world.getServer().getServerConfig().getWaitAfterLoadForGCSeconds();
 
         return currentTimeMillis - this.loadedTime > TimeUnit.SECONDS.toMillis( waitAfterLoad ) &&
-                this.players.isEmpty() &&
-                currentTimeMillis - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( secondsAfterLeft );
+            this.players.isEmpty() &&
+            currentTimeMillis - this.lastPlayerOnThisChunk > TimeUnit.SECONDS.toMillis( secondsAfterLeft );
     }
 
     /**

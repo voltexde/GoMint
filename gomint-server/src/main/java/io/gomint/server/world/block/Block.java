@@ -32,21 +32,22 @@ import java.util.function.Function;
 public abstract class Block implements io.gomint.world.block.Block {
 
     // CHECKSTYLE:OFF
-    @Setter
-    protected WorldAdapter world;
-    @Setter
-    @Getter
-    protected Location location;
-    @Getter
-    private byte blockData = -1;
-    @Setter
-    private TileEntity tileEntity;
-    @Setter
-    @Getter
-    private byte skyLightLevel;
-    @Setter
-    @Getter
-    private byte blockLightLevel;
+    @Setter protected WorldAdapter world;
+    @Setter @Getter protected Location location;
+    @Getter private byte blockData = -1;
+    @Setter private TileEntity tileEntity;
+    @Getter private byte skyLightLevel;
+    @Getter private byte blockLightLevel;
+
+    // Set all needed data
+    public void setData( byte blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, byte skyLightLevel, byte blockLightLevel ) {
+        this.blockData = blockData;
+        this.tileEntity = tileEntity;
+        this.world = worldAdapter;
+        this.location = location;
+        this.skyLightLevel = skyLightLevel;
+        this.blockLightLevel = blockLightLevel;
+    }
     // CHECKSTYLE:ON
 
     /**

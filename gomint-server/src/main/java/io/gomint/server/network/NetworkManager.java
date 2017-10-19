@@ -194,7 +194,7 @@ public class NetworkManager {
      * @param packetId The ID of the packet
      * @param buffer   The packet's contents without its ID
      */
-    public void notifyUnknownPacket( byte packetId, PacketBuffer buffer ) {
+    void notifyUnknownPacket( byte packetId, PacketBuffer buffer ) {
         if ( this.dump ) {
             this.logger.info( "Received unknown packet 0x" + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
             this.dumpPacket( packetId, buffer );
@@ -242,10 +242,15 @@ public class NetworkManager {
     private void handleUnconnectedPing( SocketEvent event ) {
         // Fire ping event so plugins can modify the motd and player amounts
         PingEvent pingEvent = this.server.getPluginManager().callEvent(
-                new PingEvent( this.server.getMotd(), this.server.getAmountOfPlayers(), this.server.getServerConfig().getMaxPlayers() )
+                new PingEvent(
+                    this.server.getMotd(),
+                    this.server.getAmountOfPlayers(),
+                    this.server.getServerConfig().getMaxPlayers()
+                )
         );
 
-        event.getPingPongInfo().setMotd( "MCPE;" + pingEvent.getMotd() + ";" + Protocol.MINECRAFT_PE_PROTOCOL_VERSION + ";" + Protocol.MINECRAFT_PE_NETWORK_VERSION + ";" + pingEvent.getOnlinePlayers() + ";" + pingEvent.getMaxPlayers() );
+        event.getPingPongInfo().setMotd( "MCPE;" + pingEvent.getMotd() + ";" + Protocol.MINECRAFT_PE_PROTOCOL_VERSION +
+            ";" + Protocol.MINECRAFT_PE_NETWORK_VERSION + ";" + pingEvent.getOnlinePlayers() + ";" + pingEvent.getMaxPlayers() );
     }
 
     /**
@@ -271,14 +276,15 @@ public class NetworkManager {
     private void dumpPacket( byte packetId, PacketBuffer buffer ) {
         this.logger.info( "Dumping packet " + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
 
-        String filename = Integer.toHexString( ( (int) packetId ) & 0xFF );
+        StringBuilder filename = new StringBuilder( Integer.toHexString( ( (int) packetId ) & 0xFF ) );
         while ( filename.length() < 2 ) {
-            filename = "0" + filename;
+            filename.insert( 0, "0" );
         }
-        filename += "_" + System.currentTimeMillis();
-        filename += ".dump";
 
-        File dumpFile = new File( this.dumpDirectory, filename );
+        filename.append( "_" ).append( System.currentTimeMillis() );
+        filename.append( ".dump" );
+
+        File dumpFile = new File( this.dumpDirectory, filename.toString() );
 
         // Dump buffer contents:
         try ( OutputStream out = new FileOutputStream( dumpFile ) ) {

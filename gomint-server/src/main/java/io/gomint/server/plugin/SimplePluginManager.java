@@ -14,6 +14,7 @@ import io.gomint.plugin.Plugin;
 import io.gomint.plugin.PluginManager;
 import io.gomint.plugin.PluginVersion;
 import io.gomint.plugin.StartupPriority;
+import io.gomint.plugin.injection.InjectPlugin;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.command.CommandManager;
 import io.gomint.server.event.EventManager;
@@ -187,11 +188,13 @@ public class SimplePluginManager implements PluginManager {
                     pluginMeta.getPluginFile().toURI().toURL()
             } );
 
-            Class<?> main = loader.loadClass( pluginMeta.getMainClass() );
-            Plugin clazz = (Plugin) main.getConstructor().newInstance();
+            Plugin clazz = (Plugin) constructAndInject( pluginMeta.getMainClass(), loader );
+            if ( clazz == null ) {
+                return;
+            }
 
             // Reflect the logger and stuff in
-            this.loggerField.set( clazz, LoggerFactory.getLogger( main ) );
+            this.loggerField.set( clazz, LoggerFactory.getLogger( loader.loadClass( pluginMeta.getMainClass() ) ) );
             this.pluginManagerField.set( clazz, this );
             this.schedulerField.set( clazz, new PluginScheduler( clazz, this.scheduler ) );
             this.nameField.set( clazz, pluginMeta.getName() );
@@ -202,10 +205,63 @@ public class SimplePluginManager implements PluginManager {
 
             this.loadedPlugins.put( pluginMeta.getName(), clazz );
             this.detectedPlugins.remove( pluginMeta );
+
+            // Injection stuff
+            if ( pluginMeta.getInjectionCommands() != null ) {
+                for ( String commandClass : pluginMeta.getInjectionCommands() ) {
+                    Object maybeCommand = constructAndInject( commandClass, loader );
+                    if ( maybeCommand instanceof Command ) {
+                        Command command = (Command) maybeCommand;
+                        this.commandManager.register( clazz, command );
+                    }
+                }
+            }
         } catch ( Exception e ) {
             LOGGER.warn( "Error whilst starting plugin " + pluginMeta.getName(), e );
             this.metadata.remove( pluginMeta.getName() );
         }
+    }
+
+    private Object constructAndInject( String clazz, PluginClassloader loader ) {
+        try {
+            Class<?> cl = loader.loadClass( clazz );
+
+            try {
+                Object built = cl.newInstance();
+
+                // Check all fields for injection
+                for ( Field field : cl.getDeclaredFields() ) {
+                    // Is there @InjectPlugin present? If so, check for plugin and inject
+                    if ( field.isAnnotationPresent( InjectPlugin.class ) ) {
+                        String plugin = field.getAnnotation( InjectPlugin.class ).value();
+                        if ( plugin.equals( "detect" ) ) {
+                            // Get the fields type
+                            Class<?> type = field.getType();
+
+                            // Check loaded plugins first
+                            for ( Plugin foundPlugin : this.loadedPlugins.values() ) {
+                                if ( foundPlugin.getClass().equals( type ) ) {
+                                    field.setAccessible( true );
+                                    field.set( built, foundPlugin );
+                                    break;
+                                }
+                            }
+                        } else {
+                            field.setAccessible( true );
+                            field.set( built, getPlugin( plugin ) );
+                        }
+                    }
+                }
+
+                return built;
+            } catch ( InstantiationException | IllegalAccessException e ) {
+                e.printStackTrace();
+            }
+        } catch ( ClassNotFoundException e ) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public void installPlugins() {
@@ -235,6 +291,8 @@ public class SimplePluginManager implements PluginManager {
                 LOGGER.warn( "Could not load Plugin. File " + file + " is empty" );
                 return null;
             }
+
+            PluginMeta meta = new PluginMeta( file );
 
             // Try to read every file in the jar
             try {
@@ -294,9 +352,44 @@ public class SimplePluginManager implements PluginManager {
                                 return null;
                             }
 
-                            return new PluginMeta( name, version, StartupPriority.valueOf( startup ), depends, softDepends, classFile.getName(), file );
+                            meta.setName( name );
+                            meta.setVersion( version );
+                            meta.setPriority( StartupPriority.valueOf( startup ) );
+                            meta.setDepends( depends );
+                            meta.setSoftDepends( softDepends );
+                            meta.setMainClass( classFile.getName() );
+                        } else if ( classFile.getSuperclass().equals( "io.gomint.command.Command" ) ) {
+                            byte neededArguments = 0;
+
+                            // Ok it did, time to parse the needed and optional annotations
+                            AnnotationsAttribute visible = (AnnotationsAttribute) classFile.getAttribute( AnnotationsAttribute.visibleTag );
+                            for ( Annotation annotation : visible.getAnnotations() ) {
+                                switch ( annotation.getTypeName() ) {
+                                    case "io.gomint.command.annotation.Name":
+                                        neededArguments++;
+                                        break;
+
+                                    case "io.gomint.command.annotation.Description":
+                                        neededArguments++;
+                                        break;
+                                }
+                            }
+
+                            // Do we have @Name and @Description attached?
+                            if ( neededArguments == 2 ) {
+                                if ( meta.getInjectionCommands() == null ) {
+                                    meta.setInjectionCommands( new HashSet<>() );
+                                }
+
+                                meta.getInjectionCommands().add( classFile.getName() );
+                            }
                         }
                     }
+                }
+
+                // Check if we found a valid plugin
+                if ( meta.getMainClass() != null ) {
+                    return meta;
                 }
 
                 return null;

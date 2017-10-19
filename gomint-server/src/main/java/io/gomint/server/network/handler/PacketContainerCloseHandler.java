@@ -1,6 +1,5 @@
 package io.gomint.server.network.handler;
 
-import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketContainerClose;
 

@@ -227,11 +227,8 @@ public abstract class WorldAdapter implements World {
 
         // Random blocks
         for ( long chunkHash : this.chunkCache.getChunkHashes() ) {
-            int x = (int) ( chunkHash >> 32 );
-            int z = (int) ( chunkHash ) + Integer.MIN_VALUE;
-
-            ChunkAdapter chunkAdapter = chunkCache.getChunk( x, z );
-            if ( chunkAdapter != null ) {
+            if ( chunkHash != 0 ) {
+                ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
                 chunkAdapter.update( currentTimeMS, dT );
             }
         }

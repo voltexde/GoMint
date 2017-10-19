@@ -35,18 +35,13 @@ public class Blocks {
             }
 
             try {
-                generatorCT.addMethod( CtNewMethod.make( "public Object generate( byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {" +
+                generatorCT.addMethod( CtNewMethod.make( "public io.gomint.server.world.block.Block generate( byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {" +
                         "io.gomint.server.world.block.Block block = new " + clazz.getName() + "();" +
-                        "block.setBlockData( blockData );\n" +
-                        "block.setTileEntity( tileEntity );\n" +
-                        "block.setWorld( (io.gomint.server.world.WorldAdapter) location.getWorld() );\n" +
-                        "block.setLocation( location );\n" +
-                        "block.setSkyLightLevel( skyLightLevel );\n" +
-                        "block.setBlockLightLevel( blockLightLevel );" +
+                        "block.setData( blockData, tileEntity, (io.gomint.server.world.WorldAdapter) location.getWorld(), location, skyLightLevel, blockLightLevel );\n" +
                         "return block;" +
                         "}", generatorCT ) );
 
-                generatorCT.addMethod( CtNewMethod.make( "public Object generate() { return new " + clazz.getName() + "(); }", generatorCT ) );
+                generatorCT.addMethod( CtNewMethod.make( "public io.gomint.server.world.block.Block generate() { return new " + clazz.getName() + "(); }", generatorCT ) );
             } catch ( CannotCompileException e ) {
                 e.printStackTrace();
                 return null;

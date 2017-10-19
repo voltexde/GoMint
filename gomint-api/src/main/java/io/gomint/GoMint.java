@@ -76,5 +76,12 @@ public interface GoMint {
         return GoMintInstanceHolder.instance;
     }
 
+    /**
+     * Find a player by its name
+     *
+     * @param target which we want to search
+     * @return the player or null if not found
+     */
+    Player findPlayerByName( String target );
 
 }
