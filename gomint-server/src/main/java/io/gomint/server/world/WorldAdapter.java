@@ -7,7 +7,7 @@
 
 package io.gomint.server.world;
 
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
@@ -18,7 +18,6 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.entity.Entity;
-import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.*;
@@ -29,10 +28,7 @@ import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.generator.ChunkGenerator;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.util.Numbers;
-import io.gomint.world.Chunk;
-import io.gomint.world.Gamerule;
-import io.gomint.world.Sound;
-import io.gomint.world.World;
+import io.gomint.world.*;
 import io.gomint.world.block.Block;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -62,6 +58,11 @@ public abstract class WorldAdapter implements World {
     @Getter
     protected Map<Gamerule, Object> gamerules = new HashMap<>();
 
+    /**
+     * Get the difficulty of this world
+     */
+    @Getter protected Difficulty difficulty;
+
     // Chunk Handling
     protected ChunkCache chunkCache;
     protected ChunkGenerator chunkGenerator;
@@ -78,7 +79,7 @@ public abstract class WorldAdapter implements World {
     private BlockingQueue<AsyncChunkTask> asyncChunkTasks;
     private Queue<AsyncChunkPackageTask> chunkPackageTasks;
 
-    // Player handling
+    // EntityPlayer handling
     private PlayerMap players;
 
     protected WorldAdapter( GoMintServer server, File worldDir ) {
@@ -109,8 +110,8 @@ public abstract class WorldAdapter implements World {
      *
      * @return collection of all players online on this world
      */
-    public Collection<Player> getPlayers() {
-        Collection<Player> playerReturn = new HashSet<>();
+    public Collection<EntityPlayer> getPlayers() {
+        Collection<EntityPlayer> playerReturn = new HashSet<>();
         playerReturn.addAll( players.keySet() );
         return playerReturn;
     }
@@ -227,11 +228,8 @@ public abstract class WorldAdapter implements World {
 
         // Random blocks
         for ( long chunkHash : this.chunkCache.getChunkHashes() ) {
-            int x = (int) ( chunkHash >> 32 );
-            int z = (int) ( chunkHash ) + Integer.MIN_VALUE;
-
-            ChunkAdapter chunkAdapter = chunkCache.getChunk( x, z );
-            if ( chunkAdapter != null ) {
+            if ( chunkHash != 0 ) {
+                ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
                 chunkAdapter.update( currentTimeMS, dT );
             }
         }
@@ -335,7 +333,7 @@ public abstract class WorldAdapter implements World {
      *
      * @param player The player entity to add to the world
      */
-    public void addPlayer( EntityPlayer player ) {
+    public void addPlayer( io.gomint.server.entity.EntityPlayer player ) {
         // Schedule sending spawn region chunks:
         final int minChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) - 4;
         final int minChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) - 4;
@@ -354,7 +352,7 @@ public abstract class WorldAdapter implements World {
      *
      * @param player The player entity which should be removed from the world
      */
-    public void removePlayer( EntityPlayer player ) {
+    public void removePlayer( io.gomint.server.entity.EntityPlayer player ) {
         ChunkAdapter chunkAdapter = this.players.remove( player );
         if ( chunkAdapter != null ) {
             chunkAdapter.removePlayer( player );
@@ -452,7 +450,7 @@ public abstract class WorldAdapter implements World {
      * @param player The player we want to send the chunk to
      * @param sync   Force sync chunk loading
      */
-    public void sendChunk( int x, int z, EntityPlayer player, boolean sync ) {
+    public void sendChunk( int x, int z, io.gomint.server.entity.EntityPlayer player, boolean sync ) {
         Delegate2<Long, ChunkAdapter> sendDelegate = new Delegate2<Long, ChunkAdapter>() {
             @Override
             public void invoke( Long chunkHash, ChunkAdapter chunk ) {
@@ -485,7 +483,7 @@ public abstract class WorldAdapter implements World {
      * @param z      The z-coordinate of the chunk
      * @param player The player which should be set into the chunk
      */
-    public void movePlayerToChunk( int x, int z, EntityPlayer player ) {
+    public void movePlayerToChunk( int x, int z, io.gomint.server.entity.EntityPlayer player ) {
         ChunkAdapter oldChunk = this.players.get( player );
         ChunkAdapter newChunk = this.loadChunk( x, z, true );
 
@@ -588,7 +586,7 @@ public abstract class WorldAdapter implements World {
         int posX = CoordinateUtils.fromBlockToChunk( position.getX() );
         int posZ = CoordinateUtils.fromBlockToChunk( position.getZ() );
 
-        for ( Player player : this.getPlayers() ) {
+        for ( EntityPlayer player : this.getPlayers() ) {
             Location location = player.getLocation();
             int currentX = CoordinateUtils.fromBlockToChunk( (int) location.getX() );
             int currentZ = CoordinateUtils.fromBlockToChunk( (int) location.getZ() );
@@ -596,7 +594,7 @@ public abstract class WorldAdapter implements World {
             if ( Math.abs( posX - currentX ) <= player.getViewDistance() &&
                 Math.abs( posZ - currentZ ) <= player.getViewDistance() &&
                 predicate.test( (Entity) player ) ) {
-                ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
+                ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().addToSendQueue( packet );
             }
         }
     }
@@ -800,7 +798,7 @@ public abstract class WorldAdapter implements World {
      * @param entity        which interacts with the block
      * @return true when interaction was successful, false when not
      */
-    public boolean useItemOn( ItemStack itemInHand, BlockPosition blockPosition, int face, Vector clickPosition, EntityPlayer entity ) {
+    public boolean useItemOn( ItemStack itemInHand, BlockPosition blockPosition, int face, Vector clickPosition, io.gomint.server.entity.EntityPlayer entity ) {
         Block blockClicked = this.getBlockAt( blockPosition );
         if ( blockClicked instanceof Air ) {
             return false;

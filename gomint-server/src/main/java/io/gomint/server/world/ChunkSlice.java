@@ -21,8 +21,10 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 class ChunkSlice {
 
-    @Getter private final ChunkAdapter chunk;
-    @Getter private final int sectionY;
+    @Getter
+    private final ChunkAdapter chunk;
+    @Getter
+    private final int sectionY;
 
     private boolean isAllAir = true;
 
@@ -47,11 +49,21 @@ class ChunkSlice {
      * @return id of the block
      */
     byte getBlock( int x, int y, int z ) {
+        return this.getBlockInternal( getIndex( x, y, z ) );
+    }
+
+    /**
+     * Get a block by its index
+     *
+     * @param index which should be looked up
+     * @return block id of the index
+     */
+    byte getBlockInternal( short index ) {
         if ( this.isAllAir ) {
             return 0;
         }
 
-        return this.blocks[getIndex( x, y, z )];
+        return this.blocks[index];
     }
 
     <T extends io.gomint.world.block.Block> T getBlockInstance( int x, int y, int z ) {
@@ -66,7 +78,7 @@ class ChunkSlice {
         }
 
         return (T) Blocks.get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
-                this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
+            this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
     }
 
     Collection<TileEntity> getTileEntities() {

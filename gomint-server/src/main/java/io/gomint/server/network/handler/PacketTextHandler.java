@@ -1,7 +1,6 @@
 package io.gomint.server.network.handler;
 
-import io.gomint.entity.Player;
-import io.gomint.server.entity.EntityPlayer;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketText;
 
@@ -16,9 +15,9 @@ public class PacketTextHandler implements PacketHandler<PacketText> {
         switch ( packet.getType() ) {
             case PLAYER_CHAT:
                 // Simply relay for now
-                for ( Player player : connection.getServer().getPlayers() ) {
-                    if ( player instanceof EntityPlayer ) {
-                        ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
+                for ( EntityPlayer player : connection.getServer().getPlayers() ) {
+                    if ( player instanceof io.gomint.server.entity.EntityPlayer ) {
+                        ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().addToSendQueue( packet );
                     }
                 }
         }

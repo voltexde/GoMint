@@ -9,7 +9,7 @@ public interface PermissionManager {
     /**
      * Check if this permission manager has the permission. Permissions are sorted this way:
      * <p>
-     * - Player permission
+     * - EntityPlayer permission
      * - Group permission (reversed insert order)
      * <p>
      * For example you have a player with group A and group B, group A has set permission "testpermission" to true

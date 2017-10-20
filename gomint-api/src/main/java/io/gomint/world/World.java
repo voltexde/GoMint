@@ -7,13 +7,12 @@
 
 package io.gomint.world;
 
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
-import io.gomint.math.Vector;
 import io.gomint.world.block.Block;
 
 import java.util.Collection;
@@ -88,7 +87,7 @@ public interface World {
      *
      * @return Collection of players online on this world
      */
-    Collection<Player> getPlayers();
+    Collection<EntityPlayer> getPlayers();
 
     /**
      * Play a sound at the location given

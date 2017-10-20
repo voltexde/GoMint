@@ -3,7 +3,7 @@ package io.gomint.command.validator;
 import io.gomint.command.ParamType;
 import io.gomint.command.ParamValidator;
 import io.gomint.entity.Entity;
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ public class TargetValidator extends ParamValidator {
             return entity;
         }
 
-        for ( Player player : entity.getWorld().getPlayers() ) {
+        for ( EntityPlayer player : entity.getWorld().getPlayers() ) {
             if ( player.getName().equals( input.get( 0 ) ) ) {
                 return player;
             }

@@ -7,7 +7,7 @@
 
 package io.gomint;
 
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
 import io.gomint.world.World;
@@ -58,7 +58,7 @@ public interface GoMint {
      *
      * @return collection of online players
      */
-    Collection<Player> getPlayers();
+    Collection<EntityPlayer> getPlayers();
 
     /**
      * Get the manager which manages permission groups
@@ -76,5 +76,12 @@ public interface GoMint {
         return GoMintInstanceHolder.instance;
     }
 
+    /**
+     * Find a player by its name
+     *
+     * @param target which we want to search
+     * @return the player or null if not found
+     */
+    EntityPlayer findPlayerByName( String target );
 
 }

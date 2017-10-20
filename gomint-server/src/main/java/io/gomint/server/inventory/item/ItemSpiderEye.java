@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 375 )
- public class ItemSpiderEye extends ItemStack implements io.gomint.inventory.item.ItemSpiderEye {
+public class ItemSpiderEye extends ItemFood implements io.gomint.inventory.item.ItemSpiderEye {
 
     // CHECKSTYLE:OFF
     public ItemSpiderEye( short data, int amount ) {
@@ -19,5 +19,15 @@ import io.gomint.taglib.NBTTagCompound;
         super( 375, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getSaturation() {
+        return 0.8f;
+    }
+
+    @Override
+    public float getHunger() {
+        return 2;
+    }
 
 }

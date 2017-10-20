@@ -8,7 +8,7 @@
 package io.gomint.server;
 
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.util.DumpUtil;
+import io.gomint.server.network.packet.PacketHurtArmor;
 
 import java.io.File;
 import java.io.IOException;

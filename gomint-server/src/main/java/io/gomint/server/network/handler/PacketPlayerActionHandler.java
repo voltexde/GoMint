@@ -39,7 +39,8 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
                             // Tell the client which break time we want
                             if ( breakTime > 0 ) {
-                                connection.getEntity().getWorld().sendLevelEvent( packet.getPosition().toVector(), LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
+                                connection.getEntity().getWorld().sendLevelEvent( packet.getPosition().toVector(),
+                                    LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
                             }
                         }
                     }
@@ -77,6 +78,14 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 connection.getEntity().setSneaking( false );
                 break;
 
+            case START_SPRINT:
+                connection.getEntity().setSprinting( true );
+                break;
+
+            case STOP_SPRINT:
+                connection.getEntity().setSprinting( false );
+                break;
+
             case CONTINUE_BREAK:
                 // When the player is in creative this is the only way to get needed data since it doesn't send a
                 // START_BREAK
@@ -96,7 +105,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 break;
 
             case JUMP:
-                LOGGER.debug( "Jumping" );
+                connection.getEntity().jump();
                 break;
 
             default:

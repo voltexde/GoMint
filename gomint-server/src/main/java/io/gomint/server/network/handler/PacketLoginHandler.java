@@ -170,21 +170,28 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                             connection.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
                             connection.sendResourcePacks();
                         } else {
-                            // Enable encryption
-                            EncryptionHandler encryptionHandler = new EncryptionHandler( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory() );
-                            encryptionHandler.supplyClientKey( chainValidator.getClientPublicKey() );
-                            if ( encryptionHandler.beginClientsideEncryption() ) {
-                                // Get the needed data for the encryption start
-                                connection.setState( PlayerConnectionState.ENCRPYTION_INIT );
-                                connection.setEncryptionHandler( encryptionHandler );
+                            // Generating EDCH secrets can take up huge amount of time
+                            connection.getServer().getExecutorService().execute( new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Enable encryption
+                                    EncryptionHandler encryptionHandler = new EncryptionHandler( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory() );
+                                    encryptionHandler.supplyClientKey( chainValidator.getClientPublicKey() );
+                                    if ( encryptionHandler.beginClientsideEncryption() ) {
+                                        // Get the needed data for the encryption start
+                                        connection.setState( PlayerConnectionState.ENCRPYTION_INIT );
+                                        connection.setEncryptionHandler( encryptionHandler );
 
-                                // Forge a JWT
-                                String encryptionRequestJWT = FORGER.forge( encryptionHandler.getServerPublic(), encryptionHandler.getServerPrivate(), encryptionHandler.getClientSalt() );
+                                        // Forge a JWT
+                                        String encryptionRequestJWT = FORGER.forge( encryptionHandler.getServerPublic(), encryptionHandler.getServerPrivate(), encryptionHandler.getClientSalt() );
 
-                                PacketEncryptionRequest packetEncryptionRequest = new PacketEncryptionRequest();
-                                packetEncryptionRequest.setJwt( encryptionRequestJWT );
-                                connection.send( packetEncryptionRequest );
-                            }
+                                        PacketEncryptionRequest packetEncryptionRequest = new PacketEncryptionRequest();
+                                        packetEncryptionRequest.setJwt( encryptionRequestJWT );
+                                        connection.send( packetEncryptionRequest );
+                                    }
+                                }
+                            } );
+
                         }
                     }
                 }, 1, -1, TimeUnit.MILLISECONDS ) );

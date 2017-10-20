@@ -8,8 +8,6 @@
 package io.gomint.server.world;
 
 import com.koloboke.collect.LongCursor;
-import com.koloboke.collect.set.LongSet;
-import com.koloboke.collect.set.hash.HashLongSets;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.util.collection.ChunkCacheMap;
@@ -160,13 +158,7 @@ public class ChunkCache {
      */
     public ChunkAdapter getChunk( int x, int z ) {
         long chunkHash = CoordinateUtils.toLong( x, z );
-        ChunkAdapter chunkAdapter = this.cachedChunks.getChunk( chunkHash );
-        if ( chunkAdapter == null ) {
-            // Check slow concurrent map
-            return this.concurrentCachedChunks.get( chunkHash );
-        }
-
-        return chunkAdapter;
+        return this.getChunkInternal( chunkHash );
     }
 
     /**
@@ -210,6 +202,22 @@ public class ChunkCache {
      */
     long[] getChunkHashes() {
         return this.cachedChunks.keys();
+    }
+
+    /**
+     * Get a chunk based on his hash
+     *
+     * @param chunkHash which should be get
+     * @return chunk adapter for the given hash or null when the hash has no chunk attached
+     */
+    ChunkAdapter getChunkInternal( long chunkHash ) {
+        ChunkAdapter chunkAdapter = this.cachedChunks.getChunk( chunkHash );
+        if ( chunkAdapter == null ) {
+            // Check slow concurrent map
+            return this.concurrentCachedChunks.get( chunkHash );
+        }
+
+        return chunkAdapter;
     }
 
 }

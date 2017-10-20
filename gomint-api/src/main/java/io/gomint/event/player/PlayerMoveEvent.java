@@ -1,6 +1,6 @@
 package io.gomint.event.player;
 
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.math.Location;
 
 /**
@@ -21,7 +21,7 @@ public class PlayerMoveEvent extends CancellablePlayerEvent {
      * @param from   The location from where it wants to move
      * @param to     The location to which it wants to move
      */
-    public PlayerMoveEvent( Player player, Location from, Location to ) {
+    public PlayerMoveEvent( EntityPlayer player, Location from, Location to ) {
         super( player );
 
         this.from = from;

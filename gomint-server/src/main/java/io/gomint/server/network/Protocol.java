@@ -44,6 +44,7 @@ public final class Protocol {
     public static final byte PACKET_UPDATE_BLOCK = (byte) 0x15;
     public static final byte PACKET_WORLD_SOUND_EVENT = (byte) 0x18;
     public static final byte PACKET_WORLD_EVENT = (byte) 0x19;
+    public static final byte PACKET_ENTITY_EVENT = (byte) 0x1B;
     public static final byte PACKET_UPDATE_ATTRIBUTES = (byte) 0x1D;
     public static final byte PACKET_INVENTORY_TRANSACTION = (byte) 0x1E;
     public static final byte PACKET_MOB_EQUIPMENT = (byte) 0x1F;
@@ -51,6 +52,7 @@ public final class Protocol {
     public static final byte PACKET_INTERACT = (byte) 0x21;
    // public static final byte PACKET_USE_ITEM = (byte) 0x23;
     public static final byte PACKET_PLAYER_ACTION = (byte) 0x24;
+    public static final byte PACKET_HURT_ARMOR = (byte) 0x26;
     public static final byte PACKET_ENTITY_METADATA = (byte) 0x27;
     public static final byte PACKET_ENTITY_MOTION = (byte) 0x28;
     public static final byte PACKET_ANIMATE = (byte) 0x2C;

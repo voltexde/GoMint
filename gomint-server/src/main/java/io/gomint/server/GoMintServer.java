@@ -9,19 +9,16 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.jraknet.PacketBuffer;
 import io.gomint.permission.GroupManager;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
-import io.gomint.server.entity.EntityCow;
 import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.InventoryHolder;
-import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;
@@ -29,7 +26,6 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
 import io.gomint.world.World;
@@ -348,8 +344,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
      *
      * @return all online players
      */
-    public Collection<Player> getPlayers() {
-        List<Player> playerList = new ArrayList<>();
+    public Collection<EntityPlayer> getPlayers() {
+        List<EntityPlayer> playerList = new ArrayList<>();
 
         worldManager.getWorlds().forEach( new Consumer<WorldAdapter>() {
             @Override
@@ -364,6 +360,19 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Override
     public GroupManager getGroupManager() {
         return this.permissionGroupManager;
+    }
+
+    @Override
+    public EntityPlayer findPlayerByName( String target ) {
+        for ( WorldAdapter adapter : worldManager.getWorlds() ) {
+            for ( EntityPlayer player : adapter.getPlayers() ) {
+                if ( player.getName().equals( target ) ) {
+                    return player;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

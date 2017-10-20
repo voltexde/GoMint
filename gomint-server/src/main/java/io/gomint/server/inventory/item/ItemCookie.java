@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 357 )
- public class ItemCookie extends ItemStack implements io.gomint.inventory.item.ItemCookie {
+public class ItemCookie extends ItemFood implements io.gomint.inventory.item.ItemCookie {
 
     // CHECKSTYLE:OFF
     public ItemCookie( short data, int amount ) {
@@ -19,5 +19,15 @@ import io.gomint.taglib.NBTTagCompound;
         super( 357, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getSaturation() {
+        return 0.1f;
+    }
+
+    @Override
+    public float getHunger() {
+        return 2;
+    }
 
 }

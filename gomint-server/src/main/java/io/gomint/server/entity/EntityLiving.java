@@ -1,6 +1,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.entity.DamageCause;
+import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
@@ -23,7 +24,7 @@ import java.util.Map;
  * @author BlackyPaw
  * @version 1.0
  */
-public abstract class EntityLiving extends Entity implements InventoryHolder {
+public abstract class EntityLiving extends Entity implements InventoryHolder, io.gomint.entity.EntityLiving {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityLiving.class );
 
@@ -58,9 +59,23 @@ public abstract class EntityLiving extends Entity implements InventoryHolder {
         addAttribute( Attribute.KNOCKBACK_RESISTANCE );
     }
 
-    protected void addAttribute( Attribute attribute ) {
+    protected float addAttribute( Attribute attribute ) {
         AttributeInstance instance = attribute.create();
         this.attributes.put( instance.getKey(), instance );
+        return instance.getValue();
+    }
+
+    public float getAttribute( Attribute attribute ) {
+        AttributeInstance instance = this.attributes.get( attribute.getKey() );
+        if ( instance != null ) {
+            return instance.getValue();
+        }
+
+        return addAttribute( attribute );
+    }
+
+    public AttributeInstance getAttributeInstance( Attribute attribute ) {
+        return this.attributes.get( attribute.getKey() );
     }
 
     public void setAttribute( Attribute attribute, float value ) {
@@ -99,6 +114,22 @@ public abstract class EntityLiving extends Entity implements InventoryHolder {
         }
     }
 
+    @Override
+    public void setHealth( float amount ) {
+        float filteredAmount = amount;
+        if ( filteredAmount < 0 ) {
+            filteredAmount = 0;
+        }
+
+        AttributeInstance attributeInstance = this.attributes.get( Attribute.HEALTH.getKey() );
+        attributeInstance.setValue( filteredAmount );
+    }
+
+    @Override
+    public float getHealth() {
+        return this.getAttribute( Attribute.HEALTH );
+    }
+
     /**
      * Construct a spawn packet for this entity
      *
@@ -120,6 +151,26 @@ public abstract class EntityLiving extends Entity implements InventoryHolder {
         packet.setAttributes( this.attributes.values() );
         packet.setMetadata( this.getMetadata() );
         return packet;
+    }
+
+    @Override
+    public float getMaxHealth() {
+        return this.getAttributeInstance( Attribute.HEALTH ).getMaxValue();
+    }
+
+    /**
+     * Heal this entity by given amount and cause
+     *
+     * @param amount of heal
+     * @param cause  of this heal
+     */
+    public void heal( float amount, EntityHealEvent.Cause cause ) {
+        EntityHealEvent event = new EntityHealEvent( this, amount, cause );
+        this.world.getServer().getPluginManager().callEvent( event );
+
+        if ( !event.isCancelled() ) {
+            this.setHealth( this.getHealth() + amount );
+        }
     }
 
 }

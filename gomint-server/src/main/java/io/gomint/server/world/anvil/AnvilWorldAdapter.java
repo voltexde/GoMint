@@ -12,6 +12,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.world.*;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
+import io.gomint.world.Difficulty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +25,6 @@ import java.util.zip.GZIPInputStream;
  * @version 1.0
  */
 public final class AnvilWorldAdapter extends WorldAdapter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger( AnvilWorldAdapter.class );
 
     // ==================================== FIELDS ==================================== //
 
@@ -114,7 +113,11 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                             case ".Data.SpawnZ":
                                 AnvilWorldAdapter.this.spawn.setZ( (int) value );
                                 break;
+                            case ".Data.Difficulty":
+                                AnvilWorldAdapter.this.difficulty = Difficulty.valueOf( (byte) value );
+                                break;
                             default:
+                                // logger.debug( "Found level dat NBT Tag: " + path );
                                 break;
                         }
                     }
@@ -151,7 +154,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                     chunk = regionFile.loadChunk( x, z );
                 } catch ( WorldLoadException e ) {
                     // This means the chunk is corrupted, generate a new one?
-                    LOGGER.error( "Found corrupted chunk in %s, generating a new one if needed", String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) );
+                    this.logger.error( "Found corrupted chunk in %s, generating a new one if needed", String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) );
                 }
 
                 if ( chunk != null ) {

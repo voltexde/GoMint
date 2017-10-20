@@ -124,11 +124,7 @@ public enum TileEntities {
             }
         }
 
-        if ( "Beacon".equals( id ) ) {
-            System.out.println( "FOUND! - " );
-        }
-
-        LOGGER.warn( "Unknown tile entity found: " + id );
+        // LOGGER.warn( "Unknown tile entity found: " + id );
         return null;
     }
 

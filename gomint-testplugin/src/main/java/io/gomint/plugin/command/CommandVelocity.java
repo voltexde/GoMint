@@ -4,7 +4,7 @@ import io.gomint.command.Command;
 import io.gomint.command.CommandOutput;
 import io.gomint.command.annotation.Description;
 import io.gomint.command.annotation.Name;
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.math.Vector;
 
 import java.util.Map;
@@ -18,7 +18,7 @@ import java.util.Map;
 public class CommandVelocity extends Command {
 
     @Override
-    public CommandOutput execute( Player player, String alias, Map<String, Object> arguments ) {
+    public CommandOutput execute( EntityPlayer player, String alias, Map<String, Object> arguments ) {
         CommandOutput output = new CommandOutput();
         player.setVelocity( new Vector( 0, 2, 0 ) );
         output.success( "Applied velocity" );
