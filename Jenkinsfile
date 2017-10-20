@@ -6,7 +6,7 @@ pipeline {
         }
     }
     stages {
-        stage('Build') {
+        stage('Depends') {
             steps {
                 sh 'apt-get install -y openjfx'
             }
