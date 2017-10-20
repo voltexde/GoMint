@@ -14,7 +14,7 @@ import io.gomint.command.annotation.Name;
 import io.gomint.command.annotation.Overload;
 import io.gomint.command.annotation.Parameter;
 import io.gomint.command.validator.TargetValidator;
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 
 import java.util.Map;
 
@@ -30,13 +30,13 @@ import java.util.Map;
 public class CommandHide extends Command {
 
     @Override
-    public CommandOutput execute( Player player, String alias, Map<String, Object> arguments ) {
+    public CommandOutput execute( EntityPlayer player, String alias, Map<String, Object> arguments ) {
         CommandOutput output = new CommandOutput();
 
-        Player hide = (Player) arguments.get( "target" );
+        EntityPlayer hide = (EntityPlayer) arguments.get( "target" );
         if ( !player.equals( hide ) ) {
             player.hidePlayer( hide );
-            output.success( "Player %%s has been hidden", hide.getName() );
+            output.success( "EntityPlayer %%s has been hidden", hide.getName() );
         } else {
             output.fail( "You can't hide yourself" );
         }

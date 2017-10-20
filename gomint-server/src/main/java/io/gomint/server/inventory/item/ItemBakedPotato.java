@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 393 )
- public class ItemBakedPotato extends ItemStack implements io.gomint.inventory.item.ItemBakedPotato {
+public class ItemBakedPotato extends ItemFood implements io.gomint.inventory.item.ItemBakedPotato {
 
     // CHECKSTYLE:OFF
     public ItemBakedPotato( short data, int amount ) {
@@ -19,5 +19,15 @@ import io.gomint.taglib.NBTTagCompound;
         super( 393, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getSaturation() {
+        return 0.6f;
+    }
+
+    @Override
+    public float getHunger() {
+        return 5;
+    }
 
 }

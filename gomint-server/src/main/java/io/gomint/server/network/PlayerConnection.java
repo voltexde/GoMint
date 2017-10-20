@@ -101,6 +101,7 @@ public class PlayerConnection {
     // Additional data
     @Getter @Setter private DeviceInfo deviceInfo;
     private float lastUpdateDT = 0;
+    private boolean firstSpawn;
 
     /**
      * Constructs a new player connection.
@@ -208,6 +209,12 @@ public class PlayerConnection {
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+            if ( this.firstSpawn ) {
+                // Send missing chunks to fill view distance
+                this.checkForNewChunks( null );
+                this.firstSpawn = false;
+            }
+
             this.sentInClientTick = 0;
             this.lastUpdateDT = 0;
         }
@@ -276,9 +283,7 @@ public class PlayerConnection {
                 this.getEntity().fullyInit();
 
                 this.state = PlayerConnectionState.PLAYING;
-
-                // Send missing chunks to fill view distance
-                this.checkForNewChunks( null );
+                this.firstSpawn = true;
             }
         }
     }
@@ -567,9 +572,9 @@ public class PlayerConnection {
             }
 
             if ( this.entity != null ) {
-                LOGGER.info( "Player " + this.entity.getName() + " left the game: " + message );
+                LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message );
             } else {
-                LOGGER.info( "Player has been disconnected whilst logging in: " + message );
+                LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
             }
 
             this.connection.disconnect( message );
@@ -641,7 +646,7 @@ public class PlayerConnection {
         packet.setDimension( 0 );
         packet.setSeed( 12345 );
         packet.setGenerator( 1 );
-        packet.setDifficulty( 1 );
+        packet.setDifficulty( this.entity.getWorld().getDifficulty().getDifficultyDegree() );
         packet.setLevelId( Base64.getEncoder().encodeToString( StringUtil.getUTF8Bytes( world.getWorldName() ) ) );
         packet.setWorldName( world.getWorldName() );
         packet.setTemplateName( "" );

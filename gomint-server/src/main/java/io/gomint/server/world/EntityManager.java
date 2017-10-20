@@ -10,8 +10,7 @@ package io.gomint.server.world;
 import com.koloboke.collect.map.LongObjCursor;
 import com.koloboke.function.LongObjConsumer;
 import io.gomint.entity.Entity;
-import io.gomint.entity.Player;
-import io.gomint.server.entity.EntityPlayer;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.collection.EntityIDMap;
 import io.gomint.world.Chunk;
@@ -80,7 +79,7 @@ public class EntityManager {
                             movedEntities = new HashSet<>();
                         }
 
-                        if ( !( entity instanceof EntityPlayer ) && !current.equals( entity.getChunk() ) ) {
+                        if ( !( entity instanceof io.gomint.server.entity.EntityPlayer ) && !current.equals( entity.getChunk() ) ) {
                             current.removeEntity( entity );
                         }
 
@@ -151,7 +150,7 @@ public class EntityManager {
                 }
 
                 // Set the new entity
-                if ( !( movedEntity instanceof EntityPlayer ) && chunk instanceof ChunkAdapter ) {
+                if ( !( movedEntity instanceof io.gomint.server.entity.EntityPlayer ) && chunk instanceof ChunkAdapter ) {
                     ChunkAdapter castedChunk = (ChunkAdapter) chunk;
                     if ( !castedChunk.knowsEntity( movedEntity ) ) {
                         castedChunk.addEntity( movedEntity );
@@ -171,9 +170,9 @@ public class EntityManager {
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
 
                 // Check which player we need to inform about this movement
-                for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-                    if ( movedEntity instanceof EntityPlayer ) {
-                        if ( entityPlayer.isHidden( (Player) movedEntity ) || entityPlayer.equals( movedEntity ) ) {
+                for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
+                    if ( movedEntity instanceof io.gomint.server.entity.EntityPlayer ) {
+                        if ( entityPlayer.isHidden( (EntityPlayer) movedEntity ) || entityPlayer.equals( movedEntity ) ) {
                             continue;
                         }
                     }
@@ -200,9 +199,9 @@ public class EntityManager {
                 packetEntityMetadata.setMetadata( entity.getMetadata() );
 
                 // Send to all players
-                for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-                    if ( entity instanceof EntityPlayer ) {
-                        if ( entityPlayer.isHidden( (Player) entity ) ) {
+                for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
+                    if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
+                        if ( entityPlayer.isHidden( (EntityPlayer) entity ) ) {
                             continue;
                         }
                     }
@@ -313,13 +312,13 @@ public class EntityManager {
         }
 
         // If this is a player send full playerlist
-        if ( entity instanceof EntityPlayer ) {
-            EntityPlayer entityPlayer = (EntityPlayer) entity;
+        if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
+            io.gomint.server.entity.EntityPlayer entityPlayer = (io.gomint.server.entity.EntityPlayer) entity;
             PacketPlayerlist playerlist = null;
 
             // Remap all current living entities
             List<PacketPlayerlist.Entry> listEntry = null;
-            for ( Player player : entityPlayer.getWorld().getServer().getPlayers() ) {
+            for ( EntityPlayer player : entityPlayer.getWorld().getServer().getPlayers() ) {
                 if ( !player.isHidden( entityPlayer ) && !player.equals( entityPlayer ) ) {
                     if ( playerlist == null ) {
                         playerlist = new PacketPlayerlist();
@@ -333,7 +332,7 @@ public class EntityManager {
                         }} );
                     }
 
-                    ( (EntityPlayer) player ).getConnection().send( playerlist );
+                    ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().send( playerlist );
                 }
 
                 if ( !entityPlayer.isHidden( player ) && !entityPlayer.equals( player ) ) {
@@ -358,9 +357,9 @@ public class EntityManager {
         Packet spawnPacket = cEntity.createSpawnPacket();
 
         // Check which player we need to inform about this movement
-        for ( EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-            if ( entity instanceof EntityPlayer ) {
-                if ( entityPlayer.isHidden( (Player) entity ) || entityPlayer.equals( entity ) ) {
+        for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
+            if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
+                if ( entityPlayer.isHidden( (EntityPlayer) entity ) || entityPlayer.equals( entity ) ) {
                     continue;
                 }
             }
@@ -396,9 +395,9 @@ public class EntityManager {
         PacketDespawnEntity packet = new PacketDespawnEntity();
         packet.setEntityId( entity.getEntityId() );
 
-        for ( Player player : this.world.getPlayers() ) {
-            if ( player instanceof EntityPlayer ) {
-                ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
+        for ( EntityPlayer player : this.world.getPlayers() ) {
+            if ( player instanceof io.gomint.server.entity.EntityPlayer ) {
+                ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().addToSendQueue( packet );
             }
         }
     }

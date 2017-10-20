@@ -1,6 +1,6 @@
 package io.gomint.event.player;
 
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.world.block.Block;
 
 /**
@@ -19,7 +19,7 @@ public class PlayerInteractEvent extends CancellablePlayerEvent {
      * @param clickType which has been used
      * @param block     on which the player interacted
      */
-    public PlayerInteractEvent( Player player, ClickType clickType, Block block ) {
+    public PlayerInteractEvent( EntityPlayer player, ClickType clickType, Block block ) {
         super( player );
         this.clickType = clickType;
         this.block = block;

@@ -3,9 +3,12 @@ package io.gomint.server.network;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
+import io.gomint.server.util.DumpUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,6 +25,8 @@ import java.util.zip.Deflater;
  */
 @RequiredArgsConstructor
 public class PostProcessWorker implements Runnable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( PostProcessWorker.class );
 
     private AtomicBoolean running = new AtomicBoolean( true );
     @Getter private BlockingQueue<Packet[]> queuedPacketBatches = new LinkedBlockingQueue<>();
@@ -40,6 +45,8 @@ public class PostProcessWorker implements Runnable {
                 if ( packetBatch != null ) {
                     // Batch them first
                     for ( Packet packet : packetBatch ) {
+                        // LOGGER.debug( "Sending " + packet );
+
                         PacketBuffer buffer = new PacketBuffer( 64 );
                         buffer.writeByte( packet.getId() );
                         buffer.writeShort( (short) 0 );

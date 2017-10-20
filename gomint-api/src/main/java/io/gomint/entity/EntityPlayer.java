@@ -20,7 +20,7 @@ import java.util.UUID;
  * @author Digot
  * @version 1.0
  */
-public interface Player extends Entity {
+public interface EntityPlayer extends EntityLiving {
 
     /**
      * Gets the name of the player. It is NOT globally unique since the
@@ -65,14 +65,14 @@ public interface Player extends Entity {
      *
      * @param player The player which should be hidden
      */
-    void hidePlayer( Player player );
+    void hidePlayer( EntityPlayer player );
 
     /**
      * Show a hidden player again
      *
      * @param player The player which should be shown again
      */
-    void showPlayer( Player player );
+    void showPlayer( EntityPlayer player );
 
     /**
      * Check if given player is hidden to this player
@@ -80,7 +80,7 @@ public interface Player extends Entity {
      * @param player The player which should be checked for
      * @return true if this player can't see the player given, false it it can
      */
-    boolean isHidden( Player player );
+    boolean isHidden( EntityPlayer player );
 
     /**
      * Get the skin of a player. This is readonly access currently since we figure out how to change the skin.
@@ -153,13 +153,6 @@ public interface Player extends Entity {
      * @param inetSocketAddress
      */
     void transfer( InetSocketAddress inetSocketAddress);
-
-    /**
-     * Set player health
-     *
-     * @param amount
-     */
-    void setHealth( double amount );
 
     /**
      * Return the network latency

@@ -9,6 +9,11 @@ public enum EntityFlag {
 
     PLAYER_SLEEP( 1 ),
 
+
+    ONFIRE( 0 ),
+    SNEAKING( 1 ),
+    RIDING( 2 ),
+    SPRINTING( 3 ),
     CAN_SHOW_NAMETAG( 14 ),
     ALWAYS_SHOW_NAMETAG( 15 ),
     CAN_CLIMB( 19 ),

@@ -549,7 +549,6 @@ public class ChunkAdapter implements Chunk {
         return cachedPacket.get();
     }
 
-
     public void setTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         slice.addTileEntity( x, y - 16 * ( y >> 4 ), z, tileEntity );

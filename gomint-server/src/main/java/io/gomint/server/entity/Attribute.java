@@ -17,7 +17,7 @@ public enum Attribute {
     FOLLOW_RANGE( "minecraft:follow_range", 0, 2048, 16 ),
     ATTACK_DAMAGE( "minecraft:attack_damage", 0, 10, 1 ),
 
-    // Player based ones
+    // EntityPlayer based ones
     SATURATION( "minecraft:player.saturation", 0, 20, 5 ),
     EXHAUSTION( "minecraft:player.exhaustion", 0, 5, 0.41f ),
     HUNGER( "minecraft:player.hunger", 0, 20, 20 ),

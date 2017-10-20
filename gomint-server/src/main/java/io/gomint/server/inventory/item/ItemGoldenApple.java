@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 322 )
- public class ItemGoldenApple extends ItemStack implements io.gomint.inventory.item.ItemGoldenApple {
+public class ItemGoldenApple extends ItemFood implements io.gomint.inventory.item.ItemGoldenApple {
 
     // CHECKSTYLE:OFF
     public ItemGoldenApple( short data, int amount ) {
@@ -19,5 +19,15 @@ import io.gomint.taglib.NBTTagCompound;
         super( 322, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getSaturation() {
+        return 1.2F;
+    }
+
+    @Override
+    public float getHunger() {
+        return 4;
+    }
 
 }

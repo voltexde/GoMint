@@ -4,7 +4,6 @@ import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.*;
-import io.gomint.world.Gamemode;
 
 /**
  * @author geNAZt
@@ -21,6 +20,10 @@ public class PlayerJoinListener implements EventListener {
         itemBucket.setContent( ItemBucket.Content.WATER );
 
         event.getPlayer().getInventory().setItem( 2, itemBucket );
+        event.getPlayer().getInventory().setItem( 3, ItemCookedBeef.create( 2 ) );
+
+        // Set health to 2
+        event.getPlayer().setHealth( 2 );
     }
 
 }

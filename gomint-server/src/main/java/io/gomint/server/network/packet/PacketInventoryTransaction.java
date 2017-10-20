@@ -32,7 +32,7 @@ public class PacketInventoryTransaction extends Packet {
     private int hotbarSlot;
     private ItemStack itemInHand;
 
-    // Type USE_ITEM
+    // Type USE_ITEM / RELEASE_ITEM
     private BlockPosition blockPosition;
     private int face;
     private Vector playerPosition;
@@ -42,9 +42,6 @@ public class PacketInventoryTransaction extends Packet {
     private long entityId;
     private Vector vector1;
     private Vector vector2;
-
-    // Type RELEASE_ITEM
-    private Vector headPosition;
 
     /**
      * Construct a new packet
@@ -97,7 +94,7 @@ public class PacketInventoryTransaction extends Packet {
                 this.actionType = buffer.readUnsignedVarInt();
                 this.hotbarSlot = buffer.readSignedVarInt();
                 this.itemInHand = readItemStack( buffer );
-                this.headPosition = new Vector( buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat() );
+                this.playerPosition = new Vector( buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat() );
                 break;
             default:
                 LOGGER.warn( "Unknown transaction type: " + this.type );

@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 462 )
- public class ItemPufferfish extends ItemStack implements io.gomint.inventory.item.ItemPufferfish {
+public class ItemPufferfish extends ItemFood implements io.gomint.inventory.item.ItemPufferfish {
 
     // CHECKSTYLE:OFF
     public ItemPufferfish( short data, int amount ) {
@@ -19,5 +19,15 @@ import io.gomint.taglib.NBTTagCompound;
         super( 462, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getSaturation() {
+        return 0.1f;
+    }
+
+    @Override
+    public float getHunger() {
+        return 1;
+    }
 
 }

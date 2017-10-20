@@ -9,7 +9,7 @@ package io.gomint.server.entity;
 
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
-import io.gomint.entity.Player;
+import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.math.*;
 import io.gomint.server.entity.metadata.MetadataContainer;
@@ -50,13 +50,13 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @version 1.0
  */
 @EqualsAndHashCode( callSuper = false, of = { "uuid" } )
-public class EntityPlayer extends EntityHuman implements Player, InventoryHolder {
+public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder {
 
     private final PlayerConnection connection;
     private int viewDistance;
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
 
-    // Player Information
+    // EntityPlayer Information
     private String username;
     private UUID uuid;
     private String xboxId;
@@ -68,9 +68,6 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     @Getter
     @Setter
     private Entity hoverEntity;
-    @Getter
-    @Setter
-    private boolean sneaking;
     private final PermissionManager permissionManager = new PermissionManager( this );
 
     // Hidden players
@@ -163,17 +160,6 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     }
 
     @Override
-    public void setHealth( double amount ) {
-        double filteredAmount = amount;
-        if ( filteredAmount < 0 ) {
-            filteredAmount = 0;
-        }
-
-        AttributeInstance attributeInstance = this.attributes.get( Attribute.HEALTH.getKey() );
-        attributeInstance.setValue( (float) filteredAmount );
-    }
-
-    @Override
     public int getPing() {
         return (int) this.connection.getConnection().getPing();
     }
@@ -245,7 +231,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     }
 
     @Override
-    public void hidePlayer( Player player ) {
+    public void hidePlayer( io.gomint.entity.EntityPlayer player ) {
         EntityPlayer other = (EntityPlayer) player;
 
         if ( this.hiddenPlayers == null ) {
@@ -269,7 +255,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     }
 
     @Override
-    public void showPlayer( Player player ) {
+    public void showPlayer( io.gomint.entity.EntityPlayer player ) {
         if ( this.hiddenPlayers == null ) {
             return;
         }
@@ -289,7 +275,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
     }
 
     @Override
-    public boolean isHidden( Player player ) {
+    public boolean isHidden( io.gomint.entity.EntityPlayer player ) {
         return this.hiddenPlayers != null && this.hiddenPlayers.contains( player.getEntityId() );
     }
 
@@ -350,7 +336,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
                         packet.setItemEntityId( entityItem.getEntityId() );
                         packet.setPlayerEntityId( this.getEntityId() );
 
-                        for ( Player player : this.world.getPlayers() ) {
+                        for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
                             if ( player instanceof EntityPlayer ) {
                                 ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
                             }
@@ -470,8 +456,22 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         }
 
         if ( updateAttributes != null ) {
-            this.connection.send( updateAttributes );
+            this.connection.addToSendQueue( updateAttributes );
         }
+    }
+
+    /**
+     * Force send all attributes
+     */
+    public void resendAttributes() {
+        PacketUpdateAttributes updateAttributes = new PacketUpdateAttributes();
+        updateAttributes.setEntityId( this.getEntityId() );
+
+        for ( AttributeInstance instance : attributes.values() ) {
+            updateAttributes.addAttributeInstance( instance );
+        }
+
+        this.connection.send( updateAttributes );
     }
 
     /**
@@ -601,7 +601,7 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         }} );
 
         // Check all other players
-        for ( Player player : this.connection.getServer().getPlayers() ) {
+        for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
             EntityPlayer entityPlayer = (EntityPlayer) player;
             if ( !entityPlayer.equals( this ) ) {
                 entityPlayer.getConnection().addToSendQueue( packetPlayerlist );
@@ -708,6 +708,42 @@ public class EntityPlayer extends EntityHuman implements Player, InventoryHolder
         PacketAvailableCommands packetAvailableCommands = this.connection.getServer().
             getPluginManager().getCommandManager().createPacket( this );
         this.connection.send( packetAvailableCommands );
+    }
+
+    /**
+     * Basicly a override of the {@link EntityHuman#exhaust(float)} method with a event call in it.
+     *
+     * @param amount of exhaustion
+     * @param cause  of exhaustion
+     */
+    @Override
+    public void exhaust( float amount, PlayerExhaustEvent.Cause cause ) {
+        if ( this.gamemode == Gamemode.SURVIVAL ) {
+            PlayerExhaustEvent exhaustEvent = new PlayerExhaustEvent( this, amount, cause );
+            this.world.getServer().getPluginManager().callEvent( exhaustEvent );
+
+            if ( exhaustEvent.isCancelled() ) {
+                return;
+            }
+
+            super.exhaust( exhaustEvent.getAdditionalAmount() );
+        } else {
+            if ( this.getExhaustion() != 0 ) {
+                this.setExhaustion( 0 );
+            }
+        }
+    }
+
+    /**
+     * Handle a jump
+     */
+    public void jump() {
+        // Jumping is only handled for exhaustion it seems
+        if ( this.isSprinting() ) {
+            this.exhaust( 0.8f, PlayerExhaustEvent.Cause.SPRINT_JUMP );
+        } else {
+            this.exhaust( 0.2f, PlayerExhaustEvent.Cause.JUMP );
+        }
     }
 
 }

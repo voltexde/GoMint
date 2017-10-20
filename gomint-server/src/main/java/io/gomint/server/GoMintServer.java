@@ -9,7 +9,7 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
-import io.gomint.entity.Player;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
 import io.gomint.plugin.StartupPriority;
@@ -344,8 +344,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
      *
      * @return all online players
      */
-    public Collection<Player> getPlayers() {
-        List<Player> playerList = new ArrayList<>();
+    public Collection<EntityPlayer> getPlayers() {
+        List<EntityPlayer> playerList = new ArrayList<>();
 
         worldManager.getWorlds().forEach( new Consumer<WorldAdapter>() {
             @Override
@@ -363,9 +363,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
     }
 
     @Override
-    public Player findPlayerByName( String target ) {
+    public EntityPlayer findPlayerByName( String target ) {
         for ( WorldAdapter adapter : worldManager.getWorlds() ) {
-            for ( Player player : adapter.getPlayers() ) {
+            for ( EntityPlayer player : adapter.getPlayers() ) {
                 if ( player.getName().equals( target ) ) {
                     return player;
                 }

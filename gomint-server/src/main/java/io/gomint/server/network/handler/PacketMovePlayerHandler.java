@@ -1,5 +1,6 @@
 package io.gomint.server.network.handler;
 
+import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerMoveEvent;
 import io.gomint.math.Location;
 import io.gomint.server.entity.EntityPlayer;
@@ -32,16 +33,16 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
 
         // The packet did not contain any movement? skip it
         if ( from.getX() - to.getX() == 0 &&
-                from.getY() - to.getY() == 0 &&
-                from.getZ() - to.getZ() == 0 &&
-                from.getHeadYaw() - to.getHeadYaw() == 0 &&
-                from.getYaw() - to.getYaw() == 0 &&
-                from.getPitch() - to.getPitch() == 0 ) {
+            from.getY() - to.getY() == 0 &&
+            from.getZ() - to.getZ() == 0 &&
+            from.getHeadYaw() - to.getHeadYaw() == 0 &&
+            from.getYaw() - to.getYaw() == 0 &&
+            from.getPitch() - to.getPitch() == 0 ) {
             return;
         }
 
         PlayerMoveEvent playerMoveEvent = connection.getNetworkManager().getServer().getPluginManager().callEvent(
-                new PlayerMoveEvent( entity, from, to )
+            new PlayerMoveEvent( entity, from, to )
         );
 
         if ( playerMoveEvent.isCancelled() ) {
@@ -50,9 +51,17 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
 
         to = playerMoveEvent.getTo();
         if ( to.getX() != packet.getX() || to.getY() != packet.getY() - entity.getEyeHeight() || to.getZ() != packet.getZ() ||
-                !to.getWorld().equals( entity.getWorld() ) || to.getYaw() != packet.getYaw() ||
-                to.getPitch() != packet.getPitch() || to.getHeadYaw() != packet.getHeadYaw() ) {
+            !to.getWorld().equals( entity.getWorld() ) || to.getYaw() != packet.getYaw() ||
+            to.getPitch() != packet.getPitch() || to.getHeadYaw() != packet.getHeadYaw() ) {
             entity.teleport( to );
+        } else {
+            // Exhaustion
+            double distance = Math.sqrt( from.distanceSquared( to ) );
+            if ( entity.isSprinting() ) {
+                entity.exhaust( (float) ( 0.1 * distance ), PlayerExhaustEvent.Cause.SPRINTING );
+            } else {
+                entity.exhaust( (float) ( 0.01 * distance ), PlayerExhaustEvent.Cause.WALKING );
+            }
         }
 
         entity.setPosition( to.getX(), to.getY(), to.getZ() );
@@ -61,12 +70,12 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
         entity.setHeadYaw( to.getHeadYaw() );
 
         entity.getBoundingBox().setBounds(
-                entity.getPositionX() - ( entity.getWidth() / 2 ),
-                entity.getPositionY(),
-                entity.getPositionZ() - ( entity.getWidth() / 2 ),
-                entity.getPositionX() + ( entity.getWidth() / 2 ),
-                entity.getPositionY() + entity.getHeight(),
-                entity.getPositionZ() + ( entity.getWidth() / 2 )
+            entity.getPositionX() - ( entity.getWidth() / 2 ),
+            entity.getPositionY(),
+            entity.getPositionZ() - ( entity.getWidth() / 2 ),
+            entity.getPositionX() + ( entity.getWidth() / 2 ),
+            entity.getPositionY() + entity.getHeight(),
+            entity.getPositionZ() + ( entity.getWidth() / 2 )
         );
 
         boolean changeWorld = !to.getWorld().equals( from.getWorld() );

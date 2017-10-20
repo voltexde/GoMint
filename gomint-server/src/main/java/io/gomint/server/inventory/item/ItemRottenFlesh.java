@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 367 )
- public class ItemRottenFlesh extends ItemStack implements io.gomint.inventory.item.ItemRottenFlesh {
+public class ItemRottenFlesh extends ItemFood implements io.gomint.inventory.item.ItemRottenFlesh {
 
     // CHECKSTYLE:OFF
     public ItemRottenFlesh( short data, int amount ) {
@@ -19,5 +19,15 @@ import io.gomint.taglib.NBTTagCompound;
         super( 367, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getSaturation() {
+        return 0.1f;
+    }
+
+    @Override
+    public float getHunger() {
+        return 4;
+    }
 
 }
