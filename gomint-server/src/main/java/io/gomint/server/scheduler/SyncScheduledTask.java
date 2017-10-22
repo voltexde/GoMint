@@ -11,6 +11,7 @@ import io.gomint.scheduler.Task;
 import io.gomint.util.CompleteHandler;
 import io.gomint.util.ExceptionHandler;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt
  * @version 1.0
  */
+@ToString
 public class SyncScheduledTask implements Task, Runnable {
 
     private final Runnable task;

@@ -10,6 +10,8 @@ package io.gomint.server.scheduler;
 import io.gomint.server.GoMintServer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -17,6 +19,8 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class SyncTaskManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( SyncTaskManager.class );
 
     @Getter
     private final GoMintServer goMintServer;
@@ -62,6 +66,8 @@ public class SyncTaskManager {
                 if ( task == null ) {
                     return;
                 }
+
+                LOGGER.debug( "Found task: " + task );
 
                 // Check for abort value ( -1 )
                 if ( task.getNextExecution() == -1 ) {

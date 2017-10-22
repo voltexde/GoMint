@@ -162,8 +162,8 @@ public class PlayerConnection {
         // Check if we need to send chunks
         if ( this.entity != null ) {
             if ( this.entity.getChunkSendQueue().size() > 0 ) {
-                int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 20 : 4;
-                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 20 : 4;
+                int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 5 : 2;
+                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 12 : 3;
                 int alreadySent = 0;
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
@@ -444,6 +444,7 @@ public class PlayerConnection {
     private void handlePacket( long currentTimeMillis, Packet packet ) {
         PacketHandler handler = PACKET_HANDLERS[packet.getId() & 0xff];
         if ( handler != null ) {
+            LOGGER.debug( "Handle packet: " + packet );
             handler.handle( packet, currentTimeMillis, this );
             return;
         }

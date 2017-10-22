@@ -17,6 +17,7 @@ import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.generator.ConfigurableLayerGenerator;
 import io.gomint.server.world.generator.Generators;
 import io.gomint.taglib.NBTStream;
+import io.gomint.world.Difficulty;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.DbImpl;
@@ -25,6 +26,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +39,8 @@ import java.nio.ByteOrder;
  * @version 1.0
  */
 public class LevelDBWorldAdapter extends WorldAdapter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( LevelDBWorldAdapter.class );
 
     private DB db;
     private int worldVersion;
@@ -152,7 +157,12 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                         break;
                     case ".StorageVersion":
                         LevelDBWorldAdapter.this.worldVersion = (int) value;
+                        break;
+                    case ".Difficulty":
+                        LevelDBWorldAdapter.this.difficulty = Difficulty.valueOf( (int) value );
+                        break;
                     default:
+                        LOGGER.debug( "Found unknown path: " + path + " with value " + value );
                         break;
                 }
             } );

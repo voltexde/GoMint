@@ -23,6 +23,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.collection.PlayerMap;
+import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.generator.ChunkGenerator;
@@ -71,6 +72,7 @@ public abstract class WorldAdapter implements World {
     protected EntityManager entityManager;
 
     // Block ticking
+    int randomUpdateNumber = FastRandom.current().nextInt();
     TickList tickQueue = new TickList();
     private final Set<Long> neighbourUpdates = new HashSet<>();
 
