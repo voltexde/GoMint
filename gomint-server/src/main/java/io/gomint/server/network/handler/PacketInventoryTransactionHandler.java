@@ -45,7 +45,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 Vector playerPosition = connection.getEntity().getPosition();
 
                 double distance = packetPosition.distanceSquared( playerPosition );
-                double offsetLimit = packet.getType() == PacketInventoryTransaction.TYPE_USE_ITEM ? 0.0001 : 0.1;
+                double offsetLimit = packet.getType() == PacketInventoryTransaction.TYPE_USE_ITEM ? 0.0001 : 0.2;
                 if ( distance > offsetLimit ) {
                     LOGGER.debug( "Mismatching position: " + distance );
                     reset( packet, connection );
@@ -122,6 +122,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
                 }
 
+                break;
+            default:
                 break;
         }
     }
@@ -310,15 +312,17 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
     private void reset( PacketInventoryTransaction packet, PlayerConnection connection ) {
         connection.getEntity().getInventory().sendContents( connection );
 
-        Block blockClicked = connection.getEntity().getWorld().getBlockAt( packet.getBlockPosition() );
-        io.gomint.server.world.block.Block clickedBlock = (io.gomint.server.world.block.Block) blockClicked;
+        if ( packet.getBlockPosition() != null ) {
+            Block blockClicked = connection.getEntity().getWorld().getBlockAt( packet.getBlockPosition() );
+            io.gomint.server.world.block.Block clickedBlock = (io.gomint.server.world.block.Block) blockClicked;
 
-        if ( packet.getFace() > -1 ) {
-            io.gomint.server.world.block.Block replacedBlock = (io.gomint.server.world.block.Block) clickedBlock.getSide( packet.getFace() );
-            replacedBlock.send( connection );
+            if ( packet.getFace() > -1 ) {
+                io.gomint.server.world.block.Block replacedBlock = (io.gomint.server.world.block.Block) clickedBlock.getSide( packet.getFace() );
+                replacedBlock.send( connection );
+            }
+
+            clickedBlock.send( connection );
         }
-
-        clickedBlock.send( connection );
     }
 
 }

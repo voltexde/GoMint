@@ -17,7 +17,8 @@ public class DataConverter {
 
     public DataConverter() {
         addConverter( 36, 250, ( b, m ) -> m );                                                                                 // Piston extension
-        addConverter( 44, 44, ( b, m ) -> m == 6 ? 7 : m == 7 ? 6 : m );                                                        // Slab
+        addConverter( 43, 43, ( b, m ) -> m == 6 ? 7 : m == 7 ? 6 : m );                                                        // Double Slab
+        addConverter( 44, 44, ( b, m ) -> m == 6 ? 7 : m == 7 ? 6 : m == 14 ? 15 : m == 15 ? 14 : m );                          // Slab
         addConverter( 84, 25, ( b, m ) -> (byte) 0 );                                                                           // Jukebox
         addConverter( 85, 85, ( b, m ) -> (byte) 0 );                                                                           // Fence
         addConverter( 95, 241, ( b, m ) -> m );                                                                                 // Stained Glass
