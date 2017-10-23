@@ -81,7 +81,6 @@ public class ChunkAdapter implements Chunk {
 
     // Ticking
     private float lastUpdateDT = 0;
-    private int randomUpdateNumber = FastRandom.current().nextInt();
 
     // CHECKSTYLE:ON
 
@@ -105,8 +104,8 @@ public class ChunkAdapter implements Chunk {
                     continue;
                 }
 
-                this.randomUpdateNumber = ( ( this.randomUpdateNumber << 2 ) - this.randomUpdateNumber ) + 1013904223;
-                int blockHash = this.randomUpdateNumber >> 2;
+                this.world.randomUpdateNumber = ( ( this.world.randomUpdateNumber << 2 ) - this.world.randomUpdateNumber ) + 1013904223;
+                int blockHash = this.world.randomUpdateNumber >> 2;
                 for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
                     short index = (short) ( blockHash & 0xfff );
                     byte blockId = chunkSlice.getBlockInternal( index );

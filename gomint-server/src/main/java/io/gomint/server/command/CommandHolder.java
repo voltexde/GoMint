@@ -11,6 +11,7 @@ import java.util.Set;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 @AllArgsConstructor
 @Getter

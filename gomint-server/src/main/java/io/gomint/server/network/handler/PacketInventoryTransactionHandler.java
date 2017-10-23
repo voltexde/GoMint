@@ -45,7 +45,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 Vector playerPosition = connection.getEntity().getPosition();
 
                 double distance = packetPosition.distanceSquared( playerPosition );
-                double offsetLimit = packet.getType() == PacketInventoryTransaction.TYPE_USE_ITEM ? 0.0001 : 0.006;
+                double offsetLimit = packet.getType() == PacketInventoryTransaction.TYPE_USE_ITEM ? 0.0001 : 0.1;
                 if ( distance > offsetLimit ) {
                     LOGGER.debug( "Mismatching position: " + distance );
                     reset( packet, connection );
@@ -98,7 +98,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             case 1: // Consume item
                 // Check if item in hand is consumable
                 if ( !( itemInHand instanceof ItemConsumable ) ) {
-                    LOGGER.info( "EntityPlayer " + connection.getEntity().getName() + " tried to consume " + itemInHand.getClass().getSimpleName() );
+                    LOGGER.info( "Player " + connection.getEntity().getName() + " tried to consume " + itemInHand.getClass().getSimpleName() );
                     connection.getEntity().getInventory().sendContents( connection );
                     connection.getEntity().resendAttributes();
                     return;
@@ -199,7 +199,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     // Check if we can break this block in time
                     long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand() );
                     LOGGER.debug( "Break time: " + connection.getEntity().getBreakTime() + "; should: " + breakTime + " for " + block.getClass().getSimpleName() );
-                    if ( connection.getEntity().getBreakTime() < breakTime - 50 ) { // Client can lag one tick behind it seems
+                    if ( connection.getEntity().getBreakTime() < breakTime ) {
                         connection.getEntity().setBreakVector( null );
                         reset( packet, connection );
                     } else {

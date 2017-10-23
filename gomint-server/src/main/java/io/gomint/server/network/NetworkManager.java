@@ -165,6 +165,13 @@ public class NetworkManager {
         if ( this.socket != null ) {
             this.socket.close();
             this.socket = null;
+
+            this.playersByGuid.forEach( new LongObjConsumer<PlayerConnection>() {
+                @Override
+                public void accept( long l, PlayerConnection playerConnection ) {
+                    playerConnection.close();
+                }
+            } );
         }
     }
 
