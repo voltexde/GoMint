@@ -8,7 +8,6 @@ import org.apache.logging.log4j.core.config.plugins.PluginElement;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.config.plugins.validation.constraints.Required;
 import org.apache.logging.log4j.core.layout.PatternLayout;
-import org.apache.logging.log4j.util.PropertiesUtil;
 import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -18,21 +17,101 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
 
-@Plugin( name = TerminalConsoleAppender.PLUGIN_NAME, category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE, printObject = true )
-public class TerminalConsoleAppender extends AbstractAppender {
-
-    // Name used in log4j2.xml
-    static final String PLUGIN_NAME = "TerminalConsole";
-
-    private static final String PROPERTY_PREFIX = "terminal";
-    private static final String JLINE_OVERRIDE_PROPERTY = PROPERTY_PREFIX + ".jline";
+/**
+ * @author geNAZt
+ * @version 1.0
+ */
+@Plugin( name = "TerminalConsole", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE, printObject = true )
+public final class TerminalConsoleAppender extends AbstractAppender {
 
     // Grab early or we will infinite loop with the log4j2 stdout redirection
-    private static final PrintStream stdout = System.out;
+    private static final PrintStream STDOUT = System.out;
 
     private static boolean initialized;
     private static Terminal terminal;
     private static LineReader reader;
+
+    private TerminalConsoleAppender( String name, Filter filter, Layout<? extends Serializable> layout, boolean ignoreExceptions ) {
+        super( name, filter, layout, ignoreExceptions );
+        initializeTerminal();
+    }
+
+    private static void initializeTerminal() {
+        if ( !initialized ) {
+            initialized = true;
+
+            boolean dumb = System.getProperty( "java.class.path" ).contains( "idea_rt.jar" ); // TODO: Check if other IDEs also have virtual terminals with ANSI color support
+
+            try {
+                terminal = TerminalBuilder.builder().dumb( dumb ).build();
+            } catch ( IllegalStateException e ) {
+                LOGGER.warn( "Not supported terminal", e );
+            } catch ( IOException e ) {
+                LOGGER.error( "Failed to init, falling back to STDOUT", e );
+            }
+        }
+    }
+
+    @Override
+    public void append( LogEvent event ) {
+        if ( terminal != null ) {
+            if ( reader != null ) {
+                // Clear, write and redraw prompt again so the prompt is always at the bottom
+                reader.callWidget( LineReader.CLEAR );
+                terminal.writer().print( getLayout().toSerializable( event ) );
+                reader.callWidget( LineReader.REDRAW_LINE );
+                reader.callWidget( LineReader.REDISPLAY );
+            } else {
+                // There is no reader, no need to redraw prompt
+                terminal.writer().print( getLayout().toSerializable( event ) );
+            }
+
+            terminal.writer().flush();
+        } else {
+            STDOUT.print( getLayout().toSerializable( event ) );
+        }
+    }
+
+    /**
+     * Close the jLine terminal when needed
+     *
+     * @throws IOException when closing failed
+     */
+    public static void close() throws IOException {
+        if ( terminal != null ) {
+            terminal.reader().shutdown();
+
+            try {
+                terminal.close();
+            } finally {
+                terminal = null;
+            }
+        }
+    }
+
+    /**
+     * Factory for log4j2
+     *
+     * @param name of the appender
+     * @param filter for the appender
+     * @param layout for the appender
+     * @param ignoreExceptions controls if we should display exceptions
+     * @return new jline terminal appender
+     */
+    @PluginFactory
+    public static TerminalConsoleAppender createAppender(
+        @Required( message = "No name provided for TerminalConsoleAppender" ) @PluginAttribute( "name" ) String name,
+        @PluginElement( "Filter" ) Filter filter,
+        @PluginElement( "Layout" ) @Nullable Layout<? extends Serializable> layout,
+        @PluginAttribute( value = "ignoreExceptions", defaultBoolean = true ) boolean ignoreExceptions ) {
+
+        Layout<? extends Serializable> finalLayout = layout;
+        if ( layout == null ) {
+            finalLayout = PatternLayout.createDefaultLayout();
+        }
+
+        return new TerminalConsoleAppender( name, filter, finalLayout, ignoreExceptions );
+    }
 
     /**
      * Return the build up jLine terminal or null when the init failed
@@ -54,93 +133,6 @@ public class TerminalConsoleAppender extends AbstractAppender {
         }
 
         reader = newReader;
-    }
-
-    private TerminalConsoleAppender( String name, Filter filter, Layout<? extends Serializable> layout, boolean ignoreExceptions ) {
-        super( name, filter, layout, ignoreExceptions );
-        initializeTerminal();
-    }
-
-    private static void initializeTerminal() {
-        if ( !initialized ) {
-            initialized = true;
-
-            // Check for override (force enable jline) and IntelliJ which supports colors
-            Boolean jlineOverride = getOptionalBooleanProperty( JLINE_OVERRIDE_PROPERTY );
-            boolean dumb = jlineOverride == Boolean.TRUE || System.getProperty( "java.class.path" ).contains( "idea_rt.jar" );
-
-            if ( jlineOverride != Boolean.FALSE ) {
-                try {
-                    terminal = TerminalBuilder.builder().dumb( dumb ).build();
-                } catch ( IllegalStateException e ) {
-                    LOGGER.warn( "Disabling terminal, you're running in an unsupported environment.", e );
-                } catch ( IOException e ) {
-                    LOGGER.error( "Failed to initialize terminal. Falling back to standard output", e );
-                }
-            }
-        }
-    }
-
-    @Override
-    public void append( LogEvent event ) {
-        if ( terminal != null ) {
-            if ( reader != null ) {
-                // Draw the prompt line again if a reader is available
-                reader.callWidget( LineReader.CLEAR );
-                terminal.writer().print( getLayout().toSerializable( event ) );
-                reader.callWidget( LineReader.REDRAW_LINE );
-                reader.callWidget( LineReader.REDISPLAY );
-            } else {
-                terminal.writer().print( getLayout().toSerializable( event ) );
-            }
-
-            terminal.writer().flush();
-        } else {
-            stdout.print( getLayout().toSerializable( event ) );
-        }
-    }
-
-    public static void close() throws IOException {
-        if ( initialized ) {
-            initialized = false;
-            if ( terminal != null ) {
-                try {
-                    terminal.close();
-                } finally {
-                    terminal = null;
-                }
-            }
-        }
-    }
-
-    @PluginFactory
-    public static TerminalConsoleAppender createAppender(
-        @Required( message = "No name provided for TerminalConsoleAppender" ) @PluginAttribute( "name" ) String name,
-        @PluginElement( "Filter" ) Filter filter,
-        @PluginElement( "Layout" ) @Nullable Layout<? extends Serializable> layout,
-        @PluginAttribute( value = "ignoreExceptions", defaultBoolean = true ) boolean ignoreExceptions ) {
-
-        if ( layout == null ) {
-            layout = PatternLayout.createDefaultLayout();
-        }
-
-        return new TerminalConsoleAppender( name, filter, layout, ignoreExceptions );
-    }
-
-    private static Boolean getOptionalBooleanProperty( String name ) {
-        String value = PropertiesUtil.getProperties().getStringProperty( name );
-        if ( value == null ) {
-            return null;
-        }
-
-        if ( value.equalsIgnoreCase( "true" ) ) {
-            return Boolean.TRUE;
-        } else if ( value.equalsIgnoreCase( "false" ) ) {
-            return Boolean.FALSE;
-        } else {
-            LOGGER.warn( "Invalid value for boolean input property '{}': {}", name, value );
-            return null;
-        }
     }
 
 }

@@ -9,6 +9,7 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
+import io.gomint.command.SystemCommand;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
@@ -31,8 +32,8 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
 import io.gomint.world.World;
 import lombok.Getter;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
+import org.jline.keymap.KeyMap;
+import org.jline.reader.*;
 import org.jline.terminal.Terminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 
 /**
  * @author BlackyPaw
@@ -82,13 +84,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private SimplePluginManager pluginManager;
 
     // Task Scheduling
-    @Getter
-    private SyncTaskManager syncTaskManager;
+    @Getter private SyncTaskManager syncTaskManager;
     private AtomicBoolean running = new AtomicBoolean( true );
-    @Getter
-    private ExecutorService executorService;
-    @Getter
-    private ThreadFactory threadFactory;
+    @Getter private ExecutorService executorService;
+    @Getter private ThreadFactory threadFactory;
+    private Thread readerThread;
 
     /**
      * Starts the GoMint server
@@ -127,7 +127,18 @@ public class GoMintServer implements GoMint, InventoryHolder {
             reader = LineReaderBuilder.builder()
                 .appName( "GoMint" )
                 .terminal( terminal )
+                .completer( new Completer() {
+                    @Override
+                    public void complete( LineReader lineReader, ParsedLine parsedLine, List<Candidate> list ) {
+                        List<String> suggestions = pluginManager.getCommandManager().completeSystem( parsedLine.line() );
+                        for ( String suggestion : suggestions ) {
+                            list.add( new Candidate( suggestion ) );
+                        }
+                    }
+                } )
                 .build();
+
+            reader.setKeyMap( "emacs" );
 
             TerminalConsoleAppender.setReader( reader );
         }
@@ -138,18 +149,25 @@ public class GoMintServer implements GoMint, InventoryHolder {
         if ( reader != null ) {
             LineReader finalReader = reader;
             AtomicBoolean reading = new AtomicBoolean( false );
-            this.executorService.submit( () -> {
+            this.readerThread = new Thread( () -> {
                 String line;
                 while ( running.get() ) {
                     // Read jLine
                     reading.set( true );
-                    line = finalReader.readLine( "\u001b[32;0mGoMint\u001b[39;0m> " );
-                    inputLines.offer( line );
+                    try {
+                        line = finalReader.readLine( "\u001b[32;0mGoMint\u001b[39;0m> " );
+                        inputLines.offer( line );
+                    } catch ( Exception e ) {
+                        e.printStackTrace();
+                    }
                 }
             } );
+            this.readerThread.setName( "GoMint CLI reader" );
+            this.readerThread.start();
 
             // Wait until we read
-            while ( !reading.get() ) {}
+            while ( !reading.get() ) {
+            }
         }
 
         LOGGER.info( "Starting " + getVersion() );
@@ -247,7 +265,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 // Drain input lines
                 while ( inputLines.size() > 0 ) {
                     String line = inputLines.take();
-                    LOGGER.debug( "CLI Input: " + line );
+                    this.pluginManager.getCommandManager().executeSystem( line );
                 }
 
                 // Tick networking at every tick
@@ -255,6 +273,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
                 this.syncTaskManager.update( currentMillis, lastTickTime );
                 this.worldManager.update( currentMillis, lastTickTime );
+
+                // Check if we got shutdown
+                if ( !this.running.get() ) {
+                    break;
+                }
 
                 long diff = System.nanoTime() - start;
                 if ( diff < skipNanos ) {
@@ -271,25 +294,37 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         }
 
+        LOGGER.info( "Starting shutdown..." );
+
         // Safe shutdown
         this.networkManager.close();
         this.pluginManager.close();
         this.worldManager.close();
 
+        int wait = 500;
         this.executorService.shutdown();
+        while ( !this.executorService.isShutdown() && wait-- > 0 ) {
+            try {
+                this.executorService.awaitTermination( 10, TimeUnit.MILLISECONDS );
+            } catch ( InterruptedException e ) {
+                // Ignored .-.
+            }
+        }
 
-        try {
-            this.executorService.awaitTermination( 5, TimeUnit.SECONDS );
+        if ( !this.executorService.isShutdown() ) {
             this.executorService.shutdownNow();
-        } catch ( InterruptedException e ) {
+        }
+
+        // Tell jLine to close PLS
+        try {
+            this.readerThread.interrupt();
+            this.readerThread.join();
+            TerminalConsoleAppender.close();
+        } catch ( IOException | InterruptedException e ) {
             e.printStackTrace();
         }
 
-        try {
-            TerminalConsoleAppender.close();
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
+        LOGGER.info( "Shutdown completed" );
     }
 
     private boolean initNetworking() {
