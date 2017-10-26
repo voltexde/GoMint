@@ -2,6 +2,7 @@ package io.gomint.server.entity;
 
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
+import io.gomint.event.player.PlayerFoodLevelChangeEvent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
@@ -172,10 +173,6 @@ public class EntityHuman extends EntityLiving {
      * @param amount which should be added to the hunger
      */
     public void addHunger( float amount ) {
-        if ( amount < 0 ) {
-            return;
-        }
-
         AttributeInstance instance = this.getAttributeInstance( Attribute.HUNGER );
         float newAmount = Math.max( Math.min( this.getHunger() + amount, instance.getMaxValue() ), instance.getMinValue() );
         this.setHunger( newAmount );
@@ -190,8 +187,6 @@ public class EntityHuman extends EntityLiving {
         float old = this.getAttribute( Attribute.HUNGER );
         this.setAttribute( Attribute.HUNGER, amount );
 
-        LOGGER.debug( "Old: " + old + "; New: " + amount );
-
         if ( old < 17 && amount >= 17 ) {
             this.foodTicks = 0;
         } else if ( old < 6 && amount >= 6 ) {
@@ -205,7 +200,7 @@ public class EntityHuman extends EntityLiving {
      * Override for the EntityPlayer implementation
      *
      * @param amount of exhaustion
-     * @param cause of the exhaustion
+     * @param cause  of the exhaustion
      */
     public void exhaust( float amount, PlayerExhaustEvent.Cause cause ) {
         this.exhaust( amount );
@@ -230,8 +225,20 @@ public class EntityHuman extends EntityLiving {
             } else {
                 float hunger = this.getHunger();
                 if ( hunger > 0 ) {
-                    hunger = Math.max( 0, hunger - 1 );
-                    this.setHunger( hunger );
+                    if ( this instanceof EntityPlayer ) {
+                        PlayerFoodLevelChangeEvent foodLevelChangeEvent = new PlayerFoodLevelChangeEvent(
+                            (io.gomint.entity.EntityPlayer) this, -1
+                        );
+
+                        this.world.getServer().getPluginManager().callEvent( foodLevelChangeEvent );
+                        if ( !foodLevelChangeEvent.isCancelled() ) {
+                            hunger = Math.max( 0, hunger - 1 );
+                            this.setHunger( hunger );
+                        }
+                    } else {
+                        hunger = Math.max( 0, hunger - 1 );
+                        this.setHunger( hunger );
+                    }
                 }
             }
         }

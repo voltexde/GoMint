@@ -80,8 +80,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private PermissionGroupManager permissionGroupManager;
 
     // Plugin Management
-    @Getter
-    private SimplePluginManager pluginManager;
+    @Getter private SimplePluginManager pluginManager;
 
     // Task Scheduling
     @Getter private SyncTaskManager syncTaskManager;

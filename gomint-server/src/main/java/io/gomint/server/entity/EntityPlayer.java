@@ -10,6 +10,7 @@ package io.gomint.server.entity;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.player.PlayerExhaustEvent;
+import io.gomint.event.player.PlayerFoodLevelChangeEvent;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.math.*;
 import io.gomint.server.entity.metadata.MetadataContainer;
@@ -306,6 +307,18 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         setHeadYaw( to.getHeadYaw() );
 
         this.connection.checkForNewChunks( from );
+    }
+
+    @Override
+    public void addHunger( float amount ) {
+        PlayerFoodLevelChangeEvent foodLevelChangeEvent = new PlayerFoodLevelChangeEvent(
+            this, amount
+        );
+        this.world.getServer().getPluginManager().callEvent( foodLevelChangeEvent );
+
+        if ( !foodLevelChangeEvent.isCancelled() ) {
+            super.addHunger( amount );
+        }
     }
 
     // ==================================== UPDATING ==================================== //

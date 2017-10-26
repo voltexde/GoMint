@@ -8,6 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.entity.EntityPlayer;
+import io.gomint.event.player.PlayerInteractEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
@@ -27,6 +28,7 @@ import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.generator.ChunkGenerator;
+import io.gomint.server.world.generator.VoidGenerator;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.util.Numbers;
 import io.gomint.world.*;
@@ -85,6 +87,7 @@ public abstract class WorldAdapter implements World {
     private PlayerMap players;
 
     protected WorldAdapter( GoMintServer server, File worldDir ) {
+        this.chunkGenerator = new VoidGenerator( this );
         this.server = server;
         this.logger = LoggerFactory.getLogger( "World-" + worldDir.getName() );
         this.worldDir = worldDir;
@@ -803,6 +806,13 @@ public abstract class WorldAdapter implements World {
     public boolean useItemOn( ItemStack itemInHand, BlockPosition blockPosition, int face, Vector clickPosition, io.gomint.server.entity.EntityPlayer entity ) {
         Block blockClicked = this.getBlockAt( blockPosition );
         if ( blockClicked instanceof Air ) {
+            return false;
+        }
+
+        PlayerInteractEvent interactEvent = new PlayerInteractEvent( entity, PlayerInteractEvent.ClickType.RIGHT, blockClicked );
+        this.server.getPluginManager().callEvent( interactEvent );
+
+        if ( interactEvent.isCancelled() ) {
             return false;
         }
 
