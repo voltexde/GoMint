@@ -838,7 +838,7 @@ public abstract class WorldAdapter implements World {
 
                 // We got the block we want to replace
                 // Let the item build up the block
-                boolean success = Blocks.replaceWithItem( entity, replaceBlock, itemInHand, clickPosition );
+                boolean success = Blocks.replaceWithItem( entity, clickedBlock, replaceBlock, itemInHand, clickPosition );
                 if ( success ) {
                     // Schedule neighbour updates
 

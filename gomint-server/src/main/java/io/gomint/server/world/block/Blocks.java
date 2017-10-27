@@ -1,9 +1,11 @@
 package io.gomint.server.world.block;
 
+import io.gomint.event.world.BlockPlaceEvent;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
@@ -82,12 +84,20 @@ public class Blocks {
         return null;
     }
 
-    public static boolean replaceWithItem( Entity entity, Block block, ItemStack item, Vector clickVector ) {
+    public static boolean replaceWithItem( EntityPlayer entity, Block clickedBlock, Block block, ItemStack item, Vector clickVector ) {
         // We need to change the block id first
         int id = ( (io.gomint.server.inventory.item.ItemStack) item ).getBlockId();
         BlockGenerator blockGenerator = GENERATORS.getGenerator( id );
         Block newBlock = blockGenerator.generate();
         if ( !newBlock.beforePlacement( item, block.location ) ) {
+            return false;
+        }
+
+        // We decided that the block would fit
+        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent( entity, clickedBlock, block, item );
+        block.world.getServer().getPluginManager().callEvent( blockPlaceEvent );
+
+        if ( blockPlaceEvent.isCancelled() ) {
             return false;
         }
 

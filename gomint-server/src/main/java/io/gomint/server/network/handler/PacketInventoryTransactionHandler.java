@@ -3,6 +3,7 @@ package io.gomint.server.network.handler;
 import io.gomint.event.player.PlayerConsumeItemEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerInteractEvent;
+import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
@@ -187,6 +188,13 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Transaction seems valid
                 io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getBreakVector() );
                 if ( block != null ) {
+                    BlockBreakEvent blockBreakEvent = new BlockBreakEvent( connection.getEntity(), block );
+                    connection.getEntity().getWorld().getServer().getPluginManager().callEvent( blockBreakEvent );
+                    if ( blockBreakEvent.isCancelled() ) {
+                        reset( packet, connection );
+                        return;
+                    }
+
                     // Check for special break rights (creative)
                     if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE ) {
                         if ( block.onBreak() ) {

@@ -101,7 +101,7 @@ public class PlayerConnection {
     // Additional data
     @Getter @Setter private DeviceInfo deviceInfo;
     private float lastUpdateDT = 0;
-    private boolean firstSpawn;
+    private int firstSpawn;
 
     /**
      * Constructs a new player connection.
@@ -209,10 +209,10 @@ public class PlayerConnection {
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
-            if ( this.firstSpawn ) {
+            if ( this.firstSpawn > 0 && --this.firstSpawn == 0 ) {
                 // Send missing chunks to fill view distance
                 this.checkForNewChunks( null );
-                this.firstSpawn = false;
+                this.firstSpawn = 0;
             }
 
             this.sentInClientTick = 0;
@@ -283,7 +283,7 @@ public class PlayerConnection {
                 this.getEntity().fullyInit();
 
                 this.state = PlayerConnectionState.PLAYING;
-                this.firstSpawn = true;
+                this.firstSpawn = 40;
             }
         }
     }
