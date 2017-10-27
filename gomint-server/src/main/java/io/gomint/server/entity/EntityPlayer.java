@@ -318,6 +318,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         if ( !foodLevelChangeEvent.isCancelled() ) {
             super.addHunger( amount );
+        } else {
+            this.resendAttributes();
         }
     }
 

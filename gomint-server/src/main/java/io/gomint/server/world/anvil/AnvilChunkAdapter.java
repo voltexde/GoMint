@@ -16,6 +16,8 @@ import io.gomint.server.world.WorldLoadException;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
 import io.gomint.taglib.NBTTagCompound;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,6 +32,7 @@ import java.util.List;
  */
 public class AnvilChunkAdapter extends ChunkAdapter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( AnvilChunkAdapter.class );
     private static final DataConverter CONVERTER = new DataConverter();
 
     private boolean converted;
@@ -348,13 +351,21 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             for ( int i = 0; i < 16; ++i ) {
                 for ( int k = 0; k < 16; ++k ) {
                     int y = sectionY + j;
-                    short blockIndex = (short) (j << 8 | k << 4 | i);
+                    short blockIndex = (short) ( j << 8 | k << 4 | i );
 
                     int blockId = ( ( add != null ? add.get( blockIndex ) << 8 : 0 ) | blocks[blockIndex] ) & 0xFF;
                     byte blockData = data.get( blockIndex );
 
                     if ( !converted ) {
+                        if ( blockId == 143 ) {
+                            LOGGER.debug( "Found button @ " + ( i + ( this.x * 16 ) ) + " " + y + " " + ( k + ( this.z * 16 ) ) + ": " + blockData );
+                        }
+
                         Pair<Integer, Byte> convertedData = CONVERTER.convert( blockId, blockData );
+
+                        if ( blockId == 143 ) {
+                            LOGGER.debug( "Found button @ " + ( i + ( this.x * 16 ) ) + " " + y + " " + ( k + ( this.z * 16 ) ) + ": " + convertedData.getSecond() );
+                        }
 
                         blockId = convertedData.getFirst();
                         blockData = convertedData.getSecond();

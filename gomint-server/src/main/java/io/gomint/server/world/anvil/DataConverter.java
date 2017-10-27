@@ -26,43 +26,56 @@ public class DataConverter {
         addConverter( 167, 167, ( b, m ) -> (byte) ( ( ( m & 0x04 ) << 1 ) | ( ( m & 0x08 ) >> 1 ) | ( 3 - ( m & 0x03 ) ) ) );  // Iron trapdoor
         addConverter( 125, 157, ( b, m ) -> m );                                                                                // Double wooden slab
         addConverter( 126, 158, ( b, m ) -> m );                                                                                // Wooden slab
-        addConverter( 137, 0, ( b, m ) -> (byte) 0 );                                                                           // CommandExecutor block
         addConverter( 143, 143, ( b, m ) -> {                                                                                   // Wooden button
-            switch ( m & 0x7f ) {
-                case 0:
-                    return (byte) BlockFace.DOWN.getValue(); // 0
-                case 1:
-                    return (byte) BlockFace.SOUTH.getValue(); // 5
-                case 2:
-                    return (byte) BlockFace.NORTH.getValue(); // 4
-                case 3:
-                    return (byte) BlockFace.WEST.getValue(); // 3
-                case 4:
-                    return (byte) BlockFace.EAST.getValue(); // 2
-                case 5:
-                    return (byte) BlockFace.UP.getValue(); // 1
+            // Check if button has been pressed
+            boolean pressed = false;
+            if ( ( m & 0x08 ) == 0x08 ) {
+                pressed = true;
+                m ^= 0x08;
             }
 
-            return (byte) 0;
+            switch ( m ) {
+                case 0:
+                    return (byte) ( BlockFace.DOWN.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 0
+                case 1:
+                    return (byte) ( BlockFace.SOUTH.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 5
+                case 2:
+                    return (byte) ( BlockFace.NORTH.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 4
+                case 3:
+                    return (byte) ( BlockFace.WEST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 3
+                case 4:
+                    return (byte) ( BlockFace.WEST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 2
+                case 5:
+                    return (byte) ( BlockFace.UP.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 1
+            }
+
+            return (byte) ( BlockFace.DOWN.getValue() + ( ( pressed ) ? 8 : 0 ) );
         } );
 
         addConverter( 77, 77, ( b, m ) -> {                                                                                     // Stone Button
-            switch ( m & 0x7f ) {
-                case 0:
-                    return (byte) BlockFace.DOWN.getValue(); // 0
-                case 1:
-                    return (byte) BlockFace.SOUTH.getValue(); // 5
-                case 2:
-                    return (byte) BlockFace.NORTH.getValue(); // 4
-                case 3:
-                    return (byte) BlockFace.WEST.getValue(); // 3
-                case 4:
-                    return (byte) BlockFace.EAST.getValue(); // 2
-                case 5:
-                    return (byte) BlockFace.UP.getValue(); // 1
+            // Check if button has been pressed
+            boolean pressed = false;
+            if ( ( m & 0x08 ) == 0x08 ) {
+                pressed = true;
+                m ^= 0x08;
             }
 
-            return (byte) 0;
+            switch ( m ) {
+                case 0:
+                    return (byte) ( BlockFace.DOWN.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 0
+                case 1:
+                    return (byte) ( BlockFace.SOUTH.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 5
+                case 2:
+                    return (byte) ( BlockFace.NORTH.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 4
+                case 3:
+                    return (byte) ( BlockFace.WEST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 3
+                case 4:
+                    return (byte) ( BlockFace.WEST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 2
+                case 5:
+                    return (byte) ( BlockFace.UP.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 1
+            }
+
+            return (byte) ( BlockFace.DOWN.getValue() + ( ( pressed ) ? 8 : 0 ) );
         } );
 
         addConverter( 157, 126, ( b, m ) -> m );                                                                                // Activator rail
