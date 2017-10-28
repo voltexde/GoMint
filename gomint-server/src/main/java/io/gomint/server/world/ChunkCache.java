@@ -10,11 +10,14 @@ package io.gomint.server.world;
 import com.koloboke.collect.LongCursor;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.ChunkCacheMap;
 import io.gomint.server.util.collection.ChunkHashSet;
+import io.gomint.util.Numbers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,6 +55,10 @@ public class ChunkCache {
     private AtomicBoolean skip = new AtomicBoolean( false );
     private int currentX;
     private int currentZ;
+
+    // Ticking helper
+    private float lastFullTickDT = 0;
+    private ChunkHashSet alreadyTicked = ChunkHashSet.withExpectedSize( 500 );
 
     public ChunkCache( WorldAdapter world ) {
         this.world = world;
@@ -196,15 +203,6 @@ public class ChunkCache {
     }
 
     /**
-     * Get stored chunk hashes
-     *
-     * @return array of chunk hashes
-     */
-    long[] getChunkHashes() {
-        return this.cachedChunks.keys();
-    }
-
-    /**
      * Get a chunk based on his hash
      *
      * @param chunkHash which should be get
@@ -218,6 +216,60 @@ public class ChunkCache {
         }
 
         return chunkAdapter;
+    }
+
+    long[] getTickingChunks( float dT ) {
+        this.lastFullTickDT += dT;
+        if ( this.lastFullTickDT >= Values.CLIENT_TICK_RATE ) {
+            // We need to tick all chunks which haven't been ticked until now
+            long[] returnVal = new long[this.cachedChunks.size()];
+            int index = 0;
+
+            for ( long l : this.cachedChunks.keys() ) {
+                if ( l != 0 && !this.alreadyTicked.contains( l ) ) {
+                    returnVal[index++] = l;
+                }
+            }
+
+            this.lastFullTickDT = 0;
+            this.alreadyTicked.clear();
+            return Arrays.copyOf( returnVal, index );
+        } else {
+            // Check how many chunks we need to tick
+            int max = this.cachedChunks.size();
+
+            float currentTPS = 1 / dT;
+            int needCurrent = Numbers.fastFloor( max * ( 20F / currentTPS ) );
+
+            // This only happens on first tick though
+            if ( needCurrent == 0 ) {
+                return new long[0];
+            }
+
+            long[] returnVal = new long[needCurrent];
+            int index = 0;
+
+            for ( long l : this.cachedChunks.keys() ) {
+                if ( l != 0 && !this.alreadyTicked.contains( l ) ) {
+                    returnVal[index++] = l;
+                    this.alreadyTicked.add( l );
+
+                    if ( index == needCurrent ) {
+                        break;
+                    }
+                }
+            }
+
+            if ( index == needCurrent ) {
+                return returnVal;
+            }
+
+            return Arrays.copyOf( returnVal, index );
+        }
+    }
+
+    int getChunkSize() {
+        return this.cachedChunks.size();
     }
 
 }

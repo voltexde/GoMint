@@ -32,7 +32,6 @@ import java.util.List;
  */
 public class AnvilChunkAdapter extends ChunkAdapter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( AnvilChunkAdapter.class );
     private static final DataConverter CONVERTER = new DataConverter();
 
     private boolean converted;
@@ -357,15 +356,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     byte blockData = data.get( blockIndex );
 
                     if ( !converted ) {
-                        if ( blockId == 143 ) {
-                            LOGGER.debug( "Found button @ " + ( i + ( this.x * 16 ) ) + " " + y + " " + ( k + ( this.z * 16 ) ) + ": " + blockData );
-                        }
-
                         Pair<Integer, Byte> convertedData = CONVERTER.convert( blockId, blockData );
-
-                        if ( blockId == 143 ) {
-                            LOGGER.debug( "Found button @ " + ( i + ( this.x * 16 ) ) + " " + y + " " + ( k + ( this.z * 16 ) ) + ": " + convertedData.getSecond() );
-                        }
 
                         blockId = convertedData.getFirst();
                         blockData = convertedData.getSecond();

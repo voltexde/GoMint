@@ -323,6 +323,15 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
     }
 
+    /**
+     * Queue which holds chunks to be sent to the client
+     *
+     * @return queue with chunks to be sent to the client
+     */
+    public Queue<ChunkAdapter> getChunkSendQueue() {
+        return this.chunkSendQueue;
+    }
+
     // ==================================== UPDATING ==================================== //
 
     @Override
@@ -591,15 +600,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     /**
-     * Queue which holds chunks to be sent to the client
-     *
-     * @return queue with chunks to be sent to the client
-     */
-    public Queue<ChunkAdapter> getChunkSendQueue() {
-        return this.chunkSendQueue;
-    }
-
-    /**
      * Remove player from PlayerList and remove from global inventories etc.
      */
     public void cleanup() {
@@ -759,6 +759,18 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         } else {
             this.exhaust( 0.2f, PlayerExhaustEvent.Cause.JUMP );
         }
+    }
+
+    /**
+     * Attack another entity with the item currently in hand
+     *
+     * @param target which should be attacked
+     */
+    public void attackWithItemInHand( Entity target ) {
+        // Check if the target can be attacked
+        /*if ( !target.isInvulnerable() ) {
+
+        }*/
     }
 
 }

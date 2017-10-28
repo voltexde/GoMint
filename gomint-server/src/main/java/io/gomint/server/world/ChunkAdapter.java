@@ -17,9 +17,7 @@ import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
-import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.EntityIDMap;
-import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.taglib.NBTWriter;
@@ -79,9 +77,6 @@ public class ChunkAdapter implements Chunk {
     // Entities
     protected EntityIDMap entities = EntityIDMap.withExpectedSize( 20 );
 
-    // Ticking
-    private float lastUpdateDT = 0;
-
     // CHECKSTYLE:ON
 
     /**
@@ -91,64 +86,59 @@ public class ChunkAdapter implements Chunk {
      * @param dT            The delta from the full second which has been calculated in the last tick
      */
     public void update( long currentTimeMS, float dT ) {
-        this.lastUpdateDT += dT;
-        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
-            for ( ChunkSlice chunkSlice : this.chunkSlices ) {
-                // When we hit a nulled slice there is only air left
-                if ( chunkSlice == null ) {
-                    break;
-                }
-
-                // Skip for only air chunk slices
-                if ( chunkSlice.isAllAir() ) {
-                    continue;
-                }
-
-                this.world.randomUpdateNumber = ( ( this.world.randomUpdateNumber << 2 ) - this.world.randomUpdateNumber ) + 1013904223;
-                int blockHash = this.world.randomUpdateNumber >> 2;
-                for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
-                    short index = (short) ( blockHash & 0xfff );
-                    byte blockId = chunkSlice.getBlockInternal( index );
-                    switch ( blockId ) {
-                        case (byte) 244:    // Beetroot
-                        case 2:             // Grass
-                        case 60:            // Farmland
-                        case 110:           // Mycelium
-                        case 6:             // Sapling
-                        case 16:            // Leaves
-                        case (byte) 161:    // Acacia leaves
-                        case 78:            // Top snow
-                        case 79:            // Ice
-                        case 11:            // Stationary lava
-                        case 10:            // FlowingLava
-                        case 9:             // Stationary water
-                        case 8:             // FlowingWater
-                            int blockX = ( blockHash >> 8 ) & 0x0f;
-                            int blockY = ( blockHash ) & 0x0f;
-                            int blockZ = ( blockHash >> 4 ) & 0x0f;
-
-                            Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
-                            if ( block instanceof io.gomint.server.world.block.Block ) {
-                                long next = ( (io.gomint.server.world.block.Block) block )
-                                    .update( UpdateReason.RANDOM, currentTimeMS, dT );
-
-                                if ( next > currentTimeMS ) {
-                                    Location location = block.getLocation();
-                                    this.world.tickQueue.add( next,
-                                        CoordinateUtils.toLong( (int) location.getX(),
-                                            (int) location.getY(),
-                                            (int) location.getZ() )
-                                    );
-                                }
-                            }
-
-                        default:
-                            break;
-                    }
-                }
+        for ( ChunkSlice chunkSlice : this.chunkSlices ) {
+            // When we hit a nulled slice there is only air left
+            if ( chunkSlice == null ) {
+                break;
             }
 
-            this.lastUpdateDT = 0;
+            // Skip for only air chunk slices
+            if ( chunkSlice.isAllAir() ) {
+                continue;
+            }
+
+            this.world.randomUpdateNumber = ( ( this.world.randomUpdateNumber << 2 ) - this.world.randomUpdateNumber ) + 1013904223;
+            int blockHash = this.world.randomUpdateNumber >> 2;
+            for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
+                short index = (short) ( blockHash & 0xfff );
+                byte blockId = chunkSlice.getBlockInternal( index );
+                switch ( blockId ) {
+                    case (byte) 244:    // Beetroot
+                    case 2:             // Grass
+                    case 60:            // Farmland
+                    case 110:           // Mycelium
+                    case 6:             // Sapling
+                    case 16:            // Leaves
+                    case (byte) 161:    // Acacia leaves
+                    case 78:            // Top snow
+                    case 79:            // Ice
+                    case 11:            // Stationary lava
+                    case 10:            // FlowingLava
+                    case 9:             // Stationary water
+                    case 8:             // FlowingWater
+                        int blockX = ( blockHash >> 8 ) & 0x0f;
+                        int blockY = ( blockHash ) & 0x0f;
+                        int blockZ = ( blockHash >> 4 ) & 0x0f;
+
+                        Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
+                        if ( block instanceof io.gomint.server.world.block.Block ) {
+                            long next = ( (io.gomint.server.world.block.Block) block )
+                                .update( UpdateReason.RANDOM, currentTimeMS, dT );
+
+                            if ( next > currentTimeMS ) {
+                                Location location = block.getLocation();
+                                this.world.tickQueue.add( next,
+                                    CoordinateUtils.toLong( (int) location.getX(),
+                                        (int) location.getY(),
+                                        (int) location.getZ() )
+                                );
+                            }
+                        }
+
+                    default:
+                        break;
+                }
+            }
         }
     }
 

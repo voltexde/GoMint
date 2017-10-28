@@ -7,6 +7,7 @@
 
 package io.gomint.server.world;
 
+import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.event.player.PlayerInteractEvent;
 import io.gomint.inventory.item.ItemAir;
@@ -18,7 +19,6 @@ import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
-import io.gomint.entity.Entity;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.*;
@@ -34,6 +34,7 @@ import io.gomint.util.Numbers;
 import io.gomint.world.*;
 import io.gomint.world.block.Block;
 import lombok.Getter;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,7 @@ import java.util.function.Predicate;
  * @author BlackyPaw
  * @version 1.0
  */
+@ToString
 public abstract class WorldAdapter implements World {
 
     // Shared objects
@@ -64,14 +66,15 @@ public abstract class WorldAdapter implements World {
     /**
      * Get the difficulty of this world
      */
-    @Getter protected Difficulty difficulty;
+    @Getter
+    protected Difficulty difficulty;
 
     // Chunk Handling
     protected ChunkCache chunkCache;
     protected ChunkGenerator chunkGenerator;
 
     // Entity Handling
-    protected EntityManager entityManager;
+    private EntityManager entityManager;
 
     // Block ticking
     int randomUpdateNumber = FastRandom.current().nextInt();
@@ -232,11 +235,10 @@ public abstract class WorldAdapter implements World {
         // Update all blocks
 
         // Random blocks
-        for ( long chunkHash : this.chunkCache.getChunkHashes() ) {
-            if ( chunkHash != 0 ) {
-                ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
-                chunkAdapter.update( currentTimeMS, dT );
-            }
+        long[] tickingHashes = this.chunkCache.getTickingChunks( dT );
+        for ( long chunkHash : tickingHashes ) {
+            ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
+            chunkAdapter.update( currentTimeMS, dT );
         }
 
         // Scheduled blocks
@@ -247,7 +249,9 @@ public abstract class WorldAdapter implements World {
             }
 
             // Get the block
-            Block block = getBlockAt( CoordinateUtils.fromLong( blockToUpdate ) );
+            BlockPosition blockPosition = CoordinateUtils.fromLong( blockToUpdate );
+            logger.info( "Ticking block @ " + blockPosition );
+            Block block = getBlockAt( blockPosition );
             if ( block != null ) {
                 // CHECKSTYLE:OFF
                 try {
@@ -713,8 +717,8 @@ public abstract class WorldAdapter implements World {
      * @param exception a entity which should not be included in the list
      * @return either null if there are no entities or a collection of entities
      */
-    public Collection<io.gomint.entity.Entity> getNearbyEntities( AxisAlignedBB bb, io.gomint.entity.Entity exception ) {
-        Set<io.gomint.entity.Entity> nearby = null;
+    public Collection<Entity> getNearbyEntities( AxisAlignedBB bb, Entity exception ) {
+        Set<Entity> nearby = null;
 
         int minX = Numbers.fastFloor( ( bb.getMinX() - 2 ) / 4 );
         int maxX = Numbers.fastCeil( ( bb.getMaxX() + 2 ) / 4 );
@@ -919,7 +923,7 @@ public abstract class WorldAdapter implements World {
             }
 
             // Break animation (this also plays the break sound in the client)
-            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | (block.getBlockData() << 8) );
+            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | ( block.getBlockData() << 8 ) );
 
             block.setType( io.gomint.world.block.Air.class, (byte) 0 );
 
@@ -937,6 +941,13 @@ public abstract class WorldAdapter implements World {
 
         ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
         chunk.resetTemporaryStorage( x & 0xF, y, z & 0xF );
+    }
+
+    public void scheduleBlockUpdate( Location location, long delay, TimeUnit unit ) {
+        BlockPosition position = location.toBlockPosition();
+        long key = this.server.getCurrentTickTime() + unit.toMillis( delay );
+
+        this.tickQueue.add( key, CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() ) );
     }
 
 }

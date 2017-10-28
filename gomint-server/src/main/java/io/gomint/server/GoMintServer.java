@@ -88,6 +88,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Getter private ExecutorService executorService;
     @Getter private ThreadFactory threadFactory;
     private Thread readerThread;
+    private long currentTickTime;
 
     /**
      * Starts the GoMint server
@@ -259,7 +260,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 long start = System.nanoTime();
 
                 // Tick all major subsystems:
-                long currentMillis = System.currentTimeMillis();
+                this.currentTickTime = System.currentTimeMillis();
 
                 // Drain input lines
                 while ( inputLines.size() > 0 ) {
@@ -268,10 +269,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 }
 
                 // Tick networking at every tick
-                this.networkManager.update( currentMillis, lastTickTime );
+                this.networkManager.update( this.currentTickTime, lastTickTime );
 
-                this.syncTaskManager.update( currentMillis, lastTickTime );
-                this.worldManager.update( currentMillis, lastTickTime );
+                this.syncTaskManager.update( this.currentTickTime, lastTickTime );
+                this.worldManager.update( this.currentTickTime, lastTickTime );
 
                 // Check if we got shutdown
                 if ( !this.running.get() ) {
@@ -480,6 +481,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     public static boolean isMainThread() {
         return GoMintServer.mainThread == Thread.currentThread().getId();
+    }
+
+    public long getCurrentTickTime() {
+        return this.currentTickTime;
     }
 
 }

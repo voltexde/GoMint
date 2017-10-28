@@ -7,6 +7,7 @@
 
 package io.gomint.world;
 
+import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.inventory.item.ItemStack;
@@ -107,7 +108,7 @@ public interface World {
      * @param includeEntities Should we return blocks only or also entities? True for entities, false without entities
      * @return either a list of collisions or null
      */
-    List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb, boolean includeEntities );
+    List<AxisAlignedBB> getCollisionCubes( Entity entity, AxisAlignedBB bb, boolean includeEntities );
 
     EntityItemDrop createItemDrop( Location location, ItemStack itemStack );
 
