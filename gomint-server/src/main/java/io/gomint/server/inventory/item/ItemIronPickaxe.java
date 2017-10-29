@@ -1,5 +1,8 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.server.entity.Attribute;
+import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -19,5 +22,20 @@ public class ItemIronPickaxe extends ItemReduceTierIron implements io.gomint.inv
         super( 257, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+
+    @Override
+    public void gotInHand( EntityPlayer player ) {
+        player
+            .getAttributeInstance( Attribute.ATTACK_DAMAGE )
+            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, 4 ); // 2 from pickaxe type, 2 from iron material
+    }
+
+    @Override
+    public void removeFromHand( EntityPlayer player ) {
+        player
+            .getAttributeInstance( Attribute.ATTACK_DAMAGE )
+            .removeModifier( AttributeModifier.ITEM_ATTACK_DAMAGE );
+    }
 
 }

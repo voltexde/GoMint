@@ -3,6 +3,8 @@ package io.gomint.server.entity;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.EnumMap;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -18,6 +20,8 @@ public class AttributeInstance {
     private float value;
     private boolean dirty;
 
+    private EnumMap<AttributeModifier, Float> modifiers = new EnumMap<>( AttributeModifier.class );
+
     AttributeInstance( String key, float minValue, float maxValue, float value ) {
         this.key = key;
         this.minValue = minValue;
@@ -25,6 +29,20 @@ public class AttributeInstance {
         this.value = value;
         this.defaultValue = value;
         this.dirty = true;
+    }
+
+    public void setModifier( AttributeModifier modifier, float amount ) {
+        this.modifiers.put( modifier, amount );
+        this.value += amount;
+        this.dirty = true;
+    }
+
+    public void removeModifier( AttributeModifier modifier ) {
+        Float amount = this.modifiers.remove( modifier );
+        if ( amount != null ) {
+            this.value -= amount;
+            this.dirty = true;
+        }
     }
 
     public void setValue( float value ) {

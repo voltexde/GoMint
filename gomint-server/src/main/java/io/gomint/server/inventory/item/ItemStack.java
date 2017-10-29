@@ -7,6 +7,7 @@
 
 package io.gomint.server.inventory.item;
 
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
@@ -178,6 +179,14 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
     public void afterPlacement() {
         // In a normal case the amount decreases
         this.amount--;
+    }
+
+    public void removeFromHand( EntityPlayer player ) {
+        // Normal items do nothing
+    }
+
+    public void gotInHand( EntityPlayer player ) {
+        // Normal items do nothing
     }
 
 }

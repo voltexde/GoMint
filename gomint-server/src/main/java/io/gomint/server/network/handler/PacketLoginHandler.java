@@ -47,7 +47,8 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
     public void handle( PacketLogin packet, long currentTimeMillis, PlayerConnection connection ) {
         // Check versions
         LOGGER.debug( "Trying to login with protocol version: " + packet.getProtocol() );
-        if ( packet.getProtocol() != Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {
+        if ( packet.getProtocol() != Protocol.MINECRAFT_PE_PROTOCOL_VERSION
+            && packet.getProtocol() != Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             String message;
             if ( packet.getProtocol() < Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {
                 message = "disconnectionScreen.outdatedClient";

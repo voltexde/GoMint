@@ -84,6 +84,7 @@ public class PlayerConnection {
     // Actual connection for wire transfer:
     @Getter private final Connection connection;
     @Getter private final PostProcessWorker postProcessWorker;
+    @Getter private int protocolVersion;
 
     // World data
     private final ChunkHashSet playerChunks;

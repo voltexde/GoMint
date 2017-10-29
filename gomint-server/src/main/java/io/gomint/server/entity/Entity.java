@@ -819,4 +819,23 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return false;
     }
 
+    /**
+     * Decides if an entity can be attacked with an item (normal player attack)
+     *
+     * @return true if this entity can be attacked with an item, false if not
+     */
+    boolean canBeAttackedWithAnItem() {
+        return true;
+    }
+
+    /**
+     * Decides if this entity can get attacked by the given entity.
+     *
+     * @param entity which wants to attack
+     * @return true when it can't be attacked from the entity given, false if it can
+     */
+    boolean isInvulnerableFrom( Entity entity ) {
+        return false;
+    }
+
 }

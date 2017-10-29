@@ -767,10 +767,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      * @param target which should be attacked
      */
     public void attackWithItemInHand( Entity target ) {
-        // Check if the target can be attacked
-        /*if ( !target.isInvulnerable() ) {
+        if ( target instanceof io.gomint.server.entity.Entity ) {
+            io.gomint.server.entity.Entity targetEntity = ( io.gomint.server.entity.Entity) target;
 
-        }*/
+            // Check if the target can be attacked
+            if ( targetEntity.canBeAttackedWithAnItem() ) {
+                if ( !targetEntity.isInvulnerableFrom( this ) ) {
+                    // Get this entity attack damage
+
+                }
+            }
+        }
     }
 
 }
