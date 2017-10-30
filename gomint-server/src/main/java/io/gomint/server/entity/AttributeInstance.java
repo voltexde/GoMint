@@ -60,4 +60,10 @@ public class AttributeInstance {
         return val;
     }
 
+    public void reset() {
+        this.modifiers.clear();
+        this.value = this.defaultValue;
+        this.dirty = true;
+    }
+
 }

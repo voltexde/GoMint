@@ -108,6 +108,11 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 connection.getEntity().jump();
                 break;
 
+            case RESPAWN:
+                connection.getEntity().respawn();
+
+                break;
+
             default:
                 LOGGER.warn( "Unhandled action: " + packet );
                 break;

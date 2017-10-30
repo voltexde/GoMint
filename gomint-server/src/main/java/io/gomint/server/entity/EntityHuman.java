@@ -43,6 +43,10 @@ public class EntityHuman extends EntityLiving {
 
     @Override
     public void update( long currentTimeMS, float dT ) {
+        if ( this.isDead() || this.getHealth() <= 0 ) {
+            return;
+        }
+
         super.update( currentTimeMS, dT );
 
         // Food tick
@@ -287,6 +291,11 @@ public class EntityHuman extends EntityLiving {
      */
     public boolean isSneaking() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SNEAKING );
+    }
+
+    @Override
+    protected void kill() {
+
     }
 
 }

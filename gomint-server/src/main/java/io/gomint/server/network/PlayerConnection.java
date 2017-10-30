@@ -84,10 +84,9 @@ public class PlayerConnection {
     // Actual connection for wire transfer:
     @Getter private final Connection connection;
     @Getter private final PostProcessWorker postProcessWorker;
-    @Getter private int protocolVersion;
 
     // World data
-    private final ChunkHashSet playerChunks;
+    @Getter private final ChunkHashSet playerChunks;
 
     // Connection State:
     @Getter @Setter private PlayerConnectionState state;
@@ -163,8 +162,8 @@ public class PlayerConnection {
         // Check if we need to send chunks
         if ( this.entity != null ) {
             if ( this.entity.getChunkSendQueue().size() > 0 ) {
-                int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 5 : 2;
-                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 12 : 3;
+                int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 2 : 1;
+                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 6 : 2;
                 int alreadySent = 0;
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
@@ -423,7 +422,7 @@ public class PlayerConnection {
 
             if ( pktBuf.getRemaining() > 0 ) {
                 LOGGER.error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x" +
-                    Integer.toHexString( payData[0] ) + " reamining " + pktBuf.getRemaining() + " bytes" );
+                    Integer.toHexString( payData[0] ) + " remaining " + pktBuf.getRemaining() + " bytes" );
                 return;
             }
         }
@@ -604,7 +603,7 @@ public class PlayerConnection {
         move.setZ( location.getZ() );
         move.setYaw( location.getYaw() );
         move.setPitch( location.getPitch() );
-        move.setMode( (byte) 1 );
+        move.setMode( (byte) 2 );
         move.setOnGround( this.getEntity().isOnGround() );
         move.setRidingEntityId( 0 );    // TODO: Implement riding entities correctly
         this.send( move );

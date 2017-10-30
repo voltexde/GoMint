@@ -1,16 +1,22 @@
 package io.gomint.server.entity;
 
+import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.DamageCause;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
+import io.gomint.math.Vector;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketEntityEvent;
+import io.gomint.server.network.packet.PacketRespawnPosition;
 import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
+import io.gomint.server.util.collection.EntityHashSet;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.util.Numbers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +43,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     protected Map<String, AttributeInstance> attributes = new HashMap<>();
 
     private float lastUpdateDT = 0;
+    private EntityHashSet attachedEntities = EntityHashSet.withExpectedSize( 10 );
 
     /**
      * Constructs a new EntityLiving
@@ -102,6 +109,10 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     public void update( long currentTimeMS, float dT ) {
+        if ( this.isDead() || this.getHealth() <= 0 ) {
+            return;
+        }
+
         super.update( currentTimeMS, dT );
         this.behaviour.update( currentTimeMS, dT );
 
@@ -117,13 +128,8 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     public void setHealth( float amount ) {
-        float filteredAmount = amount;
-        if ( filteredAmount < 0 ) {
-            filteredAmount = 0;
-        }
-
         AttributeInstance attributeInstance = this.attributes.get( Attribute.HEALTH.getKey() );
-        attributeInstance.setValue( filteredAmount );
+        attributeInstance.setValue( Math.max( attributeInstance.getMinValue(), amount ) );
     }
 
     @Override
@@ -183,13 +189,55 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
         // Armor calculations
         float damage = applyArmorReduction( damageEvent );
+        float health = Numbers.fastCeil( this.getHealth() - damage );
 
-        LOGGER.debug( "Dealing " + damage + " damage" );
+        LOGGER.debug( "Remaining health: " + health + " / " + this.getHealth() );
+
+        // Set health
+        this.setHealth( health <= 0 ? 0 : health );
+
+        // Send animation
+        PacketEntityEvent entityEvent = new PacketEntityEvent();
+        entityEvent.setEntityId( this.id );
+        entityEvent.setEventId( ( health <= 0 ) ? EntityEvent.DEATH.getId() : EntityEvent.HURT.getId() );
+
+        ObjCursor<io.gomint.entity.Entity> attachedEntities = this.attachedEntities.cursor();
+        while ( attachedEntities.moveNext() ) {
+            EntityPlayer entityPlayer = (EntityPlayer) attachedEntities.elem();
+            entityPlayer.getConnection().addToSendQueue( entityEvent );
+        }
+
+        if ( this instanceof EntityPlayer ) {
+            ( (EntityPlayer) this ).getConnection().addToSendQueue( entityEvent );
+
+            if ( health <= 0 ) {
+                this.kill();
+            }
+        }
+
         return true;
     }
 
+    protected abstract void kill();
+
     float applyArmorReduction( EntityDamageEvent damageEvent ) {
         return damageEvent.getDamage();
+    }
+
+    @Override
+    public void attach( EntityPlayer player ) {
+        this.attachedEntities.add( player );
+    }
+
+    @Override
+    public void detach( EntityPlayer player ) {
+        this.attachedEntities.remove( player );
+    }
+
+    void resetAttributes() {
+        for ( AttributeInstance instance : this.attributes.values() ) {
+            instance.reset();
+        }
     }
 
 }

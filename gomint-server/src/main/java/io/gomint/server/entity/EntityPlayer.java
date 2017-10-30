@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity;
 
+import com.koloboke.collect.LongCursor;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
@@ -35,6 +36,7 @@ import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -54,6 +56,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @version 1.0
  */
 @EqualsAndHashCode( callSuper = false, of = { "uuid" } )
+@ToString( of = { "username" } )
 public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder {
 
     private final PlayerConnection connection;
@@ -64,12 +67,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private String username;
     private UUID uuid;
     private String xboxId;
-    @Setter private PlayerSkin skin;
+    @Setter
+    private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter private AdventureSettings adventureSettings;
-    @Getter @Setter private Entity hoverEntity;
+    @Getter
+    private AdventureSettings adventureSettings;
+    @Getter
+    @Setter
+    private Entity hoverEntity;
     private final PermissionManager permissionManager = new PermissionManager( this );
-    @Getter private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
+    @Getter
+    private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
 
     // Hidden players
     private HiddenPlayerSet hiddenPlayers;
@@ -85,9 +93,15 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter @Getter private BlockPosition breakVector;
-    @Setter @Getter private long startBreak;
-    @Setter @Getter private long breakTime;
+    @Setter
+    @Getter
+    private BlockPosition breakVector;
+    @Setter
+    @Getter
+    private long startBreak;
+    @Setter
+    @Getter
+    private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -288,7 +302,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             // Change worlds first
             this.connection.sendMovePlayer( new Location( to.getWorld(), getPositionX() + 1000000, 4000, getPositionZ() + 1000000 ) );
             getWorld().removePlayer( this );
-            despawn();
             setWorld( (WorldAdapter) to.getWorld() );
             this.connection.resetPlayerChunks();
             this.entityVisibilityManager.clear();
@@ -335,6 +348,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // Update permissions
         this.permissionManager.update( currentTimeMS, dT );
+
+        if ( this.isDead() || this.getHealth() <= 0 ) {
+            return;
+        }
 
         // Look around
         Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
@@ -773,7 +790,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      */
     public void attackWithItemInHand( Entity target ) {
         if ( target instanceof io.gomint.server.entity.Entity ) {
-            io.gomint.server.entity.Entity targetEntity = ( io.gomint.server.entity.Entity) target;
+            io.gomint.server.entity.Entity targetEntity = (io.gomint.server.entity.Entity) target;
 
             // Check if the target can be attacked
             if ( targetEntity.canBeAttackedWithAnItem() ) {
@@ -802,7 +819,23 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                         // Check if target can absorb this damage
                         if ( targetEntity.damage( new EntityDamageByEntityEvent( targetEntity, this, damageSource, damage ) ) ) {
                             // Apply knockback
+                            if ( knockbackLevel > 0 ) {
+                                // Modify target velocity
+                                Vector targetVelo = targetEntity.getVelocity();
+                                targetVelo.add(
+                                    (float) ( -Math.sin( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ),
+                                    0.4f,
+                                    (float) ( Math.cos( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ) );
+                                targetVelo.setY( targetVelo.getY() > 0.4f ? 0.4f : targetVelo.getY() );
+                                targetEntity.setVelocity( targetVelo );
 
+                                // Modify our velocity / movement
+                                Vector ownVelo = this.getVelocity();
+                                ownVelo.setX( ownVelo.getX() * 0.6F );
+                                ownVelo.setZ( ownVelo.getZ() * 0.6F );
+                                this.setVelocity( ownVelo );
+                                this.setSprinting( false );
+                            }
                         }
                     }
                 }
@@ -821,18 +854,78 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         float damage = damageEvent.getDamage();
         float maxReductionDiff = 25 - this.armorInventory.getTotalArmorValue();
         float amplifiedDamage = damage * maxReductionDiff;
-        this.armorInventory.damageEvenly(damage);
+        this.armorInventory.damageEvenly( damage );
         return amplifiedDamage / 25.0F;
     }
 
     @Override
     public void attach( EntityPlayer player ) {
+        super.attach( player );
         this.armorInventory.addViewer( player );
+
+        // Send death animation if needed
+        if ( this.getHealth() <= 0 ) {
+            PacketEntityEvent entityEvent = new PacketEntityEvent();
+            entityEvent.setEntityId( this.getEntityId() );
+            entityEvent.setEventId( EntityEvent.DEATH.getId() );
+            player.getConnection().addToSendQueue( entityEvent );
+        }
     }
 
     @Override
     public void detach( EntityPlayer player ) {
         this.armorInventory.removeViewer( player );
+        super.detach( player );
     }
 
+    public void respawn() {
+        // Reset chunks
+        this.chunkSendQueue.clear();
+
+        LongCursor longCursor = this.connection.getPlayerChunks().cursor();
+        while ( longCursor.moveNext() ) {
+            int x = (int) ( longCursor.elem() >> 32 );
+            int z = (int) ( longCursor.elem() ) + Integer.MIN_VALUE;
+
+            this.getEntityVisibilityManager().updateRemoveChunk( this.getWorld().getChunk( x, z ) );
+            longCursor.remove();
+        }
+
+        // Send metadata
+        this.sendData( this );
+
+        // Resend adventure settings
+        this.adventureSettings.update();
+
+        // Reset attributes
+        this.resetAttributes();
+        this.resendAttributes();
+
+        // TODO: Remove effects
+
+        // Send teleport
+        this.teleport( this.world.getSpawnLocation() );
+
+        // Reset motion
+        this.setVelocity( new Vector( 0,0,0 ) );
+
+        // Update all other players
+        for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
+            EntityPlayer implPlayer = (EntityPlayer) player;
+            implPlayer.getEntityVisibilityManager().updateEntity( this, this.getChunk() );
+        }
+    }
+
+    @Override
+    protected void kill() {
+        PacketRespawnPosition respawnPosition = new PacketRespawnPosition();
+        respawnPosition.setPosition( new Vector( 0, this.eyeHeight, 0 ) );
+        this.getConnection().addToSendQueue( respawnPosition );
+
+        // Remove entity from all attached players
+        for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
+            EntityPlayer implPlayer = (EntityPlayer) player;
+            implPlayer.getEntityVisibilityManager().removeEntity( this, false );
+        }
+    }
 }

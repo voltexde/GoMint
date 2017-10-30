@@ -57,6 +57,7 @@ public final class Protocol {
     public static final byte PACKET_ENTITY_METADATA = (byte) 0x27;
     public static final byte PACKET_ENTITY_MOTION = (byte) 0x28;
     public static final byte PACKET_ANIMATE = (byte) 0x2C;
+    public static final byte PACKET_RESPAWN_POSITION = (byte) 0x2D;
     public static final byte PACKET_CONTAINER_OPEN = (byte) 0x2E;
     public static final byte PACKET_CONTAINER_CLOSE = (byte) 0x2F;
     public static final byte PACKET_HOTBAR = (byte) 0x30;
@@ -97,6 +98,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_ENTITY_EVENT:
+                return new PacketEntityEvent();
+
             case PACKET_COMMAND_REQUEST:
                 return new PacketCommandRequest();
 

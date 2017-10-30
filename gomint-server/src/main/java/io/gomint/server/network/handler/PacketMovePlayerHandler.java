@@ -31,6 +31,8 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
 
         Location from = entity.getLocation();
 
+        // LOGGER.debug( "Moving to: " + to );
+
         // The packet did not contain any movement? skip it
         if ( from.getX() - to.getX() == 0 &&
             from.getY() - to.getY() == 0 &&

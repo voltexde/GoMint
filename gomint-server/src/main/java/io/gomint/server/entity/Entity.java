@@ -178,6 +178,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * @param dT            The time that has passed since the last tick in 1/s
      */
     public void update( long currentTimeMS, float dT ) {
+        if ( this.dead ) {
+            return;
+        }
+
         this.transform.update( currentTimeMS, dT );
 
         this.lastUpdateDt += dT;
@@ -486,6 +490,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     @Override
     public void setVelocity( Vector velocity ) {
+        LOGGER.debug( "Setting velocity to: " + velocity );
         this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
         this.broadCastMotion();
     }
