@@ -8,16 +8,21 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 299 )
- public class ItemLeatherTunic extends ItemStack implements io.gomint.inventory.item.ItemLeatherTunic {
+public class ItemLeatherChestplate extends ItemArmor implements io.gomint.inventory.item.ItemLeatherTunic {
 
     // CHECKSTYLE:OFF
-    public ItemLeatherTunic( short data, int amount ) {
+    public ItemLeatherChestplate( short data, int amount ) {
         super( 299, data, amount );
     }
 
-    public ItemLeatherTunic( short data, int amount, NBTTagCompound nbt ) {
+    public ItemLeatherChestplate( short data, int amount, NBTTagCompound nbt ) {
         super( 299, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getReductionValue() {
+        return 3;
+    }
 
 }

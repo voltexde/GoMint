@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 310 )
- public class ItemDiamondHelmet extends ItemStack implements io.gomint.inventory.item.ItemDiamondHelmet {
+public class ItemDiamondHelmet extends ItemArmor implements io.gomint.inventory.item.ItemDiamondHelmet {
 
     // CHECKSTYLE:OFF
     public ItemDiamondHelmet( short data, int amount ) {
@@ -19,5 +19,10 @@ import io.gomint.taglib.NBTTagCompound;
         super( 310, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getReductionValue() {
+        return 3;
+    }
 
 }

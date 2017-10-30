@@ -9,6 +9,8 @@ package io.gomint.server.entity;
 
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
+import io.gomint.event.entity.EntityDamageByEntityEvent;
+import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerFoodLevelChangeEvent;
 import io.gomint.event.player.PlayerJoinEvent;
@@ -19,6 +21,7 @@ import io.gomint.server.inventory.*;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.permission.PermissionManager;
+import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.collection.ContainerIDMap;
@@ -61,15 +64,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private String username;
     private UUID uuid;
     private String xboxId;
-    @Setter
-    private PlayerSkin skin;
+    @Setter private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter
-    private AdventureSettings adventureSettings;
-    @Getter
-    @Setter
-    private Entity hoverEntity;
+    @Getter private AdventureSettings adventureSettings;
+    @Getter @Setter private Entity hoverEntity;
     private final PermissionManager permissionManager = new PermissionManager( this );
+    @Getter private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
 
     // Hidden players
     private HiddenPlayerSet hiddenPlayers;
@@ -85,15 +85,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter
-    @Getter
-    private BlockPosition breakVector;
-    @Setter
-    @Getter
-    private long startBreak;
-    @Setter
-    @Getter
-    private long breakTime;
+    @Setter @Getter private BlockPosition breakVector;
+    @Setter @Getter private long startBreak;
+    @Setter @Getter private long breakTime;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -297,6 +291,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             despawn();
             setWorld( (WorldAdapter) to.getWorld() );
             this.connection.resetPlayerChunks();
+            this.entityVisibilityManager.clear();
         }
 
         this.connection.sendMovePlayer( to );
@@ -615,6 +610,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             add( new PacketPlayerlist.Entry( uuid, getEntityId(), null, null, null ) );
         }} );
 
+        // Cleanup the visibility manager
+        this.entityVisibilityManager.clear();
+
         // Check all other players
         for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
             EntityPlayer entityPlayer = (EntityPlayer) player;
@@ -626,6 +624,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             if ( entityPlayer.hiddenPlayers != null && entityPlayer.hiddenPlayers.contains( getEntityId() ) ) {
                 entityPlayer.hiddenPlayers.removeLong( getEntityId() );
             }
+
+            // Check if mouseover is the entity
+            if ( entityPlayer.hoverEntity != null && entityPlayer.hoverEntity.equals( this ) ) {
+                entityPlayer.hoverEntity = null;
+            }
+
+            entityPlayer.entityVisibilityManager.removeEntity( this );
         }
     }
 
@@ -774,10 +779,60 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             if ( targetEntity.canBeAttackedWithAnItem() ) {
                 if ( !targetEntity.isInvulnerableFrom( this ) ) {
                     // Get this entity attack damage
+                    EntityDamageEvent.DamageSource damageSource = EntityDamageEvent.DamageSource.ENTITY_ATTACK;
+                    float damage = this.getAttribute( Attribute.ATTACK_DAMAGE );
 
+                    // TODO: Enchantment modifiers
+
+                    // Check for knockback stuff
+                    int knockbackLevel = 0;
+
+                    if ( this.isSprinting() ) {
+                        knockbackLevel++;
+                    }
+
+                    // TODO: Add knockback enchantment
+
+                    if ( damage > 0 ) {
+                        boolean crit = this.fallDistance > 0 && !this.onGround && !this.isOnLadder() && !this.isInsideLiquid();
+                        if ( crit ) {
+                            damage *= 1.5;
+                        }
+
+                        // Check if target can absorb this damage
+                        if ( targetEntity.damage( new EntityDamageByEntityEvent( targetEntity, this, damageSource, damage ) ) ) {
+                            // Apply knockback
+
+                        }
+                    }
                 }
             }
         }
+    }
+
+    @Override
+    public boolean damage( EntityDamageEvent damageEvent ) {
+        // Can't touch this!
+        return this.gamemode != Gamemode.CREATIVE && this.gamemode != Gamemode.SPECTATOR && super.damage( damageEvent );
+    }
+
+    @Override
+    float applyArmorReduction( EntityDamageEvent damageEvent ) {
+        float damage = damageEvent.getDamage();
+        float maxReductionDiff = 25 - this.armorInventory.getTotalArmorValue();
+        float amplifiedDamage = damage * maxReductionDiff;
+        this.armorInventory.damageEvenly(damage);
+        return amplifiedDamage / 25.0F;
+    }
+
+    @Override
+    public void attach( EntityPlayer player ) {
+        this.armorInventory.addViewer( player );
+    }
+
+    @Override
+    public void detach( EntityPlayer player ) {
+        this.armorInventory.removeViewer( player );
     }
 
 }

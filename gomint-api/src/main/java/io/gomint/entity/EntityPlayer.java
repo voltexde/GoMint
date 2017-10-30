@@ -20,7 +20,7 @@ import java.util.UUID;
  * @author Digot
  * @version 1.0
  */
-public interface EntityPlayer extends EntityLiving {
+public interface EntityPlayer extends EntityCreature {
 
     /**
      * Gets the name of the player. It is NOT globally unique since the

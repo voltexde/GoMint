@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 303 )
- public class ItemChainChestplate extends ItemStack implements io.gomint.inventory.item.ItemChainChestplate {
+public class ItemChainChestplate extends ItemArmor implements io.gomint.inventory.item.ItemChainChestplate {
 
     // CHECKSTYLE:OFF
     public ItemChainChestplate( short data, int amount ) {
@@ -19,5 +19,10 @@ import io.gomint.taglib.NBTTagCompound;
         super( 303, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getReductionValue() {
+        return 5;
+    }
 
 }

@@ -11,8 +11,6 @@ public class PacketInteractHandler implements PacketHandler<PacketInteract> {
 
     @Override
     public void handle( PacketInteract packet, long currentTimeMillis, PlayerConnection connection ) {
-        System.out.println( packet );
-
         if ( packet.getAction() == PacketInteract.InteractAction.MOUSEOVER ) {
             // Special case runtime entity 0
             if ( packet.getEntityId() == 0 ) {

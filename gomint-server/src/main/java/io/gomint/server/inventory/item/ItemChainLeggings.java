@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 304 )
- public class ItemChainLeggings extends ItemStack implements io.gomint.inventory.item.ItemChainLeggings {
+public class ItemChainLeggings extends ItemArmor implements io.gomint.inventory.item.ItemChainLeggings {
 
     // CHECKSTYLE:OFF
     public ItemChainLeggings( short data, int amount ) {
@@ -19,5 +19,10 @@ import io.gomint.taglib.NBTTagCompound;
         super( 304, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getReductionValue() {
+        return 2;
+    }
 
 }

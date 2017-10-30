@@ -177,9 +177,8 @@ public class EntityManager {
                         }
                     }
 
-                    Chunk playerChunk = entityPlayer.getChunk();
-                    if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
-                        Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
+                    entityPlayer.getEntityVisibilityManager().updateEntity( movedEntity, chunk );
+                    if ( entityPlayer.getEntityVisibilityManager().isVisible( movedEntity ) ) {
                         entityPlayer.getConnection().addToSendQueue( packetEntityMovement );
                     }
                 }
@@ -354,8 +353,6 @@ public class EntityManager {
             }
         }
 
-        Packet spawnPacket = cEntity.createSpawnPacket();
-
         // Check which player we need to inform about this movement
         for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
             if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
@@ -367,7 +364,7 @@ public class EntityManager {
             Chunk playerChunk = entityPlayer.getChunk();
             if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
                 Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
-                entityPlayer.getConnection().send( spawnPacket );
+                entityPlayer.getEntityVisibilityManager().addEntity( entity );
             }
         }
     }
@@ -391,13 +388,10 @@ public class EntityManager {
             ( (ChunkAdapter) chunk ).removeEntity( cEntity );
         }
 
-        // Broadcast despawn entity packet:
-        PacketDespawnEntity packet = new PacketDespawnEntity();
-        packet.setEntityId( entity.getEntityId() );
-
+        // Broadcast entity despawn
         for ( EntityPlayer player : this.world.getPlayers() ) {
             if ( player instanceof io.gomint.server.entity.EntityPlayer ) {
-                ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().addToSendQueue( packet );
+                ( (io.gomint.server.entity.EntityPlayer) player ).getEntityVisibilityManager().removeEntity( entity );
             }
         }
     }

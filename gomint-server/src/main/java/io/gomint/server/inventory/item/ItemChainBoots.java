@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 305 )
- public class ItemChainBoots extends ItemStack implements io.gomint.inventory.item.ItemChainBoots {
+public class ItemChainBoots extends ItemArmor implements io.gomint.inventory.item.ItemChainBoots {
 
     // CHECKSTYLE:OFF
     public ItemChainBoots( short data, int amount ) {
@@ -19,5 +19,10 @@ import io.gomint.taglib.NBTTagCompound;
         super( 305, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getReductionValue() {
+        return 1;
+    }
 
 }

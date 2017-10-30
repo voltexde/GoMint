@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
@@ -20,7 +21,9 @@ import io.gomint.server.util.Values;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.Ladder;
 import io.gomint.server.world.block.Liquid;
+import io.gomint.server.world.block.Vines;
 import io.gomint.util.Numbers;
 import io.gomint.world.Chunk;
 import lombok.Getter;
@@ -808,6 +811,12 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.transform.getMotion();
     }
 
+    protected boolean isOnLadder() {
+        Location location = this.getLocation();
+        Block block = location.getWorld().getBlockAt( location.toBlockPosition() );
+        return block instanceof Ladder || block instanceof Vines;
+    }
+
     protected boolean isInsideLiquid() {
         Location eyeLocation = this.getLocation().clone().add( 0, this.eyeHeight, 0 );
         Block block = eyeLocation.getWorld().getBlockAt( eyeLocation.toBlockPosition() );
@@ -836,6 +845,26 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     boolean isInvulnerableFrom( Entity entity ) {
         return false;
+    }
+
+    /**
+     * Deal damage to this entity
+     *
+     * @param damageEvent which holds all data needed for damaging this entity
+     * @return true if the entity took damage, false if not
+     */
+    public boolean damage( EntityDamageEvent damageEvent ) {
+        // First of all we call the event
+        this.world.getServer().getPluginManager().callEvent( damageEvent );
+        return !damageEvent.isCancelled();
+    }
+
+    public void attach( EntityPlayer player ) {
+
+    }
+
+    public void detach( EntityPlayer player ) {
+
     }
 
 }

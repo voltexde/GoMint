@@ -23,7 +23,6 @@ public class ItemIronAxe extends ItemReduceTierIron implements io.gomint.invento
     }
     // CHECKSTYLE:ON
 
-
     @Override
     public void gotInHand( EntityPlayer player ) {
         player

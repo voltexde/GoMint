@@ -7,6 +7,7 @@ import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.ContainerInventory;
 import io.gomint.server.inventory.Inventory;
@@ -32,7 +33,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
     @Override
     public void handle( PacketInventoryTransaction packet, long currentTimeMillis, PlayerConnection connection ) {
-        // LOGGER.debug( packet.toString() );
+        LOGGER.debug( packet.toString() );
 
         switch ( packet.getType() ) {
             case PacketInventoryTransaction.TYPE_NORMAL:
@@ -84,7 +85,54 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 }
 
                 break;
+            case PacketInventoryTransaction.TYPE_USE_ITEM_ON_ENTITY:
+                // Check item in hand
+                itemInHand = connection.getEntity().getInventory().getItemInHand();
+                packetItemInHand = packet.getItemInHand();
+                if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
+                    LOGGER.debug( "Mismatching item in hand: " + itemInHand );
+                    reset( packet, connection );
+                    return;
+                }
+
+                // When the player wants to do this it should have selected a entity in its interact
+                if ( connection.getEntity().getHoverEntity() == null ) {
+                    LOGGER.debug( "Selected entity is null" );
+                    reset( packet, connection );
+                    return;
+                }
+
+                // Find the entity from this packet
+                io.gomint.entity.Entity entity = connection.getEntity().getWorld().findEntity( packet.getEntityId() );
+                if ( entity == null || !connection.getEntity().getHoverEntity().equals( entity ) ) {
+                    LOGGER.debug( "Entity does not match" );
+                    reset( packet, connection );
+                    return;
+                }
+
+                // Fast check for interact rules
+                Vector interactCheckVector = packet.getVector1().add( .5f, .5f, .5f );
+                if ( !connection.getEntity().canInteract( interactCheckVector, 8 ) ||
+                    connection.getEntity().getGamemode() == Gamemode.SPECTATOR ) {
+                    LOGGER.debug( "Can't interact from position" );
+                    reset( packet, connection );
+                    return;
+                }
+
+                this.handleUseItemOnEntity( entity, connection, packet );
+
+                break;
             default:
+                break;
+        }
+    }
+
+    private void handleUseItemOnEntity( io.gomint.entity.Entity target, PlayerConnection connection, PacketInventoryTransaction packet ) {
+        switch ( packet.getActionType() ) {
+            case 0:     // Interact
+                break;
+            case 1:     // Attack
+                connection.getEntity().attackWithItemInHand( target );
                 break;
         }
     }

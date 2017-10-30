@@ -1,6 +1,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.entity.DamageCause;
+import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
@@ -171,6 +172,24 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         if ( !event.isCancelled() ) {
             this.setHealth( this.getHealth() + amount );
         }
+    }
+
+    @Override
+    public boolean damage( EntityDamageEvent damageEvent ) {
+        // Call event
+        if ( !super.damage( damageEvent ) ) {
+            return false;
+        }
+
+        // Armor calculations
+        float damage = applyArmorReduction( damageEvent );
+
+        LOGGER.debug( "Dealing " + damage + " damage" );
+        return true;
+    }
+
+    float applyArmorReduction( EntityDamageEvent damageEvent ) {
+        return damageEvent.getDamage();
     }
 
 }

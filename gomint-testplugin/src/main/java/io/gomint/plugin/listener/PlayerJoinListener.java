@@ -22,6 +22,10 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 2, itemBucket );
         event.getPlayer().getInventory().setItem( 3, ItemCookedBeef.create( 2 ) );
 
+        event.getPlayer().getInventory().setItem( 4, ItemStoneSword.create( 1 ) );
+
+        event.getPlayer().getArmorInventory().setBoots( ItemIronBoots.create( 1 ) );
+
         // Set health to 2
         event.getPlayer().setHealth( 2 );
     }

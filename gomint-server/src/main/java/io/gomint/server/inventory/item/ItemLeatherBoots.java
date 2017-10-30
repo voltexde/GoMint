@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 301 )
- public class ItemLeatherBoots extends ItemStack implements io.gomint.inventory.item.ItemLeatherBoots {
+public class ItemLeatherBoots extends ItemArmor implements io.gomint.inventory.item.ItemLeatherBoots {
 
     // CHECKSTYLE:OFF
     public ItemLeatherBoots( short data, int amount ) {
@@ -19,5 +19,10 @@ import io.gomint.taglib.NBTTagCompound;
         super( 301, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public float getReductionValue() {
+        return 1;
+    }
 
 }

@@ -183,16 +183,6 @@ public class PlayerConnection {
 
                     this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() );
 
-                    // Send all spawned entities
-                    Collection<Entity> entities = chunk.getEntities();
-                    if ( entities != null ) {
-                        for ( io.gomint.entity.Entity entity : entities ) {
-                            if ( entity instanceof io.gomint.server.entity.Entity ) {
-                                this.addToSendQueue( ( (io.gomint.server.entity.Entity) entity ).createSpawnPacket() );
-                            }
-                        }
-                    }
-
                     alreadySent++;
                     this.sentInClientTick++;
                 }
@@ -271,6 +261,10 @@ public class PlayerConnection {
             this.currentlySendingPlayerChunks.removeLong( chunkHash );
             this.playerChunks.add( chunkHash );
         }
+
+        this.entity.getEntityVisibilityManager().updateAddedChunk(
+            this.entity.getWorld().getChunk( chunkData.getX(), chunkData.getZ() )
+        );
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
@@ -533,6 +527,7 @@ public class PlayerConnection {
                     z > currentZChunk + viewDistance ||
                     z < currentZChunk - viewDistance ) {
                     // TODO: Check for Packets to send to the client to unload the chunk?
+                    this.entity.getEntityVisibilityManager().updateRemoveChunk( this.entity.getWorld().getChunk( x, z ) );
                     longCursor.remove();
                 }
             }
