@@ -19,6 +19,7 @@ import io.gomint.math.*;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.*;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.permission.PermissionManager;
@@ -914,6 +915,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             EntityPlayer implPlayer = (EntityPlayer) player;
             implPlayer.getEntityVisibilityManager().updateEntity( this, this.getChunk() );
         }
+
+        // Apply item in hand stuff
+        ItemStack itemInHand = (ItemStack) this.inventory.getItemInHand();
+        itemInHand.gotInHand( this );
     }
 
     @Override

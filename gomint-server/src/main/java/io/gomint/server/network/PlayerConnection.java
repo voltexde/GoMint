@@ -163,7 +163,7 @@ public class PlayerConnection {
         if ( this.entity != null ) {
             if ( this.entity.getChunkSendQueue().size() > 0 ) {
                 int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 2 : 1;
-                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 6 : 2;
+                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 6 : 1;
                 int alreadySent = 0;
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
