@@ -853,7 +853,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     float applyArmorReduction( EntityDamageEvent damageEvent ) {
-        if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FALL ) {
+        if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FALL ||
+            damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.VOID ) {
             return damageEvent.getDamage();
         }
 

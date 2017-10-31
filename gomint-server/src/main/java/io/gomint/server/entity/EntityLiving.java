@@ -277,4 +277,10 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         }
     }
 
+    @Override
+    void dealVoidDamage() {
+        EntityDamageEvent damageEvent = new EntityDamageEvent( this,
+            EntityDamageEvent.DamageSource.VOID, 4.0F );
+        this.damage( damageEvent );
+    }
 }

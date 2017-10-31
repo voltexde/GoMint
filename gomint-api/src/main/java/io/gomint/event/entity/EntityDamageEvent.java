@@ -68,7 +68,7 @@ public class EntityDamageEvent extends CancellableEntityEvent {
         /**
          * Fall damage when falling more than 3 blocks
          */
-        FALL,
+        FALL, VOID,
 
     }
 

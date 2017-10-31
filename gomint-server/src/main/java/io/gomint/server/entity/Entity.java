@@ -229,6 +229,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 this.transform.setMotionZ( 0 );
             }
 
+            // Check for void damage
+            if ( this.getPositionY() < -64F ) {
+                this.dealVoidDamage();
+            }
+
             this.lastUpdateDt = 0;
         }
 
@@ -904,6 +909,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
             to.getY() + this.getHeight(),
             to.getZ() + ( this.getWidth() / 2)
         );
+    }
+
+    void dealVoidDamage() {
+        despawn();
     }
 
 }
