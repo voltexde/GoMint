@@ -1,7 +1,6 @@
 package io.gomint.server.entity;
 
 import com.koloboke.collect.ObjCursor;
-import io.gomint.entity.DamageCause;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
@@ -12,7 +11,6 @@ import io.gomint.server.entity.pathfinding.PathfindingEngine;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityEvent;
-import io.gomint.server.network.packet.PacketRespawnPosition;
 import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.EntityHashSet;
@@ -224,7 +222,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             double diffX = entity.getPositionX() - this.getPositionX();
             double diffZ = entity.getPositionZ() - this.getPositionZ();
 
-            float distance = (float) Math.sqrt(diffX * diffX + diffZ * diffZ);
+            float distance = (float) Math.sqrt( diffX * diffX + diffZ * diffZ );
             if ( distance > 0.0 ) {
                 float baseModifier = 0.4F;
 

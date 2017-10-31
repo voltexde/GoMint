@@ -87,7 +87,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     private boolean isCollidedVertically;
     private boolean isCollidedHorizontally;
-    private boolean isCollided;
+    boolean isCollided;
 
     /**
      * Fall distance tracking
@@ -371,7 +371,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     protected abstract void fall();
 
-    private void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
+    void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
         // Check if we collided with something
         this.isCollidedVertically = movY != dY;
         this.isCollidedHorizontally = ( movX != dX || movZ != dZ );

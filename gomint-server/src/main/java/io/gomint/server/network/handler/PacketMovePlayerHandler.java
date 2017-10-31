@@ -3,6 +3,7 @@ package io.gomint.server.network.handler;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerMoveEvent;
 import io.gomint.math.Location;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMovePlayer;
@@ -15,6 +16,8 @@ import org.slf4j.LoggerFactory;
  * @version 1.0
  */
 public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( PacketMovePlayer.class );
 
     @Override
     public void handle( PacketMovePlayer packet, long currentTimeMillis, PlayerConnection connection ) {
@@ -65,6 +68,7 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
             float moveY = to.getY() - from.getY();
             float moveZ = to.getZ() - from.getZ();
 
+            // Try to at least move the gravitation down
             entity.safeMove( moveX, moveY, moveZ );
 
             entity.setPitch( to.getPitch() );

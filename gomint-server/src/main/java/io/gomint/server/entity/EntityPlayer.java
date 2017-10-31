@@ -902,7 +902,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.respawnPosition = null;
 
         // Reset motion
-        this.setVelocity( new Vector( 0,0,0 ) );
+        this.setVelocity( new Vector( 0, 0, 0 ) );
 
         PacketEntityEvent entityEvent = new PacketEntityEvent();
         entityEvent.setEntityId( this.getEntityId() );
@@ -935,5 +935,18 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             EntityPlayer implPlayer = (EntityPlayer) player;
             implPlayer.getEntityVisibilityManager().removeEntity( this, false );
         }
+    }
+
+    @Override
+    void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
+        // Check if we are not on ground or we moved on y axis
+        if ( !this.onGround || movY != 0 ) {
+            AxisAlignedBB bb = this.boundingBox.grow( 0, 0.2f, 0 );
+
+            // Check if we collided with a block
+            this.onGround = this.world.getCollisionCubes( this, bb, false ) != null;
+        }
+
+        this.isCollided = this.onGround;
     }
 }
