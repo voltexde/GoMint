@@ -7,7 +7,6 @@
 
 package io.gomint.server.entity;
 
-import com.koloboke.collect.LongCursor;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
@@ -38,6 +37,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -60,6 +61,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 @ToString( of = { "username" } )
 public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
+
     private final PlayerConnection connection;
     private int viewDistance;
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
@@ -79,6 +82,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private final PermissionManager permissionManager = new PermissionManager( this );
     @Getter
     private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
+    private Location respawnPosition = null;
 
     // Hidden players
     private HiddenPlayerSet hiddenPlayers;
@@ -309,12 +313,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
 
         this.connection.sendMovePlayer( to );
-
-        setPosition( to );
-        setPitch( to.getPitch() );
-        setYaw( to.getYaw() );
-        setHeadYaw( to.getHeadYaw() );
-
+        this.setAndRecalcPosition( to );
+        this.fallDistance = 0;
         this.connection.checkForNewChunks( from );
     }
 
@@ -885,18 +885,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     public void respawn() {
-        // Reset chunks
-        this.chunkSendQueue.clear();
-
-        LongCursor longCursor = this.connection.getPlayerChunks().cursor();
-        while ( longCursor.moveNext() ) {
-            int x = (int) ( longCursor.elem() >> 32 );
-            int z = (int) ( longCursor.elem() ) + Integer.MIN_VALUE;
-
-            this.getEntityVisibilityManager().updateRemoveChunk( this.getWorld().getChunk( x, z ) );
-            longCursor.remove();
-        }
-
         // Send metadata
         this.sendData( this );
 
@@ -909,8 +897,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // TODO: Remove effects
 
-        // Send teleport
-        this.teleport( this.world.getSpawnLocation() );
+        // Check for new chunks
+        this.teleport( this.respawnPosition );
+        this.respawnPosition = null;
 
         // Reset motion
         this.setVelocity( new Vector( 0,0,0 ) );
@@ -935,8 +924,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     protected void kill() {
+        this.respawnPosition = this.world.getSpawnLocation().add( 0, this.eyeHeight, 0 );
+
         PacketRespawnPosition respawnPosition = new PacketRespawnPosition();
-        respawnPosition.setPosition( new Vector( 0, this.eyeHeight, 0 ) );
+        respawnPosition.setPosition( this.respawnPosition );
         this.getConnection().addToSendQueue( respawnPosition );
 
         // Remove entity from all attached players

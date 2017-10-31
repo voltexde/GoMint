@@ -256,8 +256,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                     // Check if we can break this block in time
                     long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand() );
-                    LOGGER.debug( "Break time: " + connection.getEntity().getBreakTime() + "; should: " + breakTime + " for " + block.getClass().getSimpleName() );
-                    if ( connection.getEntity().getBreakTime() < breakTime ) {
+                    LOGGER.debug( "Break time: " + ( connection.getEntity().getBreakTime() + 50 ) + "; should: " + breakTime + " for " + block.getClass().getSimpleName() );
+                    if ( connection.getEntity().getBreakTime() + 50 < breakTime ) {
                         connection.getEntity().setBreakVector( null );
                         reset( packet, connection );
                     } else {

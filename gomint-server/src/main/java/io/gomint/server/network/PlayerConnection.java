@@ -8,7 +8,6 @@
 package io.gomint.server.network;
 
 import com.koloboke.collect.LongCursor;
-import io.gomint.entity.Entity;
 import io.gomint.event.player.PlayerKickEvent;
 import io.gomint.event.player.PlayerQuitEvent;
 import io.gomint.jraknet.Connection;
@@ -77,29 +76,42 @@ public class PlayerConnection {
     }
 
     // Network manager that created this connection:
-    @Getter private final NetworkManager networkManager;
-    @Getter @Setter private EncryptionHandler encryptionHandler;
-    @Getter private final GoMintServer server;
+    @Getter
+    private final NetworkManager networkManager;
+    @Getter
+    @Setter
+    private EncryptionHandler encryptionHandler;
+    @Getter
+    private final GoMintServer server;
 
     // Actual connection for wire transfer:
-    @Getter private final Connection connection;
-    @Getter private final PostProcessWorker postProcessWorker;
+    @Getter
+    private final Connection connection;
+    @Getter
+    private final PostProcessWorker postProcessWorker;
 
     // World data
-    @Getter private final ChunkHashSet playerChunks;
+    @Getter
+    private final ChunkHashSet playerChunks;
 
     // Connection State:
-    @Getter @Setter private PlayerConnectionState state;
+    @Getter
+    @Setter
+    private PlayerConnectionState state;
     private int sentChunks;
     private BlockingQueue<Packet> sendQueue;
 
     // Entity
-    @Getter @Setter private EntityPlayer entity;
+    @Getter
+    @Setter
+    private EntityPlayer entity;
     private ChunkHashSet currentlySendingPlayerChunks;
     private long sentInClientTick;
 
     // Additional data
-    @Getter @Setter private DeviceInfo deviceInfo;
+    @Getter
+    @Setter
+    private DeviceInfo deviceInfo;
     private float lastUpdateDT = 0;
     private int firstSpawn;
 
@@ -434,7 +446,7 @@ public class PlayerConnection {
      * @param currentTimeMillis The time this packet arrived at the network manager
      * @param packet            The packet to handle
      */
-    @SuppressWarnings("unchecked")  // Needed for generic types not matching
+    @SuppressWarnings( "unchecked" )  // Needed for generic types not matching
     private void handlePacket( long currentTimeMillis, Packet packet ) {
         PacketHandler handler = PACKET_HANDLERS[packet.getId() & 0xff];
         if ( handler != null ) {
@@ -462,48 +474,48 @@ public class PlayerConnection {
         int currentZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
         int viewDistance = this.entity.getViewDistance();
-        synchronized ( this.playerChunks ) {
-            List<Pair<Integer, Integer>> toSendChunks = new ArrayList<>();
-            for ( int sendXChunk = currentXChunk - viewDistance; sendXChunk < currentXChunk + viewDistance; sendXChunk++ ) {
-                for ( int sendZChunk = currentZChunk - viewDistance; sendZChunk < currentZChunk + viewDistance; sendZChunk++ ) {
-                    toSendChunks.add( new Pair<>( sendXChunk, sendZChunk ) );
-                }
-            }
 
-            toSendChunks.sort( new Comparator<Pair<Integer, Integer>>() {
-                @Override
-                public int compare( Pair<Integer, Integer> o1, Pair<Integer, Integer> o2 ) {
-                    if ( Objects.equals( o1.getFirst(), o2.getFirst() ) &&
-                        Objects.equals( o1.getSecond(), o2.getSecond() ) ) {
-                        return 0;
-                    }
-
-                    int distXFirst = Math.abs( o1.getFirst() - currentXChunk );
-                    int distXSecond = Math.abs( o2.getFirst() - currentXChunk );
-
-                    int distZFirst = Math.abs( o1.getSecond() - currentZChunk );
-                    int distZSecond = Math.abs( o2.getSecond() - currentZChunk );
-
-                    if ( distXFirst + distZFirst > distXSecond + distZSecond ) {
-                        return 1;
-                    } else if ( distXFirst + distZFirst < distXSecond + distZSecond ) {
-                        return -1;
-                    }
-
-                    return 0;
-                }
-            } );
-
-            for ( Pair<Integer, Integer> chunk : toSendChunks ) {
-                long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
-
-                if ( !this.playerChunks.contains( hash ) &&
-                    !this.currentlySendingPlayerChunks.contains( hash ) ) {
-                    this.currentlySendingPlayerChunks.add( hash );
-                    worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity, false );
-                }
+        List<Pair<Integer, Integer>> toSendChunks = new ArrayList<>();
+        for ( int sendXChunk = currentXChunk - viewDistance; sendXChunk < currentXChunk + viewDistance; sendXChunk++ ) {
+            for ( int sendZChunk = currentZChunk - viewDistance; sendZChunk < currentZChunk + viewDistance; sendZChunk++ ) {
+                toSendChunks.add( new Pair<>( sendXChunk, sendZChunk ) );
             }
         }
+
+        toSendChunks.sort( new Comparator<Pair<Integer, Integer>>() {
+            @Override
+            public int compare( Pair<Integer, Integer> o1, Pair<Integer, Integer> o2 ) {
+                if ( Objects.equals( o1.getFirst(), o2.getFirst() ) &&
+                    Objects.equals( o1.getSecond(), o2.getSecond() ) ) {
+                    return 0;
+                }
+
+                int distXFirst = Math.abs( o1.getFirst() - currentXChunk );
+                int distXSecond = Math.abs( o2.getFirst() - currentXChunk );
+
+                int distZFirst = Math.abs( o1.getSecond() - currentZChunk );
+                int distZSecond = Math.abs( o2.getSecond() - currentZChunk );
+
+                if ( distXFirst + distZFirst > distXSecond + distZSecond ) {
+                    return 1;
+                } else if ( distXFirst + distZFirst < distXSecond + distZSecond ) {
+                    return -1;
+                }
+
+                return 0;
+            }
+        } );
+
+        for ( Pair<Integer, Integer> chunk : toSendChunks ) {
+            long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
+
+            if ( !this.playerChunks.contains( hash ) &&
+                !this.currentlySendingPlayerChunks.contains( hash ) ) {
+                this.currentlySendingPlayerChunks.add( hash );
+                worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity, false );
+            }
+        }
+
 
         // Move the player to this chunk
         if ( from != null ) {
@@ -515,20 +527,18 @@ public class PlayerConnection {
         }
 
         // Check for unloading chunks
-        synchronized ( this.playerChunks ) {
-            LongCursor longCursor = this.playerChunks.cursor();
-            while ( longCursor.moveNext() ) {
-                int x = (int) ( longCursor.elem() >> 32 );
-                int z = (int) ( longCursor.elem() ) + Integer.MIN_VALUE;
+        LongCursor longCursor = this.playerChunks.cursor();
+        while ( longCursor.moveNext() ) {
+            int x = (int) ( longCursor.elem() >> 32 );
+            int z = (int) ( longCursor.elem() ) + Integer.MIN_VALUE;
 
-                if ( x > currentXChunk + viewDistance ||
-                    x < currentXChunk - viewDistance ||
-                    z > currentZChunk + viewDistance ||
-                    z < currentZChunk - viewDistance ) {
-                    // TODO: Check for Packets to send to the client to unload the chunk?
-                    this.entity.getEntityVisibilityManager().updateRemoveChunk( this.entity.getWorld().getChunk( x, z ) );
-                    longCursor.remove();
-                }
+            if ( x > currentXChunk + viewDistance ||
+                x < currentXChunk - viewDistance ||
+                z > currentZChunk + viewDistance ||
+                z < currentZChunk - viewDistance ) {
+                // TODO: Check for Packets to send to the client to unload the chunk?
+                this.entity.getEntityVisibilityManager().updateRemoveChunk( this.entity.getWorld().getChunk( x, z ) );
+                longCursor.remove();
             }
         }
     }

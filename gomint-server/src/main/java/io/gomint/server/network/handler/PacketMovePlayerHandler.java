@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory;
  */
 public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( PacketMovePlayerHandler.class );
-
     @Override
     public void handle( PacketMovePlayer packet, long currentTimeMillis, PlayerConnection connection ) {
         EntityPlayer entity = connection.getEntity();
@@ -30,8 +28,6 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
         to.setPitch( packet.getPitch() );
 
         Location from = entity.getLocation();
-
-        // LOGGER.debug( "Moving to: " + to );
 
         // The packet did not contain any movement? skip it
         if ( from.getX() - to.getX() == 0 &&

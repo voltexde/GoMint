@@ -337,13 +337,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         }
 
         // Move by new bounding box
-        if ( dX != 0.0 || dY != 0.0 || dZ != 0.0 ) {
-            this.transform.setPosition(
-                ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
-                this.boundingBox.getMinY(),
-                ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
-            );
-        }
+        this.transform.setPosition(
+            ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
+            this.boundingBox.getMinY(),
+            ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
+        );
 
         // Check for grounding states
         this.checkIfCollided( movX, movY, movZ, dX, dY, dZ );
@@ -507,6 +505,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
     public void setVelocity( Vector velocity, boolean send ) {
         LOGGER.debug( "Setting velocity to: " + velocity );
         this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
+        this.fallDistance = 0;
+
         if ( send ) {
             this.broadCastMotion();
         }
@@ -887,6 +887,23 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     public void detach( EntityPlayer player ) {
 
+    }
+
+    public void setAndRecalcPosition( Location to ) {
+        setPosition( to );
+        setPitch( to.getPitch() );
+        setYaw( to.getYaw() );
+        setHeadYaw( to.getHeadYaw() );
+
+        // Update bounding box
+        getBoundingBox().setBounds(
+            to.getX() - ( this.getWidth() / 2),
+            to.getY(),
+            to.getZ() - ( this.getWidth() / 2),
+            to.getX() + ( this.getWidth() / 2),
+            to.getY() + this.getHeight(),
+            to.getZ() + ( this.getWidth() / 2)
+        );
     }
 
 }
