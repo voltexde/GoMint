@@ -825,9 +825,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                                 Vector targetVelo = targetEntity.getVelocity();
                                 targetVelo.add(
                                     (float) ( -Math.sin( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ),
-                                    0.4f,
+                                    0.1f,
                                     (float) ( Math.cos( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ) );
-                                targetVelo.setY( targetVelo.getY() > 0.4f ? 0.4f : targetVelo.getY() );
                                 targetEntity.setVelocity( targetVelo );
 
                                 // Modify our velocity / movement
@@ -910,10 +909,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Reset motion
         this.setVelocity( new Vector( 0,0,0 ) );
 
+        PacketEntityEvent entityEvent = new PacketEntityEvent();
+        entityEvent.setEntityId( this.getEntityId() );
+        entityEvent.setEventId( EntityEvent.RESPAWN.getId() );
+
         // Update all other players
         for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
             EntityPlayer implPlayer = (EntityPlayer) player;
             implPlayer.getEntityVisibilityManager().updateEntity( this, this.getChunk() );
+            if ( implPlayer.getEntityVisibilityManager().isVisible( this ) ) {
+                implPlayer.getConnection().send( entityEvent );
+            }
         }
 
         // Apply item in hand stuff

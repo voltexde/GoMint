@@ -2,6 +2,7 @@ package io.gomint.server.entity;
 
 import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.DamageCause;
+import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.math.Vector;
@@ -205,6 +206,32 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         while ( attachedEntities.moveNext() ) {
             EntityPlayer entityPlayer = (EntityPlayer) attachedEntities.elem();
             entityPlayer.getConnection().addToSendQueue( entityEvent );
+        }
+
+        if ( damageEvent instanceof EntityDamageByEntityEvent ) {
+            // Knockback
+            Entity entity = (Entity) ( (EntityDamageByEntityEvent) damageEvent ).getAttacker();
+            double diffX = entity.getPositionX() - this.getPositionX();
+            double diffZ = entity.getPositionZ() - this.getPositionZ();
+
+            float distance = (float) Math.sqrt(diffX * diffX + diffZ * diffZ);
+            if ( distance > 0.0 ) {
+                float baseModifier = 0.4F;
+
+                Vector motion = this.getVelocity();
+                motion.divide( 2f, 2f, 2f );
+                motion.add(
+                    (float) -( diffX / distance * baseModifier ),
+                    baseModifier,
+                    (float) -( diffZ / distance * baseModifier )
+                );
+
+                if ( motion.getY() > baseModifier ) {
+                    motion.setY( baseModifier );
+                }
+
+                this.setVelocity( motion );
+            }
         }
 
         if ( this instanceof EntityPlayer ) {

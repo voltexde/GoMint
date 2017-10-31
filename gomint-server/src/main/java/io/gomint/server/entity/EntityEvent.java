@@ -8,7 +8,9 @@ import lombok.Getter;
 public enum EntityEvent {
 
     HURT(2),
-    DEATH(3);
+    DEATH(3),
+
+    RESPAWN(18);
 
     @Getter private final byte id;
     EntityEvent( int id ) {
