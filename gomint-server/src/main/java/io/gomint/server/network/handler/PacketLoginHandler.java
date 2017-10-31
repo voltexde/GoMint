@@ -33,6 +33,8 @@ import java.nio.ByteOrder;
 import java.security.Key;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author geNAZt
@@ -42,6 +44,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PacketLoginHandler.class );
     private static final EncryptionRequestForger FORGER = new EncryptionRequestForger();
+    private static final Pattern NAME_PATTERN = Pattern.compile( "[a-zA-z0-9_\\.]{1,16}" );
 
     @Override
     public void handle( PacketLogin packet, long currentTimeMillis, PlayerConnection connection ) {
@@ -132,6 +135,25 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                         if ( !valid && connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
                             connection.disconnect( "Only valid XBOX Logins are allowed" );
                             return;
+                        }
+
+                        // Check for names
+                        String name = chainValidator.getUsername();
+                        if ( name.length() < 1 || name.length() > 16 ) {
+                            connection.disconnect( "disconnectionScreen.invalidName" );
+                            return;
+                        } else if ( !NAME_PATTERN.matcher( name ).matches() ) {
+                            connection.disconnect( "disconnectionScreen.invalidName" );
+                            return;
+                        }
+
+                        // Check for name / uuid collision
+                        for ( io.gomint.entity.EntityPlayer player : connection.getNetworkManager().getServer().getPlayers() ) {
+                            if ( player.getName().equals( name ) ||
+                                player.getUUID().equals( chainValidator.getUuid() ) ) {
+                                connection.disconnect( "Player already logged in on this server" );
+                                return;
+                            }
                         }
 
                         // Create additional data wrappers

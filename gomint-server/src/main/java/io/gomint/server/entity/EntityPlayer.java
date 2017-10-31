@@ -827,7 +827,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                                     (float) ( -Math.sin( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ),
                                     0.1f,
                                     (float) ( Math.cos( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ) );
-                                targetEntity.setVelocity( targetVelo );
+                                targetEntity.setVelocity( targetVelo, false );
 
                                 // Modify our velocity / movement
                                 Vector ownVelo = this.getVelocity();
@@ -836,6 +836,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                                 this.setVelocity( ownVelo );
                                 this.setSprinting( false );
                             }
+
+                            targetEntity.broadCastMotion();
                         }
                     }
                 }
@@ -851,6 +853,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     float applyArmorReduction( EntityDamageEvent damageEvent ) {
+        if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FALL ) {
+            return damageEvent.getDamage();
+        }
+
         float damage = damageEvent.getDamage();
         float maxReductionDiff = 25 - this.armorInventory.getTotalArmorValue();
         float amplifiedDamage = damage * maxReductionDiff;

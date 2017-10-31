@@ -157,7 +157,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
                     try {
                         line = finalReader.readLine( "\u001b[32;0mGoMint\u001b[39;0m> " );
                         inputLines.offer( line );
-                    } catch ( Exception e ) {
+                    } catch ( UserInterruptException e ) {
+                        GoMintServer.this.shutdown();
+                    } catch ( EndOfFileException e ) {
                         e.printStackTrace();
                     }
                 }

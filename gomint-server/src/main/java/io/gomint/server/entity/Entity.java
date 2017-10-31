@@ -490,12 +490,18 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     @Override
     public void setVelocity( Vector velocity ) {
-        LOGGER.debug( "Setting velocity to: " + velocity );
-        this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
-        this.broadCastMotion();
+        this.setVelocity( velocity, true );
     }
 
-    private void broadCastMotion() {
+    public void setVelocity( Vector velocity, boolean send ) {
+        LOGGER.debug( "Setting velocity to: " + velocity );
+        this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
+        if ( send ) {
+            this.broadCastMotion();
+        }
+    }
+
+    public void broadCastMotion() {
         PacketEntityMotion motion = new PacketEntityMotion();
         motion.setEntityId( this.getEntityId() );
         motion.setVelocity( this.transform.getMotion() );

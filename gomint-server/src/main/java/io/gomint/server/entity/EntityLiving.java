@@ -46,6 +46,9 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     private float lastUpdateDT = 0;
     private EntityHashSet attachedEntities = EntityHashSet.withExpectedSize( 10 );
 
+    private byte attackCoolDown = 0;
+    private float lastDamage = 0;
+
     /**
      * Constructs a new EntityLiving
      *
@@ -96,14 +99,11 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     protected void fall() {
-        double damage = this.fallDistance - 3;
+        float damage = this.fallDistance - 3;
         if ( damage > 0 ) {
-            this.attack( damage, DamageCause.FALL );
+            EntityDamageEvent damageEvent = new EntityDamageEvent( this, EntityDamageEvent.DamageSource.FALL, damage );
+            this.damage( damageEvent );
         }
-    }
-
-    public void attack( double damage, DamageCause cause ) {
-        // TODO: Implement damage handling
     }
 
     // ==================================== UPDATING ==================================== //
@@ -120,6 +120,11 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         // Check for client tick stuff
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+            // Reset attack cooldown
+            if ( this.attackCoolDown > 0 ) {
+                this.attackCoolDown--;
+            }
+
             // Check for block stuff
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, !this.isInsideLiquid() );
 
@@ -183,16 +188,20 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     public boolean damage( EntityDamageEvent damageEvent ) {
+        // Armor calculations
+        float damage = applyArmorReduction( damageEvent );
+
+        // Check for attack timer
+        if ( this.attackCoolDown > 0 && damage <= this.lastDamage ) {
+            return false;
+        }
+
         // Call event
         if ( !super.damage( damageEvent ) ) {
             return false;
         }
 
-        // Armor calculations
-        float damage = applyArmorReduction( damageEvent );
         float health = Numbers.fastCeil( this.getHealth() - damage );
-
-        LOGGER.debug( "Remaining health: " + health + " / " + this.getHealth() );
 
         // Set health
         this.setHealth( health <= 0 ? 0 : health );
@@ -230,7 +239,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
                     motion.setY( baseModifier );
                 }
 
-                this.setVelocity( motion );
+                this.setVelocity( motion, false );
             }
         }
 
@@ -242,6 +251,8 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             }
         }
 
+        this.lastDamage = damage;
+        this.attackCoolDown = 10;
         return true;
     }
 
