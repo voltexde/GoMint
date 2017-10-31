@@ -47,7 +47,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 Vector playerPosition = connection.getEntity().getPosition();
 
                 double distance = packetPosition.distanceSquared( playerPosition );
-                double offsetLimit = packet.getType() == PacketInventoryTransaction.TYPE_USE_ITEM ? 0.0001 : 0.2;
+                double offsetLimit = 0.5;
                 if ( distance > offsetLimit ) {
                     LOGGER.debug( "Mismatching position: " + distance );
                     reset( packet, connection );

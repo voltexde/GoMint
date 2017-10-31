@@ -64,21 +64,17 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
             } else {
                 entity.exhaust( (float) ( 0.01 * distance ), PlayerExhaustEvent.Cause.WALKING );
             }
+
+            float moveX = to.getX() - from.getX();
+            float moveY = to.getY() - from.getY();
+            float moveZ = to.getZ() - from.getZ();
+
+            entity.safeMove( moveX, moveY, moveZ );
+
+            entity.setPitch( to.getPitch() );
+            entity.setYaw( to.getYaw() );
+            entity.setHeadYaw( to.getHeadYaw() );
         }
-
-        entity.setPosition( to.getX(), to.getY(), to.getZ() );
-        entity.setPitch( to.getPitch() );
-        entity.setYaw( to.getYaw() );
-        entity.setHeadYaw( to.getHeadYaw() );
-
-        entity.getBoundingBox().setBounds(
-            entity.getPositionX() - ( entity.getWidth() / 2 ),
-            entity.getPositionY(),
-            entity.getPositionZ() - ( entity.getWidth() / 2 ),
-            entity.getPositionX() + ( entity.getWidth() / 2 ),
-            entity.getPositionY() + entity.getHeight(),
-            entity.getPositionZ() + ( entity.getWidth() / 2 )
-        );
 
         boolean changeWorld = !to.getWorld().equals( from.getWorld() );
         boolean changeXZ = (int) from.getX() != (int) to.getX() || (int) from.getZ() != (int) to.getZ();

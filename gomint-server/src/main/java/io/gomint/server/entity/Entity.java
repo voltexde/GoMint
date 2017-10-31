@@ -71,8 +71,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Bounding Box
      */
     protected AxisAlignedBB boundingBox;
-    @Getter private float width;
-    @Getter private float height;
+    @Getter
+    private float width;
+    @Getter
+    private float height;
 
     /**
      * How high can this entity "climb" in one movement?
@@ -95,17 +97,21 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Since MC:PE movements are eye instead of foot based we need to offset by this amount
      */
-    @Getter protected float eyeHeight;
+    @Getter
+    protected float eyeHeight;
 
     /**
      * Dead status
      */
-    @Getter private boolean dead;
+    @Getter
+    private boolean dead;
 
-    @Setter protected WorldAdapter world;
+    @Setter
+    protected WorldAdapter world;
     private TransformComponent transform;
     private float lastUpdateDt;
-    @Getter private List<EntityLink> links;
+    @Getter
+    private List<EntityLink> links;
 
     // Some tracker for "smooth" movement
     private int stuckInBlockTicks = 0;
@@ -186,24 +192,117 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         this.lastUpdateDt += dT;
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
-            // Check if we need to calc motion
-            float movX = this.transform.getMotionX();
-            float movY = this.transform.getMotionY();
-            float movZ = this.transform.getMotionZ();
+            float movX = this.getMotionX();
+            float movY = this.getMotionY();
+            float movZ = this.getMotionZ();
 
-            // Security check so we don't move and collect bounding boxes like crazy
-            if ( Math.abs( movX ) > 20 || Math.abs( movZ ) > 20 || Math.abs( movY ) > 20 ) {
-                return;
+            Vector moved = this.safeMove( movX, movY, movZ );
+
+            // Calc motion
+            this.transform.manipulateMotion( 0, -Entity.GRAVITY, 0 );
+
+            // Calculate friction
+            float friction = 1 - DRAG;
+            if ( this.onGround && ( Math.abs( this.getMotionX() ) > 0.00001 || Math.abs( this.getMotionZ() ) > 0.00001 ) ) {
+                friction = this.world.getBlockAt( (int) this.getPositionX(),
+                    (int) ( this.getPositionY() - 1 ),
+                    (int) this.getPositionZ() ).getFrictionFactor() * 0.91f;
             }
 
-            float dX = movX;
-            float dY = movY;
-            float dZ = movZ;
+            // Calculate new motion
+            float newMovX = this.transform.getMotionX() * friction;
+            float newMovY = this.transform.getMotionY() * ( 1 - DRAG );
+            float newMovZ = this.transform.getMotionZ() * friction;
 
-            AxisAlignedBB oldBoundingBox = this.boundingBox.clone();
+            this.transform.setMotion( newMovX, newMovY, newMovZ );
 
-            // Check if we collide with some blocks when we would move that fast
-            List<AxisAlignedBB> collisionList = this.world.getCollisionCubes( this, this.boundingBox.getOffsetBoundingBox( dX, dY, dZ ), false );
+            // We did not move so we collided, set motion to 0 to escape hell
+            if ( movX != moved.getX() ) {
+                this.transform.setMotionX( 0 );
+            }
+
+            if ( movY != moved.getY() ) {
+                this.transform.setMotionY( 0 );
+            }
+
+            if ( movZ != moved.getZ() ) {
+                this.transform.setMotionZ( 0 );
+            }
+
+            this.lastUpdateDt = 0;
+        }
+
+        // Check if we need to update the bounding box
+        if ( this.transform.isDirty() ) {
+            this.boundingBox.setBounds(
+                this.getPositionX() - ( this.width / 2 ),
+                this.getPositionY(),
+                this.getPositionZ() - ( this.width / 2 ),
+                this.getPositionX() + ( this.width / 2 ),
+                this.getPositionY() + this.height,
+                this.getPositionZ() + ( this.width / 2 )
+            );
+
+            this.transform.move( 0, 0, 0 );
+        }
+    }
+
+    public Vector safeMove( float movX, float movY, float movZ ) {
+        // Security check so we don't move and collect bounding boxes like crazy
+        if ( Math.abs( movX ) > 20 || Math.abs( movZ ) > 20 || Math.abs( movY ) > 20 ) {
+            return new Vector( 0, 0, 0 );
+        }
+
+        float dX = movX;
+        float dY = movY;
+        float dZ = movZ;
+
+        AxisAlignedBB oldBoundingBox = this.boundingBox.clone();
+
+        // Check if we collide with some blocks when we would move that fast
+        List<AxisAlignedBB> collisionList = this.world.getCollisionCubes( this, this.boundingBox.getOffsetBoundingBox( dX, dY, dZ ), false );
+        if ( collisionList != null ) {
+            // Check if we would hit a y border block
+            for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
+            }
+
+            this.boundingBox.offset( 0, dY, 0 );
+
+            // Check if we would hit a x border block
+            for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                dX = axisAlignedBB.calculateXOffset( this.boundingBox, dX );
+            }
+
+            this.boundingBox.offset( dX, 0, 0 );
+
+            // Check if we would hit a z border block
+            for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                dZ = axisAlignedBB.calculateZOffset( this.boundingBox, dZ );
+            }
+
+            this.boundingBox.offset( 0, 0, dZ );
+        } else {
+            this.boundingBox.offset( dX, dY, dZ );
+        }
+
+        // Check if we can jump
+        boolean notFallingFlag = ( this.onGround || ( dY != movY && movY < 0 ) );
+        if ( this.stepHeight > 0 && notFallingFlag && ( movX != dX || movZ != dZ ) ) {
+            float oldDX = dX;
+            float oldDY = dY;
+            float oldDZ = dZ;
+
+            dX = movX;
+            dY = this.stepHeight;
+            dZ = movZ;
+
+            // Save and restore old bounding box
+            AxisAlignedBB oldBoundingBox1 = this.boundingBox.clone();
+            this.boundingBox.setBounds( oldBoundingBox );
+
+            // Check for collision
+            collisionList = this.world.getCollisionCubes( this, this.boundingBox.addCoordinates( dX, dY, dZ ), false );
             if ( collisionList != null ) {
                 // Check if we would hit a y border block
                 for ( AxisAlignedBB axisAlignedBB : collisionList ) {
@@ -225,123 +324,35 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 }
 
                 this.boundingBox.offset( 0, 0, dZ );
-            } else {
-                this.boundingBox.offset( dX, dY, dZ );
             }
 
-            // Check if we can jump
-            boolean notFallingFlag = ( this.onGround || ( dY != movY && movY < 0 ) );
-            if ( this.stepHeight > 0 && notFallingFlag && ( movX != dX || movZ != dZ ) ) {
-                float oldDX = dX;
-                float oldDY = dY;
-                float oldDZ = dZ;
-
-                dX = movX;
-                dY = this.stepHeight;
-                dZ = movZ;
-
-                // Save and restore old bounding box
-                AxisAlignedBB oldBoundingBox1 = this.boundingBox.clone();
-                this.boundingBox.setBounds( oldBoundingBox );
-
-                // Check for collision
-                collisionList = this.world.getCollisionCubes( this, this.boundingBox.addCoordinates( dX, dY, dZ ), false );
-                if ( collisionList != null ) {
-                    // Check if we would hit a y border block
-                    for ( AxisAlignedBB axisAlignedBB : collisionList ) {
-                        dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
-                    }
-
-                    this.boundingBox.offset( 0, dY, 0 );
-
-                    // Check if we would hit a x border block
-                    for ( AxisAlignedBB axisAlignedBB : collisionList ) {
-                        dX = axisAlignedBB.calculateXOffset( this.boundingBox, dX );
-                    }
-
-                    this.boundingBox.offset( dX, 0, 0 );
-
-                    // Check if we would hit a z border block
-                    for ( AxisAlignedBB axisAlignedBB : collisionList ) {
-                        dZ = axisAlignedBB.calculateZOffset( this.boundingBox, dZ );
-                    }
-
-                    this.boundingBox.offset( 0, 0, dZ );
-                }
-
-                // Check if we moved left or right
-                if ( Numbers.square( oldDX ) + Numbers.square( oldDZ ) >= Numbers.square( dX ) + Numbers.square( dZ ) ) {
-                    // Revert this decision of moving the bounding box up
-                    dX = oldDX;
-                    dY = oldDY;
-                    dZ = oldDZ;
-                    this.boundingBox.setBounds( oldBoundingBox1 );
-                }
+            // Check if we moved left or right
+            if ( Numbers.square( oldDX ) + Numbers.square( oldDZ ) >= Numbers.square( dX ) + Numbers.square( dZ ) ) {
+                // Revert this decision of moving the bounding box up
+                dX = oldDX;
+                dY = oldDY;
+                dZ = oldDZ;
+                this.boundingBox.setBounds( oldBoundingBox1 );
             }
-
-            // Move by new bounding box
-            if ( dX != 0.0 || dY != 0.0 || dZ != 0.0 ) {
-                this.transform.setPosition(
-                    ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
-                    this.boundingBox.getMinY(),
-                    ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
-                );
-            }
-
-            // Check for grounding states
-            this.checkIfCollided( movX, movY, movZ, dX, dY, dZ );
-            this.updateFallState( dY );
-
-            // Calc motion
-            this.transform.manipulateMotion( 0, -Entity.GRAVITY, 0 );
-
-            // Check if we are stuck in a block
-            this.checkInsideBlock();
-
-            // Calculate friction
-            float friction = 1 - DRAG;
-            if ( this.onGround && ( Math.abs( this.getMotionX() ) > 0.00001 || Math.abs( this.getMotionZ() ) > 0.00001 ) ) {
-                friction = this.world.getBlockAt( (int) this.getPositionX(),
-                    (int) ( this.getPositionY() - 1 ),
-                    (int) this.getPositionZ() ).getFrictionFactor() * 0.91f;
-            }
-
-            // Calculate new motion
-            float newMovX = this.transform.getMotionX() * friction;
-            float newMovY = this.transform.getMotionY() * ( 1 - DRAG );
-            float newMovZ = this.transform.getMotionZ() * friction;
-
-            this.transform.setMotion( newMovX, newMovY, newMovZ );
-
-            // We did not move so we collided, set motion to 0 to escape hell
-            if ( movX != dX ) {
-                this.transform.setMotionX( 0 );
-            }
-
-            if ( movY != dY ) {
-                this.transform.setMotionY( 0 );
-            }
-
-            if ( movZ != dZ ) {
-                this.transform.setMotionZ( 0 );
-            }
-
-            this.lastUpdateDt = 0;
         }
 
-        // Check if we need to update the bounding box
-        if ( this.transform.isDirty() ) {
-            this.boundingBox.setBounds(
-                this.getPositionX() - ( this.width / 2 ),
-                this.getPositionY(),
-                this.getPositionZ() - ( this.width / 2 ),
-                this.getPositionX() + ( this.width / 2 ),
-                this.getPositionY() + this.height,
-                this.getPositionZ() + ( this.width / 2 )
+        // Move by new bounding box
+        if ( dX != 0.0 || dY != 0.0 || dZ != 0.0 ) {
+            this.transform.setPosition(
+                ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
+                this.boundingBox.getMinY(),
+                ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
             );
-
-            this.transform.move( 0, 0, 0 );
         }
+
+        // Check for grounding states
+        this.checkIfCollided( movX, movY, movZ, dX, dY, dZ );
+        this.updateFallState( dY );
+
+        // Check if we are stuck in a block
+        this.checkInsideBlock();
+
+        return new Vector( dX, dY, dZ );
     }
 
     private void updateFallState( float dY ) {
@@ -382,7 +393,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
             block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
             // We need to check for "smooth" movement when its a player (it climbs .5 steps in .3 -> .420 -> .468 .487 .495 .498 .499 steps
             if ( this instanceof EntityPlayer ) {
-                if ( this.stuckInBlockTicks++ <= 20 )  { // Yes we can "smooth" for up to 20 ticks, thanks mojang :D
+                if ( this.stuckInBlockTicks++ <= 20 ) { // Yes we can "smooth" for up to 20 ticks, thanks mojang :D
                     return;
                 }
             }
