@@ -14,6 +14,7 @@ import io.gomint.jraknet.Connection;
 import io.gomint.jraknet.EncapsulatedPacket;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
@@ -197,6 +198,14 @@ public class PlayerConnection {
                     alreadySent++;
                     this.sentInClientTick++;
                 }
+            }
+
+            if ( this.entity.getBlockUpdates().size() > 0 ) {
+                for ( BlockPosition position : this.entity.getBlockUpdates() ) {
+                    this.entity.getWorld().appendUpdatePackets( this, position );
+                }
+
+                this.entity.getBlockUpdates().clear();
             }
         }
 

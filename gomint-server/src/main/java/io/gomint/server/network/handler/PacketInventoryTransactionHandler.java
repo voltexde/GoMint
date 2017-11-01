@@ -7,7 +7,6 @@ import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
-import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.ContainerInventory;
 import io.gomint.server.inventory.Inventory;
@@ -18,7 +17,7 @@ import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.world.Gamemode;
-import io.gomint.world.block.Air;
+import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,7 +245,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     // Check for special break rights (creative)
                     if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE ) {
                         if ( block.onBreak() ) {
-                            block.setType( Air.class, (byte) 0 );
+                            block.setType( BlockAir.class );
                         } else {
                             reset( packet, connection );
                         }

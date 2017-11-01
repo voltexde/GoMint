@@ -197,13 +197,13 @@ public abstract class Block implements io.gomint.world.block.Block {
     }
 
     @Override
-    public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType, byte data ) {
+    public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType ) {
         BlockPosition pos = this.location.toBlockPosition();
         Block instance = Blocks.get( blockType );
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
             worldAdapter.setBlockId( pos, instance.getBlockId() );
-            worldAdapter.setBlockData( pos, data );
+            worldAdapter.setBlockData( pos, (byte) 0 );
             worldAdapter.resetTemporaryStorage( pos );
 
             instance.setWorld( worldAdapter );

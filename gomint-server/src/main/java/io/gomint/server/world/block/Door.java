@@ -7,7 +7,7 @@ import io.gomint.math.Vector;
 import io.gomint.math.Vector2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.world.PlacementData;
-import io.gomint.world.block.Air;
+import io.gomint.world.block.BlockAir;
 
 /**
  * @author geNAZt
@@ -96,13 +96,18 @@ public abstract class Door extends Block implements io.gomint.world.block.Door {
     public boolean onBreak() {
         if ( isTop() ) {
             Block otherPart = getLocation().getWorld().getBlockAt( getLocation().toBlockPosition().add( BlockPosition.DOWN ) );
-            otherPart.setType( Air.class, (byte) 0 );
+            otherPart.setType( BlockAir.class );
         } else {
             Block otherPart = getLocation().getWorld().getBlockAt( getLocation().toBlockPosition().add( BlockPosition.UP ) );
-            otherPart.setType( Air.class, (byte) 0 );
+            otherPart.setType( BlockAir.class );
         }
 
         return true;
+    }
+
+    public void setTopPart() {
+        this.setBlockData( (byte) 0x08 );
+        this.updateBlock();
     }
 
 }

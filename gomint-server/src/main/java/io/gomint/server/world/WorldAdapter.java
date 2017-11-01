@@ -21,6 +21,7 @@ import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.collection.PlayerMap;
@@ -33,6 +34,7 @@ import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.util.Numbers;
 import io.gomint.world.*;
 import io.gomint.world.block.Block;
+import io.gomint.world.block.BlockAir;
 import lombok.Getter;
 import lombok.ToString;
 import org.slf4j.Logger;
@@ -602,7 +604,7 @@ public abstract class WorldAdapter implements World {
 
             if ( Math.abs( posX - currentX ) <= player.getViewDistance() &&
                 Math.abs( posZ - currentZ ) <= player.getViewDistance() &&
-                predicate.test( (Entity) player ) ) {
+                predicate.test( player ) ) {
                 ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().addToSendQueue( packet );
             }
         }
@@ -673,31 +675,34 @@ public abstract class WorldAdapter implements World {
 
         logger.debug( "Updating block @ " + pos + " data: " + block.getBlockData() );
 
+        sendToVisible( pos, null, new Predicate<Entity>() {
+            @Override
+            public boolean test( Entity entity ) {
+                if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
+                    ( (io.gomint.server.entity.EntityPlayer) entity ).getBlockUpdates().add( pos );
+                }
+
+                return false;
+            }
+        } );
+    }
+
+    public void appendUpdatePackets( PlayerConnection connection, BlockPosition pos ) {
+        io.gomint.server.world.block.Block block = getBlockAt( pos );
+
         // Update the block
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( pos );
         updateBlock.setBlockId( block.getBlockId() );
         updateBlock.setPrioAndMetadata( (byte) ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() ) ) );
-
-        sendToVisible( pos, updateBlock, new Predicate<Entity>() {
-            @Override
-            public boolean test( Entity entity ) {
-                return true;
-            }
-        } );
+        connection.addToSendQueue( updateBlock );
 
         // Check for tile entity
         if ( block.getTileEntity() != null ) {
             PacketTileEntityData tileEntityData = new PacketTileEntityData();
             tileEntityData.setPosition( pos );
             tileEntityData.setTileEntity( block.getTileEntity() );
-
-            sendToVisible( pos, tileEntityData, new Predicate<Entity>() {
-                @Override
-                public boolean test( Entity entity ) {
-                    return true;
-                }
-            } );
+            connection.addToSendQueue( tileEntityData );
         }
     }
 
@@ -828,7 +833,11 @@ public abstract class WorldAdapter implements World {
             interacted = clickedBlock.interact( entity, face, clickPosition, itemInHand );
         }
 
-        if ( !interacted || entity.isSneaking() ) {
+        // Let the item interact
+        boolean itemInteracted = ( (io.gomint.server.inventory.item.ItemStack) itemInHand )
+            .interact( entity, face, clickPosition, clickedBlock );
+
+        if ( ( !interacted && !itemInteracted ) || entity.isSneaking() ) {
             boolean canBePlaced = ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).getBlockId() < 256 && !( itemInHand instanceof ItemAir );
             if ( canBePlaced ) {
                 Block blockReplace = blockClicked.getSide( face );
@@ -925,7 +934,7 @@ public abstract class WorldAdapter implements World {
             // Break animation (this also plays the break sound in the client)
             sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | ( block.getBlockData() << 8 ) );
 
-            block.setType( io.gomint.world.block.Air.class, (byte) 0 );
+            block.setType( BlockAir.class );
 
             return true;
         } else {

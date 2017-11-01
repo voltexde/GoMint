@@ -1,9 +1,11 @@
 package io.gomint.plugin.listener;
 
+import io.gomint.GoMint;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.*;
+import io.gomint.world.World;
 
 /**
  * @author geNAZt
@@ -30,6 +32,10 @@ public class PlayerJoinListener implements EventListener {
 
         // Set health to 2
         event.getPlayer().setHealth( 2 );
+
+        // Get second world
+        World world = GoMint.instance().getWorld( "world1" );
+        event.getPlayer().teleport( world.getSpawnLocation() );
     }
 
 }

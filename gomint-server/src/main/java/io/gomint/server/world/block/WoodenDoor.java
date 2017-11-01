@@ -19,7 +19,8 @@ public class WoodenDoor extends Door {
     public void afterPlacement() {
         // Set the top part
         Block above = location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
-        above.setType( WoodenDoor.class, (byte) 0x08 );
+        Door door = above.setType( WoodenDoor.class );
+        door.setTopPart();
     }
 
 }

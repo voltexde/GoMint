@@ -97,7 +97,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     protected void fall() {
-        float damage = this.fallDistance - 3;
+        float damage = Numbers.fastFloor( this.fallDistance - 3f );
         if ( damage > 0 ) {
             EntityDamageEvent damageEvent = new EntityDamageEvent( this,
                 EntityDamageEvent.DamageSource.FALL, damage );
@@ -113,8 +113,10 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             return;
         }
 
-        super.update( currentTimeMS, dT );
-        this.behaviour.update( currentTimeMS, dT );
+        if ( !(this instanceof EntityPlayer ) ) {
+            super.update( currentTimeMS, dT );
+            this.behaviour.update( currentTimeMS, dT );
+        }
 
         // Check for client tick stuff
         this.lastUpdateDT += dT;
@@ -134,7 +136,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     @Override
     public void setHealth( float amount ) {
         AttributeInstance attributeInstance = this.attributes.get( Attribute.HEALTH.getKey() );
-        attributeInstance.setValue( Math.max( attributeInstance.getMinValue(), amount ) );
+        attributeInstance.setValue( Math.min( attributeInstance.getMaxValue(), Math.max( attributeInstance.getMinValue(), amount ) ) );
     }
 
     @Override

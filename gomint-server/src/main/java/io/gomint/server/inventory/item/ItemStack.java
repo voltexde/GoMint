@@ -7,7 +7,9 @@
 
 package io.gomint.server.inventory.item;
 
+import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
@@ -187,6 +189,10 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
 
     public void gotInHand( EntityPlayer player ) {
         // Normal items do nothing
+    }
+
+    public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
+        return false;
     }
 
 }

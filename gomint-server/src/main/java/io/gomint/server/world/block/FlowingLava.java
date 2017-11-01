@@ -1,13 +1,14 @@
 package io.gomint.server.world.block;
 
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.world.block.BlockFlowingLava;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 10 )
-public class FlowingLava extends Liquid {
+public class FlowingLava extends Liquid implements BlockFlowingLava {
 
     @Override
     public int getBlockId() {

@@ -2,13 +2,14 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.world.block.BlockAir;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 0 )
-public class Air extends Block implements io.gomint.world.block.Air {
+public class Air extends Block implements BlockAir {
 
     @Override
     public int getBlockId() {

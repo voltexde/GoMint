@@ -42,7 +42,8 @@ public class AcaciaDoor extends Door {
     public void afterPlacement() {
         // Set the top part
         Block above = location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
-        above.setType( AcaciaDoor.class, (byte) 0x08 );
+        AcaciaDoor door = above.setType( AcaciaDoor.class );
+        door.setTopPart();
     }
 
     @Override

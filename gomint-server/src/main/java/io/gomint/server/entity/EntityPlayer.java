@@ -15,6 +15,7 @@ import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerFoodLevelChangeEvent;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.math.*;
+import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.*;
@@ -41,10 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -71,17 +69,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private String username;
     private UUID uuid;
     private String xboxId;
-    @Setter
-    private PlayerSkin skin;
+    @Setter private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.SURVIVAL;
-    @Getter
-    private AdventureSettings adventureSettings;
-    @Getter
-    @Setter
-    private Entity hoverEntity;
+    @Getter private AdventureSettings adventureSettings;
+    @Getter @Setter private Entity hoverEntity;
     private final PermissionManager permissionManager = new PermissionManager( this );
-    @Getter
-    private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
+    @Getter private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
     private Location respawnPosition = null;
 
     // Hidden players
@@ -98,15 +91,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter
-    @Getter
-    private BlockPosition breakVector;
-    @Setter
-    @Getter
-    private long startBreak;
-    @Setter
-    @Getter
-    private long breakTime;
+    @Setter @Getter private BlockPosition breakVector;
+    @Setter @Getter private long startBreak;
+    @Setter @Getter private long breakTime;
+
+    // Update data
+    @Getter private Set<BlockPosition> blockUpdates = new HashSet<>();
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.

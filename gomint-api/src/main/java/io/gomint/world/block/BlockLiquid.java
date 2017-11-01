@@ -3,7 +3,7 @@ package io.gomint.world.block;
 /**
  * @author geNAZt
  */
-public interface Liquid {
+public interface BlockLiquid {
 
     /**
      * Get the percentage of how high the fluid has been in this block
