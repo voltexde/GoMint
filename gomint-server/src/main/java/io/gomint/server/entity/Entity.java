@@ -8,10 +8,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.event.entity.EntityDamageEvent;
-import io.gomint.math.AxisAlignedBB;
-import io.gomint.math.Location;
-import io.gomint.math.Vector;
-import io.gomint.math.Vector2;
+import io.gomint.math.*;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.packet.Packet;
@@ -24,7 +21,6 @@ import io.gomint.server.world.block.Block;
 import io.gomint.server.world.block.Ladder;
 import io.gomint.server.world.block.Liquid;
 import io.gomint.server.world.block.Vines;
-import io.gomint.util.Numbers;
 import io.gomint.world.Chunk;
 import lombok.Getter;
 import lombok.Setter;
@@ -332,7 +328,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
 
             // Check if we moved left or right
-            if ( Numbers.square( oldDX ) + Numbers.square( oldDZ ) >= Numbers.square( dX ) + Numbers.square( dZ ) ) {
+            if ( MathUtils.square( oldDX ) + MathUtils.square( oldDZ ) >= MathUtils.square( dX ) + MathUtils.square( dZ ) ) {
                 // Revert this decision of moving the bounding box up
                 dX = oldDX;
                 dY = oldDY;
@@ -386,9 +382,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     private void checkInsideBlock() {
         // Check in which block we are
-        int fullBlockX = Numbers.fastFloor( this.transform.getPositionX() );
-        int fullBlockY = Numbers.fastFloor( this.transform.getPositionY() );
-        int fullBlockZ = Numbers.fastFloor( this.transform.getPositionZ() );
+        int fullBlockX = MathUtils.fastFloor( this.transform.getPositionX() );
+        int fullBlockY = MathUtils.fastFloor( this.transform.getPositionY() );
+        int fullBlockZ = MathUtils.fastFloor( this.transform.getPositionZ() );
 
         // Are we stuck inside a block?
         Block block;

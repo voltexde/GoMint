@@ -8,12 +8,12 @@
 package io.gomint.server.world;
 
 import com.koloboke.collect.LongCursor;
+import io.gomint.math.MathUtils;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.ChunkCacheMap;
 import io.gomint.server.util.collection.ChunkHashSet;
-import io.gomint.util.Numbers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -239,7 +239,7 @@ public class ChunkCache {
             int max = this.cachedChunks.size();
 
             float currentTPS = 1 / dT;
-            int needCurrent = Numbers.fastFloor( max * ( 20F / currentTPS ) );
+            int needCurrent = MathUtils.fastFloor( max * ( 20F / currentTPS ) );
 
             // This only happens on first tick though
             if ( needCurrent == 0 ) {

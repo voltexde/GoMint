@@ -271,6 +271,10 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                                     connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), target );
                                 } else {
                                     // Check if transaction wants to increment data of the item
+
+                                    // When the item was broken with the correct tool it decreases by 1, else it should decrease by 2
+
+
                                     if ( target.getData() == itemInHand.getData() + 1 &&
                                         ( ( target.getNbtData() == null && itemInHand.getNbtData() == null ) ||
                                             target.getNbtData().equals( itemInHand.getNbtData() ) ) ) {

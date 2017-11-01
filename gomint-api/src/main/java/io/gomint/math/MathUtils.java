@@ -13,6 +13,10 @@ package io.gomint.math;
  */
 public final class MathUtils {
 
+    private static final int BIG_ENOUGH_INT = 30_000_000;
+    private static final double BIG_ENOUGH_FLOOR = BIG_ENOUGH_INT;
+    private static final double BIG_ENOUGH_ROUND = BIG_ENOUGH_INT + 0.5;
+
     private MathUtils() {
         throw new AssertionError( "Cannot instantiate MathUtils!" );
     }
@@ -51,6 +55,22 @@ public final class MathUtils {
      */
     public static double clamp( double v, double min, double max ) {
         return ( v < min ? min : ( v > max ? max : v ) );
+    }
+
+    public static double square( double in ) {
+        return in * in;
+    }
+
+    public static int fastFloor( float x ) {
+        return (int) ( x + BIG_ENOUGH_FLOOR ) - BIG_ENOUGH_INT;
+    }
+
+    public static int fastRound( float x ) {
+        return (int) ( x + BIG_ENOUGH_ROUND ) - BIG_ENOUGH_INT;
+    }
+
+    public static int fastCeil( float x ) {
+        return BIG_ENOUGH_INT - (int) ( BIG_ENOUGH_FLOOR - x );
     }
 
 }

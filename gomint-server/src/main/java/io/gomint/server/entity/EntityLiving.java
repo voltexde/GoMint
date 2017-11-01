@@ -4,6 +4,7 @@ import com.koloboke.collect.ObjCursor;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
+import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
@@ -15,7 +16,6 @@ import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.EntityHashSet;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.util.Numbers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +97,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     protected void fall() {
-        float damage = Numbers.fastFloor( this.fallDistance - 3f );
+        float damage = MathUtils.fastFloor( this.fallDistance - 3f );
         if ( damage > 0 ) {
             EntityDamageEvent damageEvent = new EntityDamageEvent( this,
                 EntityDamageEvent.DamageSource.FALL, damage );
@@ -202,7 +202,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             return false;
         }
 
-        float health = Numbers.fastCeil( this.getHealth() - damage );
+        float health = MathUtils.fastCeil( this.getHealth() - damage );
 
         // Set health
         this.setHealth( health <= 0 ? 0 : health );

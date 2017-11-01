@@ -32,7 +32,6 @@ import io.gomint.server.util.collection.HiddenPlayerSet;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
-import io.gomint.util.Numbers;
 import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -590,7 +589,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public boolean canInteract( Vector position, int maxDistance ) {
         // Distance
         Vector eyePosition = this.getPosition().add( 0, this.getEyeHeight(), 0 );
-        if ( eyePosition.distanceSquared( position ) > Numbers.square( maxDistance ) ) {
+        if ( eyePosition.distanceSquared( position ) > MathUtils.square( maxDistance ) ) {
             return false;
         }
 

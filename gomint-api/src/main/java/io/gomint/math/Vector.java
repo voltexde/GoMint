@@ -7,7 +7,6 @@
 
 package io.gomint.math;
 
-import io.gomint.util.Numbers;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -158,10 +157,10 @@ public class Vector implements Cloneable {
     }
 
     public double distanceSquared( Vector position ) {
-        return Numbers.square( x - position.x ) + Numbers.square( y - position.y ) + Numbers.square( z - position.z );
+        return MathUtils.square( x - position.x ) + MathUtils.square( y - position.y ) + MathUtils.square( z - position.z );
     }
 
     public BlockPosition toBlockPosition() {
-        return new BlockPosition( Numbers.fastFloor( x ), Numbers.fastFloor( y ), Numbers.fastFloor( z ) );
+        return new BlockPosition( MathUtils.fastFloor( x ), MathUtils.fastFloor( y ), MathUtils.fastFloor( z ) );
     }
 }

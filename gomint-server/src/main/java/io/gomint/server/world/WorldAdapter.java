@@ -12,9 +12,7 @@ import io.gomint.entity.EntityPlayer;
 import io.gomint.event.player.PlayerInteractEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.math.AxisAlignedBB;
-import io.gomint.math.BlockPosition;
-import io.gomint.math.Location;
+import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
@@ -31,7 +29,6 @@ import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.generator.ChunkGenerator;
 import io.gomint.server.world.generator.VoidGenerator;
 import io.gomint.server.world.storage.TemporaryStorage;
-import io.gomint.util.Numbers;
 import io.gomint.world.*;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockAir;
@@ -725,10 +722,10 @@ public abstract class WorldAdapter implements World {
     public Collection<Entity> getNearbyEntities( AxisAlignedBB bb, Entity exception ) {
         Set<Entity> nearby = null;
 
-        int minX = Numbers.fastFloor( ( bb.getMinX() - 2 ) / 4 );
-        int maxX = Numbers.fastCeil( ( bb.getMaxX() + 2 ) / 4 );
-        int minZ = Numbers.fastFloor( ( bb.getMinZ() - 2 ) / 4 );
-        int maxZ = Numbers.fastCeil( ( bb.getMaxZ() + 2 ) / 4 );
+        int minX = MathUtils.fastFloor( ( bb.getMinX() - 2 ) / 4 );
+        int maxX = MathUtils.fastCeil( ( bb.getMaxX() + 2 ) / 4 );
+        int minZ = MathUtils.fastFloor( ( bb.getMinZ() - 2 ) / 4 );
+        int maxZ = MathUtils.fastCeil( ( bb.getMaxZ() + 2 ) / 4 );
 
         for ( int x = minX; x < maxX; ++x ) {
             for ( int z = minZ; z < maxZ; ++z ) {
@@ -758,12 +755,12 @@ public abstract class WorldAdapter implements World {
 
     @Override
     public List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb, boolean includeEntities ) {
-        int minX = Numbers.fastFloor( bb.getMinX() );
-        int minY = Numbers.fastFloor( bb.getMinY() );
-        int minZ = Numbers.fastFloor( bb.getMinZ() );
-        int maxX = Numbers.fastCeil( bb.getMaxX() );
-        int maxY = Numbers.fastCeil( bb.getMaxY() );
-        int maxZ = Numbers.fastCeil( bb.getMaxZ() );
+        int minX = MathUtils.fastFloor( bb.getMinX() );
+        int minY = MathUtils.fastFloor( bb.getMinY() );
+        int minZ = MathUtils.fastFloor( bb.getMinZ() );
+        int maxX = MathUtils.fastCeil( bb.getMaxX() );
+        int maxY = MathUtils.fastCeil( bb.getMaxY() );
+        int maxZ = MathUtils.fastCeil( bb.getMaxZ() );
 
         List<AxisAlignedBB> collisions = null;
 
