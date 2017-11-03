@@ -12,7 +12,6 @@ import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
 
-import java.net.InetSocketAddress;
 import java.util.UUID;
 
 /**
@@ -128,9 +127,9 @@ public interface EntityPlayer extends EntityCreature {
      * Send a message with a given type to the client
      *
      * @param message which should be send
-     * @param type of the message
+     * @param type    of the message
      */
-    void sendMessage( ChatType type, String ... message );
+    void sendMessage( ChatType type, String... message );
 
     /**
      * Check if player has a specific permission
@@ -150,9 +149,10 @@ public interface EntityPlayer extends EntityCreature {
     /**
      * Transfer player to another server
      *
-     * @param inetSocketAddress
+     * @param host IP or Hostname for the user to connect to
+     * @param port Of the new Server
      */
-    void transfer( InetSocketAddress inetSocketAddress);
+    void transfer( String host, int port );
 
     /**
      * Return the network latency

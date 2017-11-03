@@ -61,7 +61,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
 
     private final PlayerConnection connection;
-    private int viewDistance;
+    private int viewDistance = 4;
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
 
     // EntityPlayer Information
@@ -116,7 +116,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.username = username;
         this.xboxId = xboxId;
         this.uuid = uuid;
-        this.viewDistance = this.world.getServer().getServerConfig().getViewDistance();
         this.adventureSettings = new AdventureSettings( this );
         this.setSize( 0.6f, 1.8f );
         this.eyeHeight = 1.62f;
@@ -153,18 +152,16 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public void transfer( InetSocketAddress inetSocketAddress ) {
-        String address = inetSocketAddress.getAddress().getHostAddress();
-        int port = inetSocketAddress.getPort();
+    public void transfer( String host, int port) {
         PacketTransfer packetTransfer = new PacketTransfer();
-        packetTransfer.setAddress( address );
+        packetTransfer.setAddress( host );
         packetTransfer.setPort( port );
         this.connection.send( packetTransfer );
     }
 
     @Override
     public int getPing() {
-        return (int) this.connection.getConnection().getPing();
+        return (int) this.connection.getPing();
     }
 
     /**
@@ -514,13 +511,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.containerIds = ContainerIDMap.withExpectedSize( 2 );
         this.connection.getServer().getCreativeInventory().addViewer( this );
 
-        // Now its time for the join event since the play is fully loaded
-        PlayerJoinEvent event = this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
-        if ( event.isCancelled() ) {
-            this.connection.disconnect( event.getKickReason() );
-            return;
-        }
-
         int gameModeNumber = EnumConnectors.GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
         this.getAdventureSettings().setWorldImmutable( gameModeNumber == 0x03 );
         this.getAdventureSettings().setCanFly( ( gameModeNumber & 0x01 ) > 0 );
@@ -552,6 +542,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
 
         this.sendCommands();
+
+        // Now its time for the join event since the player is fully loaded
+        PlayerJoinEvent event = this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
+        if ( event.isCancelled() ) {
+            this.connection.disconnect( event.getKickReason() );
+        }
     }
 
     @Override
@@ -829,6 +825,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                             targetEntity.broadCastMotion();
                         }
                     }
+
+                    this.exhaust( 0.3f, PlayerExhaustEvent.Cause.ATTACK );
                 }
             }
         }

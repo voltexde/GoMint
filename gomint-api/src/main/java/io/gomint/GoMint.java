@@ -10,6 +10,7 @@ package io.gomint;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
+import io.gomint.plugin.PluginManager;
 import io.gomint.world.World;
 
 import java.util.Collection;
@@ -83,5 +84,38 @@ public interface GoMint {
      * @return the player or null if not found
      */
     EntityPlayer findPlayerByName( String target );
+
+    /**
+     * Get the plugin manager
+     *
+     * @return the plugin manager
+     */
+    PluginManager getPluginManager();
+
+    /**
+     * Get the port this server has bound to
+     *
+     * @return port of this server
+     */
+    int getPort();
+
+    /**
+     * Get the amount of player which will fit on this server before it start declining logins
+     *
+     * @return amount of maximum players
+     */
+    int getMaxPlayers();
+
+    /**
+     * Get current tickrate
+     *
+     * @return tickrate of this server
+     */
+    double getTPS();
+
+    /**
+     * Shutdown this server
+     */
+    void shutdown();
 
 }

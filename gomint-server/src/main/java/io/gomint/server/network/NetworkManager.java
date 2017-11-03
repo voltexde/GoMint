@@ -13,8 +13,11 @@ import io.gomint.event.network.PingEvent;
 import io.gomint.event.player.PlayerPreLoginEvent;
 import io.gomint.jraknet.*;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.network.tcp.ConnectionHandler;
+import io.gomint.server.network.tcp.Initializer;
 import io.gomint.server.util.collection.GUIDSet;
 import io.gomint.server.util.collection.PlayerConnectionMap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,9 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * @author BlackyPaw
@@ -40,6 +48,11 @@ public class NetworkManager {
     private final GUIDSet closedConnections = GUIDSet.withExpectedSize( 5 );
     private ServerSocket socket;
     private PlayerConnectionMap playersByGuid = PlayerConnectionMap.withExpectedSize( 20 );
+
+    // TCP listener
+    private ServerBootstrap tcpListener;
+    private AtomicLong idCounter = new AtomicLong( 0 );
+    private int boundPort = 0;
 
     // Incoming connections to be added to the player map during next tick:
     private Queue<PlayerConnection> incomingConnections = new ConcurrentLinkedQueue<>();
@@ -82,27 +95,64 @@ public class NetworkManager {
      * @throws SocketException Thrown if any the internal socket could not be bound
      */
     public void initialize( int maxConnections, String host, int port ) throws SocketException {
-        if ( this.socket != null ) {
-            throw new IllegalStateException( "Cannot re-initialize network manager" );
-        }
-
         System.setProperty( "java.net.preferIPv4Stack", "true" );               // We currently don't use ipv6
         System.setProperty( "io.netty.selectorAutoRebuildThreshold", "0" );     // Never rebuild selectors
         ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.DISABLED );   // Eats performance
 
-        this.socket = new ServerSocket( maxConnections < 0 ? 20 : maxConnections );
-        this.socket.setMojangModificationEnabled( true );
-        this.socket.setEventLoopFactory( this.server.getThreadFactory() );
-        this.socket.setEventHandler( new SocketEventHandler() {
-            @Override
-            public void onSocketEvent( Socket socket, SocketEvent socketEvent ) {
-                NetworkManager.this.handleSocketEvent( socketEvent );
-            }
-        } );
-        this.socket.bind( host, port );
+        // Check which listener to use
+        if ( this.server.getServerConfig().getListener().isUseTCP() ) {
+            this.tcpListener = Initializer.buildServerBootstrap( new Consumer<ConnectionHandler>() {
+                @Override
+                public void accept( ConnectionHandler connectionHandler ) {
+                    PlayerPreLoginEvent playerPreLoginEvent = getServer().getPluginManager().callEvent(
+                        new PlayerPreLoginEvent( (InetSocketAddress) connectionHandler.getChannel().remoteAddress() )
+                    );
 
-        this.dump = false;
-        this.dumpDirectory = null;
+                    if ( playerPreLoginEvent.isCancelled() ) {
+                        connectionHandler.disconnect();
+                        return;
+                    }
+
+                    PlayerConnection playerConnection = new PlayerConnection( NetworkManager.this, null,
+                        connectionHandler, PlayerConnectionState.HANDSHAKE );
+                    playerConnection.setTcpId( idCounter.incrementAndGet() );
+
+                    incomingConnections.offer( playerConnection );
+
+                    connectionHandler.whenDisconnected( new Consumer<Void>() {
+                        @Override
+                        public void accept( Void aVoid ) {
+                            handleConnectionClosed( playerConnection.getId() );
+                        }
+                    } );
+                }
+            } );
+
+            this.tcpListener.bind( host, port ).syncUninterruptibly();
+            this.boundPort = port;
+        } else {
+            if ( this.socket != null ) {
+                throw new IllegalStateException( "Cannot re-initialize network manager" );
+            }
+
+            System.setProperty( "java.net.preferIPv4Stack", "true" );               // We currently don't use ipv6
+            System.setProperty( "io.netty.selectorAutoRebuildThreshold", "0" );     // Never rebuild selectors
+            ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.DISABLED );   // Eats performance
+
+            this.socket = new ServerSocket( maxConnections );
+            this.socket.setMojangModificationEnabled( true );
+            this.socket.setEventLoopFactory( this.server.getThreadFactory() );
+            this.socket.setEventHandler( new SocketEventHandler() {
+                @Override
+                public void onSocketEvent( Socket socket, SocketEvent socketEvent ) {
+                    NetworkManager.this.handleSocketEvent( socketEvent );
+                }
+            } );
+            this.socket.bind( host, port );
+
+            this.dump = false;
+            this.dumpDirectory = null;
+        }
     }
 
     /**
@@ -134,7 +184,7 @@ public class NetworkManager {
         // Handle updates to player map:
         while ( !this.incomingConnections.isEmpty() ) {
             PlayerConnection connection = this.incomingConnections.poll();
-            this.playersByGuid.justPut( connection.getConnection().getGuid(), connection );
+            this.playersByGuid.justPut( connection.getId(), connection );
         }
 
         synchronized ( this.closedConnections ) {
@@ -234,7 +284,7 @@ public class NetworkManager {
 
             case CONNECTION_CLOSED:
             case CONNECTION_DISCONNECTED:
-                this.handleConnectionClosed( event.getConnection() );
+                this.handleConnectionClosed( event.getConnection().getGuid() );
                 break;
 
             case UNCONNECTED_PING:
@@ -266,17 +316,17 @@ public class NetworkManager {
      * @param connection The new incoming connection
      */
     private void handleNewConnection( Connection connection ) {
-        this.incomingConnections.add( new PlayerConnection( this, connection, PlayerConnectionState.HANDSHAKE ) );
+        this.incomingConnections.add( new PlayerConnection( this, connection, null, PlayerConnectionState.HANDSHAKE ) );
     }
 
     /**
      * Handles a connection that just got closed.
      *
-     * @param connection The connection that closed
+     * @param id of the connection being closed
      */
-    private void handleConnectionClosed( Connection connection ) {
+    private void handleConnectionClosed( long id ) {
         synchronized ( this.closedConnections ) {
-            this.closedConnections.add( connection.getGuid() );
+            this.closedConnections.add( id );
         }
     }
 
@@ -329,6 +379,13 @@ public class NetworkManager {
         }
     }
 
-    // ======================================= PACKET HANDLERS ======================================= //
+    /**
+     * Get the port this server has bound to
+     *
+     * @return bound port
+     */
+    public int getPort() {
+        return this.tcpListener != null ? this.boundPort : this.socket.getBindAddress().getPort();
+    }
 
 }

@@ -9,7 +9,6 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
-import io.gomint.command.SystemCommand;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
@@ -31,8 +30,8 @@ import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldManager;
 import io.gomint.world.World;
+import joptsimple.OptionSet;
 import lombok.Getter;
-import org.jline.keymap.KeyMap;
 import org.jline.reader.*;
 import org.jline.terminal.Terminal;
 import org.slf4j.Logger;
@@ -50,7 +49,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiConsumer;
 
 /**
  * @author BlackyPaw
@@ -90,12 +88,15 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private Thread readerThread;
     private long currentTickTime;
 
+    // Additional informations for API usage
+    private double tps;
+
     /**
      * Starts the GoMint server
      *
      * @param args which should have been given over from the static Bootstrap
      */
-    public GoMintServer( String[] args ) {
+    public GoMintServer( OptionSet args ) {
         GoMintServer.mainThread = Thread.currentThread().getId();
         GoMintInstanceHolder.setInstance( this );
 
@@ -243,8 +244,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // Networking Initialization
         // ------------------------------------ //
+        int port = args.has( "lp" ) ? (int) args.valueOf( "lp" ) : this.serverConfig.getListener().getPort();
+        String host = args.has( "lh" ) ? (String) args.valueOf( "lh" ) : this.serverConfig.getListener().getIp();
+
         this.networkManager = new NetworkManager( this );
-        if ( !this.initNetworking() ) return;
+        if ( !this.initNetworking( host, port ) ) return;
         setMotd( this.getServerConfig().getMotd() );
 
         // ------------------------------------ //
@@ -285,9 +289,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 if ( diff < skipNanos ) {
                     tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
                     lastTickTime = (float) skipNanos / 1000000000.0F;
+                    this.tps = ( 1 / (double) lastTickTime );
                 } else {
                     lastTickTime = (float) diff / 1000000000.0F;
-                    LOGGER.warn( "Running behind: " + ( 1 / lastTickTime ) + " / " + ( 1 / ( skipNanos / 1000000000.0F ) ) + " tps" );
+                    this.tps = ( 1 / (double) lastTickTime );
+                    LOGGER.warn( "Running behind: " + this.tps + " / " + ( 1 / ( skipNanos / 1000000000.0F ) ) + " tps" );
                 }
             } catch ( InterruptedException e ) {
                 // Ignored ._.
@@ -329,9 +335,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
         LOGGER.info( "Shutdown completed" );
     }
 
-    private boolean initNetworking() {
+    private boolean initNetworking( String host, int port ) {
         try {
-            this.networkManager.initialize( this.serverConfig.getMaxPlayers(), this.serverConfig.getListener().getIp(), this.serverConfig.getListener().getPort() );
+            this.networkManager.initialize( this.serverConfig.getMaxPlayers(), host, port );
 
             if ( this.serverConfig.isEnablePacketDumping() ) {
                 File dumpDirectory = new File( this.serverConfig.getDumpDirectory() );
@@ -460,6 +466,21 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         return null;
+    }
+
+    @Override
+    public int getPort() {
+        return this.networkManager.getPort();
+    }
+
+    @Override
+    public int getMaxPlayers() {
+        return this.serverConfig.getMaxPlayers();
+    }
+
+    @Override
+    public double getTPS() {
+        return this.tps;
     }
 
     /**

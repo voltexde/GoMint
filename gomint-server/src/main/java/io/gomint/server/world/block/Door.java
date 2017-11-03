@@ -13,7 +13,7 @@ import io.gomint.world.block.BlockAir;
  * @author geNAZt
  * @version 1.0
  */
-public abstract class Door extends Block implements io.gomint.world.block.Door {
+public abstract class Door extends Block implements io.gomint.world.block.BlockDoor {
 
     @Override
     public boolean isTop() {

@@ -5,13 +5,14 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.tileentity.NoteblockTileEntity;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.world.block.BlockNoteblock;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 25 )
-public class NoteBlock extends Block {
+public class NoteBlock extends Block implements BlockNoteblock {
 
     @Override
     public int getBlockId() {
@@ -31,6 +32,14 @@ public class NoteBlock extends Block {
         }
 
         return true;
+    }
+
+    @Override
+    public void playNote() {
+        NoteblockTileEntity tileEntity = getTileEntity();
+        if ( tileEntity != null ) {
+            tileEntity.playSound();
+        }
     }
 
 }

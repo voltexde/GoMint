@@ -16,6 +16,7 @@ import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.EntityHashSet;
 import io.gomint.server.world.WorldAdapter;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     protected Map<String, AttributeInstance> attributes = new HashMap<>();
 
     private float lastUpdateDT = 0;
-    private EntityHashSet attachedEntities = EntityHashSet.withExpectedSize( 10 );
+    @Getter private EntityHashSet attachedEntities = EntityHashSet.withExpectedSize( 10 );
 
     private byte attackCoolDown = 0;
     private float lastDamage = 0;

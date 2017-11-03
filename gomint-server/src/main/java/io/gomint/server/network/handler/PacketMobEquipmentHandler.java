@@ -1,7 +1,9 @@
 package io.gomint.server.network.handler;
 
+import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMobEquipment;
 
@@ -37,13 +39,13 @@ public class PacketMobEquipmentHandler implements PacketHandler<PacketMobEquipme
             newItemInHand.gotInHand( connection.getEntity() );
 
             // Relay packet
-            connection.getEntity().getWorld().sendToVisible( connection.getEntity().getLocation().toBlockPosition(),
-                packet, new Predicate<Entity>() {
-                    @Override
-                    public boolean test( Entity entity ) {
-                        return !connection.getEntity().equals( entity );
-                    }
-                } );
+            ObjCursor<Entity> entityObjCursor = connection.getEntity().getAttachedEntities().cursor();
+            while ( entityObjCursor.moveNext() ) {
+                Entity entity = entityObjCursor.elem();
+                if ( entity instanceof EntityPlayer ) {
+                    ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
+                }
+            }
         }
     }
 

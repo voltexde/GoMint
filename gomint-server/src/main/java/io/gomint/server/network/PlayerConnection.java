@@ -8,6 +8,7 @@
 package io.gomint.server.network;
 
 import com.koloboke.collect.LongCursor;
+import io.gomint.event.player.PlayerCleanedupEvent;
 import io.gomint.event.player.PlayerKickEvent;
 import io.gomint.event.player.PlayerQuitEvent;
 import io.gomint.jraknet.Connection;
@@ -20,6 +21,8 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
+import io.gomint.server.network.tcp.ConnectionHandler;
+import io.gomint.server.network.tcp.protocol.WrappedMCPEPacket;
 import io.gomint.server.player.DeviceInfo;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
@@ -39,7 +42,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 import java.util.zip.InflaterInputStream;
 
 import static io.gomint.server.network.Protocol.*;
@@ -74,6 +79,7 @@ public class PlayerConnection {
         PACKET_HANDLERS[Protocol.PACKET_COMMAND_REQUEST & 0xff] = new PacketCommandRequestHandler();
         PACKET_HANDLERS[Protocol.PACKET_WORLD_SOUND_EVENT & 0xff] = new PacketWorldSoundEventHandler();
         PACKET_HANDLERS[Protocol.PACKET_ANIMATE & 0xff] = new PacketAnimateHandler();
+        PACKET_HANDLERS[Protocol.PACKET_ENTITY_EVENT & 0xff] = new PacketEntityEventHandler();
     }
 
     // Network manager that created this connection:
@@ -83,13 +89,17 @@ public class PlayerConnection {
     @Setter
     private EncryptionHandler encryptionHandler;
     @Getter
-    private final GoMintServer server;
+    private GoMintServer server;
 
     // Actual connection for wire transfer:
     @Getter
     private final Connection connection;
+    private final ConnectionHandler connectionHandler;
+    @Setter
+    private long tcpId;
     @Getter
-    private final PostProcessWorker postProcessWorker;
+    private PostProcessWorker postProcessWorker;
+    private Queue<PacketBuffer> tcpDataQueue;
 
     // World data
     @Getter
@@ -121,15 +131,28 @@ public class PlayerConnection {
      *
      * @param networkManager The network manager creating this instance
      * @param connection     The jRakNet connection for actual wire-transfer
+     * @param tcpConnection  TCP connection for low latency communication with proxies
      * @param initialState   The player connection's initial state
      */
-    PlayerConnection( NetworkManager networkManager, Connection connection, PlayerConnectionState initialState ) {
+    PlayerConnection( NetworkManager networkManager, Connection connection, ConnectionHandler tcpConnection, PlayerConnectionState initialState ) {
         this.networkManager = networkManager;
         this.connection = connection;
-        this.postProcessWorker = new PostProcessWorker( this );
+        this.connectionHandler = tcpConnection;
         this.state = initialState;
         this.server = networkManager.getServer();
-        this.server.getExecutorService().execute( this.postProcessWorker );
+
+        if ( tcpConnection == null ) {
+            this.postProcessWorker = new PostProcessWorker( this );
+            this.server.getExecutorService().execute( this.postProcessWorker );
+        } else {
+            this.tcpDataQueue = new ConcurrentLinkedQueue<>();
+            this.connectionHandler.onData( new Consumer<PacketBuffer>() {
+                @Override
+                public void accept( PacketBuffer buffer ) {
+                    tcpDataQueue.offer( buffer );
+                }
+            } );
+        }
 
         this.playerChunks = ChunkHashSet.withExpectedSize( 100 );
         this.currentlySendingPlayerChunks = ChunkHashSet.withExpectedSize( 100 );
@@ -167,9 +190,16 @@ public class PlayerConnection {
      */
     public void update( long currentMillis, float dT ) {
         // Receive all waiting packets:
-        EncapsulatedPacket packetData;
-        while ( ( packetData = this.connection.receive() ) != null ) {
-            this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
+        if ( this.connection != null ) {
+            EncapsulatedPacket packetData;
+            while ( ( packetData = this.connection.receive() ) != null ) {
+                this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
+            }
+        } else {
+            while ( !this.tcpDataQueue.isEmpty() ) {
+                PacketBuffer buffer = this.tcpDataQueue.poll();
+                this.handleSocketData( currentMillis, buffer, true );
+            }
         }
 
         // Check if we need to send chunks
@@ -211,10 +241,29 @@ public class PlayerConnection {
 
         // Send all queued packets
         if ( this.sendQueue != null && this.sendQueue.size() > 0 ) {
-            Packet[] packets = new Packet[this.sendQueue.size()];
-            this.sendQueue.toArray( packets );
-            this.postProcessWorker.getQueuedPacketBatches().add( packets );
-            this.sendQueue.clear();
+            if ( this.connection != null ) {
+                Packet[] packets = new Packet[this.sendQueue.size()];
+                this.sendQueue.toArray( packets );
+                this.postProcessWorker.getQueuedPacketBatches().add( packets );
+                this.sendQueue.clear();
+            } else {
+                for ( Packet packet : this.sendQueue ) {
+                    if ( packet instanceof PacketBatch ) {
+                        new Exception(  ).printStackTrace();
+                    }
+
+                    PacketBuffer buffer = new PacketBuffer( 64 );
+                    buffer.writeByte( packet.getId() );
+                    buffer.writeShort( (short) 0 );
+                    packet.serialize( buffer );
+
+                    WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+                    mcpePacket.setBuffer( buffer );
+                    this.connectionHandler.send( mcpePacket );
+                }
+
+                this.sendQueue.clear();
+            }
         }
 
         // Reset sentInClientTick
@@ -237,14 +286,29 @@ public class PlayerConnection {
      * @param packet The packet which should be send to the player
      */
     public void send( Packet packet ) {
-        if ( !( packet instanceof PacketBatch ) ) {
-            this.postProcessWorker.getQueuedPacketBatches().add( new Packet[]{ packet } );
+        if ( this.connection != null ) {
+            if ( !( packet instanceof PacketBatch ) ) {
+                this.postProcessWorker.getQueuedPacketBatches().add( new Packet[]{ packet } );
+            } else {
+                PacketBuffer buffer = new PacketBuffer( 64 );
+                buffer.writeByte( packet.getId() );
+                packet.serialize( buffer );
+
+                this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+            }
         } else {
+            if ( packet instanceof PacketBatch ) {
+                new Exception(  ).printStackTrace();
+            }
+
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
+            buffer.writeShort( (short) 0 );
             packet.serialize( buffer );
 
-            this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+            WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+            mcpePacket.setBuffer( buffer );
+            this.connectionHandler.send( mcpePacket );
         }
     }
 
@@ -256,14 +320,29 @@ public class PlayerConnection {
      * @param packet          The packet to send to the player
      */
     public void send( PacketReliability reliability, int orderingChannel, Packet packet ) {
-        if ( !( packet instanceof PacketBatch ) ) {
-            this.postProcessWorker.getQueuedPacketBatches().add( new Packet[]{ packet } );
+        if ( this.connection != null ) {
+            if ( !( packet instanceof PacketBatch ) ) {
+                this.postProcessWorker.getQueuedPacketBatches().add( new Packet[]{ packet } );
+            } else {
+                PacketBuffer buffer = new PacketBuffer( 64 );
+                buffer.writeByte( packet.getId() );
+                packet.serialize( buffer );
+
+                this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
+            }
         } else {
+            if ( packet instanceof PacketBatch ) {
+                new Exception(  ).printStackTrace();
+            }
+
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
+            buffer.writeShort( (short) 0 );
             packet.serialize( buffer );
 
-            this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
+            WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+            mcpePacket.setBuffer( buffer );
+            this.connectionHandler.send( mcpePacket );
         }
     }
 
@@ -472,11 +551,6 @@ public class PlayerConnection {
      * @param from which location the entity moved
      */
     public void checkForNewChunks( Location from ) {
-        // Don't check until we are fully spawned
-        if ( this.state != PlayerConnectionState.PLAYING ) {
-            return;
-        }
-
         WorldAdapter worldAdapter = this.entity.getWorld();
 
         int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
@@ -576,7 +650,26 @@ public class PlayerConnection {
      * @param message The message with which the player is going to be kicked
      */
     public void disconnect( String message ) {
-        if ( this.connection.isConnected() && !this.connection.isDisconnecting() ) {
+
+        if ( this.connection != null ) {
+            if ( this.connection.isConnected() && !this.connection.isDisconnecting() ) {
+                this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );
+
+                if ( message != null && message.length() > 0 ) {
+                    PacketDisconnect packet = new PacketDisconnect();
+                    packet.setMessage( message );
+                    this.send( packet );
+                }
+
+                if ( this.entity != null ) {
+                    LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message );
+                } else {
+                    LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
+                }
+
+                this.connection.disconnect( message );
+            }
+        } else {
             this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );
 
             if ( message != null && message.length() > 0 ) {
@@ -591,7 +684,7 @@ public class PlayerConnection {
                 LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
             }
 
-            this.connection.disconnect( message );
+            this.connectionHandler.disconnect();
         }
     }
 
@@ -681,10 +774,13 @@ public class PlayerConnection {
             this.entity.getWorld().removePlayer( this.entity );
             this.entity.cleanup();
             this.entity.despawn();
+            this.networkManager.getServer().getPluginManager().callEvent( new PlayerCleanedupEvent( this.entity ) );
             this.entity = null;
         }
 
-        this.postProcessWorker.close();
+        if ( this.postProcessWorker != null ) {
+            this.postProcessWorker.close();
+        }
     }
 
     /**
@@ -692,6 +788,20 @@ public class PlayerConnection {
      */
     public void resetPlayerChunks() {
         this.playerChunks.clear();
+    }
+
+    /**
+     * Get this connection ping
+     *
+     * @return ping of UDP connection or 0 when TCP is used
+     */
+    public int getPing() {
+        // TODO: Implement TCP ping proxy
+        return ( this.connection != null ) ? (int) this.connection.getPing() : 0;
+    }
+
+    public long getId() {
+        return ( this.connection != null ) ? this.connection.getGuid() : this.tcpId;
     }
 
 }

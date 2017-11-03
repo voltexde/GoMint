@@ -21,8 +21,6 @@ public class PacketTextHandler implements PacketHandler<PacketText> {
                     }
                 }
         }
-
-        System.out.println( packet );
     }
 
 }

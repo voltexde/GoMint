@@ -7,6 +7,9 @@
 
 package io.gomint.server;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +43,14 @@ public class Bootstrap {
             System.exit( -1 );
         }
 
+        // Parse options first
+        OptionParser parser = new OptionParser();
+        parser.accepts( "lp" ).withRequiredArg().ofType( Integer.class );
+        parser.accepts( "lh" ).withRequiredArg();
+        parser.accepts( "slc" );
+
+        OptionSet options = parser.parse( args );
+
         // Check if we need to create the libs Folder
         File libsFolder = new File( "libs/" );
         if ( !libsFolder.exists() && !libsFolder.mkdirs() ) {
@@ -48,7 +59,8 @@ public class Bootstrap {
         }
 
         // Check the libs (versions and artifacts)
-        checkLibs( libsFolder );
+        if ( !options.has( "slc" ) ) // -slc (skip lib checking)
+            checkLibs( libsFolder );
 
         File[] files = libsFolder.listFiles();
         if ( files == null ) {
@@ -71,8 +83,8 @@ public class Bootstrap {
         // Load the Class entrypoint
         try {
             Class<?> coreClass = ClassLoader.getSystemClassLoader().loadClass( "io.gomint.server.GoMintServer" );
-            Constructor constructor = coreClass.getDeclaredConstructor( String[].class );
-            constructor.newInstance( new Object[]{ args } );
+            Constructor constructor = coreClass.getDeclaredConstructor( OptionSet.class );
+            constructor.newInstance( new Object[]{ options } );
         } catch ( ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e ) {
             e.printStackTrace();
         }
