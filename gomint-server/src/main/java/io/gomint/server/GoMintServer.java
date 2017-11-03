@@ -97,6 +97,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
      * @param args which should have been given over from the static Bootstrap
      */
     public GoMintServer( OptionSet args ) {
+        long start = System.currentTimeMillis();
+
         GoMintServer.mainThread = Thread.currentThread().getId();
         GoMintInstanceHolder.setInstance( this );
 
@@ -236,12 +238,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // CHECKSTYLE:ON
 
         // ------------------------------------ //
-        // Load plugins with StartupPriority LOAD
-        // ------------------------------------ //
-        this.pluginManager.loadPlugins( StartupPriority.LOAD );
-        this.pluginManager.installPlugins();
-
-        // ------------------------------------ //
         // Networking Initialization
         // ------------------------------------ //
         int port = args.has( "lp" ) ? (int) args.valueOf( "lp" ) : this.serverConfig.getListener().getPort();
@@ -250,6 +246,14 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.networkManager = new NetworkManager( this );
         if ( !this.initNetworking( host, port ) ) return;
         setMotd( this.getServerConfig().getMotd() );
+
+        // ------------------------------------ //
+        // Load plugins with StartupPriority LOAD
+        // ------------------------------------ //
+        this.pluginManager.loadPlugins( StartupPriority.LOAD );
+        this.pluginManager.installPlugins();
+
+        LOGGER.info( "Done in " + ( System.currentTimeMillis() - start ) + " ms" );
 
         // ------------------------------------ //
         // Main Loop
@@ -263,7 +267,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         while ( this.running.get() ) {
             tickLock.lock();
             try {
-                long start = System.nanoTime();
+                start = System.nanoTime();
 
                 // Tick all major subsystems:
                 this.currentTickTime = System.currentTimeMillis();
