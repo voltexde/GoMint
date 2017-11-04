@@ -626,7 +626,15 @@ public class PlayerConnection {
                 z > currentZChunk + viewDistance ||
                 z < currentZChunk - viewDistance ) {
                 // TODO: Check for Packets to send to the client to unload the chunk?
-                this.entity.getEntityVisibilityManager().updateRemoveChunk( this.entity.getWorld().getChunk( x, z ) );
+                this.entity.getWorld().getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
+                    @Override
+                    public void invoke( ChunkAdapter arg ) {
+                        if ( PlayerConnection.this.entity != null ) {
+                            PlayerConnection.this.entity.getEntityVisibilityManager().updateRemoveChunk( arg );
+                        }
+                    }
+                } );
+
                 longCursor.remove();
             }
         }
