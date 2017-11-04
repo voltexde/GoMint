@@ -18,7 +18,6 @@ import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
-import io.gomint.server.async.Delegate;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
@@ -250,7 +249,7 @@ public class PlayerConnection {
             } else {
                 for ( Packet packet : this.sendQueue ) {
                     if ( packet instanceof PacketBatch ) {
-                        new Exception(  ).printStackTrace();
+                        new Exception().printStackTrace();
                     }
 
                     PacketBuffer buffer = new PacketBuffer( 64 );
@@ -299,7 +298,7 @@ public class PlayerConnection {
             }
         } else {
             if ( packet instanceof PacketBatch ) {
-                new Exception(  ).printStackTrace();
+                new Exception().printStackTrace();
             }
 
             PacketBuffer buffer = new PacketBuffer( 64 );
@@ -333,7 +332,7 @@ public class PlayerConnection {
             }
         } else {
             if ( packet instanceof PacketBatch ) {
-                new Exception(  ).printStackTrace();
+                new Exception().printStackTrace();
             }
 
             PacketBuffer buffer = new PacketBuffer( 64 );
@@ -355,21 +354,17 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     private void sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
-        this.send( chunkData );
-
         synchronized ( this.playerChunks ) {
+            if ( !this.currentlySendingPlayerChunks.contains( chunkHash ) ) {
+                return;
+            }
+
             this.currentlySendingPlayerChunks.removeLong( chunkHash );
             this.playerChunks.add( chunkHash );
         }
 
-        this.entity.getWorld().getOrLoadChunk( chunkData.getX(), chunkData.getZ(), true, new Delegate<ChunkAdapter>() {
-            @Override
-            public void invoke( ChunkAdapter arg ) {
-                if ( PlayerConnection.this.entity != null ) {
-                    PlayerConnection.this.entity.getEntityVisibilityManager().updateAddedChunk( arg );
-                }
-            }
-        } );
+        this.send( chunkData );
+        this.entity.getEntityVisibilityManager().updateAddedChunk( this.entity.getWorld().getChunk( chunkData.getX(), chunkData.getZ() ) );
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
@@ -626,15 +621,7 @@ public class PlayerConnection {
                 z > currentZChunk + viewDistance ||
                 z < currentZChunk - viewDistance ) {
                 // TODO: Check for Packets to send to the client to unload the chunk?
-                this.entity.getWorld().getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
-                    @Override
-                    public void invoke( ChunkAdapter arg ) {
-                        if ( PlayerConnection.this.entity != null ) {
-                            PlayerConnection.this.entity.getEntityVisibilityManager().updateRemoveChunk( arg );
-                        }
-                    }
-                } );
-
+                this.entity.getEntityVisibilityManager().updateRemoveChunk( this.entity.getWorld().getChunk( x, z ) );
                 longCursor.remove();
             }
         }
@@ -802,6 +789,7 @@ public class PlayerConnection {
      */
     public void resetPlayerChunks() {
         this.playerChunks.clear();
+        this.currentlySendingPlayerChunks.clear();
     }
 
     /**

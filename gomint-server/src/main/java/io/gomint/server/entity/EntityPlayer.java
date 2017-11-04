@@ -291,11 +291,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Check if we need to change worlds
         if ( !to.getWorld().equals( getWorld() ) ) {
             // Change worlds first
-            this.connection.sendMovePlayer( new Location( to.getWorld(), getPositionX() + 1000000, 4000, getPositionZ() + 1000000 ) );
             getWorld().removePlayer( this );
             setWorld( (WorldAdapter) to.getWorld() );
             this.connection.resetPlayerChunks();
             this.entityVisibilityManager.clear();
+            this.connection.sendMovePlayer( new Location( to.getWorld(), getPositionX() + 1000000, 4000, getPositionZ() + 1000000 ) );
+
+            LOGGER.debug( "Changing world due to teleport" );
         }
 
         this.connection.sendMovePlayer( to );
