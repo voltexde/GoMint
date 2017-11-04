@@ -462,7 +462,9 @@ public abstract class WorldAdapter implements World {
         Delegate2<Long, ChunkAdapter> sendDelegate = new Delegate2<Long, ChunkAdapter>() {
             @Override
             public void invoke( Long chunkHash, ChunkAdapter chunk ) {
-                player.getChunkSendQueue().offer( chunk );
+                if ( !player.getChunkSendQueue().contains( chunk ) ) {
+                    player.getChunkSendQueue().offer( chunk );
+                }
             }
         };
 

@@ -49,7 +49,7 @@ public class ChunkAdapter implements Chunk {
 
     // CHECKSTYLE:OFF
     // World
-    protected final WorldAdapter world;
+    @Getter protected final WorldAdapter world;
 
     // Networking
     boolean dirty;

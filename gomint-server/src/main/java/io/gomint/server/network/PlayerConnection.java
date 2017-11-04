@@ -116,7 +116,6 @@ public class PlayerConnection {
     @Getter
     @Setter
     private EntityPlayer entity;
-    private ChunkHashSet currentlySendingPlayerChunks;
     private long sentInClientTick;
 
     // Additional data
@@ -155,7 +154,6 @@ public class PlayerConnection {
         }
 
         this.playerChunks = ChunkHashSet.withExpectedSize( 100 );
-        this.currentlySendingPlayerChunks = ChunkHashSet.withExpectedSize( 100 );
     }
 
     /**
@@ -219,7 +217,8 @@ public class PlayerConnection {
                     if ( chunk == null ) continue;
 
                     if ( Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
-                        Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ) {
+                        Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ||
+                        !chunk.getWorld().equals( this.entity.getWorld() ) ) {
                         continue;
                     }
 
@@ -331,10 +330,6 @@ public class PlayerConnection {
                 this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
             }
         } else {
-            if ( packet instanceof PacketBatch ) {
-                new Exception().printStackTrace();
-            }
-
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
@@ -354,15 +349,7 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     private void sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
-        synchronized ( this.playerChunks ) {
-            if ( !this.currentlySendingPlayerChunks.contains( chunkHash ) ) {
-                return;
-            }
-
-            this.currentlySendingPlayerChunks.removeLong( chunkHash );
-            this.playerChunks.add( chunkHash );
-        }
-
+        this.playerChunks.add( chunkHash );
         this.send( chunkData );
         this.entity.getEntityVisibilityManager().updateAddedChunk( this.entity.getWorld().getChunk( chunkData.getX(), chunkData.getZ() ) );
 
@@ -593,9 +580,7 @@ public class PlayerConnection {
         for ( Pair<Integer, Integer> chunk : toSendChunks ) {
             long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
 
-            if ( !this.playerChunks.contains( hash ) &&
-                !this.currentlySendingPlayerChunks.contains( hash ) ) {
-                this.currentlySendingPlayerChunks.add( hash );
+            if ( !this.playerChunks.contains( hash ) ) {
                 worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity, false );
             }
         }
@@ -789,7 +774,7 @@ public class PlayerConnection {
      */
     public void resetPlayerChunks() {
         this.playerChunks.clear();
-        this.currentlySendingPlayerChunks.clear();
+        this.entity.getChunkSendQueue().clear();
     }
 
     /**
