@@ -18,6 +18,7 @@ import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.async.Delegate;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
@@ -361,9 +362,14 @@ public class PlayerConnection {
             this.playerChunks.add( chunkHash );
         }
 
-        this.entity.getEntityVisibilityManager().updateAddedChunk(
-            this.entity.getWorld().getChunk( chunkData.getX(), chunkData.getZ() )
-        );
+        this.entity.getWorld().getOrLoadChunk( chunkData.getX(), chunkData.getZ(), true, new Delegate<ChunkAdapter>() {
+            @Override
+            public void invoke( ChunkAdapter arg ) {
+                if ( PlayerConnection.this.entity != null ) {
+                    PlayerConnection.this.entity.getEntityVisibilityManager().updateAddedChunk( arg );
+                }
+            }
+        } );
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
