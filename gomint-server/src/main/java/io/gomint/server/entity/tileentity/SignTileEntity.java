@@ -22,7 +22,7 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-class SignTileEntity extends TileEntity {
+public class SignTileEntity extends TileEntity {
 
     private static final JSONParser JSON_PARSER = new JSONParser();
     private List<String> lines = new ArrayList<>( 4 );
@@ -73,6 +73,10 @@ class SignTileEntity extends TileEntity {
 
         compound.addValue( "id", "Sign" );
         compound.addValue( "Text", Joiner.on( "\n" ).join( this.lines ) );
+    }
+
+    public List<String> getLines() {
+        return this.lines;
     }
 
 }

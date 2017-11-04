@@ -45,7 +45,7 @@ public class PostProcessWorker implements Runnable {
                 if ( packetBatch != null ) {
                     // Batch them first
                     for ( Packet packet : packetBatch ) {
-                        LOGGER.debug( "Sending to " + connection.getEntity().getName() + ": " + packet );
+                        // LOGGER.debug( "Sending to " + connection.getEntity().getName() + ": " + packet );
 
                         PacketBuffer buffer = new PacketBuffer( 64 );
                         buffer.writeByte( packet.getId() );
