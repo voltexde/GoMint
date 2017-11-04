@@ -8,6 +8,9 @@
 package io.gomint;
 
 import io.gomint.entity.EntityPlayer;
+import io.gomint.gui.ButtonList;
+import io.gomint.gui.CustomForm;
+import io.gomint.gui.Modal;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
 import io.gomint.plugin.PluginManager;
@@ -117,5 +120,30 @@ public interface GoMint {
      * Shutdown this server
      */
     void shutdown();
+
+    /**
+     * Create new button list for form display
+     *
+     * @param title of the button list
+     * @return button list implementation
+     */
+    ButtonList createButtonList( String title );
+
+    /**
+     * Create a new modal for form display
+     *
+     * @param title of the modal
+     * @param question for the client
+     * @return modal implementation
+     */
+    Modal createModal( String title, String question );
+
+    /**
+     * Create new custom form for form display
+     *
+     * @param title of the custom form
+     * @return custom form implementation
+     */
+    CustomForm createCustomForm( String title );
 
 }

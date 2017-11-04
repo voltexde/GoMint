@@ -14,6 +14,7 @@ import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerFoodLevelChangeEvent;
 import io.gomint.event.player.PlayerJoinEvent;
+import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
@@ -26,9 +27,7 @@ import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
-import io.gomint.server.util.collection.ContainerIDMap;
-import io.gomint.server.util.collection.ContainerObjectMap;
-import io.gomint.server.util.collection.HiddenPlayerSet;
+import io.gomint.server.util.collection.*;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
@@ -40,7 +39,6 @@ import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -96,6 +94,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     // Update data
     @Getter private Set<BlockPosition> blockUpdates = new HashSet<>();
+
+    // Form stuff
+    private int formId;
+    private FormIDMap forms = FormIDMap.withExpectedSize( 2 );
+    private FormListenerIDMap formListeners = FormListenerIDMap.withExpectedSize( 2 );
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -939,4 +942,58 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.isCollided = this.onGround;
     }
+
+    // ------- GUI stuff
+    @Override
+    public <T> FormListener<T> showForm( Form form ) {
+        int formId = this.formId++;
+        io.gomint.server.gui.Form implForm = (io.gomint.server.gui.Form) form;
+
+        this.forms.justPut( formId, implForm );
+
+        io.gomint.server.gui.FormListener formListener = null;
+        if ( form instanceof ButtonList ) {
+            formListener = new io.gomint.server.gui.FormListener<String>();
+        } else if ( form instanceof Modal ) {
+            formListener = new io.gomint.server.gui.FormListener<Boolean>();
+        } else {
+            formListener = new io.gomint.server.gui.FormListener<FormResponse>();
+        }
+
+        this.formListeners.justPut( formId, formListener );
+
+        // Send packet for client
+        String json = implForm.toJSON().toJSONString();
+        PacketModalRequest packetModalRequest = new PacketModalRequest();
+        packetModalRequest.setFormId( formId );
+        packetModalRequest.setJson( json );
+        this.connection.addToSendQueue( packetModalRequest );
+
+        return formListener;
+    }
+
+    public void parseGUIResponse( int formId, String json ) {
+        // Get the listener and the form
+        Form form = this.forms.get( formId );
+        if ( form != null ) {
+            // Get listener
+            io.gomint.server.gui.FormListener formListener = this.formListeners.get( formId );
+
+            this.forms.justRemove( formId );
+            this.formListeners.justRemove( formId );
+
+            if ( json.equals( "null" ) ) {
+                formListener.getCloseConsumer().accept( null );
+            } else {
+                io.gomint.server.gui.Form implForm = (io.gomint.server.gui.Form) form;
+                Object resp = implForm.parseResponse( json );
+                if ( resp == null ) {
+                    formListener.getCloseConsumer().accept( null );
+                } else {
+                    formListener.getResponseConsumer().accept( resp );
+                }
+            }
+        }
+    }
+
 }

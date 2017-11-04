@@ -7,6 +7,8 @@
 
 package io.gomint.entity;
 
+import io.gomint.gui.Form;
+import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
 import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
@@ -160,5 +162,14 @@ public interface EntityPlayer extends EntityCreature {
      * @return
      */
     int getPing();
+
+    /**
+     * Display new form and get a listener for the response
+     *
+     * @param form which should be shown
+     * @param <T> type of return value from the response
+     * @return form listener to attaching for response
+     */
+    <T> FormListener<T> showForm( Form form );
 
 }

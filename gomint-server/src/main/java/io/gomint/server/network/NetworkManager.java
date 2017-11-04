@@ -149,9 +149,6 @@ public class NetworkManager {
                 }
             } );
             this.socket.bind( host, port );
-
-            this.dump = false;
-            this.dumpDirectory = null;
         }
     }
 

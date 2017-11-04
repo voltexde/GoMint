@@ -10,6 +10,9 @@ package io.gomint.server;
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
 import io.gomint.entity.EntityPlayer;
+import io.gomint.gui.ButtonList;
+import io.gomint.gui.CustomForm;
+import io.gomint.gui.Modal;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
 import io.gomint.plugin.StartupPriority;
@@ -512,6 +515,22 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     public long getCurrentTickTime() {
         return this.currentTickTime;
+    }
+
+    // ------ GUI Stuff
+    @Override
+    public ButtonList createButtonList( String title ) {
+        return new io.gomint.server.gui.ButtonList( title );
+    }
+
+    @Override
+    public Modal createModal( String title, String question ) {
+        return new io.gomint.server.gui.Modal( title, question );
+    }
+
+    @Override
+    public CustomForm createCustomForm( String title ) {
+        return new io.gomint.server.gui.CustomForm( title );
     }
 
 }

@@ -79,7 +79,7 @@ public class EntityManager {
                             movedEntities = new HashSet<>();
                         }
 
-                        if ( !( entity instanceof io.gomint.server.entity.EntityPlayer ) && !current.equals( entity.getChunk() ) ) {
+                        if ( !( entity instanceof io.gomint.server.entity.EntityPlayer ) && current != null && !current.equals( entity.getChunk() ) ) {
                             current.removeEntity( entity );
                         }
 

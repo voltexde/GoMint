@@ -79,6 +79,8 @@ public final class Protocol {
     public static final byte PACKET_COMMAND_REQUEST = (byte) 0x4d;
     public static final byte PACKET_COMMAND_OUTPUT = (byte) 0x4f;
     public static final byte PACKET_TRANSFER = (byte) 0x55;
+    public static final byte PACKET_MODAL_REQUEST = (byte) 0x64;
+    public static final byte PACKET_MODAL_RESPONSE = (byte) 0x65;
 
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     // CHECKSTYLE:ON
@@ -98,6 +100,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_MODAL_RESPONSE:
+                return new PacketModalResponse();
+
             case PACKET_ENTITY_EVENT:
                 return new PacketEntityEvent();
 
