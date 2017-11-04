@@ -300,8 +300,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             LOGGER.debug( "Changing world due to teleport" );
         }
 
-        this.connection.sendMovePlayer( to );
         this.setAndRecalcPosition( to );
+        this.connection.sendMovePlayer( to );
         this.fallDistance = 0;
         this.connection.checkForNewChunks( from );
     }

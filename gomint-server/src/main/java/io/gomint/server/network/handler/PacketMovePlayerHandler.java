@@ -3,6 +3,7 @@ package io.gomint.server.network.handler;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerMoveEvent;
 import io.gomint.math.Location;
+import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
@@ -56,20 +57,20 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
             to.getPitch() != packet.getPitch() || to.getHeadYaw() != packet.getHeadYaw() ) {
             entity.teleport( to );
         } else {
-            // Exhaustion
-            double distance = Math.sqrt( from.distanceSquared( to ) );
-            if ( entity.isSprinting() ) {
-                entity.exhaust( (float) ( 0.1 * distance ), PlayerExhaustEvent.Cause.SPRINTING );
-            } else {
-                entity.exhaust( (float) ( 0.01 * distance ), PlayerExhaustEvent.Cause.WALKING );
-            }
-
             float moveX = to.getX() - from.getX();
             float moveY = to.getY() - from.getY();
             float moveZ = to.getZ() - from.getZ();
 
             // Try to at least move the gravitation down
-            entity.safeMove( moveX, moveY, moveZ );
+            Vector moved = entity.safeMove( moveX, moveY, moveZ );
+
+            // Exhaustion
+            double distance = moved.getX() + moved.getY() + moved.getZ();
+            if ( entity.isSprinting() ) {
+                entity.exhaust( (float) ( 0.1 * distance ), PlayerExhaustEvent.Cause.SPRINTING );
+            } else {
+                entity.exhaust( (float) ( 0.01 * distance ), PlayerExhaustEvent.Cause.WALKING );
+            }
 
             entity.setPitch( to.getPitch() );
             entity.setYaw( to.getYaw() );
