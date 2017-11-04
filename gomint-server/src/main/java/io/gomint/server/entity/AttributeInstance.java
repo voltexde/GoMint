@@ -47,7 +47,7 @@ public class AttributeInstance {
 
     public void setValue( float value ) {
         if ( value < this.minValue || value > this.maxValue ) {
-            throw new IllegalArgumentException( "Value is not withing bounds" );
+            throw new IllegalArgumentException( "Value is not withing bounds: " + value + "; max: " + this.maxValue + "; min: " + this.minValue );
         }
 
         this.value = value;

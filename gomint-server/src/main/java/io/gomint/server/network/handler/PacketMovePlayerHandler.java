@@ -65,7 +65,7 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
             Vector moved = entity.safeMove( moveX, moveY, moveZ );
 
             // Exhaustion
-            double distance = moved.getX() + moved.getY() + moved.getZ();
+            double distance = Math.abs( moved.getX() ) + Math.abs( moved.getY() ) + Math.abs( moved.getZ() );
             if ( entity.isSprinting() ) {
                 entity.exhaust( (float) ( 0.1 * distance ), PlayerExhaustEvent.Cause.SPRINTING );
             } else {
