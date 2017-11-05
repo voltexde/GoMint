@@ -7,6 +7,7 @@
 
 package io.gomint.server.util.collection;
 
+import com.koloboke.collect.ObjCursor;
 import com.koloboke.compile.KolobokeMap;
 import io.gomint.permission.Group;
 
@@ -31,6 +32,7 @@ public abstract class PermissionGroupMap {
     public abstract void justPut( String name, Group group );
     public abstract boolean justRemove( String name );
     public abstract Group get( String name );
+    public abstract ObjCursor<Group> cursor();
     // CHECKSTYLE:ON
 
 }

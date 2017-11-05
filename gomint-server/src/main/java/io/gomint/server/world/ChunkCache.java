@@ -8,6 +8,7 @@
 package io.gomint.server.world;
 
 import com.koloboke.collect.LongCursor;
+import io.gomint.GoMint;
 import io.gomint.math.MathUtils;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
@@ -175,7 +176,7 @@ public class ChunkCache {
      */
     public void putChunk( ChunkAdapter chunk ) {
         long key = CoordinateUtils.toLong( chunk.getX(), chunk.getZ() );
-        if ( !GoMintServer.isMainThread() ) {
+        if ( !GoMint.instance().isMainThread() ) {
             this.concurrentCachedChunks.put( key, chunk );
         } else {
             this.cachedChunks.storeChunk( key, chunk );

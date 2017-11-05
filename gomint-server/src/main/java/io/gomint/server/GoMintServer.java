@@ -286,6 +286,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
                 this.syncTaskManager.update( this.currentTickTime, lastTickTime );
                 this.worldManager.update( this.currentTickTime, lastTickTime );
+                this.permissionGroupManager.update( this.currentTickTime, lastTickTime );
 
                 // Check if we got shutdown
                 if ( !this.running.get() ) {
@@ -509,7 +510,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
         return this.creativeInventory;
     }
 
-    public static boolean isMainThread() {
+    @Override
+    public boolean isMainThread() {
         return GoMintServer.mainThread == Thread.currentThread().getId();
     }
 

@@ -39,6 +39,15 @@ public class PermissionManager implements io.gomint.permission.PermissionManager
      * @param dT            The time that has passed since the last tick in 1/s
      */
     public void update( long currentTimeMS, float dT ) {
+        // Check if a group changed
+        for ( PermissionGroup group : this.groups ) {
+            if ( group.isDirty() ) {
+                this.dirty = true;
+                break;
+            }
+        }
+
+        // Resend commands when something changed
         if ( this.dirty ) {
             // Resend commands
             this.player.sendCommands();

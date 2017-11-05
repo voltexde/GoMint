@@ -146,4 +146,11 @@ public interface GoMint {
      */
     CustomForm createCustomForm( String title );
 
+    /**
+     * Check if current thread is GoMints main thread
+     *
+     * @return true if main thread, false if not
+     */
+    boolean isMainThread();
+
 }
