@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity;
 
+import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
@@ -904,10 +905,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Update all other players
         for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
             EntityPlayer implPlayer = (EntityPlayer) player;
-            implPlayer.getEntityVisibilityManager().updateEntity( this, this.getChunk() );
-            if ( implPlayer.getEntityVisibilityManager().isVisible( this ) ) {
-                implPlayer.getConnection().send( entityEvent );
-            }
+            implPlayer.getEntityVisibilityManager().updateEntity( this, this.getChunk(), true );
         }
 
         // Apply item in hand stuff
@@ -922,12 +920,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketRespawnPosition respawnPosition = new PacketRespawnPosition();
         respawnPosition.setPosition( this.respawnPosition );
         this.getConnection().addToSendQueue( respawnPosition );
-
-        // Remove entity from all attached players
-        for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
-            EntityPlayer implPlayer = (EntityPlayer) player;
-            implPlayer.getEntityVisibilityManager().removeEntity( this, false );
-        }
     }
 
     @Override
@@ -992,6 +984,19 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                 } else {
                     formListener.getResponseConsumer().accept( resp );
                 }
+            }
+        }
+    }
+
+    @Override
+    public void despawn() {
+        LOGGER.debug( "Despawning " + this.getName() );
+
+        ObjCursor<Entity> entityObjCursor = getAttachedEntities().cursor();
+        while ( entityObjCursor.moveNext() ) {
+            Entity entity = entityObjCursor.elem();
+            if ( entity instanceof EntityPlayer ) {
+                ( (EntityPlayer) entity ).getEntityVisibilityManager().removeEntity( this );
             }
         }
     }

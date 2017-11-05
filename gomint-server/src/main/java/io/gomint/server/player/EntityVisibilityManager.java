@@ -42,15 +42,15 @@ public class EntityVisibilityManager {
         }
     }
 
-    public void updateEntity( Entity entity, Chunk chunk ) {
+    public void updateEntity( Entity entity, Chunk chunk, boolean sendData ) {
         int currentX = CoordinateUtils.fromBlockToChunk( (int) this.player.getPositionX() );
         int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.player.getPositionZ() );
 
         if ( Math.abs( chunk.getX() - currentX ) > this.player.getViewDistance() ||
             Math.abs( chunk.getZ() - currentZ ) > this.player.getViewDistance() ) {
-            removeEntity( entity );
+            removeEntity( entity, sendData );
         } else {
-            addEntity( entity );
+            addEntity( entity, sendData );
         }
     }
 
@@ -75,7 +75,7 @@ public class EntityVisibilityManager {
     }
 
     public void removeEntity( Entity entity, boolean despawn ) {
-        if ( this.visible.remove( entity ) && !this.player.equals( entity )  ) {
+        if ( this.visible.remove( entity ) && !this.player.equals( entity ) ) {
             io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) entity;
             implEntity.detach( this.player );
 
@@ -88,10 +88,18 @@ public class EntityVisibilityManager {
     }
 
     public void addEntity( Entity entity ) {
+        this.addEntity( entity, true );
+    }
+
+    public void addEntity( Entity entity, boolean sendSpawn ) {
         if ( !this.visible.contains( entity ) && !this.player.equals( entity ) ) {
             LOGGER.debug( "Adding entity for " + this.player.getName() + ": " + entity );
             io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) entity;
-            this.player.getConnection().addToSendQueue( implEntity.createSpawnPacket() );
+
+            if ( sendSpawn ) {
+                this.player.getConnection().addToSendQueue( implEntity.createSpawnPacket() );
+            }
+
             implEntity.attach( this.player );
             this.visible.add( entity );
         }

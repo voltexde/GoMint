@@ -99,7 +99,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Dead status
      */
-    @Getter
+    @Getter @Setter
     private boolean dead;
 
     @Setter

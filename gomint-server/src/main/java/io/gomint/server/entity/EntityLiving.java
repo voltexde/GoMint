@@ -47,6 +47,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     private byte attackCoolDown = 0;
     private float lastDamage = 0;
+    private int deadTimer = 0;
 
     /**
      * Constructs a new EntityLiving
@@ -110,11 +111,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     public void update( long currentTimeMS, float dT ) {
-        if ( this.isDead() || this.getHealth() <= 0 ) {
-            return;
-        }
-
-        if ( !(this instanceof EntityPlayer ) ) {
+        if ( !(this instanceof EntityPlayer ) && !( this.isDead() || this.getHealth() <= 0 ) ) {
             super.update( currentTimeMS, dT );
             this.behaviour.update( currentTimeMS, dT );
         }
@@ -122,6 +119,21 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         // Check for client tick stuff
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+            // Calc death stuff
+            if ( this.getHealth() <= 0 ) {
+                if ( this.deadTimer != -1 && this.deadTimer++ >= 20 ) {
+                    despawn();
+                    this.deadTimer = -1;
+                }
+            } else {
+                this.deadTimer = 0;
+            }
+
+            if ( this.isDead() || this.getHealth() <= 0 ) {
+                this.lastUpdateDT = 0;
+                return;
+            }
+
             // Reset attack cooldown
             if ( this.attackCoolDown > 0 ) {
                 this.attackCoolDown--;

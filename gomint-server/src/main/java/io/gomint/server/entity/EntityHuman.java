@@ -43,11 +43,11 @@ public class EntityHuman extends EntityLiving {
 
     @Override
     public void update( long currentTimeMS, float dT ) {
+        super.update( currentTimeMS, dT );
+
         if ( this.isDead() || this.getHealth() <= 0 ) {
             return;
         }
-
-        super.update( currentTimeMS, dT );
 
         // Food tick
         this.lastUpdateDT += dT;

@@ -177,7 +177,7 @@ public class EntityManager {
                         }
                     }
 
-                    entityPlayer.getEntityVisibilityManager().updateEntity( movedEntity, chunk );
+                    entityPlayer.getEntityVisibilityManager().updateEntity( movedEntity, chunk, true );
                     if ( entityPlayer.getEntityVisibilityManager().isVisible( movedEntity ) ) {
                         entityPlayer.getConnection().addToSendQueue( packetEntityMovement );
                     }

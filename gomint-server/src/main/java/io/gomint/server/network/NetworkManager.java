@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
@@ -74,6 +76,10 @@ public class NetworkManager {
             connection.update( currentTickMillis, lastTickTime );
         }
     };
+
+    // Post process service
+    @Getter
+    private ExecutorService postProcessService = Executors.newSingleThreadExecutor();
 
     /**
      * Init a new NetworkManager for accepting new connections and read incoming data

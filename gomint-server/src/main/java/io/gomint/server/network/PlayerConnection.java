@@ -98,8 +98,6 @@ public class PlayerConnection {
     private final ConnectionHandler connectionHandler;
     @Setter
     private long tcpId;
-    @Getter
-    private PostProcessWorker postProcessWorker;
     private Queue<PacketBuffer> tcpDataQueue;
 
     // World data
@@ -141,10 +139,7 @@ public class PlayerConnection {
         this.state = initialState;
         this.server = networkManager.getServer();
 
-        if ( tcpConnection == null ) {
-            this.postProcessWorker = new PostProcessWorker( this );
-            this.server.getExecutorService().execute( this.postProcessWorker );
-        } else {
+        if ( tcpConnection != null ) {
             this.tcpDataQueue = new ConcurrentLinkedQueue<>();
             this.connectionHandler.onData( new Consumer<PacketBuffer>() {
                 @Override
@@ -244,7 +239,7 @@ public class PlayerConnection {
             if ( this.connection != null ) {
                 Packet[] packets = new Packet[this.sendQueue.size()];
                 this.sendQueue.toArray( packets );
-                this.postProcessWorker.getQueuedPacketBatches().add( packets );
+                this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, packets ) );
                 this.sendQueue.clear();
             } else {
                 for ( Packet packet : this.sendQueue ) {
@@ -288,7 +283,7 @@ public class PlayerConnection {
     public void send( Packet packet ) {
         if ( this.connection != null ) {
             if ( !( packet instanceof PacketBatch ) ) {
-                this.postProcessWorker.getQueuedPacketBatches().add( new Packet[]{ packet } );
+                this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, new Packet[]{ packet } ) );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
                 buffer.writeByte( packet.getId() );
@@ -322,7 +317,7 @@ public class PlayerConnection {
     public void send( PacketReliability reliability, int orderingChannel, Packet packet ) {
         if ( this.connection != null ) {
             if ( !( packet instanceof PacketBatch ) ) {
-                this.postProcessWorker.getQueuedPacketBatches().add( new Packet[]{ packet } );
+                this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, new Packet[]{ packet } ) );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
                 buffer.writeByte( packet.getId() );
@@ -760,13 +755,9 @@ public class PlayerConnection {
             this.networkManager.getServer().getPluginManager().callEvent( new PlayerQuitEvent( this.entity ) );
             this.entity.getWorld().removePlayer( this.entity );
             this.entity.cleanup();
-            this.entity.despawn();
+            this.entity.setDead( true );
             this.networkManager.getServer().getPluginManager().callEvent( new PlayerCleanedupEvent( this.entity ) );
             this.entity = null;
-        }
-
-        if ( this.postProcessWorker != null ) {
-            this.postProcessWorker.close();
         }
     }
 
