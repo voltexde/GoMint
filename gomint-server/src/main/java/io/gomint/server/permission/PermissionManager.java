@@ -101,20 +101,22 @@ public class PermissionManager implements io.gomint.permission.PermissionManager
                 playerCursor = group.cursor();
                 wildCardFound = null;
 
-                while ( playerCursor.moveNext() ) {
-                    // Did we find a full permission match?
-                    String currentChecking = playerCursor.key();
-                    if ( permissionIntern == currentChecking ) {
-                        this.cache.justPut( permissionIntern, playerCursor.value() );
-                        return playerCursor.value();
-                    }
+                if ( playerCursor != null ) {
+                    while ( playerCursor.moveNext() ) {
+                        // Did we find a full permission match?
+                        String currentChecking = playerCursor.key();
+                        if ( permissionIntern == currentChecking ) {
+                            this.cache.justPut( permissionIntern, playerCursor.value() );
+                            return playerCursor.value();
+                        }
 
-                    // Check for wildcard
-                    if ( currentChecking.endsWith( "*" ) ) {
-                        String wildCardChecking = currentChecking.substring( 0, currentChecking.length() - 1 );
-                        if ( permissionIntern.startsWith( wildCardChecking ) ) {
-                            if ( wildCardFound == null || currentChecking.length() > wildCardFound.length() ) {
-                                wildCardFound = currentChecking;
+                        // Check for wildcard
+                        if ( currentChecking.endsWith( "*" ) ) {
+                            String wildCardChecking = currentChecking.substring( 0, currentChecking.length() - 1 );
+                            if ( permissionIntern.startsWith( wildCardChecking ) ) {
+                                if ( wildCardFound == null || currentChecking.length() > wildCardFound.length() ) {
+                                    wildCardFound = currentChecking;
+                                }
                             }
                         }
                     }

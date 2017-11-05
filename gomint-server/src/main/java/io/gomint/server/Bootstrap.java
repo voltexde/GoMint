@@ -9,6 +9,8 @@ package io.gomint.server;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -29,6 +31,9 @@ import java.nio.file.StandardCopyOption;
  * @version 1.0
  */
 public class Bootstrap {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( Bootstrap.class );
+
     /**
      * Main entry point. May be used for custom dependency injection, dynamic
      * library class loaders and other experiments which need to be done before
@@ -85,8 +90,8 @@ public class Bootstrap {
             Class<?> coreClass = ClassLoader.getSystemClassLoader().loadClass( "io.gomint.server.GoMintServer" );
             Constructor constructor = coreClass.getDeclaredConstructor( OptionSet.class );
             constructor.newInstance( new Object[]{ options } );
-        } catch ( ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e ) {
-            e.printStackTrace();
+        } catch ( Throwable t ) {
+            LOGGER.error( "GoMint crashed: ", t );
         }
     }
 

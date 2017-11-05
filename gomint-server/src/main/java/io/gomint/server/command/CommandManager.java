@@ -8,6 +8,8 @@ import io.gomint.plugin.Plugin;
 import io.gomint.server.entity.CommandPermission;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketAvailableCommands;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -18,6 +20,8 @@ import java.util.*;
  * @version 1.0
  */
 public class CommandManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( CommandManager.class );
 
     private Map<String, CommandHolder> commands = new HashMap<>();
     private Map<String, Plugin> commandPlugins = new HashMap<>();
@@ -195,6 +199,10 @@ public class CommandManager {
             if ( holder.getPermission() == null || player.hasPermission( holder.getPermission() ) ) {
                 holders.add( holder );
             }
+        }
+
+        for ( CommandHolder holder : holders ) {
+            LOGGER.debug( "Planning to send " + holder.getName() + " to " + player.getName() );
         }
 
         CommandPreprocessor preprocessor = new CommandPreprocessor( holders );

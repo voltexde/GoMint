@@ -17,6 +17,7 @@ import io.gomint.plugin.PluginManager;
 import io.gomint.world.World;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * @author BlackyPaw
@@ -87,6 +88,14 @@ public interface GoMint {
      * @return the player or null if not found
      */
     EntityPlayer findPlayerByName( String target );
+
+    /**
+     * Find a player by its uuid
+     *
+     * @param target which we want to search
+     * @return the player or null if not found
+     */
+    EntityPlayer findPlayerByUUID( UUID target );
 
     /**
      * Get the plugin manager

@@ -7,7 +7,7 @@
 
 package io.gomint.server.permission;
 
-import com.koloboke.collect.ObjCursor;
+import com.koloboke.collect.map.ObjObjCursor;
 import io.gomint.permission.Group;
 import io.gomint.permission.GroupManager;
 import io.gomint.server.util.collection.PermissionGroupMap;
@@ -31,9 +31,9 @@ public class PermissionGroupManager implements GroupManager {
      */
     public void update( long currentTimeMS, float dT ) {
         if ( this.groupMap != null && this.dirty) {
-            ObjCursor<Group> groups = this.groupMap.cursor();
+            ObjObjCursor<String, Group> groups = this.groupMap.cursor();
             while ( groups.moveNext() ) {
-                Group group = groups.elem();
+                Group group = groups.value();
                 if ( group instanceof PermissionGroup ) {
                     ( (PermissionGroup) group ).resetDirty();
                 }

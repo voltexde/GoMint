@@ -71,7 +71,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Gamemode gamemode = Gamemode.SURVIVAL;
     @Getter private AdventureSettings adventureSettings;
     @Getter @Setter private Entity hoverEntity;
-    private final PermissionManager permissionManager = new PermissionManager( this );
+    @Getter private final PermissionManager permissionManager = new PermissionManager( this );
     @Getter private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
     private Location respawnPosition = null;
 

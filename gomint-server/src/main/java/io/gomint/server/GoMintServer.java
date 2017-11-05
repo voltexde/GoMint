@@ -47,6 +47,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -468,6 +469,19 @@ public class GoMintServer implements GoMint, InventoryHolder {
         for ( WorldAdapter adapter : worldManager.getWorlds() ) {
             for ( EntityPlayer player : adapter.getPlayers() ) {
                 if ( player.getName().equals( target ) ) {
+                    return player;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public EntityPlayer findPlayerByUUID( UUID target ) {
+        for ( WorldAdapter adapter : worldManager.getWorlds() ) {
+            for ( EntityPlayer player : adapter.getPlayers() ) {
+                if ( player.getUUID().equals( target ) ) {
                     return player;
                 }
             }

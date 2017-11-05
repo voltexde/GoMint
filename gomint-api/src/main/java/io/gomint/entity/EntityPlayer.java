@@ -12,6 +12,7 @@ import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
 import io.gomint.inventory.PlayerInventory;
 import io.gomint.math.Location;
+import io.gomint.permission.PermissionManager;
 import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
 
@@ -172,5 +173,12 @@ public interface EntityPlayer extends EntityCreature {
      * @return form listener to attaching for response
      */
     <T> FormListener<T> showForm( Form form );
+
+    /**
+     * Get the players permission manager
+     *
+     * @return permission manager
+     */
+    PermissionManager getPermissionManager();
 
 }
