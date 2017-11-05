@@ -10,7 +10,7 @@ import io.gomint.server.network.packet.PacketInventorySetSlot;
  * @author geNAZt
  * @version 1.0
  */
-public class PlayerInventory extends Inventory {
+public class PlayerInventory extends Inventory implements io.gomint.inventory.PlayerInventory {
 
     private byte itemInHandSlot;
 

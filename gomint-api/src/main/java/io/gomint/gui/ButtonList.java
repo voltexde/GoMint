@@ -19,6 +19,14 @@ public interface ButtonList extends Form {
     }
 
     /**
+     * Set the text content which will be displayed above the button list
+     *
+     * @param content for display
+     * @return instance for chaining
+     */
+    ButtonList setContent( String content );
+
+    /**
      * Add a new simple button
      *
      * @param id   of the button ( important for the response )

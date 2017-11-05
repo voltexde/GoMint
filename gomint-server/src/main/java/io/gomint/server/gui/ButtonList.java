@@ -14,9 +14,17 @@ import java.util.List;
 public class ButtonList extends Form implements io.gomint.gui.ButtonList {
 
     private final List<Button> buttons = new ArrayList<>();
+    private String content = "";
 
     public ButtonList( String title ) {
         super( title );
+    }
+
+    @Override
+    public io.gomint.gui.ButtonList setContent( String content ) {
+        this.content = content;
+        this.dirty = true;
+        return this;
     }
 
     @Override
@@ -55,7 +63,7 @@ public class ButtonList extends Form implements io.gomint.gui.ButtonList {
             content.add( button.toJSON() );
         }
 
-        jsonObject.put( "content", "" );
+        jsonObject.put( "content", this.content );
         jsonObject.put( "buttons", content );
 
         // Cache and return

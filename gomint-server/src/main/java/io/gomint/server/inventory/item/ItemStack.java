@@ -12,6 +12,9 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Represents a stack of up to 255 items of the same type which may
  * optionally also have an additional data value. May be cloned.
@@ -127,6 +130,117 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
      */
     public void setNbtData( NBTTagCompound compound ) {
         this.nbt = compound;
+    }
+
+    @Override
+    public void setCustomName( String name ) {
+        // Check if we should clear the name
+        if ( name == null ) {
+            if ( this.nbt != null ) {
+                NBTTagCompound display = this.nbt.getCompound( "display", false );
+                if ( display != null ) {
+                    display.remove( "Name" );
+
+                    // Delete the display NBT when no data is in it
+                    if ( display.size() == 0 ) {
+                        this.nbt.remove( "display" );
+
+                        // Delete the tag when no data is in it
+                        if ( this.nbt.size() == 0 ) {
+                            this.nbt = null;
+                        }
+                    }
+                }
+            }
+
+            return;
+        }
+
+        // Do we have a compound tag?
+        if ( this.nbt == null ) {
+            this.nbt = new NBTTagCompound( "" );
+        }
+
+        // Get the display tag
+        NBTTagCompound display = this.nbt.getCompound( "display", true );
+        display.addValue( "Name", name );
+    }
+
+    @Override
+    public String getCustomName() {
+        // Check if we have a NBT tag
+        if ( this.nbt == null ) {
+            return null;
+        }
+
+        // Get display part
+        NBTTagCompound display = this.nbt.getCompound( "display", false );
+        if ( display == null ) {
+            return null;
+        }
+
+        return display.getString( "Name", null );
+    }
+
+    @Override
+    public void setLore( String... lore ) {
+        // Check if we should clear the name
+        if ( lore == null ) {
+            if ( this.nbt != null ) {
+                NBTTagCompound display = this.nbt.getCompound( "display", false );
+                if ( display != null ) {
+                    display.remove( "Lore" );
+
+                    // Delete the display NBT when no data is in it
+                    if ( display.size() == 0 ) {
+                        this.nbt.remove( "display" );
+
+                        // Delete the tag when no data is in it
+                        if ( this.nbt.size() == 0 ) {
+                            this.nbt = null;
+                        }
+                    }
+                }
+            }
+
+            return;
+        }
+
+        // Do we have a compound tag?
+        if ( this.nbt == null ) {
+            this.nbt = new NBTTagCompound( "" );
+        }
+
+        // Get the display tag
+        NBTTagCompound display = this.nbt.getCompound( "display", true );
+        List<String> loreList = Arrays.asList( lore );
+        display.addValue( "Lore", loreList );
+    }
+
+    @Override
+    public String[] getLore() {
+        // Check if we have a NBT tag
+        if ( this.nbt == null ) {
+            return null;
+        }
+
+        // Get display part
+        NBTTagCompound display = this.nbt.getCompound( "display", false );
+        if ( display == null ) {
+            return null;
+        }
+
+        List<Object> loreList = display.getList( "Lore", false );
+        if ( loreList == null ) {
+            return null;
+        }
+
+        String[] loreCopy = new String[loreList.size()];
+        for ( int i = 0; i < loreList.size(); i++ ) {
+            loreCopy[i] = (String) loreList.get( i );
+        }
+
+        return loreCopy;
     }
 
     @Override
