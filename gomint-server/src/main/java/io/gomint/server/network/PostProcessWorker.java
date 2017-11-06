@@ -20,7 +20,6 @@ import java.util.zip.Deflater;
  */
 public class PostProcessWorker implements Runnable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( PostProcessWorker.class );
     private static final ThreadLocal<BatchStreamHolder> BATCH_HOLDER = new ThreadLocal<>();
     private final PlayerConnection connection;
     private final Packet[] packets;

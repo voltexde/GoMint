@@ -18,6 +18,7 @@ import io.gomint.server.network.tcp.Initializer;
 import io.gomint.server.util.collection.GUIDSet;
 import io.gomint.server.util.collection.PlayerConnectionMap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
 import lombok.Setter;
@@ -53,6 +54,7 @@ public class NetworkManager {
 
     // TCP listener
     private ServerBootstrap tcpListener;
+    private Channel tcpChannel;
     private AtomicLong idCounter = new AtomicLong( 0 );
     private int boundPort = 0;
 
@@ -134,7 +136,7 @@ public class NetworkManager {
                 }
             } );
 
-            this.tcpListener.bind( host, port ).syncUninterruptibly();
+            this.tcpChannel = this.tcpListener.bind( host, port ).syncUninterruptibly().channel();
             this.boundPort = port;
         } else {
             if ( this.socket != null ) {
@@ -225,6 +227,11 @@ public class NetworkManager {
                     playerConnection.close();
                 }
             } );
+        }
+
+        if ( this.tcpListener != null ) {
+            this.tcpChannel.close();
+            this.tcpChannel.eventLoop().shutdownGracefully().syncUninterruptibly();
         }
     }
 

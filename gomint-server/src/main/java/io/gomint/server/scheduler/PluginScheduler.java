@@ -13,6 +13,7 @@ import io.gomint.scheduler.Task;
 import io.gomint.util.CompleteHandler;
 import io.gomint.util.ExceptionHandler;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -261,7 +262,7 @@ public class PluginScheduler implements Scheduler {
      * Internal Method for cleaning up all Tasks
      */
     public void cleanup() {
-        for ( Task runningTask : this.runningTasks ) {
+        for ( Task runningTask : new ArrayList<>( this.runningTasks ) ) {
             runningTask.cancel();
         }
 

@@ -452,6 +452,7 @@ public class SimplePluginManager implements PluginManager {
 
         // CHECKSTYLE:OFF
         try {
+            LOGGER.debug( "Starting to shutdown " + plugin.getName() );
             plugin.onUninstall();
         } catch ( Exception e ) {
             LOGGER.warn( "Plugin throw an exception whilst uninstalling: " + plugin.getName(), e );
@@ -516,6 +517,10 @@ public class SimplePluginManager implements PluginManager {
      */
     public void close() {
         for ( Plugin plugin : new ArrayList<>( this.loadedPlugins.values() ) ) {
+            uninstallPlugin0( plugin );
+        }
+
+        for ( Plugin plugin : new ArrayList<>( this.installedPlugins.values() ) ) {
             uninstallPlugin0( plugin );
         }
     }

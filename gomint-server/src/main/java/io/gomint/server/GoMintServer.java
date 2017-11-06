@@ -44,10 +44,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -82,13 +79,17 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private PermissionGroupManager permissionGroupManager;
 
     // Plugin Management
-    @Getter private SimplePluginManager pluginManager;
+    @Getter
+    private SimplePluginManager pluginManager;
 
     // Task Scheduling
-    @Getter private SyncTaskManager syncTaskManager;
+    @Getter
+    private SyncTaskManager syncTaskManager;
     private AtomicBoolean running = new AtomicBoolean( true );
-    @Getter private ExecutorService executorService;
-    @Getter private ThreadFactory threadFactory;
+    @Getter
+    private ExecutorService executorService;
+    @Getter
+    private ThreadFactory threadFactory;
     private Thread readerThread;
     private long currentTickTime;
 
@@ -329,7 +330,18 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         if ( !this.executorService.isShutdown() ) {
-            this.executorService.shutdownNow();
+            List<Runnable> running = this.executorService.shutdownNow();
+            for ( Runnable runnable : running ) {
+                LOGGER.warn( "Runnable " + runnable.getClass().getName() + " has been terminated due to shutdown" );
+            }
+        }
+
+        while ( !this.executorService.isTerminated() ) {
+            try {
+                Thread.sleep( 1 );
+            } catch ( InterruptedException e ) {
+                e.printStackTrace();
+            }
         }
 
         // Tell jLine to close PLS
@@ -349,6 +361,21 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         LOGGER.info( "Shutdown completed" );
+
+        // Wait up to 5 seconds
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        for ( Thread thread : threadSet ) {
+            if ( thread.isDaemon() || thread.getId() == mainThread || ( thread.getThreadGroup().getParent() == null &&
+                thread.getThreadGroup().getName().equals( "system" ) ) ) {
+                continue;
+            }
+
+            LOGGER.warn( "Remaining thread after shutdown: " + thread.getName() + " (#" + thread.getId() + ")" );
+            LOGGER.warn( "Status: " + thread.getState().name() + " - Threadgroup: " + thread.getThreadGroup().getName() );
+            for ( StackTraceElement element : thread.getStackTrace() ) {
+                LOGGER.warn( "  " + element.toString() );
+            }
+        }
     }
 
     private boolean initNetworking( String host, int port ) {
