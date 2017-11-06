@@ -181,4 +181,18 @@ public interface EntityPlayer extends EntityCreature {
      */
     PermissionManager getPermissionManager();
 
+    /**
+     * Get the name which is listed in the tablist (displayName)
+     *
+     * @return display name
+     */
+    String getDisplayName();
+
+    /**
+     * Set a new display name
+     *
+     * @param displayName which should be used
+     */
+    void setDisplayName( String displayName );
+
 }

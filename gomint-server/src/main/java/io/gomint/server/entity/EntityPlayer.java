@@ -23,6 +23,7 @@ import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.inventory.*;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
@@ -65,6 +66,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     // EntityPlayer Information
     private String username;
+    private String displayName;
     private UUID uuid;
     private String xboxId;
     @Setter private PlayerSkin skin;
@@ -118,6 +120,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         super( EntityType.PLAYER, world );
         this.connection = connection;
         this.username = username;
+        this.displayName = username;
         this.xboxId = xboxId;
         this.uuid = uuid;
         this.adventureSettings = new AdventureSettings( this );
@@ -165,7 +168,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public int getPing() {
-        return (int) this.connection.getPing();
+        return this.connection.getPing();
     }
 
     /**
@@ -271,7 +274,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
             packetPlayerlist.setMode( (byte) 0 );
             packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-                add( new PacketPlayerlist.Entry( other.getUUID(), other.getEntityId(), other.getName(), other.getXboxID(), other.getSkin() ) );
+                add( new PacketPlayerlist.Entry( other.getUUID(), other.getEntityId(), other.getDisplayName(), other.getXboxID(), other.getSkin() ) );
             }} );
             getConnection().addToSendQueue( packetPlayerlist );
             getConnection().addToSendQueue( other.createSpawnPacket() );
@@ -300,8 +303,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             this.connection.resetPlayerChunks();
             this.entityVisibilityManager.clear();
             this.connection.sendMovePlayer( new Location( to.getWorld(), getPositionX() + 1000000, 4000, getPositionZ() + 1000000 ) );
-
-            LOGGER.debug( "Changing world due to teleport" );
         }
 
         this.setAndRecalcPosition( to );
@@ -533,7 +534,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketPlayerlist playerlist = new PacketPlayerlist();
         playerlist.setMode( (byte) 0 );
         playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), username, xboxId, skin ) );
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, skin ) );
         }} );
         this.getConnection().send( playerlist );
 
@@ -878,6 +879,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         super.detach( player );
     }
 
+    /**
+     * Respawn this player
+     */
     public void respawn() {
         // Send metadata
         this.sendData( this );
@@ -933,6 +937,27 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
 
         this.isCollided = this.onGround;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    @Override
+    public void setDisplayName( String displayName ) {
+        this.displayName = displayName;
+        if ( this.connection.getState() == PlayerConnectionState.PLAYING ) {
+            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+            packetPlayerlist.setMode( (byte) 0 );
+            packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>(){{
+                add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, skin ) );
+            }} );
+
+            for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
+                ( (EntityPlayer) player ).connection.addToSendQueue( packetPlayerlist );
+            }
+        }
     }
 
     // ------- GUI stuff

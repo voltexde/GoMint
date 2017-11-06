@@ -243,10 +243,6 @@ public class PlayerConnection {
                 this.sendQueue.clear();
             } else {
                 for ( Packet packet : this.sendQueue ) {
-                    if ( packet instanceof PacketBatch ) {
-                        new Exception().printStackTrace();
-                    }
-
                     PacketBuffer buffer = new PacketBuffer( 64 );
                     buffer.writeByte( packet.getId() );
                     buffer.writeShort( (short) 0 );
@@ -292,10 +288,6 @@ public class PlayerConnection {
                 this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
             }
         } else {
-            if ( packet instanceof PacketBatch ) {
-                new Exception().printStackTrace();
-            }
-
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
@@ -345,9 +337,14 @@ public class PlayerConnection {
      * @param chunkData The chunk data packet to send to the player
      */
     private void sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
+        ChunkAdapter chunkAdapter = null;
+        if ( ( chunkAdapter = this.entity.getWorld().getChunk( chunkData.getX(), chunkData.getZ() ) ) == null ) {
+            return;
+        }
+
         this.playerChunks.add( chunkHash );
         this.send( chunkData );
-        this.entity.getEntityVisibilityManager().updateAddedChunk( this.entity.getWorld().getChunk( chunkData.getX(), chunkData.getZ() ) );
+        this.entity.getEntityVisibilityManager().updateAddedChunk( chunkAdapter );
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
@@ -361,7 +358,7 @@ public class PlayerConnection {
                 this.getEntity().fullyInit();
 
                 this.state = PlayerConnectionState.PLAYING;
-                this.firstSpawn = 40;
+                this.firstSpawn = 100;
             }
         }
     }
@@ -632,7 +629,6 @@ public class PlayerConnection {
      * @param message The message with which the player is going to be kicked
      */
     public void disconnect( String message ) {
-
         if ( this.connection != null ) {
             if ( this.connection.isConnected() && !this.connection.isDisconnecting() ) {
                 this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );

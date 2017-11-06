@@ -333,11 +333,18 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         // Tell jLine to close PLS
+        if ( this.readerThread != null ) {
+            try {
+                this.readerThread.interrupt();
+                this.readerThread.join();
+            } catch ( InterruptedException e ) {
+                e.printStackTrace();
+            }
+        }
+
         try {
-            this.readerThread.interrupt();
-            this.readerThread.join();
             TerminalConsoleAppender.close();
-        } catch ( IOException | InterruptedException e ) {
+        } catch ( IOException e ) {
             e.printStackTrace();
         }
 

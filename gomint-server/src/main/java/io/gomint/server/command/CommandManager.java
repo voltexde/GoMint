@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * @author geNAZt
@@ -26,6 +27,7 @@ public class CommandManager {
     private Map<String, CommandHolder> commands = new HashMap<>();
     private Map<String, Plugin> commandPlugins = new HashMap<>();
     private Map<String, SystemCommand> systemCommands = new HashMap<>();
+    private Map<String, SubCommand> subCommands = new HashMap<>();
 
     /**
      * Create a new command manager
@@ -154,7 +156,7 @@ public class CommandManager {
         CommandHolder holder = this.commands.get( name );
         if ( holder != null ) {
             // Remap the old command to its fallback
-            Plugin originalPlugin = this.commandPlugins.get( name );
+            Plugin originalPlugin = this.commandPlugins.remove( name );
             String cmdName;
             if ( originalPlugin != null ) {
                 cmdName = originalPlugin.getName() + ":" + name;
@@ -191,12 +193,42 @@ public class CommandManager {
         if ( plugin != null ) {
             this.commandPlugins.put( name, plugin );
         }
+
+        // Check for sub command
+        if ( holder.getName().contains( " " ) ) {
+            String[] split = name.split( " " );
+
+            // We only support one deep sub commands. For the rest using the CommandValidator is recommended
+            if ( split.length == 2 ) {
+                SubCommand subCommand = this.subCommands.computeIfAbsent( split[0], new Function<String, SubCommand>() {
+                    @Override
+                    public SubCommand apply( String s ) {
+                        return new SubCommand( plugin, s );
+                    }
+                } );
+
+                subCommand.addCommand( plugin, split[1], holder );
+            }
+        }
     }
 
     public PacketAvailableCommands createPacket( EntityPlayer player ) {
         List<CommandHolder> holders = new ArrayList<>();
+
+        // Sub commands
+        for ( SubCommand subCommand : this.subCommands.values() ) {
+            // Create needed holder
+            CommandHolder holder = subCommand.createHolder( player );
+            if ( holder != null ) {
+                holders.add( holder );
+            }
+        }
+
+        // Normal commands
         for ( CommandHolder holder : this.commands.values() ) {
-            if ( holder.getPermission() == null || player.hasPermission( holder.getPermission() ) ) {
+            if ( !holder.getName().contains( " " ) &&
+                ( holder.getPermission() == null ||
+                player.hasPermission( holder.getPermission() ) ) ) {
                 holders.add( holder );
             }
         }
