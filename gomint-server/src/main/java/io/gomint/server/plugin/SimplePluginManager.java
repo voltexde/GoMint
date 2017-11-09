@@ -358,11 +358,15 @@ public class SimplePluginManager implements PluginManager {
                             meta.setDepends( depends );
                             meta.setSoftDepends( softDepends );
                             meta.setMainClass( classFile.getName() );
-                        } else if ( classFile.getSuperclass().equals( "io.gomint.command.Command" ) ) {
+                        } else {
                             byte neededArguments = 0;
 
                             // Ok it did, time to parse the needed and optional annotations
                             AnnotationsAttribute visible = (AnnotationsAttribute) classFile.getAttribute( AnnotationsAttribute.visibleTag );
+                            if ( visible == null || visible.getAnnotations() == null ) {
+                                continue;
+                            }
+
                             for ( Annotation annotation : visible.getAnnotations() ) {
                                 switch ( annotation.getTypeName() ) {
                                     case "io.gomint.command.annotation.Name":

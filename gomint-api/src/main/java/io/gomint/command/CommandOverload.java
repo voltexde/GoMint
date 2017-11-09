@@ -3,7 +3,6 @@ package io.gomint.command;
 import io.gomint.command.validator.CommandValidator;
 import lombok.Getter;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
