@@ -29,7 +29,7 @@ public class CommandValidator extends EnumValidator {
 
     @Override
     public Object validate( List<String> input, Entity entity ) {
-        return true;
+        return input.get( 0 ).equals( values().get( 0 ) ) ? true : null;
     }
 
     @Override

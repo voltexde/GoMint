@@ -509,10 +509,6 @@ public class SimplePluginManager implements PluginManager {
 
     @Override
     public void registerCommand( Plugin plugin, Command command ) {
-        if ( !CallerDetectorUtil.getCallerPlugin().equals( plugin.getClass() ) ) {
-            throw new SecurityException( "Wanted to register command for another plugin" );
-        }
-
         this.commandManager.register( plugin, command );
     }
 

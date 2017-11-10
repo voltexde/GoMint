@@ -53,7 +53,6 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                     add( new OutputMessage( "No permission for this command", false, new ArrayList<>() ) );
                 }} );
             } else {
-
                 // Now we need to parse all additional parameters
                 String restData;
                 if ( removedFirstChar.length() > selected.getName().length() ) {
@@ -123,8 +122,10 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                                 }
                             }
 
-                            commandOutput = selected.getExecutor().execute( connection.getEntity(), selected.getName(), commandInput );
-                            break;
+                            if ( !paramIterator.hasNext() ) {
+                                commandOutput = selected.getExecutor().execute( connection.getEntity(), selected.getName(), commandInput );
+                                break;
+                            }
                         }
                     }
 
