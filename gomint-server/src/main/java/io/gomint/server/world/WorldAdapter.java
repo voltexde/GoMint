@@ -958,4 +958,12 @@ public abstract class WorldAdapter implements World {
         this.tickQueue.add( key, CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() ) );
     }
 
+    public void dropItem( Location location, ItemStack drop ) {
+        Vector motion = new Vector( FastRandom.current().nextFloat() * 0.2f - 0.1f,
+            0.2f, FastRandom.current().nextFloat() * 0.2f - 0.1f );
+
+        EntityItem item = this.createItemDrop( location, drop );
+        item.setVelocity( motion );
+    }
+
 }

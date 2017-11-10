@@ -1,13 +1,14 @@
 package io.gomint.server.world.block;
 
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.world.block.BlockLeaves;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 18 )
-public class Leaves extends Block {
+public class Leaves extends Block implements BlockLeaves {
 
     @Override
     public int getBlockId() {
@@ -24,4 +25,8 @@ public class Leaves extends Block {
         return true;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
 }

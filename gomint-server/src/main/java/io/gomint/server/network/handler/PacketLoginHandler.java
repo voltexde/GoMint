@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.Key;
 import java.util.Base64;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -172,13 +173,25 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                             skinToken.getClaim( "DeviceModel" ) );
                         connection.setDeviceInfo( deviceInfo );
 
+                        // Detect language
+                        String languageCode = skinToken.getClaim( "LanguageCode" );
+                        Locale locale;
+                        if ( languageCode != null ) {
+                            locale = Locale.forLanguageTag( languageCode.replace( "_", "-") );
+                        } else {
+                            locale = Locale.US;
+                        }
+
                         // Create entity:
                         WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();
                         connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(),
-                            chainValidator.getXboxId(), chainValidator.getUuid() ) );
+                            chainValidator.getXboxId(), chainValidator.getUuid(), locale ) );
                         connection.getEntity().setSkin( playerSkin );
                         connection.getEntity().setNameTagVisible( true );
                         connection.getEntity().setNameTagAlwaysVisible( true );
+
+                        // Fill in fast access maps
+                        connection.getServer().getPlayersByUUID().put( chainValidator.getUuid(), connection.getEntity() );
 
                         // Post login event
                         PlayerLoginEvent event = connection.getNetworkManager().getServer().getPluginManager().callEvent( new PlayerLoginEvent( connection.getEntity() ) );

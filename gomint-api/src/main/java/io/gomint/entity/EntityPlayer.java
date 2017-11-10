@@ -16,6 +16,7 @@ import io.gomint.permission.PermissionManager;
 import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
 
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -194,5 +195,19 @@ public interface EntityPlayer extends EntityCreature {
      * @param displayName which should be used
      */
     void setDisplayName( String displayName );
+
+    /**
+     * Is this player still online?
+     *
+     * @return true if online, false if not
+     */
+    boolean isOnline();
+
+    /**
+     * Locale of this player
+     *
+     * @return locale of the players client
+     */
+    Locale getLocale();
 
 }

@@ -1,13 +1,14 @@
 package io.gomint.server.world.block;
 
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.world.block.BlockCobweb;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 30 )
-public class Cobweb extends Block {
+public class Cobweb extends Block implements BlockCobweb {
 
     @Override
     public int getBlockId() {

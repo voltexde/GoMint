@@ -37,6 +37,13 @@ public interface ItemStack {
     short getData();
 
     /**
+     * Set the data of this item stack
+     *
+     * @param data to set into this stack
+     */
+    void setData( short data );
+
+    /**
      * Get the NBT data from this item stack
      *
      * @return nbt data from this item stack
@@ -70,5 +77,12 @@ public interface ItemStack {
      * @return lore of this item stack or null when there is none
      */
     String[] getLore();
+
+    /**
+     * Clone this item stack
+     *
+     * @return cloned item stack
+     */
+    ItemStack clone();
 
 }

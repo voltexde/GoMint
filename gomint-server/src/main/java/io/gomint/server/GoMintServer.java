@@ -70,6 +70,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private EncryptionKeyFactory encryptionKeyFactory;
     private NetworkManager networkManager;
 
+    // Player lookups
+    @Getter
+    private Map<UUID, EntityPlayer> playersByUUID = new ConcurrentHashMap<>();
+
     // World Management
     private WorldManager worldManager;
 
@@ -513,15 +517,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     @Override
     public EntityPlayer findPlayerByUUID( UUID target ) {
-        for ( WorldAdapter adapter : worldManager.getWorlds() ) {
-            for ( EntityPlayer player : adapter.getPlayers() ) {
-                if ( player.getUUID().equals( target ) ) {
-                    return player;
-                }
-            }
-        }
-
-        return null;
+        return this.playersByUUID.get( target );
     }
 
     @Override

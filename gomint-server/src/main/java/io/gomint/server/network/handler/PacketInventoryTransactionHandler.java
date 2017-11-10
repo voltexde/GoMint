@@ -1,6 +1,7 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerConsumeItemEvent;
+import io.gomint.event.player.PlayerDropItemEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerInteractEvent;
 import io.gomint.event.world.BlockBreakEvent;
@@ -314,11 +315,18 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     break;
                 case 2:
                     // Drop item
-                    DropItemTransaction dropItemTransaction = new DropItemTransaction(
-                        connection.getEntity().getLocation().add( 0, 1.3f, 0 ),
-                        connection.getEntity().getDirection().normalize().multiply( 0.4f ),
-                        transaction.getNewItem() );
-                    transactionGroup.addTransaction( dropItemTransaction );
+                    PlayerDropItemEvent playerDropItemEvent = new PlayerDropItemEvent( connection.getEntity(), transaction.getNewItem() );
+                    connection.getServer().getPluginManager().callEvent( playerDropItemEvent );
+                    if ( !playerDropItemEvent.isCancelled() ) {
+                        DropItemTransaction dropItemTransaction = new DropItemTransaction(
+                            connection.getEntity().getLocation().add( 0, 1.3f, 0 ),
+                            connection.getEntity().getDirection().normalize().multiply( 0.4f ),
+                            transaction.getNewItem() );
+                        transactionGroup.addTransaction( dropItemTransaction );
+                    } else {
+                        reset( packet, connection );
+                    }
+
                     break;
                 default:
                     break;
