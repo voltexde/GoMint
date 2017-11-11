@@ -17,6 +17,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
+import io.gomint.server.async.MultiOutputDelegate;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
@@ -443,6 +444,33 @@ public abstract class WorldAdapter implements World {
         if ( chunk != null ) {
             callback.invoke( chunk );
             return;
+        }
+
+        // Check if we already have a task
+        for ( AsyncChunkTask task : this.asyncChunkTasks ) {
+            if ( task instanceof AsyncChunkLoadTask ) {
+                AsyncChunkLoadTask loadTask = (AsyncChunkLoadTask) task;
+                if ( loadTask.getX() == x && loadTask.getZ() == z ) {
+                    // Set generating if needed
+                    if ( !loadTask.isGenerate() && generate ) {
+                        loadTask.setGenerate( true );
+                    }
+
+                    // Check for multi callback
+                    MultiOutputDelegate multiOutputDelegate;
+                    if ( loadTask.getCallback() instanceof MultiOutputDelegate ) {
+                        multiOutputDelegate = (MultiOutputDelegate) loadTask.getCallback();
+                        multiOutputDelegate.getOutputs().offer( callback );
+                    } else {
+                        Delegate delegate = loadTask.getCallback();
+                        multiOutputDelegate = new MultiOutputDelegate();
+                        multiOutputDelegate.getOutputs().offer( delegate );
+                        loadTask.setCallback( delegate );
+                    }
+
+                    return;
+                }
+            }
         }
 
         // Schedule this chunk for asynchronous loading:

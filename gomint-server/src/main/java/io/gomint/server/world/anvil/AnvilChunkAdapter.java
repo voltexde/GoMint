@@ -7,12 +7,14 @@
 
 package io.gomint.server.world.anvil;
 
+import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldLoadException;
+import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTStreamListener;
 import io.gomint.taglib.NBTTagCompound;
@@ -381,6 +383,14 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
                     if ( blockData != 0 ) {
                         this.setData( i, y, k, blockData );
+                    }
+
+                    switch ( blockId ) {
+                        case 29:
+                        case 33: // Piston head
+                            BlockPosition position = new BlockPosition( ( this.x << 4 ) + i, y , ( this.z << 4 ) + k );
+                            this.postProcessors.offer( new PistonPostProcessor( this.world, position ) );
+                            break;
                     }
                 }
             }

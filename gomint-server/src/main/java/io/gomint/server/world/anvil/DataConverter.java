@@ -44,7 +44,7 @@ public class DataConverter {
                 case 3:
                     return (byte) ( BlockFace.WEST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 3
                 case 4:
-                    return (byte) ( BlockFace.WEST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 2
+                    return (byte) ( BlockFace.EAST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 2
                 case 5:
                     return (byte) ( BlockFace.UP.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 1
             }
@@ -70,7 +70,7 @@ public class DataConverter {
                 case 3:
                     return (byte) ( BlockFace.WEST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 3
                 case 4:
-                    return (byte) ( BlockFace.WEST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 2
+                    return (byte) ( BlockFace.EAST.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 2
                 case 5:
                     return (byte) ( BlockFace.UP.getValue() + ( ( pressed ) ? 8 : 0 ) ); // 1
             }

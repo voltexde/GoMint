@@ -8,6 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
@@ -18,7 +19,9 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.util.collection.EntityIDMap;
+import io.gomint.server.world.postprocessor.PostProcessor;
 import io.gomint.server.world.storage.TemporaryStorage;
+import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
@@ -30,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
@@ -76,6 +80,9 @@ public class ChunkAdapter implements Chunk {
 
     // Entities
     protected EntityIDMap entities = EntityIDMap.withExpectedSize( 20 );
+
+    // Post loading processing
+    protected Queue<PostProcessor> postProcessors = new LinkedList<>();
 
     // CHECKSTYLE:ON
 
@@ -479,12 +486,13 @@ public class ChunkAdapter implements Chunk {
         Collection<TileEntity> tileEntities = this.getTileEntities();
         if ( tileEntities.size() > 0 ) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
+            nbtWriter.setUseVarint( true );
+
             for ( TileEntity tileEntity : tileEntities ) {
                 NBTTagCompound compound = new NBTTagCompound( "" );
                 tileEntity.toCompound( compound );
 
-                NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
-                nbtWriter.setUseVarint( true );
                 try {
                     nbtWriter.write( compound );
                 } catch ( IOException e ) {
@@ -541,6 +549,13 @@ public class ChunkAdapter implements Chunk {
     public void setTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         slice.addTileEntity( x, y - 16 * ( y >> 4 ), z, tileEntity );
+        this.dirty = true;
+    }
+
+    public void runPostProcessors() {
+        while ( !this.postProcessors.isEmpty() ) {
+            this.postProcessors.poll().process();
+        }
     }
 
 }
