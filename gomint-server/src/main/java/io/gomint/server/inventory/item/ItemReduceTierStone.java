@@ -20,6 +20,11 @@ public class ItemReduceTierStone extends ItemStack implements ItemReduceBreaktim
     // CHECKSTYLE:ON
 
     @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
+
+    @Override
     public double getDivisor() {
         return 4;
     }

@@ -29,4 +29,9 @@ public class TallGrass extends Block {
         return true;
     }
 
+    @Override
+    public long getBreakTime() {
+        return 0;
+    }
+
 }

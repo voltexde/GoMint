@@ -28,6 +28,11 @@ public class ItemBucket extends ItemStack implements io.gomint.inventory.item.It
     // CHECKSTYLE:ON
 
     @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
+
+    @Override
     public void setContent( Content type ) {
         switch ( type ) {
             case LAVA:
@@ -73,22 +78,24 @@ public class ItemBucket extends ItemStack implements io.gomint.inventory.item.It
     }
 
     @Override
-    public void afterPlacement() {
+    public boolean afterPlacement() {
         // We transform into an empty bucket
         this.setData( (short) 0 );
+        return false;
     }
 
     @Override
     public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
-        Block liquidBlock = clickedBlock.getSide( face );
-        if ( liquidBlock instanceof BlockLiquid ) {
-            LOGGER.debug( "Fill height: " + ( (BlockLiquid) liquidBlock ).getFillHeight() );
-            if ( ( (BlockLiquid) liquidBlock ).getFillHeight() > 0.9f ) {
-                this.setContent( liquidBlock instanceof BlockFlowingWater || liquidBlock instanceof BlockStationaryWater ?
-                    Content.WATER : Content.LAVA );
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), this );
-                liquidBlock.setType( BlockAir.class );
-                return true;
+        if ( clickedBlock != null ) {
+            Block liquidBlock = clickedBlock.getSide( face );
+            if ( liquidBlock instanceof BlockLiquid ) {
+                if ( ( (BlockLiquid) liquidBlock ).getFillHeight() > 0.9f ) {
+                    this.setContent( liquidBlock instanceof BlockFlowingWater || liquidBlock instanceof BlockStationaryWater ?
+                        Content.WATER : Content.LAVA );
+                    entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), this );
+                    liquidBlock.setType( BlockAir.class );
+                    return true;
+                }
             }
         }
 

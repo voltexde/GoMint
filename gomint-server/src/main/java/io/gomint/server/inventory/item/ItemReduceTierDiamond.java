@@ -20,6 +20,11 @@ public class ItemReduceTierDiamond extends ItemStack implements ItemReduceBreakt
     // CHECKSTYLE:ON
 
     @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
+
+    @Override
     public double getDivisor() {
         return 8;
     }

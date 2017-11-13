@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockStationaryLava;
 
@@ -34,5 +36,13 @@ public class StationaryLava extends Liquid implements BlockStationaryLava {
     public float getFillHeight() {
         return 1f;
     }
-    
+
+    @Override
+    public void onEntityStanding( EntityLiving entityLiving ) {
+        EntityDamageEvent damageEvent = new EntityDamageEvent( entityLiving, EntityDamageEvent.DamageSource.LAVA, 4.0f );
+        entityLiving.damage( damageEvent );
+        entityLiving.setFire( 15 );
+        entityLiving.multiplyFallDistance( 0.5f );
+    }
+
 }

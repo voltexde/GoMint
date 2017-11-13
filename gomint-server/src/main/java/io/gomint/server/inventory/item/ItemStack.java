@@ -41,7 +41,7 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
     public ItemStack( int material, short data, int amount ) {
         this.material = material;
         this.data = data;
-        this.amount = (byte) ( amount > Byte.MAX_VALUE ? Byte.MAX_VALUE : amount );
+        this.amount = (byte) ( amount > getMaximumAmount() ? getMaximumAmount() : amount );
     }
 
     /**
@@ -67,6 +67,15 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
      */
     public int getMaterial() {
         return this.material;
+    }
+
+    /**
+     * Get the maximum amount of damage before this item breaks
+     *
+     * @return maximum amount of damage
+     */
+    public short getMaxDamage() {
+        return Short.MAX_VALUE;
     }
 
     /**
@@ -292,9 +301,17 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
     /**
      * This gets called when a item was placed down as a block
      */
-    public void afterPlacement() {
+    public boolean afterPlacement() {
         // In a normal case the amount decreases
-        this.amount--;
+        return --this.amount == 0;
+    }
+
+    public boolean useDamageAsData() {
+        return true;
+    }
+
+    public boolean usesDamage() {
+        return false;
     }
 
     public void removeFromHand( EntityPlayer player ) {
@@ -306,6 +323,31 @@ public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack 
     }
 
     public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
+        return false;
+    }
+
+    public boolean damage( int damage ) {
+        // Do we use damage as data values?
+        if ( useDamageAsData() ) {
+            return false;
+        }
+
+        // Default no item uses damage
+        if ( !usesDamage() ) {
+            return false;
+        }
+
+        // Check if we need to destroy this item stack
+        this.data += damage;
+        if ( this.data > this.getMaxDamage() ) {
+            // Remove one amount
+            if ( --this.amount == 0 ) {
+                return true;
+            }
+
+            this.data = 0;
+        }
+
         return false;
     }
 

@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 383 )
- public class ItemSpawnEgg extends ItemStack implements io.gomint.inventory.item.ItemSpawnEgg {
+public class ItemSpawnEgg extends ItemStack implements io.gomint.inventory.item.ItemSpawnEgg {
 
     // CHECKSTYLE:OFF
     public ItemSpawnEgg( short data, int amount ) {
@@ -19,5 +19,10 @@ import io.gomint.taglib.NBTTagCompound;
         super( 383, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
 
 }

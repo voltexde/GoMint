@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.Entity;
 import io.gomint.world.block.BlockLiquid;
 
 /**
@@ -16,6 +17,22 @@ public abstract class Liquid extends Block implements BlockLiquid {
         }
 
         return ( ( data + 1 ) / 9f );
+    }
+
+    @Override
+    public boolean isSolid() {
+        return false;
+    }
+
+    @Override
+    public boolean canPassThrough() {
+        return true;
+    }
+
+    @Override
+    public void stepOn( Entity entity ) {
+        // Reset fall distance
+        entity.resetFallDistance();
     }
 
 }

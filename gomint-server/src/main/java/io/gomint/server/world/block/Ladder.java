@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -22,6 +23,22 @@ public class Ladder extends Block {
     @Override
     public boolean isTransparent() {
         return true;
+    }
+
+    @Override
+    public boolean isSolid() {
+        return false;
+    }
+
+    @Override
+    public boolean canPassThrough() {
+        return true;
+    }
+
+    @Override
+    public void stepOn( Entity entity ) {
+        // Reset fall distance
+        entity.resetFallDistance();
     }
 
 }

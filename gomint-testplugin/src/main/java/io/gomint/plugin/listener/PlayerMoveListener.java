@@ -23,10 +23,6 @@ public class PlayerMoveListener implements EventListener {
         event.getPlayer().sendMessage( ChatType.POPUP,
                 "§fX: §a" + toBlock.getX() + " §e- §fY: §a" + toBlock.getY() + " §e- §fZ: §a" + toBlock.getZ() + " | " + event.getPlayer().getPing() + " ms",
                 "§fWalking on block: §a" + block.getClass() );
-
-        if ( block instanceof BlockDirt ) {
-            event.getPlayer().setVelocity( new Vector( 0.5f, 2.0f, 0.5f ) );
-        }
     }
 
 }

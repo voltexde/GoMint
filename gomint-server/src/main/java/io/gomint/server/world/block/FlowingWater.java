@@ -25,9 +25,4 @@ public class FlowingWater extends Liquid implements BlockFlowingWater {
         return true;
     }
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
-
 }

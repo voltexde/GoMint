@@ -8,6 +8,7 @@ import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
+import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.PlayerConnection;
@@ -366,7 +367,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         // Check if item is sword
         if ( item instanceof ItemSword ) {
-            base *= 0.5;
+            base *= 0.675;
         }
 
         return (long) base;
@@ -407,6 +408,14 @@ public abstract class Block implements io.gomint.world.block.Block {
         }
 
         this.blockData = blockData;
+    }
+
+    public void onEntityCollision( EntityLiving entity ) {
+
+    }
+
+    public void onEntityStanding( EntityLiving entityLiving ) {
+
     }
 
 }

@@ -10,6 +10,8 @@ package io.gomint.math;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -25,6 +27,8 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class Vector implements Cloneable {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( Vector.class );
+
     public static final Vector ZERO = new Vector( 0, 0, 0 );
 
     public static final Vector UP = new Vector( 0, 1, 0 );
@@ -35,9 +39,15 @@ public class Vector implements Cloneable {
     public static final Vector NORTH = new Vector( 0, 0, -1 );
     public static final Vector SOUTH = new Vector( 0, 0, 1 );
 
-    @Getter @Setter protected float x;
-    @Getter @Setter protected float y;
-    @Getter @Setter protected float z;
+    @Getter
+    @Setter
+    protected float x;
+    @Getter
+    @Setter
+    protected float y;
+    @Getter
+    @Setter
+    protected float z;
 
     public Vector() {
 
@@ -160,7 +170,63 @@ public class Vector implements Cloneable {
         return MathUtils.square( x - position.x ) + MathUtils.square( y - position.y ) + MathUtils.square( z - position.z );
     }
 
+    public double distance( Vector position ) {
+        return Math.sqrt( distanceSquared( position ) );
+    }
+
     public BlockPosition toBlockPosition() {
         return new BlockPosition( MathUtils.fastFloor( x ), MathUtils.fastFloor( y ), MathUtils.fastFloor( z ) );
     }
+
+    /**
+     * Get a new vector with the x axis set to the x parameter when the x parameter is
+     * on a line with this and the vector other
+     *
+     * @param other to check with
+     * @param x     which may on the line or not
+     * @return vector with x set or null when x is not on a line with this and the other vector
+     */
+    public Vector getVectorWhenXIsOnLine( Vector other, float x ) {
+        float xDiff = other.x - this.x;
+        float yDiff = other.y - this.y;
+        float zDiff = other.z - this.z;
+
+        float f = ( x - this.x ) / xDiff;
+        return ( f >= 0F && f <= 1F ) ? new Vector( this.x + xDiff * f, this.y + yDiff * f, this.z + zDiff * f ) : null;
+    }
+
+    /**
+     * Get a new vector with the y axis set to the y parameter when the y parameter is
+     * on a line with this and the vector other
+     *
+     * @param other to check with
+     * @param y     which may on the line or not
+     * @return vector with y set or null when y is not on a line with this and the other vector
+     */
+    public Vector getVectorWhenYIsOnLine( Vector other, float y ) {
+        float xDiff = other.x - this.x;
+        float yDiff = other.y - this.y;
+        float zDiff = other.z - this.z;
+
+        float f = ( y - this.y ) / yDiff;
+        return ( f >= 0F && f <= 1F ) ? new Vector( this.x + xDiff * f, this.y + yDiff * f, this.z + zDiff * f ) : null;
+    }
+
+    /**
+     * Get a new vector with the z axis set to the z parameter when the z parameter is
+     * on a line with this and the vector other
+     *
+     * @param other to check with
+     * @param z     which may on the line or not
+     * @return vector with y set or null when y is not on a line with this and the other vector
+     */
+    public Vector getVectorWhenZIsOnLine( Vector other, float z ) {
+        float xDiff = other.x - this.x;
+        float yDiff = other.y - this.y;
+        float zDiff = other.z - this.z;
+
+        float f = ( z - this.z ) / zDiff;
+        return ( f >= 0F && f <= 1F ) ? new Vector( this.x + xDiff * f, this.y + yDiff * f, this.z + zDiff * f ) : null;
+    }
+
 }

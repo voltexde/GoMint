@@ -68,7 +68,42 @@ public class EntityDamageEvent extends CancellableEntityEvent {
         /**
          * Fall damage when falling more than 3 blocks
          */
-        FALL, VOID,
+        FALL,
+
+        /**
+         * Damage dealt by the world when you fall under y -64
+         */
+        VOID,
+
+        /**
+         * Hit by a projectile
+         */
+        PROJECTILE,
+
+        /**
+         * When under liquid and no air left
+         */
+        DROWNING,
+
+        /**
+         * When cuddling with a cactus
+         */
+        CACTUS,
+
+        /**
+         * Trying to swim in lava
+         */
+        LAVA,
+
+        /**
+         * On fire?
+         */
+        ON_FIRE,
+
+        /**
+         * Standing in fire
+         */
+        FIRE
 
     }
 

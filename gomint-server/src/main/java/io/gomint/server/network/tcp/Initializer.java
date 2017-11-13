@@ -60,4 +60,8 @@ public class Initializer {
             );
     }
 
+    public static void close() {
+        EVENT_LOOP_GROUP.shutdownGracefully().syncUninterruptibly();
+    }
+
 }

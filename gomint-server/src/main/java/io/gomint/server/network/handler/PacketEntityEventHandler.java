@@ -28,6 +28,8 @@ public class PacketEntityEventHandler implements PacketHandler<PacketEntityEvent
                 ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
             }
         }
+
+        connection.send( packet );
     }
 
 }

@@ -17,7 +17,7 @@ import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
-import io.gomint.server.entity.passive.EntityItem;
+import io.gomint.server.entity.projectile.EntityFishingHook;
 import io.gomint.server.inventory.*;
 import io.gomint.server.inventory.item.ItemAir;
 import io.gomint.server.inventory.item.ItemStack;
@@ -29,7 +29,6 @@ import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.collection.*;
-import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
@@ -92,6 +91,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private ArmorInventory armorInventory;
     private Inventory craftingInventory;
     private Inventory cursorInventory;
+    private Inventory offhandInventory;
     private Inventory craftingInputInventory;
     private Inventory craftingResultInventory;
     private ContainerObjectMap windowIds;
@@ -116,6 +116,16 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private int formId;
     private FormIDMap forms = FormIDMap.withExpectedSize( 2 );
     private FormListenerIDMap formListeners = FormListenerIDMap.withExpectedSize( 2 );
+
+    // Entity data
+    @Getter
+    @Setter
+    private EntityFishingHook fishingHook;
+
+    // Bow ticking
+    @Getter
+    @Setter
+    private long startBow = -1;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -150,10 +160,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.setCanClimb( true );
 
         this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
-        this.metadataContainer.putShort( MetadataContainer.DATA_AIR, (short) 400 );
-        this.metadataContainer.putShort( MetadataContainer.DATA_MAX_AIRDATA_MAX_AIR, (short) 400 );
-        this.metadataContainer.putFloat( MetadataContainer.DATA_SCALE, 1.0f );
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, true );
     }
 
     private void initAttributes() {
@@ -368,37 +374,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
         if ( nearbyEntities != null ) {
             for ( Entity nearbyEntity : nearbyEntities ) {
-                if ( nearbyEntity instanceof EntityItem ) {
-                    EntityItem entityItem = (EntityItem) nearbyEntity;
-
-                    // Check if we can pick it up
-                    if ( currentTimeMS > entityItem.getPickupTime() ) {
-                        // Check if we have place in out inventory to store this item
-                        if ( !this.inventory.hasPlaceFor( entityItem.getItemStack() ) ) {
-                            continue;
-                        }
-
-                        // Ask the API is we can pickup
-                        PlayerPickupItemEvent event = new PlayerPickupItemEvent( this, entityItem, entityItem.getItemStack() );
-                        connection.getServer().getPluginManager().callEvent( event );
-                        if ( !event.isCancelled() ) {
-                            // Consume the item
-                            PacketPickupItemEntity packet = new PacketPickupItemEntity();
-                            packet.setItemEntityId( entityItem.getEntityId() );
-                            packet.setPlayerEntityId( this.getEntityId() );
-
-                            for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
-                                if ( player instanceof EntityPlayer ) {
-                                    ( (EntityPlayer) player ).getConnection().addToSendQueue( packet );
-                                }
-                            }
-
-                            // Manipulate inventory
-                            this.inventory.addItem( entityItem.getItemStack() );
-                            entityItem.despawn();
-                        }
-                    }
-                }
+                io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) nearbyEntity;
+                implEntity.onCollideWithPlayer( this );
             }
         }
 
@@ -481,6 +458,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         return craftingInputInventory;
     }
 
+    public Inventory getOffhandInventory() {
+        return offhandInventory;
+    }
+
     /**
      * Get the virtual inventory of the current crafting process
      *
@@ -534,6 +515,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.armorInventory = new ArmorInventory( this );
         this.craftingInventory = new CraftingInputInventory( this );
         this.cursorInventory = new CursorInventory( this );
+        this.offhandInventory = new OffhandInventory( this );
         this.craftingInputInventory = new CraftingInputInventory( this );
         this.craftingResultInventory = new CursorInventory( this );
         this.windowIds = ContainerObjectMap.withExpectedSize( 2 );
@@ -871,7 +853,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     float applyArmorReduction( EntityDamageEvent damageEvent ) {
         if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FALL ||
-            damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.VOID ) {
+            damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.VOID ||
+            damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.DROWNING ) {
             return damageEvent.getDamage();
         }
 
@@ -919,6 +902,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             return;
         }
 
+        // Check if we need to despawn first
+        if ( this.deadTimer != -1 ) {
+            this.despawn();
+            this.deadTimer = -1;
+        }
+
         // Send metadata
         this.sendData( this );
 
@@ -955,6 +944,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     protected void kill() {
+        super.kill();
+
         // TODO: Death messages based on last damage input
 
         List<io.gomint.inventory.item.ItemStack> drops = this.getDrops();

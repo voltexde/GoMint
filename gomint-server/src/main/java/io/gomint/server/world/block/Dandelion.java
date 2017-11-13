@@ -24,4 +24,14 @@ public class Dandelion extends Block {
         return false;
     }
 
+    @Override
+    public boolean canPassThrough() {
+        return true;
+    }
+
+    @Override
+    public long getBreakTime() {
+        return 0;
+    }
+
 }

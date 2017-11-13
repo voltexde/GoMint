@@ -158,12 +158,12 @@ public enum EntityType {
     /**
      * Entity Type value for a fishing hook floating on water.
      */
-    FISHING_HOOK( 0x00004D ),
+    FISHING_HOOK( 77 ),
 
     /**
      * Entity Type value for an arrow.
      */
-    ARROW( 0x000050 ),
+    ARROW( 80 ),
 
     /**
      * Entity Type value for a snowball which has been thrown.

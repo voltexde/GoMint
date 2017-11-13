@@ -38,27 +38,12 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 5, ItemStonePickaxe.create( 1 ) );
         event.getPlayer().getInventory().setItem( 6, ItemSandstone.create( 64 ) );
 
+        event.getPlayer().getInventory().setItem( 7, ItemFishingRod.create( 1 ) );
+        event.getPlayer().getInventory().setItem( 8, ItemBow.create( 1 ) );
+        event.getPlayer().getInventory().setItem( 9, ItemArrow.create( 64 ) );
+        event.getPlayer().getInventory().setItem( 10, ItemFlintAndSteel.create( 1 ) );
+
         event.getPlayer().getArmorInventory().setBoots( ItemIronBoots.create( 1 ) );
-
-        // Set health to 2
-        event.getPlayer().setHealth( 2 );
-
-        this.plugin.getScheduler().schedule( new Runnable() {
-            @Override
-            public void run() {
-                CustomForm customForm = CustomForm.create( "GoMint Feedback" );
-                customForm.addSlider( "niceLevel", "How nice is GoMint?", 0, 100, 1, 100 );
-                customForm.addInputField( "reason", "Why is Gomint so nice?", "Answer here", "don't know bud" );
-                customForm.addToggle( "useAgain", "10/10 use again?", true );
-                FormListener<FormResponse> listener = event.getPlayer().showForm( customForm );
-                listener.onResponse( new Consumer<FormResponse>() {
-                    @Override
-                    public void accept( FormResponse response ) {
-                        event.getPlayer().sendMessage( "Answer #1 (How nice is GoMint?): " + response.getSlider( "niceLevel" ) );
-                    }
-                } );
-            }
-        }, 2, TimeUnit.SECONDS );
     }
 
 }

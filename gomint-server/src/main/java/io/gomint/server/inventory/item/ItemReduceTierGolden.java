@@ -20,6 +20,11 @@ public class ItemReduceTierGolden extends ItemStack implements ItemReduceBreakti
     // CHECKSTYLE:ON
 
     @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
+
+    @Override
     public double getDivisor() {
         return 16;
     }

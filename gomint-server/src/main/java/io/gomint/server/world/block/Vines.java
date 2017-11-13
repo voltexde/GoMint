@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -32,6 +33,17 @@ public class Vines extends Block {
     @Override
     public boolean canPassThrough() {
         return true;
+    }
+
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
+    @Override
+    public void stepOn( Entity entity ) {
+        // Reset fall distance
+        entity.resetFallDistance();
     }
 
 }

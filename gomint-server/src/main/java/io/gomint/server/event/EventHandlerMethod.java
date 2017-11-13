@@ -69,7 +69,7 @@ class EventHandlerMethod implements Comparable<EventHandlerMethod> {
         try {
             this.proxy.call( event );
         } catch ( Throwable cause ) {
-            cause.printStackTrace();
+            LOGGER.warn( "Event handler has thrown a exception: ", cause );
         }
     }
 

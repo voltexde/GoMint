@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockFlowingLava;
 
@@ -28,6 +30,14 @@ public class FlowingLava extends Liquid implements BlockFlowingLava {
     @Override
     public boolean isSolid() {
         return false;
+    }
+
+    @Override
+    public void onEntityStanding( EntityLiving entityLiving ) {
+        EntityDamageEvent damageEvent = new EntityDamageEvent( entityLiving, EntityDamageEvent.DamageSource.LAVA, 4.0f );
+        entityLiving.damage( damageEvent );
+        entityLiving.setFire( 15 );
+        entityLiving.multiplyFallDistance( 0.5f );
     }
 
 }

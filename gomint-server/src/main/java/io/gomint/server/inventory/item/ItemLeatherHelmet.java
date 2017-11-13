@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 298 )
-public class ItemLeatherHelmet extends ItemArmor implements io.gomint.inventory.item.ItemLeatherCap {
+public class ItemLeatherHelmet extends ItemArmor implements io.gomint.inventory.item.ItemLeatherHelmet {
 
     // CHECKSTYLE:OFF
     public ItemLeatherHelmet( short data, int amount ) {

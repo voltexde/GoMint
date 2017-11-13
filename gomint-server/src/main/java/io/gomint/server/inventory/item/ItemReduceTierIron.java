@@ -20,6 +20,11 @@ public class ItemReduceTierIron extends ItemStack implements ItemReduceBreaktime
     // CHECKSTYLE:ON
 
     @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
+
+    @Override
     public double getDivisor() {
         return 6;
     }

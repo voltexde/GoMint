@@ -4,6 +4,7 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.util.random.FastRandom;
+import io.gomint.server.util.random.WeightedRandom;
 import io.gomint.server.world.UpdateReason;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,18 @@ import org.slf4j.LoggerFactory;
 public abstract class Growable extends Block {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Growable.class );
+
+    /**
+     * Randomizer for seed drop output
+     */
+    protected static final WeightedRandom<Integer> SEED_RANDOMIZER = new WeightedRandom<>();
+
+    static {
+        SEED_RANDOMIZER.add( 0.15, 0 );
+        SEED_RANDOMIZER.add( 0.35, 1 );
+        SEED_RANDOMIZER.add( 0.35, 2 );
+        SEED_RANDOMIZER.add( 0.15, 3 );
+    }
 
     @Override
     public boolean beforePlacement( ItemStack item, Location location ) {

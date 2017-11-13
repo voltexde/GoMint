@@ -11,6 +11,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.ContainerInventory;
 import io.gomint.server.inventory.Inventory;
+import io.gomint.server.inventory.item.ItemBow;
 import io.gomint.server.inventory.item.category.ItemConsumable;
 import io.gomint.server.inventory.transaction.DropItemTransaction;
 import io.gomint.server.inventory.transaction.InventoryTransaction;
@@ -141,6 +142,10 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
         LOGGER.debug( "Action Type: " + packet.getActionType() );
         switch ( packet.getActionType() ) {
             case 0: // Release item ( shoot bow )
+                // Check if the item is a bow
+                if ( itemInHand instanceof ItemBow ) {
+                    ( (ItemBow) itemInHand ).shoot( connection.getEntity() );
+                }
 
                 break;
 
@@ -185,8 +190,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     return;
                 }
 
-                ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).afterPlacement();
-                if ( itemInHand.getAmount() <= 0 ) {
+                if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).afterPlacement() ) {
                     connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
                 } else {
                     connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
@@ -197,6 +201,12 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Only send interact events, there is nothing special to be done in here
                 PlayerInteractEvent event = new PlayerInteractEvent( connection.getEntity(), PlayerInteractEvent.ClickType.RIGHT, null );
                 connection.getNetworkManager().getServer().getPluginManager().callEvent( event );
+
+                if ( !event.isCancelled() ) {
+                    io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) connection.getEntity().getInventory().getItemInHand();
+                    itemStack.interact( connection.getEntity(), -1, packet.getClickPosition(), null );
+                }
+
                 break;
             case 2: // Break block
                 // Breaking blocks too fast / missing start_break
@@ -276,7 +286,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                                     // When the item was broken with the correct tool it decreases by 1, else it should decrease by 2
 
 
-                                    if ( target.getData() == itemInHand.getData() + 1 &&
+                                    if ( ( target.getData() == itemInHand.getData() + 1 || target.getData() == itemInHand.getData() + 2 ) &&
                                         ( ( target.getNbtData() == null && itemInHand.getNbtData() == null ) ||
                                             target.getNbtData().equals( itemInHand.getNbtData() ) ) ) {
                                         connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), target );
@@ -355,6 +365,9 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 break;
             case 0:     // EntityPlayer window id
                 inventory = entity.getInventory();
+                break;
+            case 119:
+                inventory = entity.getOffhandInventory();
                 break;
             case 120:   // Armor window id
                 inventory = entity.getArmorInventory();

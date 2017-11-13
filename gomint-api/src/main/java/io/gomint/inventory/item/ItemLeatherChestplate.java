@@ -6,15 +6,15 @@ import io.gomint.GoMint;
  * @author geNAZt
  * @version 1.0
  */
-public interface ItemLeatherTunic extends ItemStack {
+public interface ItemLeatherChestplate extends ItemStack {
 
     /**
      * Create a new item stack with given class and amount
      *
      * @param amount which is used for the creation
      */
-    static ItemLeatherTunic create( int amount ) {
-        return GoMint.instance().createItemStack( ItemLeatherTunic.class, amount );
+    static ItemLeatherChestplate create( int amount ) {
+        return GoMint.instance().createItemStack( ItemLeatherChestplate.class, amount );
     }
 
 }

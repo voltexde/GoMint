@@ -53,7 +53,7 @@ public class SimplePluginManager implements PluginManager {
 
     private final List<PluginMeta> detectedPlugins = new ArrayList<>();
     private final Map<String, Plugin> loadedPlugins = new LinkedHashMap<>();
-    private final Map<String, Plugin> installedPlugins = new HashMap<>();
+    private final Map<String, Plugin> installedPlugins = new LinkedHashMap<>();
     private final Map<String, PluginMeta> metadata = new HashMap<>();
 
     private final EventManager eventManager = new EventManager();
@@ -423,6 +423,13 @@ public class SimplePluginManager implements PluginManager {
     }
 
     private void uninstallPlugin0( Plugin plugin ) {
+        new Exception().printStackTrace();
+
+        // Did we already disable this plugin?
+        if ( !this.installedPlugins.containsKey( plugin.getName() ) ) {
+            return;
+        }
+
         // Check for plugins with hard depends
         new HashMap<>( this.metadata ).forEach( new BiConsumer<String, PluginMeta>() {
             @Override

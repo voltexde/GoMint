@@ -783,6 +783,39 @@ public abstract class WorldAdapter implements World {
         return nearby;
     }
 
+    public List<Block> getCollisionBlocks( io.gomint.entity.Entity entity ) {
+        AxisAlignedBB bb = entity.getBoundingBox().grow( 0.1f, 0.01f, 0.1f );
+
+        int minX = MathUtils.fastFloor( bb.getMinX() );
+        int minY = MathUtils.fastFloor( bb.getMinY() );
+        int minZ = MathUtils.fastFloor( bb.getMinZ() );
+        int maxX = MathUtils.fastCeil( bb.getMaxX() );
+        int maxY = MathUtils.fastCeil( bb.getMaxY() );
+        int maxZ = MathUtils.fastCeil( bb.getMaxZ() );
+
+        List<Block> blocks = null;
+        for ( int z = minZ; z < maxZ; ++z ) {
+            for ( int x = minX; x < maxX; ++x ) {
+                for ( int y = minY; y < maxY; ++y ) {
+                    Block block = this.getBlockAt( x, y, z );
+
+                    if ( !block.canPassThrough() ) {
+                        AxisAlignedBB blockBox = block.getBoundingBox();
+                        if ( blockBox.intersectsWith( bb ) ) {
+                            if ( blocks == null ) {
+                                blocks = new ArrayList<>();
+                            }
+
+                            blocks.add( block );
+                        }
+                    }
+                }
+            }
+        }
+
+        return blocks;
+    }
+
     @Override
     public List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb, boolean includeEntities ) {
         int minX = MathUtils.fastFloor( bb.getMinX() );
@@ -873,6 +906,11 @@ public abstract class WorldAdapter implements World {
                 if ( clickedBlock.canBeReplaced( itemInHand ) ) {
                     replaceBlock = clickedBlock;
                 } else if ( !replaceBlock.canBeReplaced( itemInHand ) ) {
+                    return false;
+                }
+
+                // Check if we want to replace the block we are in
+                if ( entity.getLocation().toBlockPosition().equals( replaceBlock.getLocation().toBlockPosition() ) ) {
                     return false;
                 }
 

@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -22,6 +24,12 @@ public class Cactus extends Block {
     @Override
     public boolean isTransparent() {
         return true;
+    }
+
+    @Override
+    public void onEntityCollision( EntityLiving entity ) {
+        EntityDamageEvent damageEvent = new EntityDamageEvent( entity, EntityDamageEvent.DamageSource.CACTUS, 1.0f );
+        entity.damage( damageEvent );
     }
 
 }

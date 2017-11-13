@@ -4,11 +4,13 @@ import com.koloboke.collect.ObjCursor;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
+import io.gomint.server.entity.projectile.EntityProjectile;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityEvent;
@@ -16,11 +18,14 @@ import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.EntityHashSet;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Cactus;
+import io.gomint.world.block.Block;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,7 +52,8 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     private byte attackCoolDown = 0;
     private float lastDamage = 0;
-    private int deadTimer = 0;
+    protected int deadTimer = 0;
+    private int fireTicks = 0;
 
     /**
      * Constructs a new EntityLiving
@@ -60,6 +66,11 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         this.behaviour = new AIBehaviourComponent();
         this.pathfinding = new PathfindingEngine( this.getTransform() );
         this.initAttributes();
+
+        this.metadataContainer.putShort( MetadataContainer.DATA_AIR, (short) 400 );
+        this.metadataContainer.putShort( MetadataContainer.DATA_MAX_AIRDATA_MAX_AIR, (short) 400 );
+        this.metadataContainer.putFloat( MetadataContainer.DATA_SCALE, 1.0f );
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, true );
     }
 
     private void initAttributes() {
@@ -139,8 +150,51 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
                 this.attackCoolDown--;
             }
 
+            // Fire?
+            if ( this.fireTicks > 0 ) {
+                if ( this.fireTicks % 20 == 0 ) {
+                    EntityDamageEvent damageEvent = new EntityDamageEvent( this, EntityDamageEvent.DamageSource.ON_FIRE, 1.0f );
+                    damage( damageEvent );
+                }
+
+                this.fireTicks--;
+                if ( this.fireTicks == 0 ) {
+                    setOnFire( false );
+                }
+            }
+
             // Check for block stuff
-            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, !this.isInsideLiquid() );
+            boolean breathing = !this.isInsideLiquid();
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, breathing );
+
+            // Check for damage due to blocks (cactus, fire, lava)
+            List<Block> blockList = this.world.getCollisionBlocks( this );
+            if ( blockList != null ) {
+                for ( Block block : blockList ) {
+                    io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
+                    implBlock.onEntityCollision( this );
+                }
+            }
+
+            io.gomint.server.world.block.Block standingIn = this.world.getBlockAt( this.getPosition().toBlockPosition() );
+            standingIn.onEntityStanding( this );
+
+            // Breathing
+            short air = this.metadataContainer.getShort( MetadataContainer.DATA_AIR );
+            short maxAir = this.metadataContainer.getShort( MetadataContainer.DATA_MAX_AIRDATA_MAX_AIR );
+
+            if ( !breathing ) {
+                if ( --air < 0 ) {
+                    EntityDamageEvent damageEvent = new EntityDamageEvent( this, EntityDamageEvent.DamageSource.DROWNING, 2.0f );
+                    damage( damageEvent );
+                } else {
+                    this.metadataContainer.putShort( MetadataContainer.DATA_AIR, air );
+                }
+            } else {
+                if ( air != maxAir ) {
+                    this.metadataContainer.putShort( MetadataContainer.DATA_AIR, maxAir );
+                }
+            }
 
             this.lastUpdateDT = 0;
         }
@@ -253,7 +307,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
                     motion.setY( baseModifier );
                 }
 
-                this.setVelocity( motion, false );
+                this.setVelocity( motion, true );
             }
         }
 
@@ -270,7 +324,13 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         return true;
     }
 
-    protected abstract void kill();
+    /**
+     * Reset fire status on kill
+     */
+    protected void kill() {
+        this.fireTicks = 0;
+        setOnFire( false );
+    }
 
     float applyArmorReduction( EntityDamageEvent damageEvent ) {
         return damageEvent.getDamage();
@@ -298,4 +358,15 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             EntityDamageEvent.DamageSource.VOID, 4.0F );
         this.damage( damageEvent );
     }
+
+    public void setFire( int seconds ) {
+        int newFireTicks = seconds * 20;
+        if ( newFireTicks > this.fireTicks ) {
+            this.fireTicks = newFireTicks;
+            setOnFire( true );
+        }
+    }
+
+
+
 }

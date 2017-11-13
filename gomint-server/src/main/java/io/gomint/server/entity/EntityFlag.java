@@ -16,6 +16,7 @@ public enum EntityFlag {
     SPRINTING( 3 ),
     CAN_SHOW_NAMETAG( 14 ),
     ALWAYS_SHOW_NAMETAG( 15 ),
+    IMMOBILE( 16 ),
     CAN_CLIMB( 19 ),
     SWIMMER( 20 ),
     BREATHING( 33 ),

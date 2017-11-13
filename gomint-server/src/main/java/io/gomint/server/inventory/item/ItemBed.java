@@ -8,7 +8,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 355 )
- public class ItemBed extends ItemStack implements io.gomint.inventory.item.ItemBed {
+public class ItemBed extends ItemStack implements io.gomint.inventory.item.ItemBed {
 
     // CHECKSTYLE:OFF
     public ItemBed( short data, int amount ) {
@@ -19,6 +19,11 @@ import io.gomint.taglib.NBTTagCompound;
         super( 355, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
 
     @Override
     public int getBlockId() {

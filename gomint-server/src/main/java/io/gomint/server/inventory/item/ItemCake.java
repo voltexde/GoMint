@@ -20,6 +20,10 @@ public class ItemCake extends ItemStack implements io.gomint.inventory.item.Item
     }
     // CHECKSTYLE:ON
 
+    @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
 
     @Override
     public int getBlockId() {

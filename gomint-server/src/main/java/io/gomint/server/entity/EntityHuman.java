@@ -295,7 +295,7 @@ public class EntityHuman extends EntityLiving {
 
     @Override
     protected void kill() {
-
+        super.kill();
     }
 
 }

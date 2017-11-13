@@ -20,4 +20,34 @@ public class ItemFlintAndSteel extends ItemStack implements io.gomint.inventory.
     }
     // CHECKSTYLE:ON
 
+    @Override
+    public short getMaxDamage() {
+        return 64;
+    }
+
+    @Override
+    public boolean usesDamage() {
+        return true;
+    }
+
+    @Override
+    public boolean useDamageAsData() {
+        return false;
+    }
+
+    @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
+
+    @Override
+    public int getBlockId() {
+        return 51;
+    }
+
+    @Override
+    public boolean afterPlacement() {
+        return this.damage( 1 );
+    }
+
 }

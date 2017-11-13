@@ -18,6 +18,11 @@ public abstract class ItemArmor extends ItemStack {
     }
     // CHECKSTYLE:ON
 
+    @Override
+    public byte getMaximumAmount() {
+        return 1;
+    }
+
     public abstract float getReductionValue();
 
 }

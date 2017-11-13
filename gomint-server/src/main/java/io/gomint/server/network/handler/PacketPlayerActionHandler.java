@@ -1,10 +1,13 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerInteractEvent;
+import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketPlayerAction;
 import io.gomint.server.world.LevelEvent;
+import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.Fire;
 import io.gomint.world.Gamemode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +22,8 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
     @Override
     public void handle( PacketPlayerAction packet, long currentTimeMillis, PlayerConnection connection ) {
+        LOGGER.debug( packet.toString() );
+
         switch ( packet.getAction() ) {
             case START_BREAK:
                 // Sanity checks (against crashes)
@@ -42,6 +47,17 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                                 connection.getEntity().getWorld().sendLevelEvent( packet.getPosition().toVector(),
                                     LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
                             }
+                        }
+                    }
+
+                    // Nasty hack for fire
+                    io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( packet.getPosition() );
+                    Block faced = (Block) block.getSide( packet.getFace() );
+                    if ( faced instanceof Fire ) {
+                        BlockBreakEvent event1 = new BlockBreakEvent( connection.getEntity(), faced );
+                        connection.getServer().getPluginManager().callEvent( event1 );
+                        if ( !event1.isCancelled() ) {
+                            faced.setType( Air.class );
                         }
                     }
                 }
