@@ -210,4 +210,6 @@ public interface EntityPlayer extends EntityCreature {
      */
     Locale getLocale();
 
+    void setImmobile( boolean value );
+
 }

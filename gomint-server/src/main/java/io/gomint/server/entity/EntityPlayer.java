@@ -30,6 +30,7 @@ import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.collection.*;
 import io.gomint.server.world.ChunkAdapter;
+import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.world.Gamemode;
@@ -109,8 +110,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private long breakTime;
 
     // Update data
-    @Getter
-    private Set<BlockPosition> blockUpdates = new HashSet<>();
+    @Getter private Set<BlockPosition> blockUpdates = new HashSet<>();
+    @Getter @Setter private Location teleportPosition = null;
 
     // Form stuff
     private int formId;
@@ -118,14 +119,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private FormListenerIDMap formListeners = FormListenerIDMap.withExpectedSize( 2 );
 
     // Entity data
-    @Getter
-    @Setter
-    private EntityFishingHook fishingHook;
+    @Getter @Setter private EntityFishingHook fishingHook;
 
     // Bow ticking
-    @Getter
-    @Setter
-    private long startBow = -1;
+    @Getter @Setter private long startBow = -1;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -318,20 +315,27 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void teleport( Location to ) {
         Location from = getLocation();
 
+        this.setAndRecalcPosition( to );
+
         // Check if we need to change worlds
         if ( !to.getWorld().equals( getWorld() ) ) {
             // Change worlds first
             getWorld().removePlayer( this );
-            setWorld( (WorldAdapter) to.getWorld() );
+            this.world = (WorldAdapter) to.getWorld();
+            this.world.spawnEntityAt( this, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch() );
             this.connection.resetPlayerChunks();
             this.entityVisibilityManager.clear();
             this.connection.sendMovePlayer( new Location( to.getWorld(), getPositionX() + 1000000, 4000, getPositionZ() + 1000000 ) );
+
+            int chunkX = CoordinateUtils.fromBlockToChunk( (int) to.getX() );
+            int chunkZ = CoordinateUtils.fromBlockToChunk( (int) to.getZ() );
+            this.world.movePlayerToChunk( chunkX, chunkZ, this );
         }
 
-        this.setAndRecalcPosition( to );
         this.connection.sendMovePlayer( to );
         this.fallDistance = 0;
         this.connection.checkForNewChunks( from );
+        this.teleportPosition = to;
     }
 
     @Override

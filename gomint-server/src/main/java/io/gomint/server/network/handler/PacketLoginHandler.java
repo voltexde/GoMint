@@ -123,7 +123,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
                 // Sync up for disconnecting etc.
                 boolean finalValidSkin = validSkin;
-                connection.getServer().getSyncTaskManager().addTask( new SyncScheduledTask( new Runnable() {
+                connection.getServer().getSyncTaskManager().addTask( new SyncScheduledTask( connection.getServer().getSyncTaskManager(), new Runnable() {
                     @Override
                     public void run() {
                         // Invalid skin

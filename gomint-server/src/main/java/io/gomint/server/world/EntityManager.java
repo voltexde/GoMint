@@ -394,6 +394,10 @@ public class EntityManager {
                 ( (io.gomint.server.entity.EntityPlayer) player ).getEntityVisibilityManager().removeEntity( entity );
             }
         }
+
+        // Remove from maps
+        this.entitiesById.justRemove( entity.getEntityId() );
+        this.spawnedInThisTick.justRemove( entity.getEntityId() );
     }
 
 }

@@ -92,7 +92,7 @@ public abstract class WorldAdapter implements World {
     protected WorldAdapter( GoMintServer server, File worldDir ) {
         this.chunkGenerator = new VoidGenerator( this );
         this.server = server;
-        this.logger = LoggerFactory.getLogger( "World-" + worldDir.getName() );
+        this.logger = LoggerFactory.getLogger( "io.gomint.World-" + worldDir.getName() );
         this.worldDir = worldDir;
         this.entityManager = new EntityManager( this );
         this.players = PlayerMap.withExpectedSize( this.server.getServerConfig().getMaxPlayers() );
@@ -362,10 +362,14 @@ public abstract class WorldAdapter implements World {
      * @param player The player entity which should be removed from the world
      */
     public void removePlayer( io.gomint.server.entity.EntityPlayer player ) {
+        logger.debug( "Removing player: " + player );
+
         ChunkAdapter chunkAdapter = this.players.remove( player );
         if ( chunkAdapter != null ) {
             chunkAdapter.removePlayer( player );
         }
+
+        this.entityManager.despawnEntity( player );
     }
 
     /**

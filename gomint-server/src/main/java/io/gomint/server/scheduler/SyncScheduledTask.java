@@ -25,24 +25,27 @@ import java.util.concurrent.TimeUnit;
 public class SyncScheduledTask implements Task, Runnable {
 
     private final Runnable task;
-    private final long period;          // -1 means no reschedule
+    private long period;          // -1 means no reschedule
     @Getter
     private long nextExecution; // -1 is cancelled
     private ExceptionHandler exceptionHandler;
     private List<CompleteHandler> completeHandlerList;
+    private SyncTaskManager manager;
 
     /**
      * Constructs a new SyncScheduledTask. It needs to be executed via a normal {@link java.util.concurrent.ExecutorService}
      *
-     * @param task   The runnable which should be executed
-     * @param delay  Amount of time units to wait until the invocation of this execution
-     * @param period Amount of time units for the delay after execution to run the runnable again
-     * @param unit   of time
+     * @param manager which schedules this task
+     * @param task    The runnable which should be executed
+     * @param delay   Amount of time units to wait until the invocation of this execution
+     * @param period  Amount of time units for the delay after execution to run the runnable again
+     * @param unit    of time
      */
-    public SyncScheduledTask( Runnable task, long delay, long period, TimeUnit unit ) {
+    public SyncScheduledTask( SyncTaskManager manager, Runnable task, long delay, long period, TimeUnit unit ) {
         this.task = task;
         this.period = ( period >= 0 ) ? unit.toMillis( period ) : -1;
         this.nextExecution = ( delay >= 0 ) ? System.currentTimeMillis() + unit.toMillis( delay ) : -1;
+        this.manager = manager;
     }
 
     @Override
@@ -70,8 +73,10 @@ public class SyncScheduledTask implements Task, Runnable {
 
     @Override
     public void cancel() {
+        this.period = -1;
         this.nextExecution = -1;
         this.fireCompleteHandlers();
+        this.manager.removeTask( this );
     }
 
     @Override

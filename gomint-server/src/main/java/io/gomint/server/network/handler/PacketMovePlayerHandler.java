@@ -31,6 +31,16 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
         to.setYaw( packet.getYaw() );
         to.setPitch( packet.getPitch() );
 
+        // Does the entity have a teleport open?
+        if ( connection.getEntity().getTeleportPosition() != null ) {
+            if ( connection.getEntity().getTeleportPosition().distanceSquared( to ) != 0 ) {
+                connection.sendMovePlayer( connection.getEntity().getTeleportPosition() );
+                return;
+            } else {
+                connection.getEntity().setTeleportPosition( null );
+            }
+        }
+
         Location from = entity.getLocation();
 
         // The packet did not contain any movement? skip it
@@ -42,6 +52,8 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
             from.getPitch() - to.getPitch() == 0 ) {
             return;
         }
+
+        LOGGER.debug( connection.getEntity().getName() + " input movement " + to );
 
         PlayerMoveEvent playerMoveEvent = connection.getNetworkManager().getServer().getPluginManager().callEvent(
             new PlayerMoveEvent( entity, from, to )
@@ -63,6 +75,7 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
 
             // Try to at least move the gravitation down
             Vector moved = entity.safeMove( moveX, moveY, moveZ );
+            LOGGER.debug( connection.getEntity().getName() + " moved: " + moved );
 
             // Exhaustion
             double distance = Math.abs( moved.getX() ) + Math.abs( moved.getY() ) + Math.abs( moved.getZ() );

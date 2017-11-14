@@ -571,7 +571,6 @@ public class PlayerConnection {
             }
         }
 
-
         // Move the player to this chunk
         if ( from != null ) {
             int oldChunkX = CoordinateUtils.fromBlockToChunk( (int) from.getX() );

@@ -21,7 +21,12 @@
         </RollingRandomAccessFile>
     </Appenders>
     <Loggers>
-        <Root level="DEBUG">
+        <Logger name="io.gomint" level="DEBUG" additivity="false">
+            <AppenderRef ref="File"/>
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Root level="INFO">
             <AppenderRef ref="File"/>
             <AppenderRef ref="Console"/>
         </Root>
