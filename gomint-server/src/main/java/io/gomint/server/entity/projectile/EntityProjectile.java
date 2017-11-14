@@ -14,6 +14,7 @@ import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
+import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.EntityType;
 import io.gomint.server.util.Values;
@@ -27,9 +28,9 @@ import java.util.Collection;
  * @author geNAZt
  * @version 1.0
  */
-public abstract class EntityProjectile extends Entity {
+public abstract class EntityProjectile extends Entity implements io.gomint.entity.projectile.EntityProjectile {
 
-    @Getter private final Entity shooter;
+    protected final EntityLiving shooter;
     private float lastUpdatedT;
 
     // Hit state tracking
@@ -42,7 +43,7 @@ public abstract class EntityProjectile extends Entity {
      * @param type    The type of the Entity
      * @param world   The world in which this entity is in
      */
-    protected EntityProjectile( Entity shooter, EntityType type, WorldAdapter world ) {
+    protected EntityProjectile( EntityLiving shooter, EntityType type, WorldAdapter world ) {
         super( type, world );
         this.setHasCollision( false );
 
@@ -146,6 +147,15 @@ public abstract class EntityProjectile extends Entity {
     @Override
     protected void fall() {
 
+    }
+
+    @Override
+    public io.gomint.entity.EntityLiving getShooter() {
+        if ( this.shooter.isDead() ) {
+            return null;
+        }
+
+        return this.shooter;
     }
 
 }

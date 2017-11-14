@@ -4,13 +4,11 @@ import com.koloboke.collect.ObjCursor;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
-import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
-import io.gomint.server.entity.projectile.EntityProjectile;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityEvent;
@@ -18,7 +16,6 @@ import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.EntityHashSet;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.block.Cactus;
 import io.gomint.world.block.Block;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -48,12 +45,18 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     protected Map<String, AttributeInstance> attributes = new HashMap<>();
 
     private float lastUpdateDT = 0;
-    @Getter private EntityHashSet attachedEntities = EntityHashSet.withExpectedSize( 10 );
+    @Getter
+    private EntityHashSet attachedEntities = EntityHashSet.withExpectedSize( 10 );
 
     private byte attackCoolDown = 0;
-    private float lastDamage = 0;
+
     protected int deadTimer = 0;
     private int fireTicks = 0;
+
+    // Damage stats
+    protected float lastDamage = 0;
+    @Getter protected EntityDamageEvent.DamageSource lastDamageSource;
+    @Getter protected io.gomint.entity.Entity lastDamageEntity;
 
     /**
      * Constructs a new EntityLiving
@@ -122,9 +125,16 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     public void update( long currentTimeMS, float dT ) {
-        if ( !(this instanceof EntityPlayer ) && !( this.isDead() || this.getHealth() <= 0 ) ) {
+        if ( !( this instanceof EntityPlayer ) && !( this.isDead() || this.getHealth() <= 0 ) ) {
             super.update( currentTimeMS, dT );
             this.behaviour.update( currentTimeMS, dT );
+        }
+
+        // Check if last hit entity is still alive
+        if ( this.lastDamageEntity != null ) {
+            if ( this.lastDamageEntity.isDead() ) {
+                this.lastDamageEntity = null;
+            }
         }
 
         // Check for client tick stuff
@@ -260,7 +270,8 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         float damage = applyArmorReduction( damageEvent );
 
         // Check for attack timer
-        if ( this.attackCoolDown > 0 && damage <= this.lastDamage ) {
+        if ( this.attackCoolDown > 0 && ( damage <= this.lastDamage &&
+            damageEvent.getDamageSource() == this.lastDamageSource ) ) {
             return false;
         }
 
@@ -311,15 +322,18 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             }
         }
 
+        this.lastDamage = damage;
+        this.lastDamageSource = damageEvent.getDamageSource();
+        this.lastDamageEntity = ( damageEvent instanceof EntityDamageByEntityEvent ) ? ( (EntityDamageByEntityEvent) damageEvent ).getAttacker() : null;
+
         if ( this instanceof EntityPlayer ) {
             ( (EntityPlayer) this ).getConnection().addToSendQueue( entityEvent );
-
-            if ( health <= 0 ) {
-                this.kill();
-            }
         }
 
-        this.lastDamage = damage;
+        if ( health <= 0 ) {
+            this.kill();
+        }
+
         this.attackCoolDown = 10;
         return true;
     }
@@ -366,7 +380,5 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             setOnFire( true );
         }
     }
-
-
 
 }

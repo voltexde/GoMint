@@ -25,4 +25,13 @@ public abstract class ItemArmor extends ItemStack {
 
     public abstract float getReductionValue();
 
+    protected boolean isBetter( ItemStack oldItem ) {
+        // Armor is better than no armor!
+        if ( !( oldItem instanceof ItemArmor ) ) {
+            return true;
+        }
+
+        return ( (ItemArmor) oldItem ).getReductionValue() < this.getReductionValue();
+    }
+
 }

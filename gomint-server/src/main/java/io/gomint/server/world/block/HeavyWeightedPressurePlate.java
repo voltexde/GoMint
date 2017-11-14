@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.server.inventory.item.ItemHeavyWeightedPressurePlate;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -28,6 +29,18 @@ public class HeavyWeightedPressurePlate extends Block {
     @Override
     public boolean isSolid() {
         return false;
+    }
+
+    @Override
+    public AxisAlignedBB getBoundingBox() {
+        return new AxisAlignedBB(
+            this.location.getX(),
+            this.location.getY(),
+            this.location.getZ(),
+            this.location.getX() + 1,
+            this.location.getY() + 0.1f,
+            this.location.getZ() + 1
+        );
     }
 
 }

@@ -7,6 +7,7 @@
 
 package io.gomint.entity;
 
+import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.gui.Form;
 import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
@@ -209,7 +210,5 @@ public interface EntityPlayer extends EntityCreature {
      * @return locale of the players client
      */
     Locale getLocale();
-
-    void setImmobile( boolean value );
 
 }

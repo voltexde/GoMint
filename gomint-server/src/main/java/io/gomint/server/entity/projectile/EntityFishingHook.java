@@ -92,6 +92,10 @@ public class EntityFishingHook extends EntityProjectile {
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
 
+        if ( this.shooter.isDead() ) {
+            this.despawn();
+        }
+
         this.lastUpdatedT += dT;
         if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
             if ( this.isCollided && this.isInsideLiquid() ) {

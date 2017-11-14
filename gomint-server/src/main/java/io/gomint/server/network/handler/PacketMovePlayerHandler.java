@@ -4,7 +4,6 @@ import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerMoveEvent;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
-import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMovePlayer;
@@ -33,7 +32,7 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
 
         // Does the entity have a teleport open?
         if ( connection.getEntity().getTeleportPosition() != null ) {
-            if ( connection.getEntity().getTeleportPosition().distanceSquared( to ) != 0 ) {
+            if ( connection.getEntity().getTeleportPosition().distanceSquared( to ) > 0.2 ) {
                 connection.sendMovePlayer( connection.getEntity().getTeleportPosition() );
                 return;
             } else {

@@ -66,4 +66,11 @@ public interface Entity {
 
     boolean isOnGround();
 
+    /**
+     * Get the dead status of this entity
+     *
+     * @return true when dead, false when alive
+     */
+    boolean isDead();
+
 }

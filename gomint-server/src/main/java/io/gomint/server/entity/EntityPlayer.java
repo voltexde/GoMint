@@ -110,8 +110,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private long breakTime;
 
     // Update data
-    @Getter private Set<BlockPosition> blockUpdates = new HashSet<>();
-    @Getter @Setter private Location teleportPosition = null;
+    @Getter
+    private Set<BlockPosition> blockUpdates = new HashSet<>();
+    @Getter
+    @Setter
+    private Location teleportPosition = null;
 
     // Form stuff
     private int formId;
@@ -119,10 +122,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private FormListenerIDMap formListeners = FormListenerIDMap.withExpectedSize( 2 );
 
     // Entity data
-    @Getter @Setter private EntityFishingHook fishingHook;
+    @Getter
+    @Setter
+    private EntityFishingHook fishingHook;
 
     // Bow ticking
-    @Getter @Setter private long startBow = -1;
+    @Getter
+    @Setter
+    private long startBow = -1;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -462,6 +469,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         return craftingInputInventory;
     }
 
+    /**
+     * Get offhand inventory. This inventory only has one slot
+     *
+     * @return current offhand inventory
+     */
     public Inventory getOffhandInventory() {
         return offhandInventory;
     }
@@ -912,6 +924,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             this.deadTimer = -1;
         }
 
+        // Reset last damage stuff
+        this.lastDamageEntity = null;
+        this.lastDamageSource = null;
+        this.lastDamage = 0;
+
         // Send metadata
         this.sendData( this );
 
@@ -961,7 +978,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             for ( io.gomint.inventory.item.ItemStack drop : event.getDrops() ) {
                 this.world.dropItem( this.getLocation(), drop );
             }
+
+            this.inventory.clear();
+            this.offhandInventory.clear();
         }
+
+        this.craftingInventory.clear();
+        this.craftingInputInventory.clear();
+        this.craftingResultInventory.clear();
 
         if ( event.getDeathMessage() != null && !event.getDeathMessage().isEmpty() ) {
             for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
@@ -980,6 +1004,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         List<io.gomint.inventory.item.ItemStack> drops = new ArrayList<>();
 
         for ( io.gomint.inventory.item.ItemStack itemStack : this.inventory.getContents() ) {
+            if ( !( itemStack instanceof ItemAir ) ) {
+                drops.add( itemStack );
+            }
+        }
+
+        for ( io.gomint.inventory.item.ItemStack itemStack : this.offhandInventory.getContents() ) {
             if ( !( itemStack instanceof ItemAir ) ) {
                 drops.add( itemStack );
             }
