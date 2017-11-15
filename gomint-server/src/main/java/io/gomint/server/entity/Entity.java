@@ -718,6 +718,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     public void setPosition( float positionX, float positionY, float positionZ ) {
         this.transform.setPosition( positionX, positionY, positionZ );
+        this.recalcBoundingBox();
     }
 
     /**
@@ -977,6 +978,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
 
     private void recalcBoundingBox() {
+        // Only recalc on spawned entities
+        if ( this.world == null ) {
+            return;
+        }
+
         // Update bounding box
         Location location = this.getLocation();
         getBoundingBox().setBounds(
@@ -1021,7 +1027,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         }
 
         this.world = (WorldAdapter) location.getWorld();
-        this.world.spawnEntityAt( this, getPositionX(), getPositionY(), getPositionZ(), getYaw(), getPitch() );
+        this.world.spawnEntityAt( this, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() );
     }
 
 }

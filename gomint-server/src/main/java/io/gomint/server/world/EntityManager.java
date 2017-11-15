@@ -278,16 +278,6 @@ public class EntityManager {
         cEntity.setHeadYaw( yaw );
         cEntity.setPitch( pitch );
 
-        // Update bounding box
-        entity.getBoundingBox().setBounds(
-            cEntity.getPositionX() - ( cEntity.getWidth() / 2 ),
-            cEntity.getPositionY(),
-            cEntity.getPositionZ() - ( cEntity.getWidth() / 2 ),
-            cEntity.getPositionX() + ( cEntity.getWidth() / 2 ),
-            cEntity.getPositionY() + cEntity.getHeight(),
-            cEntity.getPositionZ() + ( cEntity.getWidth() / 2 )
-        );
-
         if ( this.currentlyTicking ) {
             this.spawnedInThisTick.justPut( entity.getEntityId(), entity );
         } else {

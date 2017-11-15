@@ -46,7 +46,6 @@ public class Explosion {
     private BlockPosition tempBlock = new BlockPosition( 0, 0, 0 );
     private Set<Block> affectedBlocks = new HashSet<>();
     private Block currentBlock;
-    private Map<Vector, Float> distanceCache = new HashMap<>();
 
     private void checkAffectedWithZGiven( int z ) {
         for ( int y = 0; y < 16; ++y ) {
@@ -97,7 +96,8 @@ public class Explosion {
                 int newY = MathUtils.fastFloor( directionY );
                 int newZ = MathUtils.fastFloor( directionZ );
 
-                if ( newX != this.tempBlock.getX() ||
+                if ( this.currentBlock == null ||
+                    newX != this.tempBlock.getX() ||
                     newY != this.tempBlock.getY() ||
                     newZ != this.tempBlock.getZ() ) {
 
@@ -150,7 +150,8 @@ public class Explosion {
         checkAffectedWithZGiven( 15 );
 
         // Call explode event
-        EntityExplodeEvent event = new EntityExplodeEvent( this.source, affectedBlocks, ( 1f / this.size ) * 100f );
+        EntityExplodeEvent event = new EntityExplodeEvent( this.source, this.affectedBlocks, ( 1f / this.size ) * 100f );
+        this.source.getWorld().getServer().getPluginManager().callEvent( event );
         if ( event.isCancelled() ) {
             return;
         }
@@ -186,7 +187,7 @@ public class Explosion {
 
         Set<Block> alreadyUpdated = new HashSet<>();
         List<Vector> send = new ArrayList<>();
-        for ( Block block : this.affectedBlocks ) {
+        for ( Block block : event.getAffectedBlocks() ) {
             if ( block instanceof BlockTNT ) {
                 ( (BlockTNT) block ).prime( 0.5f + FastRandom.current().nextFloat() );
             } else if ( FastRandom.current().nextFloat() * 100 < event.getRandomDropChance() ) {
@@ -199,7 +200,7 @@ public class Explosion {
 
             for ( BlockFace blockFace : BlockFace.values() ) {
                 Block attached = block.getSide( blockFace.getValue() );
-                if ( !this.affectedBlocks.contains( attached ) && !alreadyUpdated.contains( attached ) ) {
+                if ( !event.getAffectedBlocks().contains( attached ) && !alreadyUpdated.contains( attached ) ) {
                     io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) attached;
                     implBlock.update( UpdateReason.EXPLOSION, currentTimeMS, dT );
                     alreadyUpdated.add( attached );
