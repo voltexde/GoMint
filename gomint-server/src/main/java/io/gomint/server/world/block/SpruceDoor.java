@@ -14,4 +14,9 @@ public class SpruceDoor extends Door {
         return 193;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
+    }
+
 }

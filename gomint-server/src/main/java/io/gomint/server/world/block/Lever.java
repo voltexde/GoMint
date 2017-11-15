@@ -29,4 +29,9 @@ public class Lever extends Block {
         return false;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

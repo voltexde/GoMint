@@ -41,7 +41,7 @@ public class Beetroot extends Growable implements BlockBeetroot {
     }
 
     @Override
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         if ( getBlockData() >= 0x07 ) {
             List<ItemStack> drops = new ArrayList<ItemStack>() {{
                 add( Items.create( 457, (short) 0, (byte) 1, null ) ); // Beetroot
@@ -59,6 +59,11 @@ public class Beetroot extends Growable implements BlockBeetroot {
                 add( Items.create( 458, (short) 0, (byte) 1, null ) ); // Seeds
             }};
         }
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
     }
 
 }

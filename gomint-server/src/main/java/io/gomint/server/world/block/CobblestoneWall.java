@@ -24,4 +24,9 @@ public class CobblestoneWall extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 30.0f;
+    }
+
 }

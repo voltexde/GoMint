@@ -75,4 +75,9 @@ public class WallSign extends Block implements BlockWallSign {
         return sign.getLines().get( line - 1 );
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 5.0f;
+    }
+
 }

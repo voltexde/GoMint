@@ -102,14 +102,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Dead status
      */
-    @Getter @Setter
+    @Getter
+    @Setter
     private boolean dead;
 
     @Setter
     protected WorldAdapter world;
     private TransformComponent transform;
     private float lastUpdateDt;
-    @Getter private List<EntityLink> links;
+    @Getter
+    private List<EntityLink> links;
 
     // Some tracker for "smooth" movement
     private int stuckInBlockTicks = 0;
@@ -542,7 +544,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
         motion.setEntityId( this.getEntityId() );
         motion.setVelocity( this.transform.getMotion() );
 
-        LOGGER.debug( "Sending velocity: " + motion );
         this.world.sendToVisible( this.transform.getPosition().toBlockPosition(), motion, new Predicate<io.gomint.entity.Entity>() {
             @Override
             public boolean test( io.gomint.entity.Entity entity ) {
@@ -621,6 +622,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     public void setPosition( Vector position ) {
         this.transform.setPosition( position );
+        this.recalcBoundingBox();
     }
 
     /**
@@ -806,6 +808,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.width = width;
         this.height = height;
         this.eyeHeight = (float) ( height / 2 + 0.1 );
+        this.recalcBoundingBox();
     }
 
     /**
@@ -954,6 +957,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * @return true if the entity took damage, false if not
      */
     public boolean damage( EntityDamageEvent damageEvent ) {
+        // Don't damage dead entities
+        if ( this.dead ) {
+            return false;
+        }
+
         // First of all we call the event
         this.world.getServer().getPluginManager().callEvent( damageEvent );
         return !damageEvent.isCancelled();
@@ -967,21 +975,26 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     }
 
+
+    private void recalcBoundingBox() {
+        // Update bounding box
+        Location location = this.getLocation();
+        getBoundingBox().setBounds(
+            location.getX() - ( this.getWidth() / 2 ),
+            location.getY(),
+            location.getZ() - ( this.getWidth() / 2 ),
+            location.getX() + ( this.getWidth() / 2 ),
+            location.getY() + this.getHeight(),
+            location.getZ() + ( this.getWidth() / 2 )
+        );
+    }
+
     public void setAndRecalcPosition( Location to ) {
         setPosition( to );
         setPitch( to.getPitch() );
         setYaw( to.getYaw() );
         setHeadYaw( to.getHeadYaw() );
-
-        // Update bounding box
-        getBoundingBox().setBounds(
-            to.getX() - ( this.getWidth() / 2),
-            to.getY(),
-            to.getZ() - ( this.getWidth() / 2),
-            to.getX() + ( this.getWidth() / 2),
-            to.getY() + this.getHeight(),
-            to.getZ() + ( this.getWidth() / 2)
-        );
+        this.recalcBoundingBox();
     }
 
     void dealVoidDamage() {
@@ -998,6 +1011,17 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     public void multiplyFallDistance( float v ) {
         this.fallDistance *= v;
+    }
+
+    @Override
+    public void spawn( Location location ) {
+        // Check if already spawned
+        if ( this.world != null ) {
+            throw new IllegalStateException( "Entity already spawned" );
+        }
+
+        this.world = (WorldAdapter) location.getWorld();
+        this.world.spawnEntityAt( this, getPositionX(), getPositionY(), getPositionZ(), getYaw(), getPitch() );
     }
 
 }

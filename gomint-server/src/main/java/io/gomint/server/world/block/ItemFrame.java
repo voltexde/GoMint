@@ -46,4 +46,9 @@ public class ItemFrame extends Block {
         return new ItemFrameTileEntity( compound, this.world );
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

@@ -35,4 +35,9 @@ public class Bed extends Block {
         return false;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

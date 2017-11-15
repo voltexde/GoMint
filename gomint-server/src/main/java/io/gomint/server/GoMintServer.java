@@ -9,6 +9,7 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
+import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.gui.ButtonList;
 import io.gomint.gui.CustomForm;
@@ -20,6 +21,7 @@ import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
+import io.gomint.server.entity.Entities;
 import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.Items;
@@ -466,6 +468,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Override
     public <T extends ItemStack> T createItemStack( Class<T> itemClass, int amount ) {
         return Items.create( itemClass, (byte) amount );
+    }
+
+    @Override
+    public <T extends Entity> T createEntity( Class<T> entityClass ) {
+        return Entities.create( entityClass );
     }
 
     /**

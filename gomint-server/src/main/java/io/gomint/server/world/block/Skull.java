@@ -77,10 +77,15 @@ public class Skull extends Block {
     }
 
     @Override
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<ItemStack>(){{
             add( Items.create( 397, getBlockData(), (byte) 1, null ) );
         }};
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 5.0f;
     }
 
 }

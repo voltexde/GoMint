@@ -24,4 +24,9 @@ public class MobSpawner extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 25.0f;
+    }
+
 }

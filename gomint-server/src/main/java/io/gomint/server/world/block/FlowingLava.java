@@ -40,4 +40,9 @@ public class FlowingLava extends Liquid implements BlockFlowingLava {
         entityLiving.multiplyFallDistance( 0.5f );
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 500.0f;
+    }
+
 }

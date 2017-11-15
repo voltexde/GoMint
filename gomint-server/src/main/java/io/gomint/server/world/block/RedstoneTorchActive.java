@@ -24,4 +24,9 @@ public class RedstoneTorchActive extends Block {
         return false;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
+    }
+
 }

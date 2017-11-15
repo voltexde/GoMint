@@ -41,7 +41,7 @@ public class Carrots extends Growable implements BlockCarrots {
     }
 
     @Override
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         if ( getBlockData() >= 0x07 ) {
 
             return new ArrayList<ItemStack>() {{
@@ -52,6 +52,11 @@ public class Carrots extends Growable implements BlockCarrots {
                 add( Items.create( 391, (short) 0, (byte) 1, null ) ); // Carrot
             }};
         }
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
     }
 
 }

@@ -31,4 +31,9 @@ public class StainedHardenedClay extends Block {
         };
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0.75f;
+    }
+
 }

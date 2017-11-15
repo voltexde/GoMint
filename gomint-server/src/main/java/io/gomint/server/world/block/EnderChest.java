@@ -39,4 +39,9 @@ public class EnderChest extends Block {
         return false;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 3000.0f;
+    }
+
 }

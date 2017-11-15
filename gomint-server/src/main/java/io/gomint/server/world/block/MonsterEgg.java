@@ -19,4 +19,9 @@ public class MonsterEgg extends Block {
         return 1125;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 3.75f;
+    }
+
 }

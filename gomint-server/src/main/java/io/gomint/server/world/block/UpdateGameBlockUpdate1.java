@@ -14,4 +14,9 @@ public class UpdateGameBlockUpdate1 extends Block {
         return 248;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.8E7f;
+    }
+
 }

@@ -40,7 +40,7 @@ public class Crops extends Growable {
     }
 
     @Override
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         if ( getBlockData() >= 0x07 ) {
             List<ItemStack> drops = new ArrayList<ItemStack>() {{
                 add( Items.create( 296, (short) 0, (byte) 1, null ) ); // Beetroot
@@ -58,6 +58,11 @@ public class Crops extends Growable {
                 add( Items.create( 295, (short) 0, (byte) 1, null ) ); // Seeds
             }};
         }
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
     }
 
 }

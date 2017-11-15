@@ -19,4 +19,9 @@ public class RedSandstoneStairs extends Stairs {
         return 1200;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 4.0f;
+    }
+
 }

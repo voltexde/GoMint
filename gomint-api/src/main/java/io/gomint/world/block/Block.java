@@ -7,8 +7,11 @@
 
 package io.gomint.world.block;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
+
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -96,6 +99,20 @@ public interface Block {
      */
     float getFrictionFactor();
 
+    /**
+     * Get the block attached to the given side
+     *
+     * @param face for which we want the block
+     * @return attached block
+     */
     Block getSide( int face );
+
+    /**
+     * Get a list of drops which will be dropped when using the given tool
+     *
+     * @param toolItem which will be used to generate the drops
+     * @return list of item stacks which can be used as drops
+     */
+    List<ItemStack> getDrops( ItemStack toolItem );
 
 }

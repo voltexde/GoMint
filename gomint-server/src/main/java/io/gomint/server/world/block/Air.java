@@ -41,4 +41,9 @@ public class Air extends Block implements BlockAir {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
+    }
+
 }

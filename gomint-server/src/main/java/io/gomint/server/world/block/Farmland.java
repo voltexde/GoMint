@@ -37,7 +37,7 @@ public class Farmland extends Block {
     @Override
     public long update( UpdateReason updateReason, long currentTimeMS, float dT ) {
         // Check water state when random ticked
-        if ( updateReason == UpdateReason.RANDOM ) {
+        if ( updateReason == UpdateReason.RANDOM || updateReason == UpdateReason.EXPLOSION ) {
             // Do we have a stored block searcher?
             StatefulBlockSearcher blockSearcher = getFromTemporaryStorage( "blockSearcher" );
             if ( blockSearcher != null ) {
@@ -87,6 +87,11 @@ public class Farmland extends Block {
         }
 
         return false;
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 3.0f;
     }
 
 }

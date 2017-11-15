@@ -16,6 +16,11 @@ package io.gomint.server.entity;
 public enum EntityType {
 
     /**
+     * Entity type value for a primed tnt.
+     */
+    PRIMED_TNT( 65 ),
+
+    /**
      * Entity Type value for a item drop.
      */
     ITEM_DROP( 64 ),

@@ -32,4 +32,9 @@ public class Cactus extends Block {
         entity.damage( damageEvent );
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.0f;
+    }
+
 }

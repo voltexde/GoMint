@@ -24,4 +24,9 @@ public class DaylightDetector extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

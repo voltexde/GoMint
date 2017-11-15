@@ -36,4 +36,9 @@ public class Gravel extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 3.0f;
+    }
+
 }

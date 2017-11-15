@@ -34,4 +34,9 @@ public class DeadBush extends Block {
         return 0;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
+    }
+
 }

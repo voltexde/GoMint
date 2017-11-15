@@ -71,4 +71,9 @@ public class Chest extends Block implements BlockChest {
         return new ChestTileEntity( compound, this.world );
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 12.5f;
+    }
+
 }

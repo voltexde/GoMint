@@ -14,4 +14,9 @@ public class EndRod extends Block {
         return 208;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
+    }
+
 }

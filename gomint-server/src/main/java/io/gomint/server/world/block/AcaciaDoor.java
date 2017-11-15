@@ -32,7 +32,7 @@ public class AcaciaDoor extends Door {
     }
 
     @Override
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<ItemStack>(){{
             add( Items.create( 430, (short) 0, (byte) 1, null ) );
         }};
@@ -49,6 +49,11 @@ public class AcaciaDoor extends Door {
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
     }
 
 }

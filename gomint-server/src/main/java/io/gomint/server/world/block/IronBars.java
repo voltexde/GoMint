@@ -24,4 +24,9 @@ public class IronBars extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 10.0f;
+    }
+
 }

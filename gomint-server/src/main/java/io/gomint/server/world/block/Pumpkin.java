@@ -24,4 +24,9 @@ public class Pumpkin extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 5.0f;
+    }
+
 }

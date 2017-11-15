@@ -19,4 +19,9 @@ public class Bookshelf extends Block {
         return 2250;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 7.5f;
+    }
+
 }

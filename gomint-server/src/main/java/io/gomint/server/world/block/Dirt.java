@@ -37,4 +37,9 @@ public class Dirt extends Block implements BlockDirt {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

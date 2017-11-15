@@ -41,4 +41,9 @@ public class AcaciaFenceGate extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
+    }
+
 }

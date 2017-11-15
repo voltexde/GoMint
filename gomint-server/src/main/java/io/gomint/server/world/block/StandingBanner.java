@@ -14,4 +14,5 @@ public class StandingBanner extends Banner {
         return 176;
     }
 
+
 }

@@ -45,4 +45,9 @@ public class StationaryLava extends Liquid implements BlockStationaryLava {
         entityLiving.multiplyFallDistance( 0.5f );
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 500.0f;
+    }
+
 }

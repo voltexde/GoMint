@@ -14,4 +14,9 @@ public class EndBricks extends Block {
         return 206;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 4.0f;
+    }
+
 }

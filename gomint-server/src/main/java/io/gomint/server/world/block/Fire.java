@@ -5,6 +5,9 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.registry.RegisterInfo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -42,6 +45,16 @@ public class Fire extends Block {
         EntityDamageEvent damageEvent = new EntityDamageEvent( entityLiving, EntityDamageEvent.DamageSource.FIRE, 1.0f );
         entityLiving.damage( damageEvent );
         entityLiving.setFire( 8 );
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
+    }
+
+    @Override
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        return new ArrayList<>();
     }
 
 }

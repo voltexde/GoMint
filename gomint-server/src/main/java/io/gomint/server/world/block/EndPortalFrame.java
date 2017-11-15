@@ -24,4 +24,9 @@ public class EndPortalFrame extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.8E7f;
+    }
+
 }

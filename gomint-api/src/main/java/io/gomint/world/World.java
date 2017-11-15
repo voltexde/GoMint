@@ -110,6 +110,13 @@ public interface World {
      */
     List<AxisAlignedBB> getCollisionCubes( Entity entity, AxisAlignedBB bb, boolean includeEntities );
 
+    /**
+     * Create a entity drop in the given world
+     *
+     * @param location for the item drop
+     * @param itemStack which is stored inside the drop
+     * @return the created and spawned entity
+     */
     EntityItemDrop createItemDrop( Location location, ItemStack itemStack );
 
 }

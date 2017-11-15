@@ -18,4 +18,9 @@ public class Concrete extends Block {
     public long getBreakTime() {
         return 2700;
     }
+    @Override
+    public float getBlastResistance() {
+        return 9.0f;
+    }
+
 }

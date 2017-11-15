@@ -25,4 +25,9 @@ public class WoodenSlab extends Slab {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
+    }
+
 }

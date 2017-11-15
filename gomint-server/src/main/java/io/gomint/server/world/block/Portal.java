@@ -19,4 +19,9 @@ public class Portal extends Block {
         return -1;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
+    }
+
 }

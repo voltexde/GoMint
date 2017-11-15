@@ -19,4 +19,9 @@ public class Netherrack extends Block {
         return 600;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.0f;
+    }
+
 }

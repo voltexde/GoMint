@@ -19,4 +19,9 @@ public class Mycelium extends Block {
         return 900;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

@@ -24,4 +24,9 @@ public class Hopper extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 24.0f;
+    }
+
 }

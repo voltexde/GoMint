@@ -19,4 +19,9 @@ public class GoldOre extends Block {
         return 4500;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
+    }
+
 }

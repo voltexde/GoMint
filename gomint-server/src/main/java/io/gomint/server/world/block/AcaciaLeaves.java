@@ -34,4 +34,9 @@ public class AcaciaLeaves extends Block {
         }
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

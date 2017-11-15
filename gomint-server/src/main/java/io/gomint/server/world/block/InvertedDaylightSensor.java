@@ -24,4 +24,9 @@ public class InvertedDaylightSensor extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

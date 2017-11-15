@@ -73,4 +73,11 @@ public interface Entity {
      */
     boolean isDead();
 
+    /**
+     * Spawn this entity
+     *
+     * @param location
+     */
+    void spawn( Location location );
+
 }

@@ -24,4 +24,9 @@ public class TrappedChest extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 12.5f;
+    }
+
 }

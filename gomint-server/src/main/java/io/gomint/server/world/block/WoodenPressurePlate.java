@@ -80,4 +80,9 @@ public class WoodenPressurePlate extends Block {
                 this.location.getZ() + 1
         );
     }
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

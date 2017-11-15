@@ -21,7 +21,7 @@ import io.gomint.server.world.WorldAdapter;
  * @author geNAZt
  * @version 1.0
  */
-public class EntityArrow extends EntityProjectile {
+public class EntityArrow extends EntityProjectile implements io.gomint.entity.projectile.EntityArrow {
 
     private boolean canBePickedup;
     private boolean critical;

@@ -12,7 +12,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 272 )
-public class ItemStoneSword extends ItemReduceTierStone implements io.gomint.inventory.item.ItemStoneSword, ItemSword {
+public class ItemStoneSword extends ItemReduceTierSpecial implements io.gomint.inventory.item.ItemStoneSword, ItemSword {
 
     // CHECKSTYLE:OFF
     public ItemStoneSword( short data, int amount ) {

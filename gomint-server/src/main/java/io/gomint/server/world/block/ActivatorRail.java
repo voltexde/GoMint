@@ -34,4 +34,9 @@ public class ActivatorRail extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 3.5f;
+    }
+
 }

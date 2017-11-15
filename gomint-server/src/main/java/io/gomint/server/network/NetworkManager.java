@@ -42,8 +42,8 @@ import java.util.function.Consumer;
  */
 public class NetworkManager {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( NetworkManager.class );
     private final GoMintServer server;
-    private final Logger logger = LoggerFactory.getLogger( NetworkManager.class );
 
     // Connections which were closed and should be removed during next tick:
     private final GUIDSet closedConnections = GUIDSet.withExpectedSize( 5 );
@@ -118,6 +118,8 @@ public class NetworkManager {
                         connectionHandler.disconnect();
                         return;
                     }
+
+                    LOGGER.debug( "Got new TCP connection!" );
 
                     PlayerConnection playerConnection = new PlayerConnection( NetworkManager.this, null,
                         connectionHandler, PlayerConnectionState.HANDSHAKE );
@@ -236,15 +238,6 @@ public class NetworkManager {
     // ======================================= INTERNALS ======================================= //
 
     /**
-     * Used by player connections in order to log warnings and errors.
-     *
-     * @return The network manager's own logger
-     */
-    Logger getLogger() {
-        return this.logger;
-    }
-
-    /**
      * Gets the GoMint server instance that created this network manager.
      *
      * @return The GoMint server instance that created this network manager
@@ -261,7 +254,7 @@ public class NetworkManager {
      */
     void notifyUnknownPacket( byte packetId, PacketBuffer buffer ) {
         if ( this.dump ) {
-            this.logger.info( "Received unknown packet 0x" + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+            LOGGER.info( "Received unknown packet 0x" + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
             this.dumpPacket( packetId, buffer );
         }
     }
@@ -339,7 +332,7 @@ public class NetworkManager {
     }
 
     private void dumpPacket( byte packetId, PacketBuffer buffer ) {
-        this.logger.info( "Dumping packet " + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+        LOGGER.info( "Dumping packet " + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
 
         StringBuilder filename = new StringBuilder( Integer.toHexString( ( (int) packetId ) & 0xFF ) );
         while ( filename.length() < 2 ) {
@@ -383,7 +376,7 @@ public class NetworkManager {
                 out.write( buffer.getBuffer(), buffer.getPosition(), buffer.getRemaining() );
             }
         } catch ( IOException e ) {
-            this.logger.error( "Failed to dump packet " + filename );
+            LOGGER.error( "Failed to dump packet " + filename );
         }
     }
 

@@ -24,4 +24,9 @@ public class SeaLantern extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.5f;
+    }
+
 }

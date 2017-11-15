@@ -29,4 +29,9 @@ public class Leaves extends Block implements BlockLeaves {
     public boolean canBeBrokenWithHand() {
         return true;
     }
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

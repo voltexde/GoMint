@@ -129,11 +129,6 @@ public class Location extends Vector implements Cloneable {
     }
 
     @Override
-    public String toString() {
-        return String.format( "[world=%s, x=%.3f, y=%.3f, z=%.3f, yaw=%.3f, pitch=%.3f]", world.getLevelName(), x, y, z, yaw, pitch );
-    }
-
-    @Override
     public Location clone() {
         Location location = (Location) super.clone();
         location.world = this.world;

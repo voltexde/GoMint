@@ -19,4 +19,9 @@ public class IronDoor extends Door {
         return 7500;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 25.0f;
+    }
+
 }

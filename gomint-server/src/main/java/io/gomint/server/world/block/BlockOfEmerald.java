@@ -19,4 +19,9 @@ public class BlockOfEmerald extends Block {
         return 7500;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 30.0f;
+    }
+
 }

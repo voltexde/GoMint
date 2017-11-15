@@ -14,4 +14,9 @@ public class RedMushroomBlock extends Block {
         return 100;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

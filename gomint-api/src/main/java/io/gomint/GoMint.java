@@ -7,6 +7,7 @@
 
 package io.gomint;
 
+import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.gui.ButtonList;
 import io.gomint.gui.CustomForm;
@@ -57,6 +58,15 @@ public interface GoMint {
      * @return fresh generated itemstack of given type with amount of items
      */
     <T extends ItemStack> T createItemStack( Class<T> itemClass, int amount );
+
+    /**
+     * Create a new entity
+     *
+     * @param entityClass which should be created
+     * @param <T> generic type of the entity
+     * @return fresh generated entity
+     */
+    <T extends Entity> T createEntity( Class<T> entityClass );
 
     /**
      * Get a collection of all players on this server

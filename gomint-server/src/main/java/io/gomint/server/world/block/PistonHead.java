@@ -1,10 +1,14 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.PistonArmTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -29,24 +33,13 @@ public class PistonHead extends Block {
     }
 
     @Override
-    public boolean needsTileEntity() {
-        return true;
+    public float getBlastResistance() {
+        return 2.5f;
     }
 
     @Override
-    TileEntity createTileEntity( NBTTagCompound compound ) {
-        if ( compound == null ) {
-            compound = new NBTTagCompound( "" );
-        }
-
-        BlockPosition position = this.location.toBlockPosition();
-
-        // Add generic tile entity stuff
-        compound.addValue( "x", position.getX() );
-        compound.addValue( "y", position.getY() );
-        compound.addValue( "z", position.getZ() );
-
-        return new PistonArmTileEntity( compound, this.world );
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        return new ArrayList<>();
     }
 
 }

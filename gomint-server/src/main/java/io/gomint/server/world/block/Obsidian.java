@@ -19,4 +19,9 @@ public class Obsidian extends Block {
         return 75000;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 6000.0f;
+    }
+
 }

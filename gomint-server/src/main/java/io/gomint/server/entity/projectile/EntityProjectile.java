@@ -10,6 +10,7 @@ package io.gomint.server.entity.projectile;
 import io.gomint.event.entity.EntityCollisionWithEntityEvent;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.event.entity.projectile.ProjectileHitEntityEvent;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
@@ -20,7 +21,6 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.WorldAdapter;
-import lombok.Getter;
 
 import java.util.Collection;
 
@@ -122,20 +122,25 @@ public abstract class EntityProjectile extends Entity implements io.gomint.entit
 
                     // Check if we hit a entity
                     if ( hitEntity != null ) {
-                        // Calculate damage
-                        float motion = (float) Math.sqrt( MathUtils.square( this.getMotionX() ) + MathUtils.square( this.getMotionY() ) + MathUtils.square( this.getMotionZ() ) );
-                        int damage = MathUtils.fastCeil( motion * getDamage() );
+                        // Event
+                        ProjectileHitEntityEvent entityEvent = new ProjectileHitEntityEvent( hitEntity, this );
+                        this.getWorld().getServer().getPluginManager().callEvent( entityEvent );
+                        if ( !entityEvent.isCancelled() ) {
+                            // Calculate damage
+                            float motion = (float) Math.sqrt( MathUtils.square( this.getMotionX() ) + MathUtils.square( this.getMotionY() ) + MathUtils.square( this.getMotionZ() ) );
+                            int damage = MathUtils.fastCeil( motion * getDamage() );
 
-                        // Critical?
-                        if ( isCritical() ) {
-                            damage += FastRandom.current().nextInt( damage / 2 + 2 );
+                            // Critical?
+                            if ( isCritical() ) {
+                                damage += FastRandom.current().nextInt( damage / 2 + 2 );
+                            }
+
+                            EntityDamageByEntityEvent event = new EntityDamageByEntityEvent( hitEntity, this, EntityDamageEvent.DamageSource.PROJECTILE, damage );
+                            hitEntity.damage( event );
+
+                            // Store entity
+                            this.hitEntity = hitEntity;
                         }
-
-                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent( hitEntity, this, EntityDamageEvent.DamageSource.PROJECTILE, damage );
-                        hitEntity.damage( event );
-
-                        // Store entity
-                        this.hitEntity = hitEntity;
                     }
                 }
             }

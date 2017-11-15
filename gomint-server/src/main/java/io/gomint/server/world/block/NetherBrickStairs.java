@@ -19,4 +19,9 @@ public class NetherBrickStairs extends Stairs {
         return 3000;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 10.0f;
+    }
+
 }

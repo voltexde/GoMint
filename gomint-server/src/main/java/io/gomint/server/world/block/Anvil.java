@@ -36,4 +36,9 @@ public class Anvil extends Block {
         };
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 6000.0f;
+    }
+
 }

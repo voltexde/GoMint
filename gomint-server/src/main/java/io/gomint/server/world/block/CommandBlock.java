@@ -14,4 +14,9 @@ public class CommandBlock extends Block {
         return 137;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.8E7f;
+    }
+
 }

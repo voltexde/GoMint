@@ -13,4 +13,9 @@ public class StructureBlock extends Block {
         return 252;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.8E7f;
+    }
+
 }

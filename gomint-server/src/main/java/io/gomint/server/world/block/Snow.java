@@ -19,4 +19,9 @@ public class Snow extends Block {
         return 300;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

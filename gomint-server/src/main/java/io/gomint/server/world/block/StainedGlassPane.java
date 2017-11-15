@@ -34,15 +34,13 @@ public class StainedGlassPane extends Block {
     }
 
     @Override
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<>();
     }
 
-
     @Override
-    public boolean onBreak() {
-        // Send gla
-
-        return super.onBreak();
+    public float getBlastResistance() {
+        return 1.5f;
     }
+
 }

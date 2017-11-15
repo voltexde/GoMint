@@ -57,7 +57,7 @@ public final class MathUtils {
         return ( v < min ? min : ( v > max ? max : v ) );
     }
 
-    public static double square( double in ) {
+    public static float square( float in ) {
         return in * in;
     }
 
@@ -71,6 +71,21 @@ public final class MathUtils {
 
     public static int fastCeil( float x ) {
         return BIG_ENOUGH_INT - (int) ( BIG_ENOUGH_FLOOR - x );
+    }
+
+    /**
+     * Accurate approximation for a floating-point square root.
+     * Roughly 1.2x as fast as java.lang.Math.sqrt(x);
+     *
+     * @param number which should be square rooted
+     * @return float square root
+     */
+    public static float sqrt( float number ) {
+        final float xhalf = number * 0.5F;
+        float y = Float.intBitsToFloat( 0x5f375a86 - ( Float.floatToIntBits( number ) >> 1 ) );
+        y = y * ( 1.5F - ( xhalf * y * y ) );
+        y = y * ( 1.5F - ( xhalf * y * y ) );
+        return number * y;
     }
 
 }

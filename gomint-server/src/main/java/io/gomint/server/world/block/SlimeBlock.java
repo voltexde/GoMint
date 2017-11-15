@@ -19,4 +19,9 @@ public class SlimeBlock extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
+    }
+
 }

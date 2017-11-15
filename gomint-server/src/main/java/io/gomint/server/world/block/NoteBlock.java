@@ -42,4 +42,9 @@ public class NoteBlock extends Block implements BlockNoteblock {
         }
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 4.0f;
+    }
+
 }

@@ -19,4 +19,9 @@ public class BrickBlock extends Block {
         return 3000;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 30.0f;
+    }
+
 }

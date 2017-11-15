@@ -42,4 +42,9 @@ public class LightWeightedPressurePlate extends Block {
         );
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

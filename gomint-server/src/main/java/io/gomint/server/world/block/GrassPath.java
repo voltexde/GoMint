@@ -24,4 +24,9 @@ public class GrassPath extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 3.25f;
+    }
+
 }

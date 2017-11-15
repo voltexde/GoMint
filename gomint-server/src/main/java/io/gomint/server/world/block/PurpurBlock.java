@@ -19,4 +19,9 @@ public class PurpurBlock extends Block {
         return 2250;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 30.0f;
+    }
+
 }

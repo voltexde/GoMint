@@ -19,4 +19,9 @@ public class HardenedClay extends Block {
         return 1875;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 7.0f;
+    }
+
 }

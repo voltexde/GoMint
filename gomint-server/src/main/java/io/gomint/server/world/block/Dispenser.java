@@ -19,4 +19,9 @@ public class Dispenser extends Block {
         return 5250;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

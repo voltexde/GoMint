@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  * @author geNAZt
  * @version 1.0
  */
-public class EntityFishingHook extends EntityProjectile {
+public class EntityFishingHook extends EntityProjectile implements io.gomint.entity.projectile.EntityFishingHook {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityFishingHook.class );
     private static final Vector WATER_FLOATING_MOTION = new Vector( 0, 0.1f, 0 );

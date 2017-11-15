@@ -36,4 +36,9 @@ public class Sand extends Block {
         };
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

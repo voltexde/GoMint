@@ -33,6 +33,7 @@ import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.world.*;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockAir;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.slf4j.Logger;
@@ -48,7 +49,8 @@ import java.util.function.Predicate;
  * @author BlackyPaw
  * @version 1.0
  */
-@ToString
+@EqualsAndHashCode( of = { "worldDir" } )
+@ToString( of = { "levelName" } )
 public abstract class WorldAdapter implements World {
 
     // Shared objects
@@ -755,6 +757,7 @@ public abstract class WorldAdapter implements World {
      */
     public Collection<Entity> getNearbyEntities( AxisAlignedBB bb, Entity exception ) {
         Set<Entity> nearby = null;
+        int lastChunkX = Integer.MAX_VALUE, lastChunkZ = Integer.MIN_VALUE;
 
         int minX = MathUtils.fastFloor( ( bb.getMinX() - 2 ) / 4 );
         int maxX = MathUtils.fastCeil( ( bb.getMaxX() + 2 ) / 4 );
@@ -766,17 +769,19 @@ public abstract class WorldAdapter implements World {
                 int chunkX = x >> 2;
                 int chunkZ = z >> 2;
 
-                Chunk chunk = this.getChunk( chunkX, chunkZ );
-                if ( chunk != null ) {
-                    Collection<io.gomint.entity.Entity> entities = chunk.getEntities();
-                    if ( entities != null ) {
-                        for ( io.gomint.entity.Entity entity : entities ) {
-                            if ( !entity.equals( exception ) && entity.getBoundingBox().intersectsWith( bb ) ) {
-                                if ( nearby == null ) {
-                                    nearby = new HashSet<>();
-                                }
+                if ( chunkX != lastChunkX || chunkZ != lastChunkZ ) {
+                    Chunk chunk = this.getChunk( chunkX, chunkZ );
+                    if ( chunk != null ) {
+                        Collection<io.gomint.entity.Entity> entities = chunk.getEntities();
+                        if ( entities != null ) {
+                            for ( io.gomint.entity.Entity entity : entities ) {
+                                if ( !entity.equals( exception ) && entity.getBoundingBox().intersectsWith( bb ) ) {
+                                    if ( nearby == null ) {
+                                        nearby = new HashSet<>();
+                                    }
 
-                                nearby.add( entity );
+                                    nearby.add( entity );
+                                }
                             }
                         }
                     }
@@ -990,11 +995,11 @@ public abstract class WorldAdapter implements World {
         chunk.setTileEntity( x & 0xF, y, z & 0xF, tileEntity );
     }
 
-    public boolean breakBlock( BlockPosition position, boolean drops ) {
+    public boolean breakBlock( BlockPosition position, boolean drops, ItemStack itemInHand ) {
         io.gomint.server.world.block.Block block = getBlockAt( position );
         if ( block.onBreak() ) {
             if ( drops ) {
-                for ( ItemStack itemStack : block.getDrops() ) {
+                for ( ItemStack itemStack : block.getDrops( itemInHand ) ) {
                     EntityItem item = this.createItemDrop( block.getLocation(), itemStack );
                     item.setVelocity( new Vector( 0.1f, 0.3f, 0.1f ) );
                 }
@@ -1034,6 +1039,11 @@ public abstract class WorldAdapter implements World {
 
         EntityItem item = this.createItemDrop( location, drop );
         item.setVelocity( motion );
+    }
+
+    public void playParticle( Location location, Particle particle, int data ) {
+        int eventId = LevelEvent.ADD_PARTICLE_MASK | EnumConnectors.PARTICLE_CONNECTOR.convert( particle ).getId();
+        sendLevelEvent( location, eventId, data );
     }
 
 }

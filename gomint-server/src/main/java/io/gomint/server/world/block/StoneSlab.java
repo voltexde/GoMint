@@ -24,4 +24,9 @@ public class StoneSlab extends Slab {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 30.0f;
+    }
+
 }

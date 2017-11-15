@@ -31,4 +31,9 @@ public class Sandstone extends Block {
         };
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 4.0f;
+    }
+
 }

@@ -103,7 +103,12 @@ public class EntityDamageEvent extends CancellableEntityEvent {
         /**
          * Standing in fire
          */
-        FIRE
+        FIRE,
+
+        /**
+         * Damage which will be dealt when a entity explodes
+         */
+        ENTITY_EXPLODE
 
     }
 

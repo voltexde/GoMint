@@ -28,8 +28,6 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class EntityVisibilityManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( EntityVisibilityManager.class );
-
     private final EntityPlayer player;
     private EntityHashSet visible = EntityHashSet.withExpectedSize( 10 );
 
@@ -93,7 +91,6 @@ public class EntityVisibilityManager {
 
     public void addEntity( Entity entity, boolean sendSpawn ) {
         if ( !this.visible.contains( entity ) && !this.player.equals( entity ) ) {
-            LOGGER.debug( "Adding entity for " + this.player.getName() + ": " + entity );
             io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) entity;
 
             if ( sendSpawn ) {

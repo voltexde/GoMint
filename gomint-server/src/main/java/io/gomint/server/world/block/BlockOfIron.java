@@ -19,4 +19,9 @@ public class BlockOfIron extends Block {
         return 7500;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 10.0f;
+    }
+
 }

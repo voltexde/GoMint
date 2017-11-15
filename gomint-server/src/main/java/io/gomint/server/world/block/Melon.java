@@ -24,4 +24,9 @@ public class Melon extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 5.0f;
+    }
+
 }

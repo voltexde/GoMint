@@ -36,4 +36,9 @@ public class AcaciaWoodStairs extends Stairs {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
+    }
+
 }

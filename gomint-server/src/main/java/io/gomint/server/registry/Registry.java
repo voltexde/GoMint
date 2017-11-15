@@ -41,7 +41,7 @@ public class Registry<R> {
         // Search io.gomint.server.inventory.item
         try {
             for ( ClassPath.ClassInfo classInfo : ClassPath.from( ClassLoader.getSystemClassLoader() )
-                .getTopLevelClasses( classPath ) ) {
+                .getTopLevelClassesRecursive( classPath ) ) {
                 register( classInfo.load() );
             }
         } catch ( IOException e ) {

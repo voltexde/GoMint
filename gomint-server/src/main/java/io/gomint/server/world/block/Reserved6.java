@@ -14,4 +14,9 @@ public class Reserved6 extends Block {
         return 255;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.8E7f;
+    }
+
 }

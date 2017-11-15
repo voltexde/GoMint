@@ -19,4 +19,9 @@ public class PackedIce extends Block {
         return 750;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

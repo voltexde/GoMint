@@ -186,12 +186,20 @@ public class PlayerConnection {
         if ( this.connection != null ) {
             EncapsulatedPacket packetData;
             while ( ( packetData = this.connection.receive() ) != null ) {
-                this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
+                try {
+                    this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Error whilst processing packet: ", e );
+                }
             }
         } else {
             while ( !this.tcpDataQueue.isEmpty() ) {
                 PacketBuffer buffer = this.tcpDataQueue.poll();
-                this.handleSocketData( currentMillis, buffer, true );
+                try {
+                    this.handleSocketData( currentMillis, buffer, true );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Error whilst processing packet: ", e );
+                }
             }
         }
 

@@ -19,6 +19,7 @@ import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +31,7 @@ import java.util.function.Function;
  * @author geNAZt
  * @version 1.0
  */
+@EqualsAndHashCode( of = { "location" } )
 public abstract class Block implements io.gomint.world.block.Block {
 
     // CHECKSTYLE:OFF
@@ -267,17 +269,6 @@ public abstract class Block implements io.gomint.world.block.Block {
     }
 
     @Override
-    public boolean equals( Object obj ) {
-        if ( obj instanceof Block ) {
-            if ( ( (Block) obj ).getBlockId() == getBlockId() ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
     public io.gomint.world.block.Block getSide( int face ) {
         switch ( face ) {
             case 0:
@@ -388,9 +379,10 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Get drops from the block when it broke
      *
+     * @param itemInHand which was used to destroy this block
      * @return a list of drops
      */
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<ItemStack>() {{
             add( Items.create( getBlockId(), getBlockData(), (byte) 1, null ) );
         }};
@@ -417,5 +409,18 @@ public abstract class Block implements io.gomint.world.block.Block {
     public void onEntityStanding( EntityLiving entityLiving ) {
 
     }
+
+
+    boolean isCorrectTool( ItemStack itemInHand ) {
+        for ( Class<? extends ItemStack> aClass : getToolInterfaces() ) {
+            if ( aClass.isAssignableFrom( itemInHand.getClass() ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public abstract float getBlastResistance();
 
 }

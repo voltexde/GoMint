@@ -24,4 +24,9 @@ public class EnchantmentTable extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 6000.0f;
+    }
+
 }

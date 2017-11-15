@@ -24,4 +24,9 @@ public class SnowLayer extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0.5f;
+    }
+
 }

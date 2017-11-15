@@ -19,4 +19,9 @@ public class Sponge extends Block {
         return 900;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 3.0f;
+    }
+
 }

@@ -50,7 +50,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 double distance = packetPosition.distanceSquared( playerPosition );
                 double offsetLimit = 0.5;
                 if ( distance > offsetLimit ) {
-                    LOGGER.debug( "Mismatching position: " + distance );
+                    LOGGER.warn( "Mismatching position: " + distance + " -> " + playerPosition );
                     reset( packet, connection );
                     return;
                 }
@@ -61,7 +61,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     Vector interactCheckVector = packet.getBlockPosition().toVector().add( .5f, .5f, .5f );
                     if ( !connection.getEntity().canInteract( interactCheckVector, 13 ) ||
                         connection.getEntity().getGamemode() == Gamemode.SPECTATOR ) {
-                        LOGGER.debug( "Can't interact from position" );
+                        LOGGER.warn( "Can't interact from position: " + connection.getEntity().getPosition() + " / " + packet.getBlockPosition() );
                         reset( packet, connection );
                         return;
                     }
@@ -71,7 +71,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
                 ItemStack packetItemInHand = packet.getItemInHand();
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
-                    LOGGER.debug( "Mismatching item in hand: " + itemInHand );
                     reset( packet, connection );
                     return;
                 }
@@ -268,10 +267,12 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand() );
                     LOGGER.debug( "Break time: " + ( connection.getEntity().getBreakTime() + 50 ) + "; should: " + breakTime + " for " + block.getClass().getSimpleName() );
                     if ( connection.getEntity().getBreakTime() + 50 < breakTime ) {
+                        LOGGER.warn( connection.getEntity().getName() + " broke block too fast: break time: " + ( connection.getEntity().getBreakTime() + 50 ) +
+                            "; should: " + breakTime + " for " + block.getClass().getSimpleName() + " with " + itemInHand.getClass().getSimpleName() );
                         connection.getEntity().setBreakVector( null );
                         reset( packet, connection );
                     } else {
-                        if ( connection.getEntity().getWorld().breakBlock( connection.getEntity().getBreakVector(), connection.getEntity().getGamemode() == Gamemode.SURVIVAL ) ) {
+                        if ( connection.getEntity().getWorld().breakBlock( connection.getEntity().getBreakVector(), connection.getEntity().getGamemode() == Gamemode.SURVIVAL, itemInHand ) ) {
                             // Add exhaustion
                             connection.getEntity().exhaust( 0.025f, PlayerExhaustEvent.Cause.MINING );
 

@@ -14,4 +14,9 @@ public class NetherReactorCore extends Block {
         return 247;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 30.0f;
+    }
+
 }

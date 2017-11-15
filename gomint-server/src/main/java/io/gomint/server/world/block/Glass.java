@@ -34,8 +34,13 @@ public class Glass extends Block {
     }
 
     @Override
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 1.5f;
     }
 
 }

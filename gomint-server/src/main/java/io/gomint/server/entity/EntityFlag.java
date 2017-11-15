@@ -14,6 +14,7 @@ public enum EntityFlag {
     SNEAKING( 1 ),
     RIDING( 2 ),
     SPRINTING( 3 ),
+    IGNITED( 10 ),
     CAN_SHOW_NAMETAG( 14 ),
     ALWAYS_SHOW_NAMETAG( 15 ),
     IMMOBILE( 16 ),

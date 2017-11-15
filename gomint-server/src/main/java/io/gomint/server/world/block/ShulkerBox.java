@@ -1,6 +1,6 @@
 package io.gomint.server.world.block;
 
-import io.gomint.inventory.item.ItemStack;
+import io.gomint.inventory.item.*;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
@@ -58,6 +58,27 @@ public class ShulkerBox extends Block {
         compound.addValue( "facing", (byte) 1 );
 
         return new ShulkerBoxTileEntity( compound, this.world );
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 30.0f;
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return new Class[]{
+            ItemWoodenPickaxe.class,
+            ItemStonePickaxe.class,
+            ItemGoldenPickaxe.class,
+            ItemIronPickaxe.class,
+            ItemDiamondPickaxe.class
+        };
+    }
+
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
     }
 
 }

@@ -46,4 +46,9 @@ public class Vines extends Block {
         entity.resetFallDistance();
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
 }

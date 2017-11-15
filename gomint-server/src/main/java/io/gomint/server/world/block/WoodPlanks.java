@@ -31,4 +31,9 @@ public class WoodPlanks extends Block {
         };
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
+    }
+
 }

@@ -19,4 +19,9 @@ public class PinkGlazedTerracotta extends Block {
         return 2100;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 7.0f;
+    }
+
 }

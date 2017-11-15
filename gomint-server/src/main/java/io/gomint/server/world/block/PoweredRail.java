@@ -29,4 +29,9 @@ public class PoweredRail extends Block {
         return false;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 3.5f;
+    }
+
 }

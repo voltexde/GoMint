@@ -14,4 +14,9 @@ public class DarkOakDoor extends Door {
         return 197;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
+    }
+
 }

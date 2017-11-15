@@ -75,4 +75,9 @@ public class WoodenButton extends Block {
         this.world.scheduleBlockUpdate( this.location, 1, TimeUnit.SECONDS );
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

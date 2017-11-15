@@ -266,6 +266,11 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     public boolean damage( EntityDamageEvent damageEvent ) {
+        // Don't damage dead entities
+        if ( this.getHealth() <= 0 ) {
+            return false;
+        }
+
         // Armor calculations
         float damage = applyArmorReduction( damageEvent );
 

@@ -24,4 +24,9 @@ public class BurningFurnace extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 17.5f;
+    }
+
 }

@@ -24,4 +24,9 @@ public class Furnace extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 17.5f;
+    }
+
 }

@@ -42,7 +42,7 @@ public class Potato extends Growable implements BlockPotato {
     }
 
     @Override
-    public List<ItemStack> getDrops() {
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
         if ( getBlockData() >= 0x07 ) {
             List<ItemStack> drops = new ArrayList<ItemStack>() {{
                 add( Items.create( 392, (short) 0, (byte) ( 1 + SEED_RANDOMIZER.next().byteValue() ), null ) ); // Potato
@@ -58,6 +58,11 @@ public class Potato extends Growable implements BlockPotato {
                 add( Items.create( 392, (short) 0, (byte) 1, null ) ); // Potato
             }};
         }
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 0.0f;
     }
 
 }

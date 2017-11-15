@@ -31,4 +31,9 @@ public class Carpet extends Block {
             this.location.getZ() + 1
         );
     }
+    @Override
+    public float getBlastResistance() {
+        return 0.5f;
+    }
+
 }

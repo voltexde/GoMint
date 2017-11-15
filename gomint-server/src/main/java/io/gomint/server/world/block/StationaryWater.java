@@ -35,4 +35,9 @@ public class StationaryWater extends Liquid implements BlockStationaryWater {
         return 1f;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 500.0f;
+    }
+
 }

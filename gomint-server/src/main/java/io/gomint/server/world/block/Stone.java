@@ -19,4 +19,9 @@ public class Stone extends Block {
         return 2250;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 10.0f;
+    }
+
 }

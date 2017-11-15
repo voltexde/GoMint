@@ -41,4 +41,9 @@ public class Ladder extends Block {
         entity.resetFallDistance();
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.0f;
+    }
+
 }

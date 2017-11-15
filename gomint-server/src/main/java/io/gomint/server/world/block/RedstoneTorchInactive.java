@@ -24,4 +24,14 @@ public class RedstoneTorchInactive extends Block {
         return false;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 0f;
+    }
+
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -19,4 +19,9 @@ public class LapisLazuliOre extends Block {
         return 4500;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 5.0f;
+    }
+
 }

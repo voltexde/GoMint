@@ -1,6 +1,7 @@
 package io.gomint.server.entity.passive;
 
 import io.gomint.entity.passive.EntityItemDrop;
+import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.PlayerPickupItemEvent;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
@@ -24,9 +25,8 @@ import java.util.concurrent.TimeUnit;
 @ToString
 public class EntityItem extends Entity implements EntityItemDrop {
 
-    private final ItemStack itemStack;
-    @Getter
-    private long pickupTime;
+    private ItemStack itemStack;
+    @Getter private long pickupTime;
     private boolean isReset;
 
     private float lastUpdateDt;
@@ -45,9 +45,26 @@ public class EntityItem extends Entity implements EntityItemDrop {
         this.setHasCollision( false );
     }
 
+    /**
+     * Create new entity item for API
+     */
+    public EntityItem() {
+        super( EntityType.ITEM_DROP, null );
+        this.setSize( 0.25f, 0.25f );
+        setPickupDelay( 1250, TimeUnit.MILLISECONDS );
+        this.setHasCollision( false );
+    }
+
     @Override
     public <T extends ItemStack> T getItemStack() {
         return (T) ( (io.gomint.server.inventory.item.ItemStack) this.itemStack ).clone();
+    }
+
+    @Override
+    public void setItemStack( ItemStack itemStack ) {
+        if ( this.world == null ) {
+            this.itemStack = itemStack.clone();
+        }
     }
 
     @Override
@@ -79,6 +96,18 @@ public class EntityItem extends Entity implements EntityItemDrop {
     @Override
     protected void fall() {
 
+    }
+
+    @Override
+    public boolean damage( EntityDamageEvent damageEvent ) {
+        if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FALL ||
+            damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FIRE ||
+            damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.ENTITY_EXPLODE ) {
+            this.despawn();
+            return true;
+        }
+
+        return false;
     }
 
     @Override

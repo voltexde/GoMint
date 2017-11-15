@@ -14,4 +14,9 @@ public class BirchDoor extends Door {
         return 194;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 15.0f;
+    }
+
 }

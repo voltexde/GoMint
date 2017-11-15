@@ -24,4 +24,9 @@ public class DragonEgg extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 45.0f;
+    }
+
 }

@@ -24,4 +24,9 @@ public class StickyPiston extends Block {
         return true;
     }
 
+    @Override
+    public float getBlastResistance() {
+        return 2.5f;
+    }
+
 }

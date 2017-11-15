@@ -27,8 +27,6 @@ import org.slf4j.LoggerFactory;
 @EqualsAndHashCode
 public class Vector implements Cloneable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( Vector.class );
-
     public static final Vector ZERO = new Vector( 0, 0, 0 );
 
     public static final Vector UP = new Vector( 0, 1, 0 );
@@ -131,12 +129,12 @@ public class Vector implements Cloneable {
         return this;
     }
 
-    public double length() {
-        return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+    public float length() {
+        return MathUtils.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
     }
 
     public Vector normalize() {
-        double mag = this.length();
+        float mag = this.length();
         if ( mag == 0.0 ) {
             return this;
         }
@@ -166,12 +164,12 @@ public class Vector implements Cloneable {
         }
     }
 
-    public double distanceSquared( Vector position ) {
+    public float distanceSquared( Vector position ) {
         return MathUtils.square( x - position.x ) + MathUtils.square( y - position.y ) + MathUtils.square( z - position.z );
     }
 
-    public double distance( Vector position ) {
-        return Math.sqrt( distanceSquared( position ) );
+    public float distance( Vector position ) {
+        return MathUtils.sqrt( distanceSquared( position ) );
     }
 
     public BlockPosition toBlockPosition() {
