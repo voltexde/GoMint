@@ -275,8 +275,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         float damage = applyArmorReduction( damageEvent );
 
         // Check for attack timer
-        if ( this.attackCoolDown > 0 && ( damage <= this.lastDamage &&
-            damageEvent.getDamageSource() == this.lastDamageSource ) ) {
+        if ( this.attackCoolDown > 0 && damage <= this.lastDamage ) {
             return false;
         }
 

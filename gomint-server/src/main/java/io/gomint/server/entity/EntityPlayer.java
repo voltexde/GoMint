@@ -948,6 +948,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Reset motion
         this.setVelocity( new Vector( 0, 0, 0 ) );
 
+        // Send all inventories
+        this.inventory.sendContents( this.connection );
+        this.offhandInventory.sendContents( this.connection );
+        this.armorInventory.sendContents( this.connection );
+
         PacketEntityEvent entityEvent = new PacketEntityEvent();
         entityEvent.setEntityId( this.getEntityId() );
         entityEvent.setEventId( EntityEvent.RESPAWN.getId() );
