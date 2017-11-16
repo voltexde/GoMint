@@ -211,4 +211,11 @@ public interface EntityPlayer extends EntityCreature {
      */
     Locale getLocale();
 
+    /**
+     * Disconnect a player for the given reason
+     *
+     * @param reason for disconnect
+     */
+    void disconnect( String reason );
+
 }

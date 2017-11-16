@@ -1067,6 +1067,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         return this.locale;
     }
 
+    @Override
+    public void disconnect( String reason ) {
+        this.connection.disconnect( reason );
+    }
+
     // ------- GUI stuff
     @Override
     public <T> FormListener<T> showForm( Form form ) {

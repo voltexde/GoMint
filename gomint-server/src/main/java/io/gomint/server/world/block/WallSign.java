@@ -60,6 +60,12 @@ public class WallSign extends Block implements BlockWallSign {
         }
 
         SignTileEntity sign = this.getTileEntity();
+        if ( sign.getLines().size() < line ) {
+            for ( int i = 0; i < line - sign.getLines().size(); i++ ) {
+                sign.getLines().add( "" );
+            }
+        }
+
         sign.getLines().set( line - 1, content );
         this.updateBlock();
     }

@@ -704,9 +704,7 @@ public abstract class WorldAdapter implements World {
      * @param pos The position of the block to update
      */
     public void updateBlock( BlockPosition pos ) {
-        io.gomint.server.world.block.Block block = getBlockAt( pos );
-
-        logger.debug( "Updating block @ " + pos + " data: " + block.getBlockData() );
+        flagChunkDirty( pos );
 
         sendToVisible( pos, null, new Predicate<Entity>() {
             @Override
@@ -718,6 +716,16 @@ public abstract class WorldAdapter implements World {
                 return false;
             }
         } );
+    }
+
+    private void flagChunkDirty( BlockPosition position ) {
+        int posX = CoordinateUtils.fromBlockToChunk( position.getX() );
+        int posZ = CoordinateUtils.fromBlockToChunk( position.getZ() );
+
+        ChunkAdapter chunkAdapter = getChunk( posX, posZ );
+        if ( chunkAdapter != null ) {
+            chunkAdapter.dirty = true;
+        }
     }
 
     public void appendUpdatePackets( PlayerConnection connection, BlockPosition pos ) {
