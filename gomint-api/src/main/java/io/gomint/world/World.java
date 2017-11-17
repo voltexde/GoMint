@@ -14,6 +14,7 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
+import io.gomint.math.Vector;
 import io.gomint.world.block.Block;
 
 import java.util.Collection;
@@ -98,7 +99,7 @@ public interface World {
      * @param pitch     The pitch at which the sound should be played
      * @param extraData Any extra data for the client to select the correct sound
      */
-    void playSound( Location location, Sound sound, byte pitch, int extraData );
+    void playSound( Vector location, Sound sound, byte pitch, int extraData );
 
     /**
      * Get a list of bounding boxes which collide with the given box

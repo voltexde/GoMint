@@ -46,6 +46,7 @@ public final class Protocol {
     public static final byte PACKET_EXPLODE = (byte) 0x17;
     public static final byte PACKET_WORLD_SOUND_EVENT = (byte) 0x18;
     public static final byte PACKET_WORLD_EVENT = (byte) 0x19;
+    public static final byte PACKET_BLOCK_EVENT = (byte) 0x1A;
     public static final byte PACKET_ENTITY_EVENT = (byte) 0x1B;
     public static final byte PACKET_UPDATE_ATTRIBUTES = (byte) 0x1D;
     public static final byte PACKET_INVENTORY_TRANSACTION = (byte) 0x1E;

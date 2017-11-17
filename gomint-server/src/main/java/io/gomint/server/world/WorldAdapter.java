@@ -128,14 +128,14 @@ public abstract class WorldAdapter implements World {
     }
 
     @Override
-    public void playSound( Location location, Sound sound, byte pitch, int extraData ) {
+    public void playSound( Vector vector, Sound sound, byte pitch, int extraData ) {
         PacketWorldSoundEvent soundPacket = new PacketWorldSoundEvent();
         soundPacket.setType( EnumConnectors.SOUND_CONNECTOR.convert( sound ) );
         soundPacket.setPitch( pitch );
         soundPacket.setExtraData( extraData );
-        soundPacket.setPosition( location );
+        soundPacket.setPosition( vector );
 
-        sendToVisible( location.toBlockPosition(), soundPacket, new Predicate<Entity>() {
+        sendToVisible( vector.toBlockPosition(), soundPacket, new Predicate<Entity>() {
             @Override
             public boolean test( Entity entity ) {
                 return true;

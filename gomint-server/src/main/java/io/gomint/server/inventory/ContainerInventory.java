@@ -2,8 +2,10 @@ package io.gomint.server.inventory;
 
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.PacketContainerOpen;
 import io.gomint.server.network.type.WindowType;
+import io.gomint.server.world.WorldAdapter;
 
 /**
  * @author geNAZt
@@ -27,7 +29,15 @@ public abstract class ContainerInventory extends Inventory {
      *
      * @return block position of the container
      */
-    public abstract BlockPosition getContainerPosition();
+    public BlockPosition getContainerPosition() {
+        TileEntity tileEntity = (TileEntity) this.owner;
+        return tileEntity.getLocation().toBlockPosition();
+    }
+
+    public WorldAdapter getWorld() {
+        TileEntity tileEntity = (TileEntity) this.owner;
+        return (WorldAdapter) tileEntity.getLocation().getWorld();
+    }
 
     /**
      * Called when a container has been opened
@@ -72,4 +82,5 @@ public abstract class ContainerInventory extends Inventory {
         // Remove from view
         super.removeViewer( player );
     }
+
 }

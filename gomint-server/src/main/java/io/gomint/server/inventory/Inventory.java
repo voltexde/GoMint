@@ -47,6 +47,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         this.viewer.remove( player.getConnection() );
     }
 
+    @Override
     public void setItem( int index, ItemStack item ) {
         this.contents[index] = item;
 
@@ -59,10 +60,12 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         return this.contents;
     }
 
+    @Override
     public int size() {
         return size;
     }
 
+    @Override
     public ItemStack getItem( int slot ) {
         return this.contents[slot];
     }
@@ -167,6 +170,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         return false;
     }
 
+    @Override
     public void clear() {
         this.contents = new ItemStack[this.size];
         Arrays.fill( this.contents, GoMint.instance().createItemStack( ItemAir.class, 0 ) );
