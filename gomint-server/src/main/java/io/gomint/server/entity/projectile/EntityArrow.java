@@ -41,17 +41,7 @@ public class EntityArrow extends EntityProjectile implements io.gomint.entity.pr
         this.critical = force == 1.0f;
         float applyForce = force * 2;
 
-        // Calculate starting position
-        Location position = player.getLocation();
-        position.add(
-            -(float) ( Math.cos( position.getYaw() / 180 * Math.PI ) * 0.16f ),
-            player.getEyeHeight() - 0.1f,
-            -(float) ( Math.sin( position.getYaw() / 180 * Math.PI ) * 0.16f )
-        );
-
-        this.setPosition( position );
-        this.setYaw( position.getYaw() );
-        this.setPitch( position.getPitch() );
+        Location position = this.setPositionFromShooter();
 
         // Calculate motion
         Vector motion = new Vector(

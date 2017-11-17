@@ -223,7 +223,7 @@ public class Explosion {
         } );
 
         this.source.getWorld().playParticle( sourceLocation, Particle.HUGE_EXPLODE_SEED, 0 );
-        this.source.getWorld().sendLevelEvent( sourceLocation, LevelEvent.CAULDRON_EXPLODE, 0 );
+        this.source.getWorld().playLevelEvent( sourceLocation, LevelEvent.CAULDRON_EXPLODE, 0 );
     }
 
 }

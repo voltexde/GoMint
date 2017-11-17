@@ -74,7 +74,6 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
 
             // Try to at least move the gravitation down
             Vector moved = entity.safeMove( moveX, moveY, moveZ );
-            LOGGER.debug( connection.getEntity().getName() + " moved: " + moved );
 
             // Exhaustion
             double distance = Math.abs( moved.getX() ) + Math.abs( moved.getY() ) + Math.abs( moved.getZ() );

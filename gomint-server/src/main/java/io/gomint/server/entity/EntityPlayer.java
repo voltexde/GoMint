@@ -8,6 +8,7 @@
 package io.gomint.server.entity;
 
 import com.koloboke.collect.ObjCursor;
+import com.koloboke.collect.map.ByteObjCursor;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
@@ -125,11 +126,15 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Getter
     @Setter
     private EntityFishingHook fishingHook;
+    private long lastPickupXP;
 
     // Bow ticking
     @Getter
     @Setter
     private long startBow = -1;
+
+    // Exp
+    private int xp;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -422,6 +427,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
             // No id found?
             if ( foundId == -1 ) {
+                LOGGER.warn( "No free window id: " );
+
+                ByteObjCursor<ContainerInventory> cursor = this.windowIds.cursor();
+                while ( cursor.moveNext() ) {
+                    LOGGER.warn( "ID " + cursor.key() + " -> " + cursor.value().getClass().getName() );
+                }
+
                 return;
             }
 
@@ -826,7 +838,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
                     if ( damage > 0 ) {
                         boolean crit = this.fallDistance > 0 && !this.onGround && !this.isOnLadder() && !this.isInsideLiquid();
-                        if ( crit ) {
+                        if ( crit && damage > 0.0f ) {
                             damage *= 1.5;
                         }
 
@@ -840,7 +852,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                                     (float) ( -Math.sin( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ),
                                     0.1f,
                                     (float) ( Math.cos( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ) );
-                                targetEntity.setVelocity( targetVelo, false );
+                                targetEntity.setVelocity( targetVelo );
 
                                 // Modify our velocity / movement
                                 Vector ownVelo = this.getVelocity();
@@ -1127,8 +1139,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void despawn() {
-        LOGGER.debug( "Despawning " + this.getName() );
-
         ObjCursor<Entity> entityObjCursor = getAttachedEntities().cursor();
         while ( entityObjCursor.moveNext() ) {
             Entity entity = entityObjCursor.elem();
@@ -1136,6 +1146,69 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                 ( (EntityPlayer) entity ).getEntityVisibilityManager().removeEntity( this );
             }
         }
+    }
+
+    /**
+     * Add xp from a orb
+     *
+     * @param xpAmount which should be added
+     */
+    public void addXP( int xpAmount ) {
+        this.lastPickupXP = this.world.getServer().getCurrentTickTime();
+        this.setXP( this.xp + xpAmount );
+    }
+
+    /**
+     * A player can only pickup xp orbs at a rate of 1 per tick
+     *
+     * @return
+     */
+    public boolean canPickupXP() {
+        return this.world.getServer().getCurrentTickTime() - this.lastPickupXP >= 50;
+    }
+
+    private int calculateRequiredExperienceForLevel( int level ) {
+        if ( level >= 30 ) {
+            return 112 + ( level - 30 ) * 9;
+        } else if ( level >= 15 ) {
+            return 37 + ( level - 15 ) * 5;
+        } else {
+            return 7 + level * 2;
+        }
+    }
+
+    @Override
+    public float getXPPercentage() {
+        return this.getAttribute( Attribute.EXPERIENCE );
+    }
+
+    @Override
+    public int getXP() {
+        return this.xp;
+    }
+
+    @Override
+    public void setXP( int xp ) {
+        // Iterate levels until we have a new xp percentage value to set
+        int neededXP, tempXP = xp, level = 0;
+        while ( tempXP > ( neededXP = calculateRequiredExperienceForLevel( getLevel() ) ) ) {
+            tempXP -= neededXP;
+            level++;
+        }
+
+        this.xp = xp;
+        this.setAttribute( Attribute.EXPERIENCE, tempXP / (float) neededXP );
+        this.setLevel( level );
+    }
+
+    @Override
+    public int getLevel() {
+        return (int) this.getAttribute( Attribute.EXPERIENCE_LEVEL );
+    }
+
+    @Override
+    public void setLevel( int level ) {
+        this.setAttribute( Attribute.EXPERIENCE_LEVEL, level );
     }
 
 }

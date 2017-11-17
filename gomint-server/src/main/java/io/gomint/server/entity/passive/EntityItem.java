@@ -1,10 +1,12 @@
 package io.gomint.server.entity.passive;
 
+import io.gomint.GoMint;
 import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.PlayerPickupItemEvent;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.EntityType;
@@ -69,7 +71,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
 
     @Override
     public void setPickupDelay( long duration, TimeUnit timeUnit ) {
-        this.pickupTime = System.currentTimeMillis() + timeUnit.toMillis( duration );
+        this.pickupTime = ( (GoMintServer) GoMint.instance() ).getCurrentTickTime() + timeUnit.toMillis( duration );
     }
 
     @Override

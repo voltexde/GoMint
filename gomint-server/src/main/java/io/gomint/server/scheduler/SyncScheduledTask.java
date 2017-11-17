@@ -12,6 +12,8 @@ import io.gomint.util.CompleteHandler;
 import io.gomint.util.ExceptionHandler;
 import lombok.Getter;
 import lombok.ToString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +23,10 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt
  * @version 1.0
  */
-@ToString
+@ToString( of = { "task", "period", "nextExecution" } )
 public class SyncScheduledTask implements Task, Runnable {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( SyncScheduledTask.class );
     private final Runnable task;
     private long period;          // -1 means no reschedule
     @Getter
@@ -59,7 +62,7 @@ public class SyncScheduledTask implements Task, Runnable {
                     this.cancel();
                 }
             } else {
-                e.printStackTrace();
+                LOGGER.warn( "Error in executing task: ", e );
             }
         }
         // CHECKSTYLE:ON

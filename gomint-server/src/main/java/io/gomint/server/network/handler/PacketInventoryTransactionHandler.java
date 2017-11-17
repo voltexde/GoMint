@@ -34,8 +34,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
     @Override
     public void handle( PacketInventoryTransaction packet, long currentTimeMillis, PlayerConnection connection ) {
-        LOGGER.debug( packet.toString() );
-
         switch ( packet.getType() ) {
             case PacketInventoryTransaction.TYPE_NORMAL:
                 this.handleTypeNormal( connection, packet );
@@ -90,14 +88,14 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 itemInHand = connection.getEntity().getInventory().getItemInHand();
                 packetItemInHand = packet.getItemInHand();
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
-                    LOGGER.debug( "Mismatching item in hand: " + itemInHand );
+                    LOGGER.warn( "Mismatching item in hand: " + itemInHand );
                     reset( packet, connection );
                     return;
                 }
 
                 // When the player wants to do this it should have selected a entity in its interact
                 if ( connection.getEntity().getHoverEntity() == null ) {
-                    LOGGER.debug( "Selected entity is null" );
+                    LOGGER.warn( "Selected entity is null" );
                     reset( packet, connection );
                     return;
                 }
@@ -105,7 +103,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Find the entity from this packet
                 io.gomint.entity.Entity entity = connection.getEntity().getWorld().findEntity( packet.getEntityId() );
                 if ( entity == null || !connection.getEntity().getHoverEntity().equals( entity ) ) {
-                    LOGGER.debug( "Entity does not match" );
+                    LOGGER.warn( "Entity does not match: " + entity + "; " + connection.getEntity().getHoverEntity() + "; " + packet.getEntityId() );
                     reset( packet, connection );
                     return;
                 }
@@ -114,7 +112,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 Vector interactCheckVector = packet.getVector1().add( .5f, .5f, .5f );
                 if ( !connection.getEntity().canInteract( interactCheckVector, 8 ) ||
                     connection.getEntity().getGamemode() == Gamemode.SPECTATOR ) {
-                    LOGGER.debug( "Can't interact from position" );
+                    LOGGER.warn( "Can't interact from position" );
                     reset( packet, connection );
                     return;
                 }

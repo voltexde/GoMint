@@ -16,6 +16,16 @@ package io.gomint.server.entity;
 public enum EntityType {
 
     /**
+     * Entity type value for a xp orb.
+     */
+    XP_ORB( 69 ),
+
+    /**
+     * Entity type value for a exp potion projectile.
+     */
+    EXP_BOTTLE_PROJECTILE( 68 ),
+
+    /**
      * Entity type value for a primed tnt.
      */
     PRIMED_TNT( 65 ),

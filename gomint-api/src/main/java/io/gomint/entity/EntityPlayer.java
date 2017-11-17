@@ -7,7 +7,6 @@
 
 package io.gomint.entity;
 
-import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.gui.Form;
 import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
@@ -171,7 +170,7 @@ public interface EntityPlayer extends EntityCreature {
      * Display new form and get a listener for the response
      *
      * @param form which should be shown
-     * @param <T> type of return value from the response
+     * @param <T>  type of return value from the response
      * @return form listener to attaching for response
      */
     <T> FormListener<T> showForm( Form form );
@@ -217,5 +216,40 @@ public interface EntityPlayer extends EntityCreature {
      * @param reason for disconnect
      */
     void disconnect( String reason );
+
+    /**
+     * Get absolute amount of xp in this entity
+     *
+     * @return absolute amount of xp
+     */
+    int getXP();
+
+    /**
+     * Percentage of xp for next level
+     *
+     * @return percentage of next level
+     */
+    float getXPPercentage();
+
+    /**
+     * Set the amount of xp this entity has
+     *
+     * @param xp of this entity
+     */
+    void setXP( int xp );
+
+    /**
+     * Get exp level of this entity
+     *
+     * @return exp level
+     */
+    int getLevel();
+
+    /**
+     * Set the level of the exp bar
+     *
+     * @param level of this entity
+     */
+    void setLevel( int level );
 
 }

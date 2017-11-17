@@ -29,6 +29,8 @@ public class PlayerJoinListener implements EventListener {
 
         event.getPlayer().getInventory().setItem( 1, ItemTNT.create( 64 ) );
         event.getPlayer().getInventory().setItem( 2, ItemFlintAndSteel.create( 1 ) );
+
+        event.getPlayer().getInventory().setItem( 3, ItemExperienceBottle.create( 12 ) );
     }
 
 }

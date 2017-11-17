@@ -15,6 +15,7 @@ import io.gomint.server.network.packet.PacketEntityEvent;
 import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.EntityHashSet;
+import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.block.Block;
 import lombok.Getter;
@@ -303,19 +304,21 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         if ( damageEvent instanceof EntityDamageByEntityEvent ) {
             // Knockback
             Entity entity = (Entity) ( (EntityDamageByEntityEvent) damageEvent ).getAttacker();
-            double diffX = entity.getPositionX() - this.getPositionX();
-            double diffZ = entity.getPositionZ() - this.getPositionZ();
+            float diffX = this.getPositionX() - entity.getPositionX();
+            float diffZ = this.getPositionZ() - entity.getPositionZ();
 
             float distance = (float) Math.sqrt( diffX * diffX + diffZ * diffZ );
             if ( distance > 0.0 ) {
                 float baseModifier = 0.4F;
 
+                distance = 1f / distance;
+
                 Vector motion = this.getVelocity();
                 motion.divide( 2f, 2f, 2f );
                 motion.add(
-                    (float) -( diffX / distance * baseModifier ),
+                    ( diffX * distance * baseModifier ),
                     baseModifier,
-                    (float) -( diffZ / distance * baseModifier )
+                    ( diffZ * distance * baseModifier )
                 );
 
                 if ( motion.getY() > baseModifier ) {
@@ -377,6 +380,11 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         this.damage( damageEvent );
     }
 
+    /**
+     * Set entity on fire for given amount of seconds
+     *
+     * @param seconds for how long this entity should be on fire
+     */
     public void setFire( int seconds ) {
         int newFireTicks = seconds * 20;
         if ( newFireTicks > this.fireTicks ) {

@@ -272,7 +272,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     public Vector safeMove( float movX, float movY, float movZ ) {
         // Security check so we don't move and collect bounding boxes like crazy
         if ( Math.abs( movX ) > 20 || Math.abs( movZ ) > 20 || Math.abs( movY ) > 20 ) {
-            return new Vector( 0, 0, 0 );
+            return Vector.ZERO;
         }
 
         float dX = movX;

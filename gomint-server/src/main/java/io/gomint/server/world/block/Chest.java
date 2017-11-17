@@ -10,6 +10,8 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockChest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -17,6 +19,8 @@ import io.gomint.world.block.BlockChest;
  */
 @RegisterInfo( id = 54 )
 public class Chest extends Block implements BlockChest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( Chest.class );
 
     @Override
     public int getBlockId() {
@@ -39,6 +43,8 @@ public class Chest extends Block implements BlockChest {
         if ( tileEntity != null ) {
             tileEntity.interact( entity, face, facePos, item );
             return true;
+        } else {
+            LOGGER.warn( "Chest @ " + getLocation() + " has no tile entity" );
         }
 
         return false;

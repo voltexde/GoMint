@@ -19,6 +19,7 @@ import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.async.MultiOutputDelegate;
 import io.gomint.server.entity.passive.EntityItem;
+import io.gomint.server.entity.passive.EntityXPOrb;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.*;
@@ -979,7 +980,7 @@ public abstract class WorldAdapter implements World {
         return null;
     }
 
-    public void sendLevelEvent( Vector position, int levelEvent, int data ) {
+    public void playLevelEvent( Vector position, int levelEvent, int data ) {
         PacketWorldEvent worldEvent = new PacketWorldEvent();
         worldEvent.setData( data );
         worldEvent.setEventId( levelEvent );
@@ -1014,7 +1015,7 @@ public abstract class WorldAdapter implements World {
             }
 
             // Break animation (this also plays the break sound in the client)
-            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | ( block.getBlockData() << 8 ) );
+            playLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | ( block.getBlockData() << 8 ) );
 
             block.setType( BlockAir.class );
 
@@ -1051,7 +1052,12 @@ public abstract class WorldAdapter implements World {
 
     public void playParticle( Location location, Particle particle, int data ) {
         int eventId = LevelEvent.ADD_PARTICLE_MASK | EnumConnectors.PARTICLE_CONNECTOR.convert( particle ).getId();
-        sendLevelEvent( location, eventId, data );
+        playLevelEvent( location, eventId, data );
+    }
+
+    public void createExpOrb( Location location, int amount ) {
+        EntityXPOrb xpOrb = new EntityXPOrb( (WorldAdapter) location.getWorld(), amount );
+        spawnEntityAt( xpOrb, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() );
     }
 
 }

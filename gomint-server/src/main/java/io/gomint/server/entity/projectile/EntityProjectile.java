@@ -12,6 +12,7 @@ import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.projectile.ProjectileHitEntityEvent;
 import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
@@ -161,6 +162,25 @@ public abstract class EntityProjectile extends Entity implements io.gomint.entit
         }
 
         return this.shooter;
+    }
+
+    /**
+     * Set the position based on the position of the shooter
+     */
+    public Location setPositionFromShooter() {
+        // Calculate starting position
+        Location position = this.shooter.getLocation();
+        position.add(
+            -(float) ( Math.cos( position.getYaw() / 180 * Math.PI ) * 0.16f ),
+            this.shooter.getEyeHeight() - 0.1f,
+            -(float) ( Math.sin( position.getYaw() / 180 * Math.PI ) * 0.16f )
+        );
+
+        this.setPosition( position );
+        this.setYaw( position.getYaw() );
+        this.setPitch( position.getPitch() );
+
+        return position;
     }
 
 }
