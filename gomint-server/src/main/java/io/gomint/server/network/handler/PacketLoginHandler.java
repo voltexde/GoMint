@@ -194,7 +194,15 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                         connection.getServer().getPlayersByUUID().put( chainValidator.getUuid(), connection.getEntity() );
 
                         // Post login event
-                        PlayerLoginEvent event = connection.getNetworkManager().getServer().getPluginManager().callEvent( new PlayerLoginEvent( connection.getEntity() ) );
+                        PlayerLoginEvent event = new PlayerLoginEvent( connection.getEntity() );
+
+                        // Default deny for maximum amount of players
+                        if ( connection.getServer().getPlayers().size() >= connection.getServer().getServerConfig().getMaxPlayers() ) {
+                            event.setCancelled( true );
+                            event.setKickMessage( "Server is full" );
+                        }
+
+                        connection.getNetworkManager().getServer().getPluginManager().callEvent( event );
                         if ( event.isCancelled() ) {
                             connection.disconnect( event.getKickMessage() );
                             return;
