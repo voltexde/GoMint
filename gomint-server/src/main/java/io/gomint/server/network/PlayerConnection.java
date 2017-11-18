@@ -98,7 +98,6 @@ public class PlayerConnection {
     private final ConnectionHandler connectionHandler;
     @Setter
     private long tcpId;
-    private Queue<PacketBuffer> tcpDataQueue;
 
     // World data
     @Getter
@@ -137,17 +136,6 @@ public class PlayerConnection {
         this.connectionHandler = tcpConnection;
         this.state = initialState;
         this.server = networkManager.getServer();
-
-        if ( tcpConnection != null ) {
-            this.tcpDataQueue = new ConcurrentLinkedQueue<>();
-            this.connectionHandler.onData( new Consumer<PacketBuffer>() {
-                @Override
-                public void accept( PacketBuffer buffer ) {
-                    tcpDataQueue.offer( buffer );
-                }
-            } );
-        }
-
         this.playerChunks = ChunkHashSet.withExpectedSize( 100 );
     }
 
@@ -193,8 +181,8 @@ public class PlayerConnection {
                 }
             }
         } else {
-            while ( !this.tcpDataQueue.isEmpty() ) {
-                PacketBuffer buffer = this.tcpDataQueue.poll();
+            while ( !this.connectionHandler.getData().isEmpty() ) {
+                PacketBuffer buffer = this.connectionHandler.getData().poll();
                 try {
                     this.handleSocketData( currentMillis, buffer, true );
                 } catch ( Exception e ) {
@@ -388,7 +376,7 @@ public class PlayerConnection {
             buffer.readShort();
         }
 
-        // LOGGER.debug( "Got packet with ID: " + Integer.toHexString( packetId & 0xff ) );
+        // LOGGER.info( "Got packet with ID: " + Integer.toHexString( packetId & 0xff ) );
 
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
@@ -640,9 +628,9 @@ public class PlayerConnection {
                 }
 
                 if ( this.entity != null ) {
-                    LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message );
+                    LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message, new Exception() );
                 } else {
-                    LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
+                    LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message, new Exception() );
                 }
 
                 this.connection.disconnect( message );
@@ -657,9 +645,9 @@ public class PlayerConnection {
             }
 
             if ( this.entity != null ) {
-                LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message );
+                LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message, new Exception() );
             } else {
-                LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
+                LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message, new Exception() );
             }
 
             this.connectionHandler.disconnect();

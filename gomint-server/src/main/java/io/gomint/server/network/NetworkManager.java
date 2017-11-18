@@ -119,8 +119,6 @@ public class NetworkManager {
                         return;
                     }
 
-                    LOGGER.debug( "Got new TCP connection!" );
-
                     PlayerConnection playerConnection = new PlayerConnection( NetworkManager.this, null,
                         connectionHandler, PlayerConnectionState.HANDSHAKE );
                     playerConnection.setTcpId( idCounter.incrementAndGet() );

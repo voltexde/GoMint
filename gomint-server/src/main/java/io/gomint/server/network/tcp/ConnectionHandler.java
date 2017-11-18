@@ -15,12 +15,14 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoop;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.Getter;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -34,7 +36,8 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
     private ChannelHandlerContext ctx;
 
     private Consumer<Void> whenConnected;
-    private Consumer<PacketBuffer> dataAcceptor;
+    @Getter
+    private LinkedBlockingQueue<PacketBuffer> data = new LinkedBlockingQueue<>();
     private Consumer<Throwable> exceptionCallback;
     private Consumer<Void> disconnectCallback;
 
@@ -83,7 +86,7 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
     @Override
     protected void channelRead0( ChannelHandlerContext channelHandlerContext, final Packet packet ) throws Exception {
         if ( packet instanceof WrappedMCPEPacket ) {
-            this.dataAcceptor.accept( ( (WrappedMCPEPacket) packet ).getBuffer() );
+            this.data.add( ( (WrappedMCPEPacket) packet ).getBuffer() );
         }
     }
 
@@ -92,10 +95,6 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
         if ( this.exceptionCallback != null ) {
             this.exceptionCallback.accept( cause );
         }
-    }
-
-    public void onData( Consumer<PacketBuffer> consumer ) {
-        this.dataAcceptor = consumer;
     }
 
     public void whenConnected( Consumer<Void> callback ) {
@@ -179,9 +178,9 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
     }
 
     private static final ConcurrentMap<EventLoop, Flusher> flusherLookup = new MapMaker()
-            .concurrencyLevel( 16 )
-            .weakKeys()
-            .makeMap();
+        .concurrencyLevel( 16 )
+        .weakKeys()
+        .makeMap();
 
     private static class FlushItem {
         final Channel channel;

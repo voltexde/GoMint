@@ -5,10 +5,7 @@ package io.gomint.server.command.internal;
 import io.gomint.GoMint;
 import io.gomint.command.Command;
 import io.gomint.command.CommandOutput;
-import io.gomint.command.annotation.Description;
-import io.gomint.command.annotation.Name;
-import io.gomint.command.annotation.Overload;
-import io.gomint.command.annotation.Parameter;
+import io.gomint.command.annotation.*;
 import io.gomint.command.validator.BlockPositionValidator;
 import io.gomint.command.validator.StringValidator;
 import io.gomint.command.validator.TargetValidator;
@@ -25,6 +22,7 @@ import java.util.Map;
  */
 @Name( "tp" )
 @Description( "Teleport to a given place or entity" )
+@Permission( "gomint.command.tp" )
 @Overload( {
     @Parameter( name = "world", validator = StringValidator.class, arguments = { "[a-zA-Z0-9ß\\-]+" } ),
     @Parameter( name = "position", validator = BlockPositionValidator.class )
