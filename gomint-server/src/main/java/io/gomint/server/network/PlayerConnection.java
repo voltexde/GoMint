@@ -72,7 +72,6 @@ public class PlayerConnection {
         PACKET_HANDLERS[Protocol.PACKET_INTERACT & 0xff] = new PacketInteractHandler();
         PACKET_HANDLERS[Protocol.PACKET_ENCRYPTION_RESPONSE & 0xff] = new PacketEncryptionResponseHandler();
         PACKET_HANDLERS[Protocol.PACKET_INVENTORY_TRANSACTION & 0xff] = new PacketInventoryTransactionHandler();
-        PACKET_HANDLERS[Protocol.PACKET_CONTAINER_OPEN & 0xff] = new PacketContainerOpenHandler();
         PACKET_HANDLERS[Protocol.PACKET_CONTAINER_CLOSE & 0xff] = new PacketContainerCloseHandler();
         PACKET_HANDLERS[Protocol.PACKET_HOTBAR & 0xff] = new PacketHotbarHandler();
         PACKET_HANDLERS[Protocol.PACKET_TEXT & 0xff] = new PacketTextHandler();
@@ -220,12 +219,14 @@ public class PlayerConnection {
                 }
             }
 
-            if ( this.entity.getBlockUpdates().size() > 0 ) {
-                for ( BlockPosition position : this.entity.getBlockUpdates() ) {
+            while ( this.entity.getBlockUpdates().size() > 0 ) {
+                BlockPosition position = this.entity.getBlockUpdates().poll();
+                int chunkX = CoordinateUtils.fromBlockToChunk( position.getX() );
+                int chunkZ = CoordinateUtils.fromBlockToChunk( position.getZ() );
+                long chunkHash = CoordinateUtils.toLong( chunkX, chunkZ );
+                if ( this.playerChunks.contains( chunkHash ) ) {
                     this.entity.getWorld().appendUpdatePackets( this, position );
                 }
-
-                this.entity.getBlockUpdates().clear();
             }
         }
 

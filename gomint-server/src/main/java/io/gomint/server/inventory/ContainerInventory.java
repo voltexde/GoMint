@@ -6,12 +6,16 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.PacketContainerOpen;
 import io.gomint.server.network.type.WindowType;
 import io.gomint.server.world.WorldAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 public abstract class ContainerInventory extends Inventory {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( ContainerInventory.class );
 
     public ContainerInventory( InventoryHolder owner, int size ) {
         super( owner, size );
@@ -60,6 +64,8 @@ public abstract class ContainerInventory extends Inventory {
      * @param windowId to use for this player
      */
     public void addViewer( EntityPlayer player, byte windowId ) {
+        LOGGER.info( "Opening container " + getContainerPosition() + " for " + player.getName() + " / " + windowId );
+
         // Sent ContainerOpen first
         PacketContainerOpen containerOpen = new PacketContainerOpen();
         containerOpen.setWindowId( windowId );

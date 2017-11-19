@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -112,7 +113,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     // Update data
     @Getter
-    private Set<BlockPosition> blockUpdates = new HashSet<>();
+    private Queue<BlockPosition> blockUpdates = new ConcurrentLinkedQueue<>();
     @Getter
     @Setter
     private Location teleportPosition = null;
@@ -245,7 +246,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         int gameModeNumber = EnumConnectors.GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
 
         PacketSetGamemode packetSetGamemode = new PacketSetGamemode();
-        packetSetGamemode.setGameMode( gameModeNumber & 0x01 );
+        packetSetGamemode.setGameMode( gameModeNumber == 1 ? 1 : 0 );
         this.connection.send( packetSetGamemode );
 
         // Recalc adventure settings
@@ -257,6 +258,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.adventureSettings.setAttackPlayers( gameModeNumber < 0x02 );
         this.adventureSettings.setNoPvP( gameModeNumber == 0x03 );
         this.adventureSettings.update();
+
+        // Set invis
+        if ( this.gamemode == Gamemode.SPECTATOR ) {
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE, true );
+        } else { // TODO: Check for invis effect
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE, false );
+        }
     }
 
     @Override
@@ -695,6 +703,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void closeInventory( byte windowId ) {
         ContainerInventory containerInventory = this.windowIds.remove( windowId );
         if ( containerInventory != null ) {
+            LOGGER.info( getName() + " closing inventory " + windowId );
             containerInventory.removeViewer( this );
             this.containerIds.justRemove( containerInventory );
         }

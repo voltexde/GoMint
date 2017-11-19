@@ -543,7 +543,13 @@ public class ChunkAdapter implements Chunk {
     }
 
     public PacketWorldChunk getCachedPacket() {
-        return cachedPacket.get();
+        if ( this.dirty ) {
+            this.cachedPacket.clear();
+            this.cachedPacket = new SoftReference<>( createPackagedData() );
+            this.dirty = false;
+        }
+
+        return this.cachedPacket.get();
     }
 
     public void setTileEntity( int x, int y, int z, TileEntity tileEntity ) {

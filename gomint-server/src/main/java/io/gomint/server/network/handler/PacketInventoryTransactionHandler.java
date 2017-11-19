@@ -69,6 +69,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
                 ItemStack packetItemInHand = packet.getItemInHand();
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
+                    LOGGER.warn( connection.getEntity().getName() + " item in hand does not match: " + itemInHand + " / " + packetItemInHand );
                     reset( packet, connection );
                     return;
                 }
@@ -88,14 +89,14 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 itemInHand = connection.getEntity().getInventory().getItemInHand();
                 packetItemInHand = packet.getItemInHand();
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
-                    LOGGER.warn( "Mismatching item in hand: " + itemInHand );
+                    LOGGER.warn( connection.getEntity().getName() + " item in hand does not match: " + itemInHand + " / " + packetItemInHand );
                     reset( packet, connection );
                     return;
                 }
 
                 // When the player wants to do this it should have selected a entity in its interact
                 if ( connection.getEntity().getHoverEntity() == null ) {
-                    LOGGER.warn( "Selected entity is null" );
+                    LOGGER.warn( connection.getEntity().getName() + " selected entity is null" );
                     reset( packet, connection );
                     return;
                 }
@@ -103,7 +104,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Find the entity from this packet
                 io.gomint.entity.Entity entity = connection.getEntity().getWorld().findEntity( packet.getEntityId() );
                 if ( entity == null || !connection.getEntity().getHoverEntity().equals( entity ) ) {
-                    LOGGER.warn( "Entity does not match: " + entity + "; " + connection.getEntity().getHoverEntity() + "; " + packet.getEntityId() );
+                    LOGGER.warn( connection.getEntity().getName() + " entity does not match: " + entity + "; " + connection.getEntity().getHoverEntity() + "; " + packet.getEntityId() );
                     reset( packet, connection );
                     return;
                 }
