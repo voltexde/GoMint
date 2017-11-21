@@ -19,8 +19,8 @@ import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.world.Gamemode;
-import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.Block;
+import io.gomint.world.block.BlockAir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,7 +131,17 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             case 0:     // Interact
                 break;
             case 1:     // Attack
-                connection.getEntity().attackWithItemInHand( target );
+                if ( connection.getEntity().attackWithItemInHand( target ) ) {
+                    ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
+                    if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).damage( 1 ) ) {
+                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                    } else {
+                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
+                    }
+                } else {
+                    reset( packet, connection );
+                }
+
                 break;
         }
     }
@@ -263,7 +273,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     }
 
                     // Check if we can break this block in time
-                    long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand() );
+                    long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand(), connection.getEntity() );
                     LOGGER.debug( "Break time: " + ( connection.getEntity().getBreakTime() + 50 ) + "; should: " + breakTime + " for " + block.getClass().getSimpleName() );
                     if ( connection.getEntity().getBreakTime() + 50 < breakTime ) {
                         LOGGER.warn( connection.getEntity().getName() + " broke block too fast: break time: " + ( connection.getEntity().getBreakTime() + 50 ) +

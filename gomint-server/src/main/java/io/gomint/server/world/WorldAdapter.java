@@ -18,6 +18,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.async.MultiOutputDelegate;
+import io.gomint.server.config.WorldConfig;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.passive.EntityXPOrb;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -55,22 +56,21 @@ import java.util.function.Predicate;
 public abstract class WorldAdapter implements World {
 
     // Shared objects
-    @Getter
-    protected final GoMintServer server;
+    @Getter protected final GoMintServer server;
     protected final Logger logger;
 
     // World properties
     protected final File worldDir;
     protected String levelName;
     protected Location spawn;
-    @Getter
-    protected Map<Gamerule, Object> gamerules = new HashMap<>();
+    @Getter protected Map<Gamerule, Object> gamerules = new HashMap<>();
+    @Getter private WorldConfig config;
 
     /**
      * Get the difficulty of this world
      */
     @Getter
-    protected Difficulty difficulty;
+    protected Difficulty difficulty = Difficulty.NORMAL;
 
     // Chunk Handling
     protected ChunkCache chunkCache;
@@ -98,6 +98,7 @@ public abstract class WorldAdapter implements World {
         this.logger = LoggerFactory.getLogger( "io.gomint.World-" + worldDir.getName() );
         this.worldDir = worldDir;
         this.entityManager = new EntityManager( this );
+        this.config = this.server.getWorldConfig( worldDir.getName() );
         this.players = PlayerMap.withExpectedSize( this.server.getServerConfig().getMaxPlayers() );
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
@@ -232,16 +233,20 @@ public abstract class WorldAdapter implements World {
     public void update( long currentTimeMS, float dT ) {
         // ---------------------------------------
         // Tick the chunk cache to get rid of Chunks
-        this.chunkCache.tick( currentTimeMS );
+        if ( !this.config.isDisableChunkGC() ) {
+            this.chunkCache.tick( currentTimeMS );
+        }
 
         // ---------------------------------------
         // Update all blocks
 
         // Random blocks
-        long[] tickingHashes = this.chunkCache.getTickingChunks( dT );
-        for ( long chunkHash : tickingHashes ) {
-            ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
-            chunkAdapter.update( currentTimeMS, dT );
+        if ( !this.config.isDisableRandomTicking() ) {
+            long[] tickingHashes = this.chunkCache.getTickingChunks( dT );
+            for ( long chunkHash : tickingHashes ) {
+                ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
+                chunkAdapter.update( currentTimeMS, dT );
+            }
         }
 
         // Scheduled blocks
@@ -253,7 +258,6 @@ public abstract class WorldAdapter implements World {
 
             // Get the block
             BlockPosition blockPosition = CoordinateUtils.fromLong( blockToUpdate );
-            logger.info( "Ticking block @ " + blockPosition );
             Block block = getBlockAt( blockPosition );
             if ( block != null ) {
                 // CHECKSTYLE:OFF
@@ -550,7 +554,7 @@ public abstract class WorldAdapter implements World {
      * @throws IOException Throws in case the spawn region could not be loaded nor generated
      */
     protected void prepareSpawnRegion() throws IOException {
-        final int spawnRadius = this.server.getServerConfig().getAmountOfChunksForSpawnArea();
+        final int spawnRadius = this.config.getAmountOfChunksForSpawnArea();
         if ( spawnRadius == 0 ) {
             return;
         }

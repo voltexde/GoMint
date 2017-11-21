@@ -260,8 +260,8 @@ public class ChunkAdapter implements Chunk {
      * @return true when it can be gced, false when not
      */
     boolean canBeGCed( long currentTimeMillis ) {
-        int secondsAfterLeft = this.world.getServer().getServerConfig().getSecondsUntilGCAfterLastPlayerLeft();
-        int waitAfterLoad = this.world.getServer().getServerConfig().getWaitAfterLoadForGCSeconds();
+        int secondsAfterLeft = this.world.getConfig().getSecondsUntilGCAfterLastPlayerLeft();
+        int waitAfterLoad = this.world.getConfig().getWaitAfterLoadForGCSeconds();
 
         return currentTimeMillis - this.loadedTime > TimeUnit.SECONDS.toMillis( waitAfterLoad ) &&
             this.players.isEmpty() &&

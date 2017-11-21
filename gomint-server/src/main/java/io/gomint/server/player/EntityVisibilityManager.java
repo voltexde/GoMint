@@ -16,8 +16,6 @@ import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.world.Chunk;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
@@ -40,15 +38,15 @@ public class EntityVisibilityManager {
         }
     }
 
-    public void updateEntity( Entity entity, Chunk chunk, boolean sendData ) {
+    public void updateEntity( Entity entity, Chunk chunk ) {
         int currentX = CoordinateUtils.fromBlockToChunk( (int) this.player.getPositionX() );
         int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.player.getPositionZ() );
 
         if ( Math.abs( chunk.getX() - currentX ) > this.player.getViewDistance() ||
             Math.abs( chunk.getZ() - currentZ ) > this.player.getViewDistance() ) {
-            removeEntity( entity, sendData );
+            removeEntity( entity );
         } else {
-            addEntity( entity, sendData );
+            addEntity( entity );
         }
     }
 
@@ -69,33 +67,21 @@ public class EntityVisibilityManager {
     }
 
     public void removeEntity( Entity entity ) {
-        this.removeEntity( entity, true );
-    }
-
-    public void removeEntity( Entity entity, boolean despawn ) {
         if ( this.visible.remove( entity ) && !this.player.equals( entity ) ) {
             io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) entity;
             implEntity.detach( this.player );
 
-            if ( despawn ) {
-                PacketDespawnEntity despawnEntity = new PacketDespawnEntity();
-                despawnEntity.setEntityId( entity.getEntityId() );
-                this.player.getConnection().addToSendQueue( despawnEntity );
-            }
+            PacketDespawnEntity despawnEntity = new PacketDespawnEntity();
+            despawnEntity.setEntityId( entity.getEntityId() );
+            this.player.getConnection().addToSendQueue( despawnEntity );
         }
     }
 
     public void addEntity( Entity entity ) {
-        this.addEntity( entity, true );
-    }
-
-    public void addEntity( Entity entity, boolean sendSpawn ) {
         if ( !this.visible.contains( entity ) && !this.player.equals( entity ) ) {
             io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) entity;
 
-            if ( sendSpawn ) {
-                this.player.getConnection().addToSendQueue( implEntity.createSpawnPacket() );
-            }
+            this.player.getConnection().addToSendQueue( implEntity.createSpawnPacket() );
 
             implEntity.attach( this.player );
             this.visible.add( entity );

@@ -10,6 +10,7 @@ package io.gomint.math;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
  * @version 1.2
  */
 @EqualsAndHashCode
+@ToString
 public class Vector implements Cloneable {
 
     public static final Vector ZERO = new Vector( 0, 0, 0 );
@@ -144,11 +146,6 @@ public class Vector implements Cloneable {
         this.z /= mag;
 
         return this;
-    }
-
-    @Override
-    public String toString() {
-        return String.format( "[x=%.3f, y=%.3f, z=%.3f]", this.x, this.y, this.z );
     }
 
     @Override

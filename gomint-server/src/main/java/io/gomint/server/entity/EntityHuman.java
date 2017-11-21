@@ -1,5 +1,6 @@
 package io.gomint.server.entity;
 
+import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerFoodLevelChangeEvent;
@@ -81,6 +82,16 @@ public class EntityHuman extends EntityLiving {
                         if ( health < this.getMaxHealth() ) {
                             this.heal( 1, EntityHealEvent.Cause.SATURATION );
                             this.exhaust( 3f, PlayerExhaustEvent.Cause.REGENERATION );
+                        }
+                    } else if ( hunger <= 0 ) {
+                        if ( health == -1 ) {
+                            health = this.getHealth();
+                        }
+
+                        if ( ( health > 10 && difficulty == Difficulty.NORMAL ) ||
+                            ( difficulty == Difficulty.HARD && health > 1 ) ) {
+                            EntityDamageEvent damageEvent = new EntityDamageEvent( this, EntityDamageEvent.DamageSource.STARVE, 1f );
+                            this.damage( damageEvent );
                         }
                     }
                 }

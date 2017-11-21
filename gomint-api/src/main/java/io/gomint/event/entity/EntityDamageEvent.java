@@ -108,7 +108,17 @@ public class EntityDamageEvent extends CancellableEntityEvent {
         /**
          * Damage which will be dealt when a entity explodes
          */
-        ENTITY_EXPLODE
+        ENTITY_EXPLODE,
+
+        /**
+         * Damage from harm effects
+         */
+        HARM_EFFECT,
+
+        /**
+         * Damage due to hunger
+         */
+        STARVE,
 
     }
 

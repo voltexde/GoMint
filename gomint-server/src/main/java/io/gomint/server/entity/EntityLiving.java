@@ -1,6 +1,7 @@
 package io.gomint.server.entity;
 
 import com.koloboke.collect.ObjCursor;
+import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
@@ -9,13 +10,16 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
+import io.gomint.server.entity.potion.Effects;
+import io.gomint.server.entity.potion.effect.Effect;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityEvent;
 import io.gomint.server.network.packet.PacketSpawnEntity;
+import io.gomint.server.player.EffectManager;
+import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.EntityHashSet;
-import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.block.Block;
 import lombok.Getter;
@@ -25,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Common base class for all entities that live. All living entities possess
@@ -56,8 +61,13 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     // Damage stats
     protected float lastDamage = 0;
-    @Getter protected EntityDamageEvent.DamageSource lastDamageSource;
-    @Getter protected io.gomint.entity.Entity lastDamageEntity;
+    @Getter
+    protected EntityDamageEvent.DamageSource lastDamageSource;
+    @Getter
+    protected io.gomint.entity.Entity lastDamageEntity;
+
+    // Effects
+    private final EffectManager effectManager = new EffectManager( this );
 
     /**
      * Constructs a new EntityLiving
@@ -114,7 +124,14 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     @Override
     protected void fall() {
-        float damage = MathUtils.fastFloor( this.fallDistance - 3f );
+        // Check for jump potion
+        float distanceReduce = 0.0f;
+        int jumpAmplifier = getEffectAmplifier( PotionEffect.JUMP );
+        if ( jumpAmplifier != -1 ) {
+            distanceReduce = jumpAmplifier + 1;
+        }
+
+        float damage = MathUtils.fastFloor( this.fallDistance - 3f - distanceReduce );
         if ( damage > 0 ) {
             EntityDamageEvent damageEvent = new EntityDamageEvent( this,
                 EntityDamageEvent.DamageSource.FALL, damage );
@@ -136,6 +153,12 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             if ( this.lastDamageEntity.isDead() ) {
                 this.lastDamageEntity = null;
             }
+        }
+
+        // Only update when alive
+        if ( this.getHealth() >= 0 && !this.isDead() ) {
+            // Update effects
+            this.effectManager.update( currentTimeMS, dT );
         }
 
         // Check for client tick stuff
@@ -175,7 +198,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             }
 
             // Check for block stuff
-            boolean breathing = !this.isInsideLiquid();
+            boolean breathing = !this.isInsideLiquid() || this.hasEffect( PotionEffect.WATER_BREATHING );
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, breathing );
 
             // Check for damage due to blocks (cactus, fire, lava)
@@ -246,6 +269,17 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     }
 
     @Override
+    public void setAbsorptionHearts( float amount ) {
+        AttributeInstance attributeInstance = this.attributes.get( Attribute.ABSORPTION.getKey() );
+        attributeInstance.setValue( MathUtils.clamp( amount, attributeInstance.getMinValue(), attributeInstance.getMaxValue() ) );
+    }
+
+    @Override
+    public float getAbsorptionHearts() {
+        return this.getAttribute( Attribute.ABSORPTION );
+    }
+
+    @Override
     public float getMaxHealth() {
         return this.getAttributeInstance( Attribute.HEALTH ).getMaxValue();
     }
@@ -272,8 +306,26 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             return false;
         }
 
+        // Check for effect blocking
+        if ( hasEffect( PotionEffect.FIRE_RESISTANCE ) && (
+                damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FIRE ||
+                    damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.LAVA ||
+                    damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.ON_FIRE
+            ) ) {
+            return false;
+        }
+
         // Armor calculations
         float damage = applyArmorReduction( damageEvent );
+        damage = applyEffectReduction( damageEvent, damage );
+
+        // Absorption
+        float absorptionHearts = this.getAbsorptionHearts();
+        if ( absorptionHearts > 0 ) {
+            float oldDamage = damage;
+            damage = Math.max( damage - absorptionHearts, 0f );
+            this.setAbsorptionHearts( absorptionHearts - ( oldDamage - damage ) );
+        }
 
         // Check for attack timer
         if ( this.attackCoolDown > 0 && damage <= this.lastDamage ) {
@@ -345,12 +397,34 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         return true;
     }
 
+    float applyEffectReduction( EntityDamageEvent damageEvent, float damage ) {
+        // Starve is absolute damage
+        if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.STARVE ) {
+            return damage;
+        }
+
+        int damageResistanceAmplifier = getEffectAmplifier( PotionEffect.DAMAGE_RESISTANCE );
+        if ( damageResistanceAmplifier != -1 && damageEvent.getDamageSource() != EntityDamageEvent.DamageSource.VOID ) {
+            float maxReductionDiff = 25 -  ( ( damageResistanceAmplifier + 1 ) * 5);
+            float amplifiedDamage = damage * maxReductionDiff;
+            damage = amplifiedDamage / 25.0F;
+        }
+
+        if ( damage <= 0.0f ) {
+            return 0.0f;
+        }
+
+        return damage;
+    }
+
     /**
      * Reset fire status on kill
      */
     protected void kill() {
         this.fireTicks = 0;
         setOnFire( false );
+
+        this.effectManager.removeAll();
     }
 
     float applyArmorReduction( EntityDamageEvent damageEvent ) {
@@ -360,6 +434,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     @Override
     public void attach( EntityPlayer player ) {
         this.attachedEntities.add( player );
+        this.effectManager.sendForPlayer( player );
     }
 
     @Override
@@ -391,6 +466,35 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
             this.fireTicks = newFireTicks;
             setOnFire( true );
         }
+    }
+
+
+    @Override
+    public void addEffect( PotionEffect effect, int amplifier, long duration, TimeUnit timeUnit ) {
+        byte effectId = (byte) EnumConnectors.POTION_EFFECT_CONNECTOR.convert( effect ).getId();
+        Effect effectInstance = Effects.generate( effectId, amplifier, this.world.getServer().getCurrentTickTime() + timeUnit.toMillis( duration ) );
+
+        if ( effectInstance != null ) {
+            this.effectManager.addEffect( effectId, effectInstance );
+        }
+    }
+
+    @Override
+    public boolean hasEffect( PotionEffect effect ) {
+        byte effectId = (byte) EnumConnectors.POTION_EFFECT_CONNECTOR.convert( effect ).getId();
+        return this.effectManager.hasEffect( effectId );
+    }
+
+    @Override
+    public int getEffectAmplifier( PotionEffect effect ) {
+        byte effectId = (byte) EnumConnectors.POTION_EFFECT_CONNECTOR.convert( effect ).getId();
+        return this.effectManager.getEffectAmplifier( effectId );
+    }
+
+    @Override
+    public void removeEffect( PotionEffect effect ) {
+        byte effectId = (byte) EnumConnectors.POTION_EFFECT_CONNECTOR.convert( effect ).getId();
+        this.effectManager.removeEffect( effectId );
     }
 
 }

@@ -1,5 +1,6 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
@@ -49,8 +50,13 @@ public class ItemFishingRod extends ItemStack implements io.gomint.inventory.ite
     public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
         if ( entity.getFishingHook() == null ) {
             EntityFishingHook hook = new EntityFishingHook( entity, entity.getWorld() );
-            entity.getWorld().spawnEntityAt( hook, hook.getPositionX(), hook.getPositionY(), hook.getPositionZ(), hook.getYaw(), hook.getPitch() );
-            entity.setFishingHook( hook );
+            ProjectileLaunchEvent event = new ProjectileLaunchEvent( hook, ProjectileLaunchEvent.Cause.FISHING_ROD );
+            entity.getWorld().getServer().getPluginManager().callEvent( event );
+
+            if ( !event.isCancelled() ) {
+                entity.getWorld().spawnEntityAt( hook, hook.getPositionX(), hook.getPositionY(), hook.getPositionZ(), hook.getYaw(), hook.getPitch() );
+                entity.setFishingHook( hook );
+            }
         } else {
             int damage = entity.getFishingHook().retract();
             this.setData( (short) ( this.getData() + damage ) );

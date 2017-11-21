@@ -7,6 +7,7 @@
 
 package io.gomint.entity;
 
+import io.gomint.entity.potion.PotionEffect;
 import io.gomint.gui.Form;
 import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
@@ -18,6 +19,7 @@ import io.gomint.world.Gamemode;
 
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author BlackyPaw

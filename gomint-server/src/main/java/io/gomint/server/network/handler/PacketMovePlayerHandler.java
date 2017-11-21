@@ -52,8 +52,6 @@ public class PacketMovePlayerHandler implements PacketHandler<PacketMovePlayer> 
             return;
         }
 
-        LOGGER.debug( connection.getEntity().getName() + " input movement " + to );
-
         PlayerMoveEvent playerMoveEvent = connection.getNetworkManager().getServer().getPluginManager().callEvent(
             new PlayerMoveEvent( entity, from, to )
         );

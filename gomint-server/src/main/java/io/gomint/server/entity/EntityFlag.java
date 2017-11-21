@@ -21,6 +21,7 @@ public enum EntityFlag {
     IMMOBILE( 16 ),
     CAN_CLIMB( 19 ),
     SWIMMER( 20 ),
+    CAN_FLY( 21 ),
     BREATHING( 33 ),
 
     HAS_COLLISION( 45 ),

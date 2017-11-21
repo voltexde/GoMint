@@ -63,8 +63,8 @@ public class ChunkCache {
         this.world = world;
         this.cachedChunks = ChunkCacheMap.withExpectedSize( 200 );
         this.concurrentCachedChunks = new ConcurrentHashMap<>();
-        this.enableAutoSave = world.getServer().getServerConfig().isAutoSave();
-        this.autoSaveInterval = world.getServer().getServerConfig().getAutoSaveInterval();
+        this.enableAutoSave = world.getConfig().isAutoSave();
+        this.autoSaveInterval = world.getConfig().getAutoSaveInterval();
     }
     // CHECKSTYLE:ON
 
@@ -97,7 +97,7 @@ public class ChunkCache {
         int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.world.getSpawnLocation().getX() );
         int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.world.getSpawnLocation().getZ() );
 
-        int spawnAreaSize = this.world.getServer().getServerConfig().getAmountOfChunksForSpawnArea();
+        int spawnAreaSize = this.world.getConfig().getAmountOfChunksForSpawnArea();
 
         synchronized ( this ) {
             // Copy over the current loaded chunk hashes

@@ -19,6 +19,7 @@ import io.gomint.permission.GroupManager;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
+import io.gomint.server.config.WorldConfig;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.RecipeManager;
 import io.gomint.server.entity.Entities;
@@ -242,7 +243,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.worldManager = new WorldManager( this );
         // CHECKSTYLE:OFF
         try {
-            this.worldManager.loadWorld( this.serverConfig.getWorld() );
+            this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
         } catch ( Exception e ) {
             LOGGER.error( "Failed to load default world", e );
         }
@@ -412,7 +413,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     }
 
     public WorldAdapter getDefaultWorld() {
-        return this.worldManager.getWorld( this.serverConfig.getWorld() );
+        return this.worldManager.getWorld( this.serverConfig.getDefaultWorld() );
     }
 
     public RecipeManager getRecipeManager() {
@@ -584,6 +585,22 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Override
     public CustomForm createCustomForm( String title ) {
         return new io.gomint.server.gui.CustomForm( title );
+    }
+
+    /**
+     * Get the worlds config
+     *
+     * @param name of the world
+     * @return the config for this world
+     */
+    public WorldConfig getWorldConfig( String name ) {
+        for ( WorldConfig worldConfig : this.serverConfig.getWorlds() ) {
+            if ( worldConfig.getName().equals( name ) ) {
+                return worldConfig;
+            }
+        }
+
+        return new WorldConfig();
     }
 
 }

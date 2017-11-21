@@ -11,6 +11,7 @@ import com.koloboke.collect.ObjCursor;
 import com.koloboke.collect.map.ByteObjCursor;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
+import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.*;
@@ -18,6 +19,8 @@ import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.entity.potion.Effects;
+import io.gomint.server.entity.potion.effect.Effect;
 import io.gomint.server.entity.projectile.EntityFishingHook;
 import io.gomint.server.inventory.*;
 import io.gomint.server.inventory.item.ItemAir;
@@ -26,6 +29,7 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.permission.PermissionManager;
+import io.gomint.server.player.EffectManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
@@ -45,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -101,22 +106,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter
-    @Getter
-    private BlockPosition breakVector;
-    @Setter
-    @Getter
-    private long startBreak;
-    @Setter
-    @Getter
-    private long breakTime;
+    @Setter @Getter private BlockPosition breakVector;
+    @Setter @Getter private long startBreak;
+    @Setter @Getter private long breakTime;
 
     // Update data
-    @Getter
-    private Queue<BlockPosition> blockUpdates = new ConcurrentLinkedQueue<>();
-    @Getter
-    @Setter
-    private Location teleportPosition = null;
+    @Getter private Queue<BlockPosition> blockUpdates = new ConcurrentLinkedQueue<>();
+    @Getter @Setter private Location teleportPosition = null;
 
     // Form stuff
     private int formId;
@@ -124,15 +120,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private FormListenerIDMap formListeners = FormListenerIDMap.withExpectedSize( 2 );
 
     // Entity data
-    @Getter
-    @Setter
-    private EntityFishingHook fishingHook;
+    @Getter @Setter private EntityFishingHook fishingHook;
     private long lastPickupXP;
 
     // Bow ticking
-    @Getter
-    @Setter
-    private long startBow = -1;
+    @Getter @Setter private long startBow = -1;
 
     // Exp
     private int xp;
@@ -196,7 +188,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketTransfer packetTransfer = new PacketTransfer();
         packetTransfer.setAddress( host );
         packetTransfer.setPort( port );
-        this.connection.send( packetTransfer );
+        this.connection.addToSendQueue( packetTransfer );
     }
 
     @Override
@@ -210,7 +202,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      * @param viewDistance The view distance to set
      */
     public void setViewDistance( int viewDistance ) {
-        int tempViewDistance = Math.min( viewDistance, this.getWorld().getServer().getServerConfig().getViewDistance() );
+        int tempViewDistance = Math.min( viewDistance, this.world.getConfig().getViewDistance() );
         if ( this.viewDistance != tempViewDistance ) {
             this.viewDistance = tempViewDistance;
             this.connection.onViewDistanceChanged();
@@ -258,6 +250,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.adventureSettings.setAttackPlayers( gameModeNumber < 0x02 );
         this.adventureSettings.setNoPvP( gameModeNumber == 0x03 );
         this.adventureSettings.update();
+
+        // Set fly
+        if ( this.gamemode == Gamemode.SPECTATOR || this.gamemode == Gamemode.CREATIVE ) {
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_FLY, true );
+        } else { // TODO: Check for API set fly flag
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_FLY, false );
+        }
 
         // Set invis
         if ( this.gamemode == Gamemode.SPECTATOR ) {
@@ -822,14 +821,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      * Attack another entity with the item currently in hand
      *
      * @param target which should be attacked
+     * @return true when damage has been dealt, false when not
      */
-    public void attackWithItemInHand( Entity target ) {
+    public boolean attackWithItemInHand( Entity target ) {
         if ( target instanceof io.gomint.server.entity.Entity ) {
             io.gomint.server.entity.Entity targetEntity = (io.gomint.server.entity.Entity) target;
 
             // Check if the target can be attacked
             if ( targetEntity.canBeAttackedWithAnItem() ) {
                 if ( !targetEntity.isInvulnerableFrom( this ) ) {
+                    boolean success = false;
+
                     // Get this entity attack damage
                     EntityDamageEvent.DamageSource damageSource = EntityDamageEvent.DamageSource.ENTITY_ATTACK;
                     float damage = this.getAttribute( Attribute.ATTACK_DAMAGE );
@@ -852,7 +854,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                         }
 
                         // Check if target can absorb this damage
-                        if ( targetEntity.damage( new EntityDamageByEntityEvent( targetEntity, this, damageSource, damage ) ) ) {
+                        if ( ( success = targetEntity.damage( new EntityDamageByEntityEvent( targetEntity, this, damageSource, damage ) ) ) ) {
                             // Apply knockback
                             if ( knockbackLevel > 0 ) {
                                 // Modify target velocity
@@ -876,9 +878,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                     }
 
                     this.exhaust( 0.3f, PlayerExhaustEvent.Cause.ATTACK );
+                    return success;
                 }
             }
         }
+
+        return false;
     }
 
     @Override
@@ -981,7 +986,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Update all other players
         for ( io.gomint.entity.EntityPlayer player : this.world.getPlayers() ) {
             EntityPlayer implPlayer = (EntityPlayer) player;
-            implPlayer.getEntityVisibilityManager().updateEntity( this, this.getChunk(), true );
+            implPlayer.getEntityVisibilityManager().updateEntity( this, this.getChunk() );
         }
 
         // Apply item in hand stuff
@@ -1007,6 +1012,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
             this.inventory.clear();
             this.offhandInventory.clear();
+            this.armorInventory.clear();
         }
 
         this.craftingInventory.clear();
@@ -1036,6 +1042,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
 
         for ( io.gomint.inventory.item.ItemStack itemStack : this.offhandInventory.getContents() ) {
+            if ( !( itemStack instanceof ItemAir ) ) {
+                drops.add( itemStack );
+            }
+        }
+
+        for ( io.gomint.inventory.item.ItemStack itemStack : this.armorInventory.getContents() ) {
             if ( !( itemStack instanceof ItemAir ) ) {
                 drops.add( itemStack );
             }

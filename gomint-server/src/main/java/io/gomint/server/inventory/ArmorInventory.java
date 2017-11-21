@@ -69,7 +69,7 @@ public class ArmorInventory extends Inventory implements io.gomint.inventory.Arm
             PacketInventoryContent inventory = new PacketInventoryContent();
             inventory.setWindowId( WindowMagicNumbers.ARMOR.getId() );
             inventory.setItems( getContents() );
-            playerConnection.send( inventory );
+            playerConnection.addToSendQueue( inventory );
         } else {
             this.sendMobArmor( playerConnection );
         }

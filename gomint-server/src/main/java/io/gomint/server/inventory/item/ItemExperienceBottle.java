@@ -1,5 +1,6 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
@@ -29,12 +30,17 @@ public class ItemExperienceBottle extends ItemStack implements io.gomint.invento
     public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
         if ( clickedBlock == null ) {
             EntityExpBottle expBottle = new EntityExpBottle( entity, entity.getWorld() );
-            entity.getWorld().spawnEntityAt( expBottle, expBottle.getPositionX(), expBottle.getPositionY(), expBottle.getPositionZ(), expBottle.getYaw(), expBottle.getPitch() );
+            ProjectileLaunchEvent event = new ProjectileLaunchEvent( expBottle, ProjectileLaunchEvent.Cause.THROWING_EXP_BOTTLE );
+            entity.getWorld().getServer().getPluginManager().callEvent( event );
 
-            if ( this.afterPlacement() ) {
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-            } else {
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), this );
+            if ( !event.isCancelled() ) {
+                entity.getWorld().spawnEntityAt( expBottle, expBottle.getPositionX(), expBottle.getPositionY(), expBottle.getPositionZ(), expBottle.getYaw(), expBottle.getPitch() );
+
+                if ( this.afterPlacement() ) {
+                    entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                } else {
+                    entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), this );
+                }
             }
 
             return true;

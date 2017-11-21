@@ -1,8 +1,5 @@
 package io.gomint.server.world.block;
 
-import io.gomint.inventory.item.ItemShears;
-import io.gomint.inventory.item.ItemStack;
-import io.gomint.inventory.item.ItemSword;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -23,15 +20,8 @@ public class AcaciaLeaves extends Block {
     }
 
     @Override
-    public long getFinalBreakTime( ItemStack item ) {
-        // Leaves are a bit of a special case here
-        if ( item instanceof ItemShears ) {
-            return 50;
-        } else if ( item instanceof ItemSword ) {
-            return 200;
-        } else {
-            return 350;
-        }
+    public long getBreakTime() {
+        return 350;
     }
 
     @Override

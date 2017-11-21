@@ -64,14 +64,12 @@ public abstract class ContainerInventory extends Inventory {
      * @param windowId to use for this player
      */
     public void addViewer( EntityPlayer player, byte windowId ) {
-        LOGGER.info( "Opening container " + getContainerPosition() + " for " + player.getName() + " / " + windowId );
-
         // Sent ContainerOpen first
         PacketContainerOpen containerOpen = new PacketContainerOpen();
         containerOpen.setWindowId( windowId );
         containerOpen.setType( this.getType().getId() );
         containerOpen.setLocation( this.getContainerPosition() );
-        player.getConnection().send( containerOpen );
+        player.getConnection().addToSendQueue( containerOpen );
 
         // Add viewer and send contents
         super.addViewer( player );

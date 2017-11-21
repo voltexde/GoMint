@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
  */
 public class EntityFishingHook extends EntityProjectile implements io.gomint.entity.projectile.EntityFishingHook {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( EntityFishingHook.class );
     private static final Vector WATER_FLOATING_MOTION = new Vector( 0, 0.1f, 0 );
 
     private float lastUpdatedT;

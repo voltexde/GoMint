@@ -42,7 +42,7 @@ public class ChestInventory extends ContainerInventory {
         PacketInventoryContent inventoryContent = new PacketInventoryContent();
         inventoryContent.setWindowId( windowId );
         inventoryContent.setItems( this.getContents() );
-        playerConnection.send( inventoryContent );
+        playerConnection.addToSendQueue( inventoryContent );
     }
 
     @Override
@@ -53,7 +53,7 @@ public class ChestInventory extends ContainerInventory {
         inventorySetSlot.setWindowId( windowId );
         inventorySetSlot.setSlot( slot );
         inventorySetSlot.setItemStack( this.getItem( slot ) );
-        playerConnection.send( inventorySetSlot );
+        playerConnection.addToSendQueue( inventorySetSlot );
     }
 
     @Override

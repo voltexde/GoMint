@@ -686,7 +686,7 @@ public class PlayerConnection {
         move.setMode( (byte) 2 );
         move.setOnGround( this.getEntity().isOnGround() );
         move.setRidingEntityId( 0 );    // TODO: Implement riding entities correctly
-        this.send( move );
+        this.addToSendQueue( move );
     }
 
     /**

@@ -29,7 +29,7 @@ public class PacketEntityEventHandler implements PacketHandler<PacketEntityEvent
             }
         }
 
-        connection.send( packet );
+        connection.addToSendQueue( packet );
     }
 
 }

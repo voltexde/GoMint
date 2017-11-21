@@ -22,7 +22,8 @@ public class ProjectileHitEntityEvent extends CancellableEntityEvent {
     /**
      * Create a new entity based cancellable event
      *
-     * @param entity for which this event is
+     * @param entity     for which this event is
+     * @param projectile which hit the entity
      */
     public ProjectileHitEntityEvent( Entity entity, EntityProjectile projectile ) {
         super( entity );

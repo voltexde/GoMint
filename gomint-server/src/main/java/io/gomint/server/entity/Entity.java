@@ -18,10 +18,7 @@ import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.block.Block;
-import io.gomint.server.world.block.Ladder;
-import io.gomint.server.world.block.Liquid;
-import io.gomint.server.world.block.Vines;
+import io.gomint.server.world.block.*;
 import io.gomint.world.Chunk;
 import lombok.Getter;
 import lombok.Setter;
@@ -921,10 +918,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return block instanceof Ladder || block instanceof Vines;
     }
 
-    protected boolean isInsideLiquid() {
+    public boolean isInsideLiquid() {
         Location eyeLocation = this.getLocation().clone().add( 0, this.eyeHeight, 0 );
         Block block = eyeLocation.getWorld().getBlockAt( eyeLocation.toBlockPosition() );
-        if ( block instanceof Liquid ) {
+        if ( block instanceof StationaryWater || block instanceof FlowingWater ) {
             float yLiquid = (float) ( block.getLocation().getY() + 1 + ( ( ( (Liquid) block ).getFillHeight() - 0.12 ) ) );
             return eyeLocation.getY() < yLiquid;
         }
@@ -975,7 +972,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
     public void detach( EntityPlayer player ) {
 
     }
-
 
     private void recalcBoundingBox() {
         // Only recalc on spawned entities

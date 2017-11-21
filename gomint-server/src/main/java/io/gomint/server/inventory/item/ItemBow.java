@@ -1,5 +1,6 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
@@ -98,16 +99,20 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
             return;
         }
 
-        // Use the bow
-        if ( this.damage( 1 ) ) {
-            player.getInventory().setItem( player.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-        } else {
-            player.getInventory().setItem( player.getInventory().getItemInHandSlot(), this );
-        }
-
         // Create arrow
         EntityArrow arrow = new EntityArrow( player, player.getWorld(), force );
-        player.getWorld().spawnEntityAt( arrow, arrow.getPositionX(), arrow.getPositionY(), arrow.getPositionZ(), arrow.getYaw(), arrow.getPitch() );
+        ProjectileLaunchEvent event = new ProjectileLaunchEvent( arrow, ProjectileLaunchEvent.Cause.BOW_SHOT );
+        player.getWorld().getServer().getPluginManager().callEvent( event );
+        if ( !event.isCancelled() ) {
+            // Use the bow
+            if ( this.damage( 1 ) ) {
+                player.getInventory().setItem( player.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+            } else {
+                player.getInventory().setItem( player.getInventory().getItemInHandSlot(), this );
+            }
+
+            player.getWorld().spawnEntityAt( arrow, arrow.getPositionX(), arrow.getPositionY(), arrow.getPositionZ(), arrow.getYaw(), arrow.getPitch() );
+        }
     }
 
     private float calculateForce( EntityPlayer player ) {

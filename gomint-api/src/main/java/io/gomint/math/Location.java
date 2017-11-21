@@ -25,7 +25,7 @@ import lombok.ToString;
  * @version 1.2
  */
 @EqualsAndHashCode( callSuper = true )
-@ToString
+@ToString( callSuper = true )
 public class Location extends Vector implements Cloneable {
 
     @Getter private World world;

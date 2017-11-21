@@ -13,6 +13,12 @@ package io.gomint.server.entity;
  */
 public enum AttributeModifier {
 
+    // Damage
     ITEM_ATTACK_DAMAGE,
+    STRENGTH_EFFECT,
+
+    // Movement
+    SPEED_EFFECT,
+    SLOWNESS_EFFECT,
 
 }
