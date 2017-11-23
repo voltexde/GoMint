@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemFlintAndSteel;
 import io.gomint.inventory.item.ItemStack;
@@ -61,6 +63,11 @@ public class TNT extends Block implements BlockTNT {
     @Override
     public float getBlastResistance() {
         return 0.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.T_N_T;
     }
 
 }

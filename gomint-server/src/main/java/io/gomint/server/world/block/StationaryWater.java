@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockStationaryWater;
@@ -41,6 +43,11 @@ public class StationaryWater extends Liquid implements BlockStationaryWater {
         if ( entityLiving.isOnFire() ) {
             entityLiving.setFire( 0 );
         }
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.STATIONARY_WATER;
     }
 
 }

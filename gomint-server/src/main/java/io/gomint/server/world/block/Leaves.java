@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockLeaves;
 
@@ -32,6 +34,11 @@ public class Leaves extends Block implements BlockLeaves {
     @Override
     public float getBlastResistance() {
         return 1.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.LEAVES;
     }
 
 }

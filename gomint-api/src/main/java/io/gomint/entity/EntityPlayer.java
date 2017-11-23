@@ -96,13 +96,6 @@ public interface EntityPlayer extends EntityCreature {
     PlayerSkin getSkin();
 
     /**
-     * Teleport to the given location
-     *
-     * @param to The location where the player should be teleported to
-     */
-    void teleport( Location to );
-
-    /**
      * Get the players inventory
      *
      * @return players inventory

@@ -4,6 +4,7 @@ import io.gomint.inventory.ArmorInventory;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 public interface EntityCreature extends EntityLiving {
 

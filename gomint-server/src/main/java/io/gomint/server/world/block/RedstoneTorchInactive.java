@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 75 )
-public class RedstoneTorchInactive extends Block {
+public class RedstoneTorchInactive extends Block implements io.gomint.world.block.BlockRedstoneTorchInactive {
 
     @Override
     public int getBlockId() {
@@ -32,6 +34,11 @@ public class RedstoneTorchInactive extends Block {
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.REDSTONE_TORCH_INACTIVE;
     }
 
 }

@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -11,7 +13,7 @@ import java.util.List;
  * @version 1.0
  */
 @RegisterInfo( id = 241 )
-public class StainedGlass extends Block {
+public class StainedGlass extends Block implements io.gomint.world.block.BlockStainedGlass {
 
     @Override
     public int getBlockId() {
@@ -41,6 +43,11 @@ public class StainedGlass extends Block {
     @Override
     public float getBlastResistance() {
         return 1.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.STAINED_GLASS;
     }
 
 }

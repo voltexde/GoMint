@@ -5,6 +5,7 @@ import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
+import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.component.AIBehaviourComponent;
@@ -427,6 +428,12 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         this.effectManager.removeAll();
     }
 
+    /**
+     * Apply reduction based on the armor value of a entity
+     *
+     * @param damageEvent which wants to deal damage
+     * @return damage left over after removing armor reductions
+     */
     float applyArmorReduction( EntityDamageEvent damageEvent ) {
         return damageEvent.getDamage();
     }
@@ -498,6 +505,21 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     public void removeEffect( PotionEffect effect ) {
         byte effectId = (byte) EnumConnectors.POTION_EFFECT_CONNECTOR.convert( effect ).getId();
         this.effectManager.removeEffect( effectId );
+    }
+
+    @Override
+    public void teleport( Location to ) {
+        WorldAdapter actualWorld = this.getWorld();
+
+        this.setAndRecalcPosition( to );
+
+        if ( !to.getWorld().equals( actualWorld ) ) {
+            actualWorld.removeEntity( this );
+            this.setWorld( (WorldAdapter) to.getWorld() );
+            ( (WorldAdapter) to.getWorld() ).spawnEntityAt( this, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch() );
+        }
+
+        this.fallDistance = 0;
     }
 
 }

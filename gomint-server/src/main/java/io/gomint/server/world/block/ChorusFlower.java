@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -8,7 +10,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 200 )
-public class ChorusFlower extends Block {
+public class ChorusFlower extends Block implements io.gomint.world.block.BlockChorusFlower {
 
     @Override
     public int getBlockId() {
@@ -39,6 +41,11 @@ public class ChorusFlower extends Block {
             ItemIronAxe.class,
             ItemDiamondAxe.class
         };
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.CHORUS_FLOWER;
     }
 
 }

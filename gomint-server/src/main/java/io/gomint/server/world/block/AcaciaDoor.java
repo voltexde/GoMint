@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.*;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.inventory.item.Items;
@@ -54,6 +56,11 @@ public class AcaciaDoor extends Door {
     @Override
     public float getBlastResistance() {
         return 15.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.ACACIA_DOOR;
     }
 
 }

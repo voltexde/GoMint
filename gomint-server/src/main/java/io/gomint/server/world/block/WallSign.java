@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.entity.tileentity.SignTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
@@ -84,6 +86,11 @@ public class WallSign extends Block implements BlockWallSign {
     @Override
     public float getBlastResistance() {
         return 5.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.WALL_SIGN;
     }
 
 }

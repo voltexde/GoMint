@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.math.BlockPosition;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -26,6 +28,11 @@ public class WoodenDoor extends Door {
     @Override
     public float getBlastResistance() {
         return 15.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.WOODEN_DOOR;
     }
 
 }

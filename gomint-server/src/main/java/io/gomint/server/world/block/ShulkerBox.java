@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.*;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
@@ -14,7 +16,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 218 )
-public class ShulkerBox extends Block {
+public class ShulkerBox extends Block implements io.gomint.world.block.BlockShulkerBox {
 
     @Override
     public int getBlockId() {
@@ -79,6 +81,11 @@ public class ShulkerBox extends Block {
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.SHULKER_BOX;
     }
 
 }

@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -34,6 +36,11 @@ public class SandstoneStairs extends Stairs {
             ItemIronPickaxe.class,
             ItemDiamondPickaxe.class
         };
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.SANDSTONE_STAIRS;
     }
 
 }

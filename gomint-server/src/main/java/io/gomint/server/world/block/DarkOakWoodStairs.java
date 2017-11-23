@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -22,6 +24,11 @@ public class DarkOakWoodStairs extends Stairs {
     @Override
     public float getBlastResistance() {
         return 15.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.DARK_OAK_WOOD_STAIRS;
     }
 
 }

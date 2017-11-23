@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
@@ -13,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  */
 @RegisterInfo( id = 143 )
-public class WoodenButton extends Block {
+public class WoodenButton extends Block implements io.gomint.world.block.BlockWoodenButton {
 
     @Override
     public int getBlockId() {
@@ -78,6 +80,11 @@ public class WoodenButton extends Block {
     @Override
     public float getBlastResistance() {
         return 2.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.WOODEN_BUTTON;
     }
 
 }

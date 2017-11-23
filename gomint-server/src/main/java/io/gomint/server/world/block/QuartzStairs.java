@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -22,6 +24,11 @@ public class QuartzStairs extends Stairs {
     @Override
     public float getBlastResistance() {
         return 4.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.QUARTZ_STAIRS;
     }
 
 }

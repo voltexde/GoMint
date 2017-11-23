@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -8,7 +10,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 147 )
-public class LightWeightedPressurePlate extends Block {
+public class LightWeightedPressurePlate extends Block implements io.gomint.world.block.BlockLightWeightedPressurePlate {
 
     @Override
     public int getBlockId() {
@@ -45,6 +47,11 @@ public class LightWeightedPressurePlate extends Block {
     @Override
     public float getBlastResistance() {
         return 2.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.LIGHT_WEIGHTED_PRESSURE_PLATE;
     }
 
 }

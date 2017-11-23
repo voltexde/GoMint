@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 249 )
-public class UpdateGameBlockUpdate2 extends Block {
+public class UpdateGameBlockUpdate2 extends Block implements io.gomint.world.block.BlockUpdateGameBlockUpdate2 {
 
     @Override
     public int getBlockId() {
@@ -17,6 +19,11 @@ public class UpdateGameBlockUpdate2 extends Block {
     @Override
     public float getBlastResistance() {
         return 1.8E7f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.UPDATE_GAME_BLOCK_UPDATE2;
     }
 
 }

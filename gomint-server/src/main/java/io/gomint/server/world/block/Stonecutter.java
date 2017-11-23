@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -8,7 +10,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 245 )
-public class Stonecutter extends Block {
+public class Stonecutter extends Block implements io.gomint.world.block.BlockStonecutter {
 
     @Override
     public int getBlockId() {
@@ -34,6 +36,11 @@ public class Stonecutter extends Block {
             ItemIronPickaxe.class,
             ItemDiamondPickaxe.class
         };
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.STONECUTTER;
     }
 
 }

@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockCobweb;
@@ -59,6 +61,11 @@ public class Cobweb extends Block implements BlockCobweb {
     @Override
     public float getBlastResistance() {
         return 20.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.COBWEB;
     }
 
 }

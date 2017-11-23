@@ -9,6 +9,7 @@ package io.gomint.entity;
 
 import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.math.Location;
 
 import java.util.concurrent.TimeUnit;
 
@@ -107,5 +108,12 @@ public interface EntityLiving extends Entity {
      * @param effect which should be removed
      */
     void removeEffect( PotionEffect effect );
+
+    /**
+     * Teleport to the given location
+     *
+     * @param to The location where the entity should be teleported to
+     */
+    void teleport( Location to );
 
 }

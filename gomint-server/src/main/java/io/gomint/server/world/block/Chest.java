@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.Inventory;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.BlockPosition;
@@ -80,6 +82,11 @@ public class Chest extends Block implements BlockChest {
     @Override
     public float getBlastResistance() {
         return 12.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.CHEST;
     }
 
 }

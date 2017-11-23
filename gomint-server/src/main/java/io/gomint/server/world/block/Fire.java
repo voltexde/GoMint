@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityLiving;
@@ -13,7 +15,7 @@ import java.util.List;
  * @version 1.0
  */
 @RegisterInfo( id = 51 )
-public class Fire extends Block {
+public class Fire extends Block implements io.gomint.world.block.BlockFire {
 
     @Override
     public int getBlockId() {
@@ -55,6 +57,11 @@ public class Fire extends Block {
     @Override
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.FIRE;
     }
 
 }

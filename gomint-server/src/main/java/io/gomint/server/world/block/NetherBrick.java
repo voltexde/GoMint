@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 112 )
-public class NetherBrick extends Block {
+public class NetherBrick extends Block implements io.gomint.world.block.BlockNetherBrick {
 
     @Override
     public int getBlockId() {
@@ -22,6 +24,11 @@ public class NetherBrick extends Block {
     @Override
     public float getBlastResistance() {
         return 10.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.NETHER_BRICK;
     }
 
 }

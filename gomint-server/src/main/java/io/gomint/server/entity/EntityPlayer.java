@@ -345,7 +345,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.setAndRecalcPosition( to );
 
         // Check if we need to change worlds
-        if ( !to.getWorld().equals( getWorld() ) ) {
+        if ( !to.getWorld().equals( from.getWorld() ) ) {
             // Change worlds first
             getWorld().removePlayer( this );
             this.world = (WorldAdapter) to.getWorld();

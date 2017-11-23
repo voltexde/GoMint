@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.PistonArmTileEntity;
@@ -15,7 +17,7 @@ import java.util.List;
  * @version 1.0
  */
 @RegisterInfo( id = 34 )
-public class PistonHead extends Block {
+public class PistonHead extends Block implements io.gomint.world.block.BlockPistonHead {
 
     @Override
     public int getBlockId() {
@@ -40,6 +42,11 @@ public class PistonHead extends Block {
     @Override
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.PISTON_HEAD;
     }
 
 }

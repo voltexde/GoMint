@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 111 )
-public class LilyPad extends Block {
+public class LilyPad extends Block implements io.gomint.world.block.BlockLilyPad {
 
     @Override
     public int getBlockId() {
@@ -27,6 +29,11 @@ public class LilyPad extends Block {
     @Override
     public float getBlastResistance() {
         return 0.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.LILY_PAD;
     }
 
 }

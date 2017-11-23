@@ -19,6 +19,7 @@ import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.async.MultiOutputDelegate;
 import io.gomint.server.config.WorldConfig;
+import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.passive.EntityXPOrb;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -1062,6 +1063,11 @@ public abstract class WorldAdapter implements World {
     public void createExpOrb( Location location, int amount ) {
         EntityXPOrb xpOrb = new EntityXPOrb( (WorldAdapter) location.getWorld(), amount );
         spawnEntityAt( xpOrb, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() );
+    }
+
+    public void removeEntity( io.gomint.server.entity.Entity entity ) {
+        // Just tell the entity manager, it will handle the rest
+        this.entityManager.despawnEntity( entity );
     }
 
 }

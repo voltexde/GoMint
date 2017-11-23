@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -8,7 +10,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 65 )
-public class Ladder extends Block {
+public class Ladder extends Block implements io.gomint.world.block.BlockLadder {
 
     @Override
     public int getBlockId() {
@@ -44,6 +46,11 @@ public class Ladder extends Block {
     @Override
     public float getBlastResistance() {
         return 2.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.LADDER;
     }
 
 }

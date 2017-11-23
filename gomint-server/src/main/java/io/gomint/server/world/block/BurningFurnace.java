@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 62 )
-public class BurningFurnace extends Block {
+public class BurningFurnace extends Block implements io.gomint.world.block.BlockBurningFurnace {
 
     @Override
     public int getBlockId() {
@@ -27,6 +29,11 @@ public class BurningFurnace extends Block {
     @Override
     public float getBlastResistance() {
         return 17.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.BURNING_FURNACE;
     }
 
 }

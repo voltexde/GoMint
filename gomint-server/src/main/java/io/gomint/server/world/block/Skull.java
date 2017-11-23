@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.MojangRotation;
@@ -20,7 +22,7 @@ import java.util.List;
  * @version 1.0
  */
 @RegisterInfo( id = 144 )
-public class Skull extends Block {
+public class Skull extends Block implements io.gomint.world.block.BlockSkull {
 
     @Override
     public int getBlockId() {
@@ -86,6 +88,11 @@ public class Skull extends Block {
     @Override
     public float getBlastResistance() {
         return 5.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.SKULL;
     }
 
 }

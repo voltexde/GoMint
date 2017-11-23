@@ -63,6 +63,13 @@ public abstract class Block implements io.gomint.world.block.Block {
     // CHECKSTYLE:ON
 
     /**
+     * Get the internal ID of this block
+     *
+     * @return id for networking and saving
+     */
+    public abstract int getBlockId();
+
+    /**
      * Called when a normal block update should be done
      *
      * @param updateReason  The reason why this block should update

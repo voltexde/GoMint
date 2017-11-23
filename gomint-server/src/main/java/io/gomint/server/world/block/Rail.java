@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 66 )
-public class Rail extends Block {
+public class Rail extends Block implements io.gomint.world.block.BlockRail {
 
     @Override
     public int getBlockId() {
@@ -32,6 +34,11 @@ public class Rail extends Block {
     @Override
     public float getBlastResistance() {
         return 3.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.RAIL;
     }
 
 }

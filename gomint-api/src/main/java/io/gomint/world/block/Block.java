@@ -21,11 +21,11 @@ import java.util.List;
 public interface Block {
 
     /**
-     * Gets the ID of the block.
+     * Get the type of this block. This is only recommended when using switch tables.
      *
-     * @return The ID of the block
+     * @return type of this block
      */
-    int getBlockId();
+    BlockType getType();
 
     /**
      * Gets the block's data value (0 - 15)

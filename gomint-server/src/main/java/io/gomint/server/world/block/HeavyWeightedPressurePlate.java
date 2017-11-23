@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.server.inventory.item.ItemHeavyWeightedPressurePlate;
 import io.gomint.server.registry.RegisterInfo;
@@ -9,7 +11,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 148 )
-public class HeavyWeightedPressurePlate extends Block {
+public class HeavyWeightedPressurePlate extends Block implements io.gomint.world.block.BlockHeavyWeightedPressurePlate {
 
     @Override
     public int getBlockId() {
@@ -46,6 +48,11 @@ public class HeavyWeightedPressurePlate extends Block {
     @Override
     public float getBlastResistance() {
         return 2.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.HEAVY_WEIGHTED_PRESSURE_PLATE;
     }
 
 }

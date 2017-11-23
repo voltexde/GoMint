@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.registry.RegisterInfo;
@@ -9,7 +11,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 81 )
-public class Cactus extends Block {
+public class Cactus extends Block implements io.gomint.world.block.BlockCactus {
 
     @Override
     public int getBlockId() {
@@ -35,6 +37,11 @@ public class Cactus extends Block {
     @Override
     public float getBlastResistance() {
         return 2.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.CACTUS;
     }
 
 }

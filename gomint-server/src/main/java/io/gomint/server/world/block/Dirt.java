@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockDirt;
@@ -40,6 +42,11 @@ public class Dirt extends Block implements BlockDirt {
     @Override
     public float getBlastResistance() {
         return 2.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.DIRT;
     }
 
 }

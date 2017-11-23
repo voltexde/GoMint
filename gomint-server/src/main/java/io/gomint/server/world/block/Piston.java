@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.PistonArmTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -11,7 +13,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 33 )
-public class Piston extends Block {
+public class Piston extends Block implements io.gomint.world.block.BlockPiston {
 
     @Override
     public int getBlockId() {
@@ -53,6 +55,11 @@ public class Piston extends Block {
     @Override
     public float getBlastResistance() {
         return 2.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.PISTON;
     }
 
 }

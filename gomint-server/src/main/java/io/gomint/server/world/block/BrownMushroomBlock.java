@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 99 )
-public class BrownMushroomBlock extends Block {
+public class BrownMushroomBlock extends Block implements io.gomint.world.block.BlockBrownMushroomBlock {
 
     @Override
     public int getBlockId() {
@@ -17,6 +19,11 @@ public class BrownMushroomBlock extends Block {
     @Override
     public float getBlastResistance() {
         return 1.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.BROWN_MUSHROOM_BLOCK;
     }
 
 }

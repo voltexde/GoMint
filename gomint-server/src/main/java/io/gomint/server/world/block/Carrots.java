@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.registry.RegisterInfo;
@@ -57,6 +59,11 @@ public class Carrots extends Growable implements BlockCarrots {
     @Override
     public float getBlastResistance() {
         return 0.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.CARROTS;
     }
 
 }

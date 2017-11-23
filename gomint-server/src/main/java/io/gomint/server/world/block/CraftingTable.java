@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
@@ -13,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * @version 1.0
  */
 @RegisterInfo( id = 58 )
-public class CraftingTable extends Block {
+public class CraftingTable extends Block implements io.gomint.world.block.BlockCraftingTable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( CraftingTable.class );
 
@@ -42,6 +44,11 @@ public class CraftingTable extends Block {
     @Override
     public float getBlastResistance() {
         return 15.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.CRAFTING_TABLE;
     }
 
 }

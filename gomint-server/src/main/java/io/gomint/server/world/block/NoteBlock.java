@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
@@ -45,6 +47,11 @@ public class NoteBlock extends Block implements BlockNoteblock {
     @Override
     public float getBlastResistance() {
         return 4.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.NOTE_BLOCK;
     }
 
 }

@@ -93,14 +93,14 @@ public abstract class Growable extends Block {
         // Check if there are similar crops around (slow down bigger farms)
         // We check in a pattern which goes up and clockwise around
         BlockPosition start = this.location.toBlockPosition().add( BlockPosition.NORTH );
-        if ( this.world.getBlockAt( start ).getBlockId() == getBlockId() ||
-            this.world.getBlockAt( start.add( BlockPosition.EAST ) ).getBlockId() == getBlockId() ||
-            this.world.getBlockAt( start.add( BlockPosition.SOUTH ) ).getBlockId() == getBlockId() ||
-            this.world.getBlockAt( start.add( BlockPosition.SOUTH ) ).getBlockId() == getBlockId() ||
-            this.world.getBlockAt( start.add( BlockPosition.WEST ) ).getBlockId() == getBlockId() ||
-            this.world.getBlockAt( start.add( BlockPosition.WEST ) ).getBlockId() == getBlockId() ||
-            this.world.getBlockAt( start.add( BlockPosition.NORTH ) ).getBlockId() == getBlockId() ||
-            this.world.getBlockAt( start.add( BlockPosition.NORTH ) ).getBlockId() == getBlockId() ) {
+        if ( this.world.getBlockAt( start ).getType() == getType() ||
+            this.world.getBlockAt( start.add( BlockPosition.EAST ) ).getType() == getType() ||
+            this.world.getBlockAt( start.add( BlockPosition.SOUTH ) ).getType() == getType() ||
+            this.world.getBlockAt( start.add( BlockPosition.SOUTH ) ).getType() == getType() ||
+            this.world.getBlockAt( start.add( BlockPosition.WEST ) ).getType() == getType() ||
+            this.world.getBlockAt( start.add( BlockPosition.WEST ) ).getType() == getType() ||
+            this.world.getBlockAt( start.add( BlockPosition.NORTH ) ).getType() == getType() ||
+            this.world.getBlockAt( start.add( BlockPosition.NORTH ) ).getType() == getType() ) {
             divider /= 2f;
         }
 

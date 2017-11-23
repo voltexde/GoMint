@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 19 )
-public class Sponge extends Block {
+public class Sponge extends Block implements io.gomint.world.block.BlockSponge {
 
     @Override
     public int getBlockId() {
@@ -22,6 +24,11 @@ public class Sponge extends Block {
     @Override
     public float getBlastResistance() {
         return 3.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.SPONGE;
     }
 
 }

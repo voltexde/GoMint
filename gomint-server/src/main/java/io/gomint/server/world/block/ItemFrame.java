@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.ItemFrameTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -11,7 +13,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 199 )
-public class ItemFrame extends Block {
+public class ItemFrame extends Block implements io.gomint.world.block.BlockItemFrame {
 
     @Override
     public int getBlockId() {
@@ -49,6 +51,11 @@ public class ItemFrame extends Block {
     @Override
     public float getBlastResistance() {
         return 1.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.ITEM_FRAME;
     }
 
 }

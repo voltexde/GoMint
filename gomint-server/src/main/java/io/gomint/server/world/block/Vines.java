@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -8,7 +10,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 106 )
-public class Vines extends Block {
+public class Vines extends Block implements io.gomint.world.block.BlockVines {
 
     @Override
     public int getBlockId() {
@@ -49,6 +51,11 @@ public class Vines extends Block {
     @Override
     public float getBlastResistance() {
         return 1.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.VINES;
     }
 
 }

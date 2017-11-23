@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
@@ -11,7 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 92 )
-public class Cake extends Block {
+public class Cake extends Block implements io.gomint.world.block.BlockCake {
 
     @Override
     public int getBlockId() {
@@ -58,6 +60,11 @@ public class Cake extends Block {
     @Override
     public float getBlastResistance() {
         return 2.5f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.CAKE;
     }
 
 }

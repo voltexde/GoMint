@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -7,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 116 )
-public class EnchantmentTable extends Block {
+public class EnchantmentTable extends Block implements io.gomint.world.block.BlockEnchantmentTable {
 
     @Override
     public int getBlockId() {
@@ -27,6 +29,11 @@ public class EnchantmentTable extends Block {
     @Override
     public float getBlastResistance() {
         return 6000.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.ENCHANTMENT_TABLE;
     }
 
 }

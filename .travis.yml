@@ -9,7 +9,6 @@ addons:
       - genazt
       - master
 
-
 jdk:
   - oraclejdk8
 

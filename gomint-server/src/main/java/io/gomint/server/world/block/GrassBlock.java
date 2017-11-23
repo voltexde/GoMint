@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.math.BlockPosition;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.UpdateReason;
@@ -9,7 +11,7 @@ import io.gomint.server.world.UpdateReason;
  * @version 1.0
  */
 @RegisterInfo( id = 2 )
-public class GrassBlock extends Block {
+public class GrassBlock extends Block implements io.gomint.world.block.BlockGrassBlock {
 
     @Override
     public int getBlockId() {
@@ -36,6 +38,11 @@ public class GrassBlock extends Block {
     @Override
     public float getBlastResistance() {
         return 3.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.GRASS_BLOCK;
     }
 
 }

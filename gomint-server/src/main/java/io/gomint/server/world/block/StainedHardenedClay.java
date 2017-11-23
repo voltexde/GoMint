@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -8,7 +10,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 159 )
-public class StainedHardenedClay extends Block {
+public class StainedHardenedClay extends Block implements io.gomint.world.block.BlockStainedHardenedClay {
 
     @Override
     public int getBlockId() {
@@ -34,6 +36,11 @@ public class StainedHardenedClay extends Block {
     @Override
     public float getBlastResistance() {
         return 0.75f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.STAINED_HARDENED_CLAY;
     }
 
 }
