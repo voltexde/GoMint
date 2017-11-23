@@ -41,6 +41,41 @@ public interface Entity {
     Location getLocation();
 
     /**
+     * Get current x axis position
+     *
+     * @return position on x axis
+     */
+    float getPositionX();
+
+    /**
+     * Get current y axis position
+     *
+     * @return position on y axis
+     */
+    float getPositionY();
+
+    /**
+     * Get current z axis position
+     *
+     * @return position on z axis
+     */
+    float getPositionZ();
+
+    /**
+     * Get current pitch
+     *
+     * @return current pitch
+     */
+    float getPitch();
+
+    /**
+     * Get current yaw
+     *
+     * @return current yaw
+     */
+    float getYaw();
+
+    /**
      * Set a entities velocity
      *
      * @param velocity to set
