@@ -7,7 +7,6 @@
 
 package io.gomint.server;
 
-import io.gomint.server.command.CommandPreprocessor;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.slf4j.Logger;
@@ -37,7 +36,6 @@ import java.nio.file.StandardCopyOption;
 public class Bootstrap {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Bootstrap.class );
-
 
 
     /**

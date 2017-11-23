@@ -465,6 +465,9 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         if ( newFireTicks > this.fireTicks ) {
             this.fireTicks = newFireTicks;
             setOnFire( true );
+        } else if ( newFireTicks == 0 ) {
+            this.fireTicks = 0;
+            setOnFire( false );
         }
     }
 

@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockFlowingWater;
 
@@ -28,6 +29,13 @@ public class FlowingWater extends Liquid implements BlockFlowingWater {
     @Override
     public float getBlastResistance() {
         return 500.0f;
+    }
+
+    @Override
+    public void onEntityStanding( EntityLiving entityLiving ) {
+        if ( entityLiving.isOnFire() ) {
+            entityLiving.setFire( 0 );
+        }
     }
 
 }

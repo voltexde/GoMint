@@ -92,8 +92,12 @@ public abstract class Packet {
         }
 
         int temp = buffer.readSignedVarInt();
-        byte amount = (byte) ( temp & 0xFF );
         short data = (short) ( temp >> 8 );
+        if ( data == 0x7fff ) {
+            data = -1;
+        }
+
+        byte amount = (byte) ( temp & 0xff );
 
         NBTTagCompound nbt = null;
         short extraLen = buffer.readLShort();
@@ -137,7 +141,7 @@ public abstract class Packet {
         }
 
         buffer.writeSignedVarInt( ( (io.gomint.server.inventory.item.ItemStack) itemStack ).getMaterial() );
-        buffer.writeSignedVarInt( ( itemStack.getData() << 8 ) + ( itemStack.getAmount() & 0xff ) );
+        buffer.writeSignedVarInt( ( itemStack.getData() & 0x7fff << 8 ) | itemStack.getAmount() );
 
         NBTTagCompound compound = itemStack.getNbtData();
         if ( compound == null ) {
