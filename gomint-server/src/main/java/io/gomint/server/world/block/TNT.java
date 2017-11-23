@@ -67,7 +67,7 @@ public class TNT extends Block implements BlockTNT {
 
     @Override
     public BlockType getType() {
-        return BlockType.T_N_T;
+        return BlockType.TNT;
     }
 
 }

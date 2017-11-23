@@ -218,7 +218,7 @@ public enum BlockType {
     SUGAR_CANE,
     SUNFLOWER,
     TALL_GRASS,
-    T_N_T,
+    TNT,
     TORCH,
     TRAPDOOR,
     TRAPPED_CHEST,
