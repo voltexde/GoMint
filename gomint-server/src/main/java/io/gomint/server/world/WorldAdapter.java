@@ -46,6 +46,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -89,6 +91,7 @@ public abstract class WorldAdapter implements World {
     private boolean asyncWorkerRunning;
     private BlockingQueue<AsyncChunkTask> asyncChunkTasks;
     private Queue<AsyncChunkPackageTask> chunkPackageTasks;
+    private Thread asyncWorkerThread;
 
     // EntityPlayer handling
     private PlayerMap players;
@@ -115,7 +118,7 @@ public abstract class WorldAdapter implements World {
      * @return The Collection View of the Players currently on this world
      */
     public PlayerMap getPlayers0() {
-        return players;
+        return this.players;
     }
 
     /**
@@ -125,7 +128,7 @@ public abstract class WorldAdapter implements World {
      */
     public Collection<EntityPlayer> getPlayers() {
         Collection<EntityPlayer> playerReturn = new HashSet<>();
-        playerReturn.addAll( players.keySet() );
+        playerReturn.addAll( this.players.keySet() );
         return playerReturn;
     }
 
@@ -137,12 +140,7 @@ public abstract class WorldAdapter implements World {
         soundPacket.setExtraData( extraData );
         soundPacket.setPosition( vector );
 
-        sendToVisible( vector.toBlockPosition(), soundPacket, new Predicate<Entity>() {
-            @Override
-            public boolean test( Entity entity ) {
-                return true;
-            }
-        } );
+        sendToVisible( vector.toBlockPosition(), soundPacket, entity -> true );
     }
 
     @Override
@@ -315,13 +313,10 @@ public abstract class WorldAdapter implements World {
             if ( chunk == null ) {
                 final Object lock = new Object();
 
-                this.getOrLoadChunk( task.getX(), task.getZ(), false, new Delegate<ChunkAdapter>() {
-                    @Override
-                    public void invoke( ChunkAdapter arg ) {
-                        synchronized ( lock ) {
-                            packageChunk( arg, task.getCallback() );
-                            lock.notifyAll();
-                        }
+                this.getOrLoadChunk( task.getX(), task.getZ(), false, arg -> {
+                    synchronized ( lock ) {
+                        packageChunk( arg, task.getCallback() );
+                        lock.notifyAll();
                     }
                 } );
 
@@ -499,22 +494,14 @@ public abstract class WorldAdapter implements World {
      * @param sync   Force sync chunk loading
      */
     public void sendChunk( int x, int z, io.gomint.server.entity.EntityPlayer player, boolean sync ) {
-        Delegate2<Long, ChunkAdapter> sendDelegate = new Delegate2<Long, ChunkAdapter>() {
-            @Override
-            public void invoke( Long chunkHash, ChunkAdapter chunk ) {
-                if ( !player.getChunkSendQueue().contains( chunk ) ) {
-                    player.getChunkSendQueue().offer( chunk );
-                }
+        Delegate2<Long, ChunkAdapter> sendDelegate = ( chunkHash, chunk ) -> {
+            if ( !player.getChunkSendQueue().contains( chunk ) ) {
+                player.getChunkSendQueue().offer( chunk );
             }
         };
 
         if ( !sync ) {
-            this.getOrLoadChunk( x, z, true, new Delegate<ChunkAdapter>() {
-                @Override
-                public void invoke( ChunkAdapter chunk ) {
-                    chunk.packageChunk( sendDelegate );
-                }
-            } );
+            this.getOrLoadChunk( x, z, true, chunk -> chunk.packageChunk( sendDelegate ) );
         } else {
             ChunkAdapter chunkAdapter = this.loadChunk( x, z, true );
             if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ) {
@@ -655,15 +642,13 @@ public abstract class WorldAdapter implements World {
      * Starts the asynchronous worker thread used by the world to perform I/O operations for chunks.
      */
     private void startAsyncWorker( ExecutorService executorService ) {
-        executorService.execute( new Runnable() {
-            @Override
-            public void run() {
-                Thread.currentThread().setName( Thread.currentThread().getName() + " [Async World I/O: " + WorldAdapter.this.getWorldName() + "]" );
-                WorldAdapter.this.asyncWorkerLoop();
-            }
-        } );
-
         this.asyncWorkerRunning = true;
+
+        executorService.execute( () -> {
+            Thread.currentThread().setName( Thread.currentThread().getName() + " [Async World I/O: " + WorldAdapter.this.getWorldName() + "]" );
+            WorldAdapter.this.asyncWorkerThread = Thread.currentThread();
+            WorldAdapter.this.asyncWorkerLoop();
+        } );
     }
 
     /**
@@ -961,6 +946,13 @@ public abstract class WorldAdapter implements World {
     public void close() {
         // Stop async worker
         this.asyncWorkerRunning = false;
+
+        // Wait until the thread is done
+        try {
+            this.asyncWorkerThread.join();
+        } catch ( InterruptedException e ) {
+            this.logger.warn( "Async thread did not end correctly: ", e );
+        }
     }
 
     public TemporaryStorage getTemporaryBlockStorage( BlockPosition position ) {
@@ -991,12 +983,7 @@ public abstract class WorldAdapter implements World {
         worldEvent.setEventId( levelEvent );
         worldEvent.setPosition( position );
 
-        sendToVisible( position.toBlockPosition(), worldEvent, new Predicate<Entity>() {
-            @Override
-            public boolean test( Entity entity ) {
-                return true;
-            }
-        } );
+        sendToVisible( position.toBlockPosition(), worldEvent, entity -> true );
     }
 
     public void storeTileEntity( BlockPosition position, TileEntity tileEntity ) {
@@ -1068,6 +1055,23 @@ public abstract class WorldAdapter implements World {
     public void removeEntity( io.gomint.server.entity.Entity entity ) {
         // Just tell the entity manager, it will handle the rest
         this.entityManager.despawnEntity( entity );
+    }
+
+    @Override
+    public void unload( Consumer<EntityPlayer> playerConsumer ) {
+        // Unload all players via API
+        Set<EntityPlayer> players = new HashSet<>( this.players.size() );
+        this.players.forEach( ( player, chunkAdapter ) -> players.add( player ) );
+        players.forEach( playerConsumer );
+
+        // Stop this world
+        this.close();
+
+        // Save this world
+        this.chunkCache.saveAll();
+
+        // Remove world from manager
+        this.server.getWorldManager().unloadWorld( this );
     }
 
 }

@@ -19,6 +19,7 @@ import io.gomint.world.block.Block;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -119,5 +120,12 @@ public interface World {
      * @return the created and spawned entity
      */
     EntityItemDrop createItemDrop( Location location, ItemStack itemStack );
+
+    /**
+     * Unload this world. All remaining players in this world get called through the consumer
+     *
+     * @param playerConsumer which gets alled for every player in this world
+     */
+    void unload( Consumer<EntityPlayer> playerConsumer );
 
 }

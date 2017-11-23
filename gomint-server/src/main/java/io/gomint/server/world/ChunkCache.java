@@ -85,12 +85,7 @@ public class ChunkCache {
                 }
             }
 
-            copied.cursor().forEachForward( new LongConsumer() {
-                @Override
-                public void accept( long value ) {
-                    concurrentCachedChunks.remove( value );
-                }
-            } );
+            copied.cursor().forEachForward( this.concurrentCachedChunks::remove );
         }
 
         // Check for gc
@@ -127,7 +122,7 @@ public class ChunkCache {
                 }
 
                 // Calculate the hashes which are used by players view distances
-                this.world.getPlayers0().forEach( viewDistanceConsumer );
+                this.world.getPlayers0().forEach( this.viewDistanceConsumer );
                 if ( skip.get() ) {
                     skip.set( false );
                     continue;
@@ -263,6 +258,19 @@ public class ChunkCache {
                 }
 
                 return Arrays.copyOf( returnVal, index );
+            }
+        }
+    }
+
+    /**
+     * Save all chunks and persist them to disk
+     */
+    void saveAll() {
+        for ( long l : this.cachedChunks.keys() ) {
+            if ( l != 0 ) {
+                ChunkAdapter chunkAdapter = this.cachedChunks.getChunk( l );
+                this.world.saveChunk( chunkAdapter );
+                chunkAdapter.setLastSavedTimestamp( this.world.getServer().getCurrentTickTime() );
             }
         }
     }

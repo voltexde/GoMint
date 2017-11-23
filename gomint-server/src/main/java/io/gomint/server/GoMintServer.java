@@ -78,6 +78,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private Map<UUID, EntityPlayer> playersByUUID = new ConcurrentHashMap<>();
 
     // World Management
+    @Getter
     private WorldManager worldManager;
 
     // Game Information
