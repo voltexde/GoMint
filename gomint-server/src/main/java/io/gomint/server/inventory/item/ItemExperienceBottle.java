@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
@@ -47,6 +49,11 @@ public class ItemExperienceBottle extends ItemStack implements io.gomint.invento
         }
 
         return false;
+    }
+
+    @Override
+    public ItemType getType() {
+        return ItemType.EXPERIENCE_BOTTLE;
     }
 
 }

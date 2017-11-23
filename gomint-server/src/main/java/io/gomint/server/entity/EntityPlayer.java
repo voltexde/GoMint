@@ -11,7 +11,6 @@ import com.koloboke.collect.ObjCursor;
 import com.koloboke.collect.map.ByteObjCursor;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
-import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.*;
@@ -19,8 +18,6 @@ import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
-import io.gomint.server.entity.potion.Effects;
-import io.gomint.server.entity.potion.effect.Effect;
 import io.gomint.server.entity.projectile.EntityFishingHook;
 import io.gomint.server.inventory.*;
 import io.gomint.server.inventory.item.ItemAir;
@@ -29,7 +26,6 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.permission.PermissionManager;
-import io.gomint.server.player.EffectManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
@@ -49,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -106,13 +101,22 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter @Getter private BlockPosition breakVector;
-    @Setter @Getter private long startBreak;
-    @Setter @Getter private long breakTime;
+    @Setter
+    @Getter
+    private BlockPosition breakVector;
+    @Setter
+    @Getter
+    private long startBreak;
+    @Setter
+    @Getter
+    private long breakTime;
 
     // Update data
-    @Getter private Queue<BlockPosition> blockUpdates = new ConcurrentLinkedQueue<>();
-    @Getter @Setter private Location teleportPosition = null;
+    @Getter
+    private Queue<BlockPosition> blockUpdates = new ConcurrentLinkedQueue<>();
+    @Getter
+    @Setter
+    private Location teleportPosition = null;
 
     // Form stuff
     private int formId;
@@ -120,11 +124,15 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private FormListenerIDMap formListeners = FormListenerIDMap.withExpectedSize( 2 );
 
     // Entity data
-    @Getter @Setter private EntityFishingHook fishingHook;
+    @Getter
+    @Setter
+    private EntityFishingHook fishingHook;
     private long lastPickupXP;
 
     // Bow ticking
-    @Getter @Setter private long startBow = -1;
+    @Getter
+    @Setter
+    private long startBow = -1;
 
     // Exp
     private int xp;

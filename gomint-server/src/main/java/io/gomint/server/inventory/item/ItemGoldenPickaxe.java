@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
 import io.gomint.server.entity.EntityPlayer;
@@ -35,6 +37,11 @@ public class ItemGoldenPickaxe extends ItemReduceTierGolden implements io.gomint
         player
             .getAttributeInstance( Attribute.ATTACK_DAMAGE )
             .removeModifier( AttributeModifier.ITEM_ATTACK_DAMAGE );
+    }
+
+    @Override
+    public ItemType getType() {
+        return ItemType.GOLDEN_PICKAXE;
     }
 
 }

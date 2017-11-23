@@ -9,6 +9,15 @@ import io.gomint.taglib.NBTTagCompound;
 public interface ItemStack {
 
     /**
+     * Get the type of this item stack. This should only be used for fast lookup in switch tables. When you need
+     * to check for a item interface (you want to use the API interface of a sign for example) you always need to
+     * instanceof check for the interface.
+     *
+     * @return type of the item
+     */
+    ItemType getType();
+
+    /**
      * Get the amount of items in this stack
      *
      * @return amount of items in stack

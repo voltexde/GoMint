@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -19,5 +21,10 @@ public class ItemBrownGlazedTerracotta extends ItemStack {
         super( 232, data, amount, nbt );
     }
     // CHECKSTYLE:ON
+
+    @Override
+    public ItemType getType() {
+        return ItemType.BROWN_GLAZED_TERRACOTTA;
+    }
 
 }

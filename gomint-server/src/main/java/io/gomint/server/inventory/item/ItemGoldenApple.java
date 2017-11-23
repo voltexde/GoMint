@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.entity.potion.PotionEffect;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
@@ -41,6 +43,11 @@ public class ItemGoldenApple extends ItemFood implements io.gomint.inventory.ite
         // Apply effects
         player.addEffect( PotionEffect.ABSORPTION, 0, 2, TimeUnit.MINUTES );
         player.addEffect( PotionEffect.REGENERATION, 1, 5, TimeUnit.SECONDS );
+    }
+
+    @Override
+    public ItemType getType() {
+        return ItemType.GOLDEN_APPLE;
     }
 
 }

@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -48,6 +50,11 @@ public class ItemFlintAndSteel extends ItemStack implements io.gomint.inventory.
     @Override
     public boolean afterPlacement() {
         return this.damage( 1 );
+    }
+
+    @Override
+    public ItemType getType() {
+        return ItemType.FLINT_AND_STEEL;
     }
 
 }

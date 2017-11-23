@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
@@ -100,6 +102,11 @@ public class ItemBucket extends ItemStack implements io.gomint.inventory.item.It
         }
 
         return false;
+    }
+
+    @Override
+    public ItemType getType() {
+        return ItemType.BUCKET;
     }
 
 }

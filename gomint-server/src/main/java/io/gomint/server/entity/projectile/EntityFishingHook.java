@@ -74,7 +74,7 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
      */
     public int retract() {
         this.despawn();
-        return 1;
+        return 2;
     }
 
     @Override

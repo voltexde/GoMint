@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
@@ -137,4 +139,9 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
 
         return false;
     }
+    @Override
+    public ItemType getType() {
+        return ItemType.BOW;
+    }
+
 }

@@ -629,9 +629,9 @@ public class PlayerConnection {
                 }
 
                 if ( this.entity != null ) {
-                    LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message, new Exception() );
+                    LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message );
                 } else {
-                    LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message, new Exception() );
+                    LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
                 }
 
                 this.connection.disconnect( message );
@@ -646,9 +646,9 @@ public class PlayerConnection {
             }
 
             if ( this.entity != null ) {
-                LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message, new Exception() );
+                LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message );
             } else {
-                LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message, new Exception() );
+                LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
             }
 
             this.connectionHandler.disconnect();

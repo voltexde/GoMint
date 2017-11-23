@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
@@ -39,6 +41,11 @@ public class ItemLeatherChestplate extends ItemArmor implements io.gomint.invent
         }
 
         return false;
+    }
+
+    @Override
+    public ItemType getType() {
+        return ItemType.LEATHER_CHESTPLATE;
     }
 
 }

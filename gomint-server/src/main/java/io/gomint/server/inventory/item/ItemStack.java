@@ -22,7 +22,7 @@ import java.util.List;
  * @author BlackyPaw
  * @version 1.0
  */
-public class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack {
+public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack {
 
     private int material;
     private short data;

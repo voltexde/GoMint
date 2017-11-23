@@ -14,7 +14,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @author geNAZt
  * @version 1.0
  */
-public class ItemReduceTierSpecial extends ItemStack implements ItemReduceBreaktime {
+public abstract class ItemReduceTierSpecial extends ItemStack implements ItemReduceBreaktime {
 
     // CHECKSTYLE:OFF
     ItemReduceTierSpecial( int material, short data, int amount ) {

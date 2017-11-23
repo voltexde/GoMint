@@ -1,5 +1,7 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemType;
+
 import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
@@ -59,13 +61,12 @@ public class ItemFishingRod extends ItemStack implements io.gomint.inventory.ite
             }
         } else {
             int damage = entity.getFishingHook().retract();
-            this.setData( (short) ( this.getData() + damage ) );
             entity.setFishingHook( null );
 
             if ( this.damage( damage ) ) {
                 entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
             } else {
-                entity.getInventory().sendContents( entity.getInventory().getItemInHandSlot(), entity.getConnection() );
+                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), this );
             }
         }
 
@@ -85,6 +86,11 @@ public class ItemFishingRod extends ItemStack implements io.gomint.inventory.ite
                 entity.getInventory().sendContents( entity.getInventory().getItemInHandSlot(), entity.getConnection() );
             }
         }
+    }
+
+    @Override
+    public ItemType getType() {
+        return ItemType.FISHING_ROD;
     }
 
 }
