@@ -508,6 +508,11 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     }
 
     @Override
+    public void removeAllEffects() {
+        this.effectManager.removeAll();
+    }
+
+    @Override
     public void teleport( Location to ) {
         WorldAdapter actualWorld = this.getWorld();
 

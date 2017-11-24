@@ -110,6 +110,11 @@ public interface EntityLiving extends Entity {
     void removeEffect( PotionEffect effect );
 
     /**
+     * Remove all effects from this entity
+     */
+    void removeAllEffects();
+
+    /**
      * Teleport to the given location
      *
      * @param to The location where the entity should be teleported to
