@@ -5,6 +5,7 @@ import io.gomint.command.Command;
 import io.gomint.command.SystemCommand;
 import io.gomint.command.annotation.Name;
 import io.gomint.plugin.Plugin;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.CommandPermission;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketAvailableCommands;
@@ -35,7 +36,7 @@ public class CommandManager {
     public CommandManager() {
         // Register all internal commands
         try {
-            for ( ClassPath.ClassInfo classInfo : ClassPath.from( ClassLoader.getSystemClassLoader() ).getTopLevelClasses( "io.gomint.server.command.internal" ) ) {
+            for ( ClassPath.ClassInfo classInfo : GoMintServer.getClassPath().getTopLevelClasses( "io.gomint.server.command.internal" ) ) {
                 // Check for system only commands
                 Class<?> cmdClass = classInfo.load();
                 Object commandObject = null;
@@ -62,7 +63,7 @@ public class CommandManager {
                     registerSystem( (SystemCommand) commandObject );
                 }
             }
-        } catch ( IOException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
+        } catch ( InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
             e.printStackTrace();
         }
     }

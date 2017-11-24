@@ -12,12 +12,12 @@ import io.gomint.taglib.NBTTagCompound;
 public class ItemBanner extends ItemStack implements io.gomint.inventory.item.ItemBanner {
 
     // CHECKSTYLE:OFF
-    public ItemBanner( int material, short data, int amount ) {
-        super( material, data, amount );
+    public ItemBanner( short data, int amount ) {
+        super( 446, data, amount );
     }
 
-    public ItemBanner( int material, short data, int amount, NBTTagCompound nbt ) {
-        super( material, data, amount, nbt );
+    public ItemBanner( short data, int amount, NBTTagCompound nbt ) {
+        super( 446, data, amount, nbt );
     }
     // CHECKSTYLE:ON
 

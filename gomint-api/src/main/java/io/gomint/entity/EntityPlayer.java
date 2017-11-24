@@ -7,19 +7,19 @@
 
 package io.gomint.entity;
 
-import io.gomint.entity.potion.PotionEffect;
 import io.gomint.gui.Form;
 import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
 import io.gomint.inventory.PlayerInventory;
-import io.gomint.math.Location;
+import io.gomint.math.Vector;
 import io.gomint.permission.PermissionManager;
 import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
+import io.gomint.world.Sound;
+import io.gomint.world.SoundData;
 
 import java.util.Locale;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author BlackyPaw
@@ -246,5 +246,24 @@ public interface EntityPlayer extends EntityCreature {
      * @param level of this entity
      */
     void setLevel( int level );
+
+    /**
+     * Play a sound for this player
+     *
+     * @param location of the sound in the client
+     * @param sound    The sound which should be played
+     * @param pitch    The pitch at which the sound should be played
+     * @param data     additional data for the sound
+     */
+    void playSound( Vector location, Sound sound, byte pitch, SoundData data );
+
+    /**
+     * Play a sound for this player
+     *
+     * @param location of the sound in the client
+     * @param sound    The sound which should be played
+     * @param pitch    The pitch at which the sound should be played
+     */
+    void playSound( Vector location, Sound sound, byte pitch );
 
 }

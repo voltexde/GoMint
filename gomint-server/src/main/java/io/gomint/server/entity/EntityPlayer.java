@@ -35,6 +35,8 @@ import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.world.Gamemode;
+import io.gomint.world.Sound;
+import io.gomint.world.SoundData;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -1035,9 +1037,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.respawnPosition = this.world.getSpawnLocation().add( 0, this.eyeHeight, 0 );
 
-        PacketRespawnPosition respawnPosition = new PacketRespawnPosition();
-        respawnPosition.setPosition( this.respawnPosition );
-        this.getConnection().addToSendQueue( respawnPosition );
+        PacketRespawnPosition packetRespawnPosition = new PacketRespawnPosition();
+        packetRespawnPosition.setPosition( this.respawnPosition );
+        this.getConnection().addToSendQueue( packetRespawnPosition );
     }
 
     private List<io.gomint.inventory.item.ItemStack> getDrops() {
@@ -1238,6 +1240,16 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public void setLevel( int level ) {
         this.setAttribute( Attribute.EXPERIENCE_LEVEL, level );
+    }
+
+    @Override
+    public void playSound( Vector location, Sound sound, byte pitch, SoundData data ) {
+        this.world.playSound( this, location, sound, pitch, data );
+    }
+
+    @Override
+    public void playSound( Vector location, Sound sound, byte pitch ) {
+        this.world.playSound( this, location, sound, pitch, -1 );
     }
 
 }

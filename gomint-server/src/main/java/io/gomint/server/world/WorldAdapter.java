@@ -19,7 +19,6 @@ import io.gomint.server.async.Delegate;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.async.MultiOutputDelegate;
 import io.gomint.server.config.WorldConfig;
-import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.passive.EntityXPOrb;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -46,7 +45,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -59,15 +57,18 @@ import java.util.function.Predicate;
 public abstract class WorldAdapter implements World {
 
     // Shared objects
-    @Getter protected final GoMintServer server;
+    @Getter
+    protected final GoMintServer server;
     protected final Logger logger;
 
     // World properties
     protected final File worldDir;
     protected String levelName;
     protected Location spawn;
-    @Getter protected Map<Gamerule, Object> gamerules = new HashMap<>();
-    @Getter private WorldConfig config;
+    @Getter
+    protected Map<Gamerule, Object> gamerules = new HashMap<>();
+    @Getter
+    private WorldConfig config;
 
     /**
      * Get the difficulty of this world
@@ -133,14 +134,98 @@ public abstract class WorldAdapter implements World {
     }
 
     @Override
-    public void playSound( Vector vector, Sound sound, byte pitch, int extraData ) {
+    public void playSound( Vector vector, Sound sound, byte pitch, SoundData data ) {
+        this.playSound( null, vector, sound, pitch, data );
+    }
+
+    /**
+     * Play a sound at the location given
+     *
+     * @param player Which should get this sound, if null all get the sound
+     * @param vector The location where the sound should be played
+     * @param sound  The sound which should be played
+     * @param pitch  The pitch at which the sound should be played
+     * @param data   additional data for the sound
+     */
+    public void playSound( EntityPlayer player, Vector vector, Sound sound, byte pitch, SoundData data ) {
+        int soundData = -1;
+
+        switch ( sound ) {
+            case BREAK_BLOCK:
+            case PLACE:
+            case HIT:
+                // Need a block
+                if ( data.getBlock() == null ) {
+                    throw new IllegalStateException( "Sound " + sound + " needs block sound data" );
+                }
+
+                soundData = Blocks.getID( data.getBlock() );
+
+                break;
+
+            case NOTE:
+                // Check if needed data is there
+                if ( data.getInstrument() == null ) {
+                    throw new IllegalStateException( "Sound NOTE needs instrument sound data" );
+                }
+
+                switch ( data.getInstrument() ) {
+                    case PIANO:
+                        soundData = 0;
+                        break;
+                    case BASS_DRUM:
+                        soundData = 1;
+                        break;
+                    case CLICK:
+                        soundData = 2;
+                        break;
+                    case TABOUR:
+                        soundData = 3;
+                        break;
+                    case BASS:
+                        soundData = 4;
+                        break;
+                    default:
+                        soundData = -1;
+                        break;
+                }
+
+                break;
+
+            default:
+                break;
+        }
+
+        this.playSound( player, vector, sound, pitch, soundData );
+    }
+
+    @Override
+    public void playSound( Vector vector, Sound sound, byte pitch ) {
+        this.playSound( null, vector, sound, pitch, -1 );
+    }
+
+    /**
+     * Play a sound at the location given
+     *
+     * @param player    Which should get this sound, if null all get the sound
+     * @param vector    The location where the sound should be played
+     * @param sound     The sound which should be played
+     * @param pitch     The pitch at which the sound should be played
+     * @param extraData any data which should be send to the client to identify the sound
+     */
+    public void playSound( EntityPlayer player, Vector vector, Sound sound, byte pitch, int extraData ) {
         PacketWorldSoundEvent soundPacket = new PacketWorldSoundEvent();
         soundPacket.setType( EnumConnectors.SOUND_CONNECTOR.convert( sound ) );
         soundPacket.setPitch( pitch );
         soundPacket.setExtraData( extraData );
         soundPacket.setPosition( vector );
 
-        sendToVisible( vector.toBlockPosition(), soundPacket, entity -> true );
+        if ( player == null ) {
+            sendToVisible( vector.toBlockPosition(), soundPacket, entity -> true );
+        } else {
+            io.gomint.server.entity.EntityPlayer implPlayer = (io.gomint.server.entity.EntityPlayer) player;
+            implPlayer.getConnection().addToSendQueue( soundPacket );
+        }
     }
 
     @Override
@@ -756,7 +841,8 @@ public abstract class WorldAdapter implements World {
      */
     public Collection<Entity> getNearbyEntities( AxisAlignedBB bb, Entity exception ) {
         Set<Entity> nearby = null;
-        int lastChunkX = Integer.MAX_VALUE, lastChunkZ = Integer.MIN_VALUE;
+        int lastChunkX = Integer.MAX_VALUE;
+        int lastChunkZ = Integer.MIN_VALUE;
 
         int minX = MathUtils.fastFloor( ( bb.getMinX() - 2 ) / 4 );
         int maxX = MathUtils.fastCeil( ( bb.getMaxX() + 2 ) / 4 );

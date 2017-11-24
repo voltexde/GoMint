@@ -80,7 +80,7 @@ public class ChestInventory extends ContainerInventory {
                 }
             } );
 
-            world.playSound( position.toVector().add( 0.5f, 0.5f, 0.5f ), Sound.CHEST_OPEN, (byte) 1, -1 );
+            world.playSound( position.toVector().add( 0.5f, 0.5f, 0.5f ), Sound.CHEST_OPEN, (byte) 1 );
         }
     }
 
@@ -103,7 +103,7 @@ public class ChestInventory extends ContainerInventory {
                 }
             } );
 
-            world.playSound( position.toVector().add( 0.5f, 0.5f, 0.5f ), Sound.CHEST_CLOSED, (byte) 1, -1 );
+            world.playSound( position.toVector().add( 0.5f, 0.5f, 0.5f ), Sound.CHEST_CLOSED, (byte) 1 );
         }
     }
 

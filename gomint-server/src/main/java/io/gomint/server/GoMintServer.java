@@ -7,6 +7,7 @@
 
 package io.gomint.server;
 
+import com.google.common.reflect.ClassPath;
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
 import io.gomint.entity.Entity;
@@ -62,6 +63,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class GoMintServer implements GoMint, InventoryHolder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( GoMintServer.class );
+    @Getter private static ClassPath classPath;
     private static long mainThread;
 
     // Configuration
@@ -111,6 +113,14 @@ public class GoMintServer implements GoMint, InventoryHolder {
      */
     public GoMintServer( OptionSet args ) {
         long start = System.currentTimeMillis();
+
+        try {
+            GoMintServer.classPath = ClassPath.from( ClassLoader.getSystemClassLoader() );
+        } catch ( IOException e ) {
+            GoMintServer.classPath = null;
+            LOGGER.error( "Could no init classpath scanner: ", e );
+            return;
+        }
 
         GoMintServer.mainThread = Thread.currentThread().getId();
         GoMintInstanceHolder.setInstance( this );

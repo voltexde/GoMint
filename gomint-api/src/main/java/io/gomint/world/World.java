@@ -95,12 +95,21 @@ public interface World {
     /**
      * Play a sound at the location given
      *
-     * @param location  The location where the sound should be played
-     * @param sound     The sound which should be played
-     * @param pitch     The pitch at which the sound should be played
-     * @param extraData Any extra data for the client to select the correct sound
+     * @param location The location where the sound should be played
+     * @param sound    The sound which should be played
+     * @param pitch    The pitch at which the sound should be played
+     * @param data     additional data for the sound
      */
-    void playSound( Vector location, Sound sound, byte pitch, int extraData );
+    void playSound( Vector location, Sound sound, byte pitch, SoundData data );
+
+    /**
+     * Play a sound at the location given
+     *
+     * @param location The location where the sound should be played
+     * @param sound    The sound which should be played
+     * @param pitch    The pitch at which the sound should be played
+     */
+    void playSound( Vector location, Sound sound, byte pitch );
 
     /**
      * Get a list of bounding boxes which collide with the given box
@@ -115,7 +124,7 @@ public interface World {
     /**
      * Create a entity drop in the given world
      *
-     * @param location for the item drop
+     * @param location  for the item drop
      * @param itemStack which is stored inside the drop
      * @return the created and spawned entity
      */

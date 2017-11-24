@@ -10,9 +10,9 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
-public class DataConverter {
+class DataConverter {
 
-    private Map<Integer, Pair<Integer, Converter>> converter = new HashMap<>();
+    private Pair<Integer, Converter>[] converter = new Pair[255];
     private Pair<Integer, Byte> convertedValue = new Pair<>( 0, (byte) 1 );
 
     public DataConverter() {
@@ -100,15 +100,13 @@ public class DataConverter {
     }
 
     private void addConverter( int sourceId, int destId, Converter converter ) {
-        this.converter.put( sourceId, new Pair<>( destId, converter ) );
+        this.converter[sourceId] = new Pair<>( destId, converter );
     }
 
     Pair<Integer, Byte> convert( int blockId, byte metaData ) {
-        Pair<Integer, Converter> converterPair = this.converter.get( blockId );
+        Pair<Integer, Converter> converterPair = this.converter[blockId];
         if ( converterPair == null ) {
-            this.convertedValue.setFirst( blockId );
-            this.convertedValue.setSecond( metaData );
-            return this.convertedValue;
+            return null;
         } else {
             this.convertedValue.setFirst( converterPair.getFirst() );
             this.convertedValue.setSecond( converterPair.getSecond().convert( blockId, metaData ) );

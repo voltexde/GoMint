@@ -8,12 +8,16 @@
 package io.gomint.server.network;
 
 import io.gomint.server.network.packet.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author BlackyPaw
  * @version 1.0
  */
 public final class Protocol {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( Protocol.class );
 
     // CHECKSTYLE:OFF
     // MC:PE Protocol ID
@@ -54,7 +58,6 @@ public final class Protocol {
     public static final byte PACKET_MOB_EQUIPMENT = (byte) 0x1F;
     public static final byte PACKET_MOB_ARMOR_EQUIPMENT = (byte) 0x20;
     public static final byte PACKET_INTERACT = (byte) 0x21;
-   // public static final byte PACKET_USE_ITEM = (byte) 0x23;
     public static final byte PACKET_PLAYER_ACTION = (byte) 0x24;
     public static final byte PACKET_HURT_ARMOR = (byte) 0x26;
     public static final byte PACKET_ENTITY_METADATA = (byte) 0x27;
@@ -212,6 +215,7 @@ public final class Protocol {
                 return new PacketSetChunkRadius();
 
             default:
+                LOGGER.warn( "Unknown client side packetId: {}", Integer.toHexString( id & 0xFF ) );
                 return null;
         }
     }
