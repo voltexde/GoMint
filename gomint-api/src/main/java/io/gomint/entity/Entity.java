@@ -10,6 +10,7 @@ package io.gomint.entity;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.math.Vector2;
 import io.gomint.world.World;
 
 /**
@@ -114,5 +115,12 @@ public interface Entity {
      * @param location
      */
     void spawn( Location location );
+
+    /**
+     * Get a vector in which direction the entity is looking
+     *
+     * @return vector which shows in which direction the entity is looking
+     */
+    Vector2 getDirectionVector();
 
 }

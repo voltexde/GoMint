@@ -687,12 +687,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.transform.getDirection();
     }
 
-    /**
-     * Get a 2D view of the current direction
-     *
-     * @return The direction in which this entity looks
-     */
-    public Vector2 getDirectionPlane() {
+    @Override
+    public Vector2 getDirectionVector() {
         return ( new Vector2( (float) -Math.cos( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ),
             (float) -Math.sin( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ) ) ).normalize();
     }
