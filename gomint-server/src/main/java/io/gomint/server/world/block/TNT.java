@@ -1,7 +1,5 @@
 package io.gomint.server.world.block;
 
-import io.gomint.world.block.BlockType;
-
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemFlintAndSteel;
 import io.gomint.inventory.item.ItemStack;
@@ -11,6 +9,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.active.EntityPrimedTNT;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockTNT;
+import io.gomint.world.block.BlockType;
 
 /**
  * @author geNAZt
@@ -31,26 +30,24 @@ public class TNT extends Block implements BlockTNT {
 
     @Override
     public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
-        if ( entity instanceof EntityPlayer ) {
-            if ( item instanceof ItemFlintAndSteel ) {
-                EntityPlayer player = (EntityPlayer) entity;
-                io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) item;
-                if ( itemStack.damage( 1 ) ) {
-                    player.getInventory().setItem( player.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                } else {
-                    player.getInventory().setItem( player.getInventory().getItemInHandSlot(), item );
-                }
-
-                prime( 4 );
-                return true;
+        if ( entity instanceof EntityPlayer && item instanceof ItemFlintAndSteel ) {
+            EntityPlayer player = (EntityPlayer) entity;
+            io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) item;
+            if ( itemStack.damage( 1 ) ) {
+                player.getInventory().setItem( player.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+            } else {
+                player.getInventory().setItem( player.getInventory().getItemInHandSlot(), item );
             }
+
+            prime( 4 );
+            return true;
         }
 
         return false;
     }
 
-    public void prime( float secondsUntilExlosion ) {
-        int primeTicks = (int) ( secondsUntilExlosion * 20f );
+    public void prime( float secondsUntilExplosion ) {
+        int primeTicks = (int) ( secondsUntilExplosion * 20f );
 
         // Set this to air
         this.setType( Air.class );

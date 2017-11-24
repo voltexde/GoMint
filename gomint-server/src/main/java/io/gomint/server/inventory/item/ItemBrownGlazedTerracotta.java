@@ -10,7 +10,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 232 )
-public class ItemBrownGlazedTerracotta extends ItemStack {
+public class ItemBrownGlazedTerracotta extends ItemStack implements io.gomint.inventory.item.ItemBrownGlazedTerracotta {
 
     // CHECKSTYLE:OFF
     public ItemBrownGlazedTerracotta( short data, int amount ) {

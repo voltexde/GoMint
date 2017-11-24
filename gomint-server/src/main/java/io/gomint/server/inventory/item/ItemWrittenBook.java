@@ -10,7 +10,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 387 )
-public class ItemWrittenBook extends ItemStack {
+public class ItemWrittenBook extends ItemStack implements io.gomint.inventory.item.ItemWrittenBook {
 
     // CHECKSTYLE:OFF
     public ItemWrittenBook( short data, int amount ) {
