@@ -13,6 +13,8 @@ import io.gomint.math.Vector;
 import io.gomint.math.Vector2;
 import io.gomint.world.World;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author BlackyPaw
  * @author geNAZt
@@ -127,5 +129,13 @@ public interface Entity {
      * @return vector which shows in which direction the entity is looking
      */
     Vector2 getDirectionVector();
+
+    /**
+     * Set the age of this entity. This can be used to control automatic despawning.
+     *
+     * @param duration which will be multiplied with the given unit
+     * @param unit of time
+     */
+    void setAge( long duration, TimeUnit unit );
 
 }

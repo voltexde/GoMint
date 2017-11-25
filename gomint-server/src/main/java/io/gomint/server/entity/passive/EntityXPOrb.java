@@ -123,7 +123,7 @@ public class EntityXPOrb extends Entity implements io.gomint.entity.passive.Enti
                 }
             }
 
-            if ( this.ticksLiving > 6000 ) {
+            if ( this.age > 6000 ) {    // 5 Minutes
                 this.despawn();
             }
 

@@ -87,7 +87,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
                 this.isReset = true;
             }
 
-            if ( this.ticksLiving > 6000 ) {
+            if ( this.age > 6000 ) { // 5 Minutes
                 this.despawn();
             }
 

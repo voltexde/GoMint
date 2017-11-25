@@ -89,7 +89,7 @@ public abstract class EntityProjectile extends Entity implements io.gomint.entit
                         }
 
                         // Skip own entity until we moved far enough
-                        if ( collidedEntity.equals( this.shooter ) && this.ticksLiving < 5 ) {
+                        if ( collidedEntity.equals( this.shooter ) && this.age < 5 ) {
                             continue;
                         }
 

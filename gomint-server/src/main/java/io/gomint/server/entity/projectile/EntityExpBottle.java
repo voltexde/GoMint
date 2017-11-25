@@ -70,7 +70,7 @@ public class EntityExpBottle extends EntityThrowable implements io.gomint.entity
             }
 
             // Despawn after 1200 ticks ( 1 minute )
-            if ( this.ticksLiving >= 1200 ) {
+            if ( this.age >= 1200 ) {
                 this.despawn();
             }
         }

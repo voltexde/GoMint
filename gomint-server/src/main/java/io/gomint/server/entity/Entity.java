@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
@@ -99,9 +100,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Dead status
      */
-    @Getter
-    @Setter
-    private boolean dead;
+    @Getter @Setter private boolean dead;
+    protected int age;
 
     @Setter
     protected WorldAdapter world;
@@ -112,8 +112,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     // Some tracker for "smooth" movement
     private int stuckInBlockTicks = 0;
-
-    protected int ticksLiving = 0;
 
     /**
      * Construct a new Entity
@@ -192,7 +190,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         this.lastUpdateDt += dT;
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
-            this.ticksLiving++;
+            this.age++;
 
             if ( !isImmobile() ) {
                 float movX = this.getMotionX();
@@ -1020,6 +1018,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         this.world = (WorldAdapter) location.getWorld();
         this.world.spawnEntityAt( this, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() );
+    }
+
+    @Override
+    public void setAge( long duration, TimeUnit unit ) {
+        this.age = MathUtils.fastFloor( unit.toMillis( duration ) / 50f );
     }
 
 }
