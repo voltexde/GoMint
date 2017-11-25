@@ -148,7 +148,9 @@ public class PlayerConnection {
             this.sendQueue = new LinkedBlockingQueue<>();
         }
 
-        this.sendQueue.offer( packet );
+        if ( !this.sendQueue.offer( packet ) ) {
+            LOGGER.warn( "Could not add packet {} to the send queue", packet );
+        }
     }
 
     /**
@@ -156,7 +158,7 @@ public class PlayerConnection {
      * result in several packets and chunks to be sent in order to account for the change.
      */
     public void onViewDistanceChanged() {
-        LOGGER.debug( "View distance changed to " + this.getEntity().getViewDistance() );
+        LOGGER.debug( "View distance changed to {}", this.getEntity().getViewDistance() );
         this.checkForNewChunks( null );
         this.sendChunkRadiusUpdate();
     }
@@ -169,32 +171,14 @@ public class PlayerConnection {
      * @param dT            The delta from the full second which has been calculated in the last tick
      */
     public void update( long currentMillis, float dT ) {
-        // Receive all waiting packets:
-        if ( this.connection != null ) {
-            EncapsulatedPacket packetData;
-            while ( ( packetData = this.connection.receive() ) != null ) {
-                try {
-                    this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
-                } catch ( Exception e ) {
-                    LOGGER.error( "Error whilst processing packet: ", e );
-                }
-            }
-        } else {
-            while ( !this.connectionHandler.getData().isEmpty() ) {
-                PacketBuffer buffer = this.connectionHandler.getData().poll();
-                try {
-                    this.handleSocketData( currentMillis, buffer, true );
-                } catch ( Exception e ) {
-                    LOGGER.error( "Error whilst processing packet: ", e );
-                }
-            }
-        }
+        // Update networking first
+        this.updateNetwork( currentMillis );
 
         // Check if we need to send chunks
         if ( this.entity != null ) {
-            if ( this.entity.getChunkSendQueue().size() > 0 ) {
+            if ( !this.entity.getChunkSendQueue().isEmpty() ) {
                 int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 2 : 1;
-                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 6 : 1;
+                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 10 : 4;
                 int alreadySent = 0;
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
@@ -202,11 +186,10 @@ public class PlayerConnection {
 
                 // Check if we have a slot
                 Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
-                while ( queue.size() > 0 && alreadySent < maximumInTick && this.sentInClientTick < maximumInClientTick ) {
+                while ( !queue.isEmpty() && alreadySent < maximumInTick && this.sentInClientTick < maximumInClientTick ) {
                     ChunkAdapter chunk = queue.poll();
-                    if ( chunk == null ) continue;
-
-                    if ( Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
+                    if ( chunk == null ||
+                        Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
                         Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ||
                         !chunk.getWorld().equals( this.entity.getWorld() ) ) {
                         continue;
@@ -219,7 +202,7 @@ public class PlayerConnection {
                 }
             }
 
-            while ( this.entity.getBlockUpdates().size() > 0 ) {
+            while ( !this.entity.getBlockUpdates().isEmpty() ) {
                 BlockPosition position = this.entity.getBlockUpdates().poll();
                 int chunkX = CoordinateUtils.fromBlockToChunk( position.getX() );
                 int chunkZ = CoordinateUtils.fromBlockToChunk( position.getZ() );
@@ -231,7 +214,7 @@ public class PlayerConnection {
         }
 
         // Send all queued packets
-        if ( this.sendQueue != null && this.sendQueue.size() > 0 ) {
+        if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
             if ( this.connection != null ) {
                 Packet[] packets = new Packet[this.sendQueue.size()];
                 this.sendQueue.toArray( packets );
@@ -258,6 +241,29 @@ public class PlayerConnection {
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
             this.sentInClientTick = 0;
             this.lastUpdateDT = 0;
+        }
+    }
+
+    private void updateNetwork( long currentMillis ) {
+        // Receive all waiting packets:
+        if ( this.connection != null ) {
+            EncapsulatedPacket packetData;
+            while ( ( packetData = this.connection.receive() ) != null ) {
+                try {
+                    this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Error whilst processing packet: ", e );
+                }
+            }
+        } else {
+            while ( !this.connectionHandler.getData().isEmpty() ) {
+                PacketBuffer buffer = this.connectionHandler.getData().poll();
+                try {
+                    this.handleSocketData( currentMillis, buffer, true );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Error whilst processing packet: ", e );
+                }
+            }
         }
     }
 
@@ -513,7 +519,7 @@ public class PlayerConnection {
             return;
         }
 
-        LOGGER.warn( "No handler for " + packet );
+        LOGGER.warn( "No handler for {}", packet );
     }
 
     /**
@@ -536,28 +542,25 @@ public class PlayerConnection {
             }
         }
 
-        toSendChunks.sort( new Comparator<Pair<Integer, Integer>>() {
-            @Override
-            public int compare( Pair<Integer, Integer> o1, Pair<Integer, Integer> o2 ) {
-                if ( Objects.equals( o1.getFirst(), o2.getFirst() ) &&
-                    Objects.equals( o1.getSecond(), o2.getSecond() ) ) {
-                    return 0;
-                }
-
-                int distXFirst = Math.abs( o1.getFirst() - currentXChunk );
-                int distXSecond = Math.abs( o2.getFirst() - currentXChunk );
-
-                int distZFirst = Math.abs( o1.getSecond() - currentZChunk );
-                int distZSecond = Math.abs( o2.getSecond() - currentZChunk );
-
-                if ( distXFirst + distZFirst > distXSecond + distZSecond ) {
-                    return 1;
-                } else if ( distXFirst + distZFirst < distXSecond + distZSecond ) {
-                    return -1;
-                }
-
+        toSendChunks.sort( ( o1, o2 ) -> {
+            if ( Objects.equals( o1.getFirst(), o2.getFirst() ) &&
+                Objects.equals( o1.getSecond(), o2.getSecond() ) ) {
                 return 0;
             }
+
+            int distXFirst = Math.abs( o1.getFirst() - currentXChunk );
+            int distXSecond = Math.abs( o2.getFirst() - currentXChunk );
+
+            int distZFirst = Math.abs( o1.getSecond() - currentZChunk );
+            int distZSecond = Math.abs( o2.getSecond() - currentZChunk );
+
+            if ( distXFirst + distZFirst > distXSecond + distZSecond ) {
+                return 1;
+            } else if ( distXFirst + distZFirst < distXSecond + distZSecond ) {
+                return -1;
+            }
+
+            return 0;
         } );
 
         for ( Pair<Integer, Integer> chunk : toSendChunks ) {

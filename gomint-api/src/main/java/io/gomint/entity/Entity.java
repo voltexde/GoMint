@@ -117,6 +117,11 @@ public interface Entity {
     void spawn( Location location );
 
     /**
+     * Despawn this entity on the next tick
+     */
+    void despawn();
+
+    /**
      * Get a vector in which direction the entity is looking
      *
      * @return vector which shows in which direction the entity is looking
