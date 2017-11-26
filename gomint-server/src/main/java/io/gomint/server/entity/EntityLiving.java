@@ -251,6 +251,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
      *
      * @return the spawn packet of this entity, ready to be sent to the client
      */
+    @Override
     public Packet createSpawnPacket() {
         // Broadcast spawn entity packet:
         PacketSpawnEntity packet = new PacketSpawnEntity();
