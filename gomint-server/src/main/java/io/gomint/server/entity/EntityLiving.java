@@ -537,4 +537,14 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         this.setAttribute( Attribute.MOVEMENT_SPEED, value );
     }
 
+    @Override
+    public String getNameTag() {
+        return getMetadata().getString( 4 );
+    }
+
+    @Override
+    public void setNameTag( String nameTag ) {
+        getMetadata().putString( 4, nameTag );
+    }
+
 }
