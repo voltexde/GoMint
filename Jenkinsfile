@@ -24,4 +24,13 @@ pipeline {
       }
     }
   }
+  post {
+    success {
+      slackSend color: 'good', message: 'New build has been built: #${currentBuild.number} - ${currentBuild.absoluteUrl}'
+    }
+
+    failure {
+      slackSend color: 'danger', message: 'Failed build: #${currentBuild.number} - ${currentBuild.absoluteUrl}'
+    }
+  }
 }
