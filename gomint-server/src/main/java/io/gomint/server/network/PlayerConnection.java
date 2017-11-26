@@ -344,7 +344,7 @@ public class PlayerConnection {
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
-            if ( this.sentChunks >= 81 ) {
+            if ( this.sentChunks >= 36 ) {
                 int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
                 int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
