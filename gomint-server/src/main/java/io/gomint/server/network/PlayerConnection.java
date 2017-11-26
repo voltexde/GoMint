@@ -351,7 +351,7 @@ public class PlayerConnection {
                 WorldAdapter worldAdapter = this.entity.getWorld();
                 worldAdapter.movePlayerToChunk( spawnXChunk, spawnZChunk, this.entity );
 
-                this.getEntity().fullyInit();
+                this.getEntity().firstSpawn();
 
                 this.state = PlayerConnectionState.PLAYING;
                 this.checkForNewChunks( null );
@@ -600,7 +600,10 @@ public class PlayerConnection {
     /**
      * Send resource packs
      */
-    public void sendResourcePacks() {
+    public void initWorldAndResourceSend() {
+        // Prepare entity
+        this.entity.loginInit();
+
         // We have the chance of forcing resource and behaviour packs here
         PacketResourcePacksInfo packetResourcePacksInfo = new PacketResourcePacksInfo();
         this.send( packetResourcePacksInfo );

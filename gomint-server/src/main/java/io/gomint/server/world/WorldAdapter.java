@@ -450,8 +450,6 @@ public abstract class WorldAdapter implements World {
      * @param player The player entity which should be removed from the world
      */
     public void removePlayer( io.gomint.server.entity.EntityPlayer player ) {
-        logger.debug( "Removing player: " + player );
-
         ChunkAdapter chunkAdapter = this.players.remove( player );
         if ( chunkAdapter != null ) {
             chunkAdapter.removePlayer( player );
