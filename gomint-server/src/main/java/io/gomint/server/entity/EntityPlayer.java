@@ -66,6 +66,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     private final PlayerConnection connection;
     private int viewDistance = 4;
+    @Getter
+    private int neededChunksForSpawn;
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
 
     // EntityPlayer Information
@@ -598,9 +600,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // Spawn for others
         this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );
-
-        this.getConnection().sendWorldTime( 0 );
-        this.getConnection().sendMovePlayer( this.getLocation() );
 
         // Send crafting recipes
         this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
@@ -1266,11 +1265,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     public void loginInit() {
         // We attach to the world to get chunks
-        this.world.addPlayer( this );
+        this.neededChunksForSpawn = this.world.addPlayer( this );
+        LOGGER.info( "Player {} needs {} chunks for spawn", this, this.neededChunksForSpawn );
     }
 
     public void firstSpawn() {
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
+        this.getConnection().sendMovePlayer( this.getLocation() );
     }
 
 }
