@@ -25,12 +25,8 @@ pipeline {
     }
   }
   post {
-    success {
-      slackSend color: 'good', message: 'New build has been built: #${currentBuild.number} - ${currentBuild.absoluteUrl}'
-    }
-
-    failure {
-      slackSend color: 'danger', message: 'Failed build: #${currentBuild.number} - ${currentBuild.absoluteUrl}'
+    always {
+      discordSend description: 'GoMint Build', footer: 'Provided with <3', link: BUILD_URL, successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), title: JOB_NAME, webhookURL: 'https://discordapp.com/api/webhooks/384326195866763274/4oqtJEmf_UDcylRq7R1TUMGoSTO_U5lSwItCkssgrQBqHtNYySt-Wmxc9cme-JdOCwsB'
     }
   }
 }
