@@ -216,11 +216,6 @@ public class PlayerConnection {
             if ( this.connection != null ) {
                 Packet[] packets = new Packet[this.sendQueue.size()];
                 this.sendQueue.toArray( packets );
-
-                for ( Packet packet : packets ) {
-                    LOGGER.info( Integer.toHexString( packet.getId() ) );
-                }
-
                 this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, packets ) );
                 this.sendQueue.clear();
             } else {
@@ -277,8 +272,7 @@ public class PlayerConnection {
      */
     public void send( Packet packet ) {
         if ( this.connection != null ) {
-            if ( !( packet instanceof PacketBatch ) ) {
-                LOGGER.info( Integer.toHexString( packet.getId() & 0xFF ) );
+            if ( !( packet instanceof PacketBatch ) ) { ;
                 this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, new Packet[]{ packet } ) );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
