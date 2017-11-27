@@ -615,7 +615,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.sendData( this );
 
         // Start sending chunks
-        this.getWorld().addPlayer( this );
+        this.neededChunksForSpawn = this.getWorld().addPlayer( this );
     }
 
     @Override
@@ -1268,12 +1268,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public void playSound( Vector location, Sound sound, byte pitch ) {
         this.world.playSound( this, location, sound, pitch, -1 );
-    }
-
-    public void loginInit() {
-        // We attach to the world to get chunks
-        this.neededChunksForSpawn = this.world.addPlayer( this );
-        LOGGER.info( "Player {} needs {} chunks for spawn", this, this.neededChunksForSpawn );
     }
 
     public void firstSpawn() {

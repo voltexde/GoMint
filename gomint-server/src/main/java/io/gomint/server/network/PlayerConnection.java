@@ -211,29 +211,6 @@ public class PlayerConnection {
             }
         }
 
-        // Send all queued packets
-        if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
-            if ( this.connection != null ) {
-                Packet[] packets = new Packet[this.sendQueue.size()];
-                this.sendQueue.toArray( packets );
-                this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, packets ) );
-                this.sendQueue.clear();
-            } else {
-                for ( Packet packet : this.sendQueue ) {
-                    PacketBuffer buffer = new PacketBuffer( 64 );
-                    buffer.writeByte( packet.getId() );
-                    buffer.writeShort( (short) 0 );
-                    packet.serialize( buffer );
-
-                    WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
-                    mcpePacket.setBuffer( buffer );
-                    this.connectionHandler.send( mcpePacket );
-                }
-
-                this.sendQueue.clear();
-            }
-        }
-
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
@@ -261,6 +238,29 @@ public class PlayerConnection {
                 } catch ( Exception e ) {
                     LOGGER.error( "Error whilst processing packet: ", e );
                 }
+            }
+        }
+
+        // Send all queued packets
+        if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
+            if ( this.connection != null ) {
+                Packet[] packets = new Packet[this.sendQueue.size()];
+                this.sendQueue.toArray( packets );
+                this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, packets ) );
+                this.sendQueue.clear();
+            } else {
+                for ( Packet packet : this.sendQueue ) {
+                    PacketBuffer buffer = new PacketBuffer( 64 );
+                    buffer.writeByte( packet.getId() );
+                    buffer.writeShort( (short) 0 );
+                    packet.serialize( buffer );
+
+                    WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+                    mcpePacket.setBuffer( buffer );
+                    this.connectionHandler.send( mcpePacket );
+                }
+
+                this.sendQueue.clear();
             }
         }
     }
@@ -599,9 +599,6 @@ public class PlayerConnection {
      * Send resource packs
      */
     public void initWorldAndResourceSend() {
-        // Prepare entity
-        this.entity.loginInit();
-
         // We have the chance of forcing resource and behaviour packs here
         PacketResourcePacksInfo packetResourcePacksInfo = new PacketResourcePacksInfo();
         this.send( packetResourcePacksInfo );

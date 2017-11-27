@@ -900,7 +900,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         PacketEntityMetadata metadataPacket = new PacketEntityMetadata();
         metadataPacket.setEntityId( this.getEntityId() );
         metadataPacket.setMetadata( this.metadataContainer );
-        player.getConnection().send( metadataPacket );
+        player.getConnection().addToSendQueue( metadataPacket );
     }
 
     @Override
