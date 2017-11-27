@@ -254,15 +254,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         packetSetGamemode.setGameMode( gameModeNumber == 1 ? 1 : 0 );
         this.connection.send( packetSetGamemode );
 
-        // Recalc adventure settings
-        this.adventureSettings.setWorldImmutable( gameModeNumber == 0x03 );
-        this.adventureSettings.setCanFly( ( gameModeNumber & 0x01 ) > 0 );
-        this.adventureSettings.setNoClip( gameModeNumber == 0x03 );
-        this.adventureSettings.setFlying( gameModeNumber == 0x03 );
-        this.adventureSettings.setAttackMobs( gameModeNumber < 0x02 );
-        this.adventureSettings.setAttackPlayers( gameModeNumber < 0x02 );
-        this.adventureSettings.setNoPvP( gameModeNumber == 0x03 );
-        this.adventureSettings.update();
+        this.sendAdventureSettings();
 
         // Set fly
         if ( this.gamemode == Gamemode.SPECTATOR || this.gamemode == Gamemode.CREATIVE ) {
@@ -277,6 +269,20 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         } else { // TODO: Check for invis effect
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE, false );
         }
+    }
+
+    public void sendAdventureSettings() {
+        int gameModeNumber = EnumConnectors.GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
+
+        // Recalc adventure settings
+        this.adventureSettings.setWorldImmutable( gameModeNumber == 0x03 );
+        this.adventureSettings.setCanFly( ( gameModeNumber & 0x01 ) > 0 );
+        this.adventureSettings.setNoClip( gameModeNumber == 0x03 );
+        this.adventureSettings.setFlying( gameModeNumber == 0x03 );
+        this.adventureSettings.setAttackMobs( gameModeNumber < 0x02 );
+        this.adventureSettings.setAttackPlayers( gameModeNumber < 0x02 );
+        this.adventureSettings.setNoPvP( gameModeNumber == 0x03 );
+        this.adventureSettings.update();
     }
 
     @Override
@@ -558,27 +564,34 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     /**
-     * Fully init inventory and recipes and other stuff which we need to have a full loaded player
+     * Send all data which the client needs before getting chunks
      */
-    public void fullyInit() {
-        this.connection.sendWorldInitialization();
+    public void prepareEntity() {
         this.connection.sendWorldTime( 0 );
-        this.updateAttributes();
+        this.connection.sendWorldInitialization();
+        this.connection.sendSpawnPosition();
+        this.connection.sendWorldTime( 0 );
+        this.connection.sendDifficulty();
+        this.connection.sendCommandsEnabled();
 
+        // Send adventure settings
+        this.sendAdventureSettings();
+
+        // Update player list
+        PacketPlayerlist playerlist = new PacketPlayerlist();
+        playerlist.setMode( (byte) 0 );
+        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, skin ) );
+        }} );
+        this.getConnection().addToSendQueue( playerlist );
+
+        // Send commands
         this.sendCommands();
 
-        int gameModeNumber = EnumConnectors.GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
-        this.getAdventureSettings().setWorldImmutable( gameModeNumber == 0x03 );
-        this.getAdventureSettings().setCanFly( ( gameModeNumber & 0x01 ) > 0 );
-        this.getAdventureSettings().setNoClip( gameModeNumber == 0x03 );
-        this.getAdventureSettings().setFlying( gameModeNumber == 0x03 );
-        this.getAdventureSettings().setAttackMobs( gameModeNumber < 0x02 );
-        this.getAdventureSettings().setAttackPlayers( gameModeNumber < 0x02 );
-        this.getAdventureSettings().setNoPvP( gameModeNumber == 0x03 );
-        this.getAdventureSettings().update();
+        // Attributes
+        this.updateAttributes();
 
-        this.sendData( this );
-
+        // Inventories
         this.inventory = new PlayerInventory( this );
         this.armorInventory = new ArmorInventory( this );
         this.craftingInventory = new CraftingInputInventory( this );
@@ -590,25 +603,19 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.containerIds = ContainerIDMap.withExpectedSize( 2 );
         this.connection.getServer().getCreativeInventory().addViewer( this );
 
-        // Update player list
-        PacketPlayerlist playerlist = new PacketPlayerlist();
-        playerlist.setMode( (byte) 0 );
-        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, skin ) );
-        }} );
-        this.getConnection().send( playerlist );
-
-        // Spawn for others
-        this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );
-
         // Send crafting recipes
-        this.connection.send( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
+        this.connection.addToSendQueue( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
 
-        // Now its time for the join event since the player is fully loaded
-        PlayerJoinEvent event = this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
-        if ( event.isCancelled() ) {
-            this.connection.disconnect( event.getKickReason() );
-        }
+        // Send chunk radius
+        PacketSetChunkRadius chunkRadius = new PacketSetChunkRadius();
+        chunkRadius.setChunkRadius( 3 );
+        this.connection.addToSendQueue( chunkRadius );
+
+        // Send entity metadata
+        this.sendData( this );
+
+        // Start sending chunks
+        this.getWorld().addPlayer( this );
     }
 
     @Override
@@ -799,7 +806,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Send commands
         PacketAvailableCommands packetAvailableCommands = this.connection.getServer().
             getPluginManager().getCommandManager().createPacket( this );
-        this.connection.send( packetAvailableCommands );
+        this.connection.addToSendQueue( packetAvailableCommands );
     }
 
     /**
@@ -1272,6 +1279,15 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void firstSpawn() {
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
         this.getConnection().sendMovePlayer( this.getLocation() );
+
+        // Spawn for others
+        this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );
+
+        // Now its time for the join event since the player is fully loaded
+        PlayerJoinEvent event = this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this ) );
+        if ( event.isCancelled() ) {
+            this.connection.disconnect( event.getKickReason() );
+        }
     }
 
 }

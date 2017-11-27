@@ -62,6 +62,7 @@ public final class Protocol {
     public static final byte PACKET_HURT_ARMOR = (byte) 0x26;
     public static final byte PACKET_ENTITY_METADATA = (byte) 0x27;
     public static final byte PACKET_ENTITY_MOTION = (byte) 0x28;
+    public static final byte PACKET_SET_SPAWN_POSITION = (byte) 0x2B;
     public static final byte PACKET_ANIMATE = (byte) 0x2C;
     public static final byte PACKET_RESPAWN_POSITION = (byte) 0x2D;
     public static final byte PACKET_CONTAINER_OPEN = (byte) 0x2E;

@@ -37,7 +37,7 @@ public class CreativeInventory extends Inventory {
         PacketInventoryContent inventoryContent = new PacketInventoryContent();
         inventoryContent.setItems( itemStacks );
         inventoryContent.setWindowId( WindowMagicNumbers.CREATIVE.getId() );
-        playerConnection.send( inventoryContent );
+        playerConnection.addToSendQueue( inventoryContent );
     }
 
     @Override

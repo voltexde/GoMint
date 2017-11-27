@@ -42,9 +42,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Consumer;
 import java.util.zip.InflaterInputStream;
 
 import static io.gomint.server.network.Protocol.*;
@@ -218,6 +216,11 @@ public class PlayerConnection {
             if ( this.connection != null ) {
                 Packet[] packets = new Packet[this.sendQueue.size()];
                 this.sendQueue.toArray( packets );
+
+                for ( Packet packet : packets ) {
+                    LOGGER.info( Integer.toHexString( packet.getId() ) );
+                }
+
                 this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, packets ) );
                 this.sendQueue.clear();
             } else {
@@ -275,6 +278,7 @@ public class PlayerConnection {
     public void send( Packet packet ) {
         if ( this.connection != null ) {
             if ( !( packet instanceof PacketBatch ) ) {
+                LOGGER.info( Integer.toHexString( packet.getId() & 0xFF ) );
                 this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, new Packet[]{ packet } ) );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
@@ -705,7 +709,7 @@ public class PlayerConnection {
     public void sendWorldTime( int ticks ) {
         PacketWorldTime time = new PacketWorldTime();
         time.setTicks( ticks );
-        this.send( time );
+        this.addToSendQueue( time );
     }
 
     /**
@@ -736,7 +740,7 @@ public class PlayerConnection {
         packet.setCommandsEnabled( true );
 
         this.entity.setPosition( world.getSpawnLocation() );
-        this.send( packet );
+        this.addToSendQueue( packet );
     }
 
     /**
@@ -779,4 +783,25 @@ public class PlayerConnection {
     public String toString() {
         return this.entity != null ? this.entity.getName() : ( this.connection != null ) ? String.valueOf( this.connection.getGuid() ) : "unknown";
     }
+
+    public void sendSpawnPosition() {
+        PacketSetSpawnPosition spawnPosition = new PacketSetSpawnPosition();
+        spawnPosition.setSpawnType( 1 );
+        spawnPosition.setForce( false );
+        spawnPosition.setPosition( this.getEntity().getWorld().getSpawnLocation().toBlockPosition() );
+        addToSendQueue( spawnPosition );
+    }
+
+    public void sendDifficulty() {
+        PacketSetDifficulty setDifficulty = new PacketSetDifficulty();
+        setDifficulty.setDifficulty( this.entity.getWorld().getDifficulty().getDifficultyDegree() );
+        addToSendQueue( setDifficulty );
+    }
+
+    public void sendCommandsEnabled() {
+        PacketSetCommandsEnabled setCommandsEnabled = new PacketSetCommandsEnabled();
+        setCommandsEnabled.setEnabled( true );
+        addToSendQueue( setCommandsEnabled );
+    }
+
 }
