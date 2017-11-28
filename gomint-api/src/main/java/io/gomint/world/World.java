@@ -112,6 +112,14 @@ public interface World {
     void playSound( Vector location, Sound sound, byte pitch );
 
     /**
+     * Send a particle to this world
+     *
+     * @param location of the particle in the client
+     * @param particle which should be send
+     */
+    void sendParticle( Vector location, Particle particle );
+
+    /**
      * Get a list of bounding boxes which collide with the given box
      *
      * @param entity          When includeEntities is true this is the entity which will be exempted

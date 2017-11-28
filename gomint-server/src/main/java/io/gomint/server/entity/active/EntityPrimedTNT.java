@@ -46,7 +46,7 @@ public class EntityPrimedTNT extends Entity implements io.gomint.entity.active.E
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.IGNITED, true );
         this.metadataContainer.putInt( MetadataContainer.DATA_FUSE_LENGTH, this.fuse );
 
-        this.world.playLevelEvent( position, LevelEvent.SOUND_IGNITE, 0 );
+        this.world.sendLevelEvent( position, LevelEvent.SOUND_IGNITE, 0 );
         this.setPosition( position );
     }
 
@@ -120,6 +120,6 @@ public class EntityPrimedTNT extends Entity implements io.gomint.entity.active.E
     public void spawn( Location location ) {
         super.spawn( location );
 
-        this.world.playLevelEvent( location, LevelEvent.SOUND_IGNITE, 0 );
+        this.world.sendLevelEvent( location, LevelEvent.SOUND_IGNITE, 0 );
     }
 }

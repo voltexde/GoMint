@@ -15,6 +15,7 @@ import io.gomint.math.Vector;
 import io.gomint.permission.PermissionManager;
 import io.gomint.player.PlayerSkin;
 import io.gomint.world.Gamemode;
+import io.gomint.world.Particle;
 import io.gomint.world.Sound;
 import io.gomint.world.SoundData;
 
@@ -281,5 +282,13 @@ public interface EntityPlayer extends EntityCreature {
      * @param pitch    The pitch at which the sound should be played
      */
     void playSound( Vector location, Sound sound, byte pitch );
+
+    /**
+     * Send a particle to this player
+     *
+     * @param location of the particle in the client
+     * @param particle which should be send
+     */
+    void sendParticle( Vector location, Particle particle );
 
 }

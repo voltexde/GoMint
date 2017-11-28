@@ -37,6 +37,7 @@ import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.world.Gamemode;
+import io.gomint.world.Particle;
 import io.gomint.world.Sound;
 import io.gomint.world.SoundData;
 import lombok.EqualsAndHashCode;
@@ -1320,6 +1321,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public void playSound( Vector location, Sound sound, byte pitch ) {
         this.world.playSound( this, location, sound, pitch, -1 );
+    }
+
+    @Override
+    public void sendParticle( Vector location, Particle particle ) {
+        this.world.sendParticle( this, location, particle, 0 );
     }
 
     public void firstSpawn() {

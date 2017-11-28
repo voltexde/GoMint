@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -57,7 +56,8 @@ import java.util.function.Predicate;
 public abstract class WorldAdapter implements World {
 
     // Shared objects
-    @Getter protected final GoMintServer server;
+    @Getter
+    protected final GoMintServer server;
     protected final Logger logger;
 
     // World properties
@@ -150,6 +150,7 @@ public abstract class WorldAdapter implements World {
         int soundData = -1;
 
         switch ( sound ) {
+            case LAND:
             case BREAK_BLOCK:
             case PLACE:
             case HIT:
@@ -1064,13 +1065,21 @@ public abstract class WorldAdapter implements World {
         return null;
     }
 
-    public void playLevelEvent( Vector position, int levelEvent, int data ) {
+    public void sendLevelEvent( Vector position, int levelEvent, int data ) {
+        this.sendLevelEvent( null, position, levelEvent, data );
+    }
+
+    public void sendLevelEvent( EntityPlayer player, Vector position, int levelEvent, int data ) {
         PacketWorldEvent worldEvent = new PacketWorldEvent();
         worldEvent.setData( data );
         worldEvent.setEventId( levelEvent );
         worldEvent.setPosition( position );
 
-        sendToVisible( position.toBlockPosition(), worldEvent, entity -> true );
+        if ( player != null ) {
+            ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().addToSendQueue( worldEvent );
+        } else {
+            sendToVisible( position.toBlockPosition(), worldEvent, entity -> true );
+        }
     }
 
     public void storeTileEntity( BlockPosition position, TileEntity tileEntity ) {
@@ -1094,7 +1103,7 @@ public abstract class WorldAdapter implements World {
             }
 
             // Break animation (this also plays the break sound in the client)
-            playLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | ( block.getBlockData() << 8 ) );
+            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | ( block.getBlockData() << 8 ) );
 
             block.setType( BlockAir.class );
 
@@ -1129,9 +1138,14 @@ public abstract class WorldAdapter implements World {
         item.setVelocity( motion );
     }
 
-    public void playParticle( Location location, Particle particle, int data ) {
+    @Override
+    public void sendParticle( Vector location, Particle particle ) {
+        this.sendParticle( null, location, particle, 0 );
+    }
+
+    public void sendParticle( EntityPlayer player, Vector location, Particle particle, int data ) {
         int eventId = LevelEvent.ADD_PARTICLE_MASK | EnumConnectors.PARTICLE_CONNECTOR.convert( particle ).getId();
-        playLevelEvent( location, eventId, data );
+        sendLevelEvent( player, location, eventId, data );
     }
 
     public void createExpOrb( Location location, int amount ) {
