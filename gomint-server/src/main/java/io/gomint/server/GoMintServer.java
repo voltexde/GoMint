@@ -383,6 +383,25 @@ public class GoMintServer implements GoMint, InventoryHolder {
         LOGGER.info( "Shutdown completed" );
 
         // Wait up to 5 seconds
+        if ( this.announceThreads() ) {
+            start = System.currentTimeMillis();
+            while ( ( System.currentTimeMillis() - start ) < TimeUnit.SECONDS.toMillis( 5 ) ) {
+                try {
+                    Thread.sleep( 50 );
+                } catch ( InterruptedException e ) {
+                    // Ignore
+                }
+            }
+
+            this.announceThreads();
+        }
+
+        System.exit( 0 );
+    }
+
+    private boolean announceThreads() {
+        boolean foundThread = false;
+
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         for ( Thread thread : threadSet ) {
             if ( thread.isDaemon() || thread.getId() == mainThread || ( thread.getThreadGroup().getParent() == null &&
@@ -390,12 +409,16 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 continue;
             }
 
-            LOGGER.warn( "Remaining thread after shutdown: " + thread.getName() + " (#" + thread.getId() + ")" );
-            LOGGER.warn( "Status: " + thread.getState().name() + " - Threadgroup: " + thread.getThreadGroup().getName() );
+            foundThread = true;
+
+            LOGGER.warn( "Remaining thread after shutdown: {} (#{})", thread.getName(), thread.getId() );
+            LOGGER.warn( "Status: {} - Threadgroup: {}", thread.getState(), thread.getThreadGroup().getName() );
             for ( StackTraceElement element : thread.getStackTrace() ) {
-                LOGGER.warn( "  " + element.toString() );
+                LOGGER.warn( "  {}", element );
             }
         }
+
+        return foundThread;
     }
 
     private boolean initNetworking( String host, int port ) {

@@ -1035,6 +1035,7 @@ public abstract class WorldAdapter implements World {
 
         // Wait until the thread is done
         try {
+            this.asyncWorkerThread.interrupt();
             this.asyncWorkerThread.join();
         } catch ( InterruptedException e ) {
             this.logger.warn( "Async thread did not end correctly: ", e );
