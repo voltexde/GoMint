@@ -11,8 +11,6 @@ import io.gomint.event.Event;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.server.util.collection.EventHandlerMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -24,8 +22,6 @@ import java.lang.reflect.Modifier;
  */
 public class EventManager {
 
-   // private static final Logger LOGGER = LoggerFactory.getLogger( EventManager.class );
-
     // All event handlers that have been registered
     private final EventHandlerMap eventHandlers = EventHandlerMap.withExpectedSize( 10 );
 
@@ -35,8 +31,6 @@ public class EventManager {
      * @param event The event to be triggered
      */
     public void triggerEvent( Event event ) {
-        // LOGGER.debug( "Handling event: " + event );
-
         // Assume we already acquired a readLock:
         int eventHash = event.getClass().getName().hashCode();
         EventHandlerList eventHandlerList = this.eventHandlers.getEventHandler( eventHash );

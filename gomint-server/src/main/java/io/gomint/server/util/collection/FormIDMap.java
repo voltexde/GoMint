@@ -1,5 +1,6 @@
 package io.gomint.server.util.collection;
 
+import com.koloboke.collect.map.IntObjCursor;
 import com.koloboke.compile.ConcurrentModificationUnchecked;
 import com.koloboke.compile.KolobokeMap;
 import io.gomint.server.gui.Form;
@@ -23,6 +24,7 @@ public abstract class FormIDMap {
     }
 
     // CHECKSTYLE:OFF
+    public abstract IntObjCursor<Form> cursor();
     public abstract Form get(int key);
     public abstract void justPut(int key, Form form);
     public abstract boolean justRemove(int key);

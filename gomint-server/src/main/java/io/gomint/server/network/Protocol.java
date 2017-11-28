@@ -88,6 +88,8 @@ public final class Protocol {
     public static final byte PACKET_TRANSFER = (byte) 0x55;
     public static final byte PACKET_MODAL_REQUEST = (byte) 0x64;
     public static final byte PACKET_MODAL_RESPONSE = (byte) 0x65;
+    public static final byte PACKET_SERVER_SETTINGS_REQUEST = (byte) 0x66;
+    public static final byte PACKET_SERVER_SETTINGS_RESPONSE = (byte) 0x67;
 
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     // CHECKSTYLE:ON
@@ -107,6 +109,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_SERVER_SETTINGS_REQUEST:
+                return new PacketServerSettingsRequest();
+
             case PACKET_MOB_EQUIPMENT:
                 return new PacketMobEquipment();
 

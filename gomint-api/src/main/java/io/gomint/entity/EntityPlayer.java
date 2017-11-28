@@ -171,6 +171,22 @@ public interface EntityPlayer extends EntityCreature {
     <T> FormListener<T> showForm( Form form );
 
     /**
+     * Add a server settings form
+     *
+     * @param form which will be added to the settings
+     * @param <T>  type of return value from the response
+     * @return form listener to attaching for response
+     */
+    <T> FormListener<T> addSettingsForm( Form form );
+
+    /**
+     * Remove a form from the server settings
+     *
+     * @param form which should be removed
+     */
+    void removeSettingsForm( Form form );
+
+    /**
      * Get the players permission manager
      *
      * @return permission manager
