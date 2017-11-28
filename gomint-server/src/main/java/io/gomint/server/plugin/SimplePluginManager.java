@@ -174,7 +174,7 @@ public class SimplePluginManager implements PluginManager {
                 }
 
                 if ( !found ) {
-                    LOGGER.warn( "Could not load plugin " + pluginMeta.getName() + " since the depend " + dependPlugin + " could not be found" );
+                    LOGGER.warn( "Could not load plugin {} since the depend {} could not be found", pluginMeta.getName(), dependPlugin );
                     this.metadata.remove( pluginMeta.getName() );
                     return;
                 }
@@ -305,7 +305,7 @@ public class SimplePluginManager implements PluginManager {
 
             // It seems like the jar is empty
             if ( jarEntries == null || !jarEntries.hasMoreElements() ) {
-                LOGGER.warn( "Could not load Plugin. File " + file + " is empty" );
+                LOGGER.warn( "Could not load Plugin. File {} is empty", file );
                 return null;
             }
 
@@ -332,7 +332,8 @@ public class SimplePluginManager implements PluginManager {
                             AnnotationsAttribute visible = (AnnotationsAttribute) classFile.getAttribute( AnnotationsAttribute.visibleTag );
                             for ( Annotation annotation : visible.getAnnotations() ) {
                                 switch ( annotation.getTypeName() ) {
-                                    case "io.gomint.plugin.Name":
+                                    case "io.gomint.plugin.Name":   // Deprecated
+                                    case "io.gomint.plugin.PluginName":
                                         name = ( (StringMemberValue) annotation.getMemberValue( "value" ) ).getValue();
                                         break;
 
@@ -359,6 +360,9 @@ public class SimplePluginManager implements PluginManager {
 
                                     case "io.gomint.plugin.Startup":
                                         startup = ( (EnumMemberValue) annotation.getMemberValue( "value" ) ).getValue();
+                                        break;
+
+                                    default:
                                         break;
                                 }
                             }
