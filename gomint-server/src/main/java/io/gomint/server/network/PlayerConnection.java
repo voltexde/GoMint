@@ -211,36 +211,27 @@ public class PlayerConnection {
             }
         }
 
+        if ( this.connection == null ) {
+            this.releaseSendQueue();
+        } else {
+            if ( this.deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ) {
+                this.releaseSendQueue();
+            }
+        }
+
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+            if ( this.connection != null &&this.deviceInfo.getOs() != DeviceInfo.DeviceOS.WINDOWS ) {
+                this.releaseSendQueue();
+            }
+
             this.sentInClientTick = 0;
             this.lastUpdateDT = 0;
         }
     }
 
-    private void updateNetwork( long currentMillis ) {
-        // Receive all waiting packets:
-        if ( this.connection != null ) {
-            EncapsulatedPacket packetData;
-            while ( ( packetData = this.connection.receive() ) != null ) {
-                try {
-                    this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
-                } catch ( Exception e ) {
-                    LOGGER.error( "Error whilst processing packet: ", e );
-                }
-            }
-        } else {
-            while ( !this.connectionHandler.getData().isEmpty() ) {
-                PacketBuffer buffer = this.connectionHandler.getData().poll();
-                try {
-                    this.handleSocketData( currentMillis, buffer, true );
-                } catch ( Exception e ) {
-                    LOGGER.error( "Error whilst processing packet: ", e );
-                }
-            }
-        }
-
+    private void releaseSendQueue() {
         // Send all queued packets
         if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
             if ( this.connection != null ) {
@@ -265,6 +256,29 @@ public class PlayerConnection {
         }
     }
 
+    private void updateNetwork( long currentMillis ) {
+        // Receive all waiting packets:
+        if ( this.connection != null ) {
+            EncapsulatedPacket packetData;
+            while ( ( packetData = this.connection.receive() ) != null ) {
+                try {
+                    this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Error whilst processing packet: ", e );
+                }
+            }
+        } else {
+            while ( !this.connectionHandler.getData().isEmpty() ) {
+                PacketBuffer buffer = this.connectionHandler.getData().poll();
+                try {
+                    this.handleSocketData( currentMillis, buffer, true );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Error whilst processing packet: ", e );
+                }
+            }
+        }
+    }
+
     /**
      * Sends the given packet to the player.
      *
@@ -272,7 +286,7 @@ public class PlayerConnection {
      */
     public void send( Packet packet ) {
         if ( this.connection != null ) {
-            if ( !( packet instanceof PacketBatch ) ) { ;
+            if ( !( packet instanceof PacketBatch ) ) {
                 this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, new Packet[]{ packet } ) );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
@@ -337,7 +351,7 @@ public class PlayerConnection {
         }
 
         this.playerChunks.add( chunkHash );
-        this.send( chunkData );
+        this.addToSendQueue( chunkData );
         this.entity.getEntityVisibilityManager().updateAddedChunk( chunkAdapter );
 
         if ( this.state == PlayerConnectionState.LOGIN ) {

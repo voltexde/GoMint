@@ -296,7 +296,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 this.currentTickTime = System.currentTimeMillis();
 
                 // Drain input lines
-                while ( inputLines.size() > 0 ) {
+                while ( !inputLines.isEmpty() ) {
                     String line = inputLines.take();
                     this.pluginManager.getCommandManager().executeSystem( line );
                 }

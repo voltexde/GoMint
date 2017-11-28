@@ -22,8 +22,8 @@ public final class Protocol {
     // CHECKSTYLE:OFF
     // MC:PE Protocol ID
     public static final int MINECRAFT_PE_BETA_PROTOCOL_VERSION = 141;
-    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 137;
-    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.2.5.15";
+    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 141;
+    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.2.5.51";
 
     // ========================================= PACKET IDS ========================================= //
     public static final byte PACKET_BATCH = (byte) 0xfe;
@@ -143,20 +143,8 @@ public final class Protocol {
             case PACKET_RESOURCEPACK_INFO:
                 return new PacketResourcePacksInfo();
 
-            case PACKET_WORLD_TIME:
-                return new PacketWorldTime();
-
             case PACKET_RESOURCEPACK_RESPONSE:
                 return new PacketResourcePackResponse();
-
-            case PACKET_SPAWN_ENTITY:
-                return new PacketSpawnEntity();
-
-            case PACKET_DESPAWN_ENTITY:
-                return new PacketDespawnEntity();
-
-            case PACKET_ENTITY_MOVEMENT:
-                return new PacketEntityMovement();
 
             case PACKET_WORLD_SOUND_EVENT:
                 return new PacketWorldSoundEvent();
@@ -170,14 +158,8 @@ public final class Protocol {
             case PACKET_ANIMATE:
                 return new PacketAnimate();
 
-            case PACKET_CONTAINER_OPEN:
-                return new PacketContainerOpen();
-
             case PACKET_CONTAINER_CLOSE:
                 return new PacketContainerClose();
-
-            case PACKET_INVENTORY_SET_SLOT:
-                return new PacketInventorySetSlot();
 
             case PACKET_CRAFTING_EVENT:
                 return new PacketCraftingEvent();
@@ -185,32 +167,11 @@ public final class Protocol {
             case PACKET_ADVENTURE_SETTINGS:
                 return new PacketAdventureSettings();
 
-            case PACKET_MOB_EQUIPMENT:
-                return new PacketMobEquipment();
-
             case PACKET_INTERACT:
                 return new PacketInteract();
 
-            case PACKET_MOB_ARMOR_EQUIPMENT:
-                return new PacketMobArmorEquipment();
-
             case PACKET_ENTITY_METADATA:
                 return new PacketEntityMetadata();
-
-            case PACKET_ENTITY_MOTION:
-                return new PacketEntityMotion();
-
-            case PACKET_CRAFTING_RECIPES:
-                return new PacketCraftingRecipes();
-
-            case PACKET_WORLD_CHUNK:
-                return new PacketWorldChunk();
-
-            case PACKET_SET_COMMANDS_ENABLED:
-                return new PacketSetCommandsEnabled();
-
-            case PACKET_SET_DIFFICULTY:
-                return new PacketSetDifficulty();
 
             case PACKET_SET_CHUNK_RADIUS:
                 return new PacketSetChunkRadius();
