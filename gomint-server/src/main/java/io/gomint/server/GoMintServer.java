@@ -35,6 +35,7 @@ import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.WorldManager;
 import io.gomint.world.World;
 import joptsimple.OptionSet;
@@ -255,8 +256,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // CHECKSTYLE:OFF
         try {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
-        } catch ( Exception e ) {
+        } catch ( WorldLoadException e ) {
             LOGGER.error( "Failed to load default world", e );
+            return;
         }
         // CHECKSTYLE:ON
 
@@ -467,7 +469,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             // CHECKSTYLE:OFF
             try {
                 return this.worldManager.loadWorld( name );
-            } catch ( Exception e ) {
+            } catch ( WorldLoadException e ) {
                 LOGGER.warn( "Failed to load world: " + name, e );
                 return null;
             }

@@ -12,11 +12,9 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
-import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTStream;
-import io.gomint.taglib.NBTStreamListener;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.EqualsAndHashCode;
 import org.slf4j.Logger;
@@ -49,10 +47,11 @@ public class AnvilChunkAdapter extends ChunkAdapter {
      * @param x            position of chunk
      * @param z            position of chunk
      */
-    public AnvilChunkAdapter( WorldAdapter worldAdapter, int x, int z ) {
+    public AnvilChunkAdapter( AnvilWorldAdapter worldAdapter, int x, int z ) {
         super( worldAdapter, x, z );
-        this.lastSavedTimestamp = System.currentTimeMillis();
+        this.lastSavedTimestamp = worldAdapter.getServer().getCurrentTickTime();
         this.loadedTime = this.lastSavedTimestamp;
+        this.converted = worldAdapter.isOverrideConverter();
     }
 
     // ==================================== I/O ==================================== //
@@ -257,8 +256,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                         } else if ( clazz.equals( Short.class ) ) {
                             entityHolder.addValue( key, (Short) object );
                         } else {
-                            System.out.println( clazz );
-                            System.out.println( key );
+                            LOGGER.warn( "Unknown tile entity data class {} for key {}", clazz, key );
                         }
                     }
             }
@@ -392,8 +390,11 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     switch ( blockId ) {
                         case 29:
                         case 33: // Piston head
-                            BlockPosition position = new BlockPosition( ( this.x << 4 ) + i, y , ( this.z << 4 ) + k );
+                            BlockPosition position = new BlockPosition( ( this.x << 4 ) + i, y, ( this.z << 4 ) + k );
                             this.postProcessors.offer( new PistonPostProcessor( this.world, position ) );
+                            break;
+
+                        default:
                             break;
                     }
                 }

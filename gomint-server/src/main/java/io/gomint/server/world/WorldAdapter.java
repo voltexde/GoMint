@@ -57,8 +57,7 @@ import java.util.function.Predicate;
 public abstract class WorldAdapter implements World {
 
     // Shared objects
-    @Getter
-    protected final GoMintServer server;
+    @Getter protected final GoMintServer server;
     protected final Logger logger;
 
     // World properties
@@ -626,10 +625,8 @@ public abstract class WorldAdapter implements World {
 
     /**
      * Prepares the region surrounding the world's spawn point.
-     *
-     * @throws IOException Throws in case the spawn region could not be loaded nor generated
      */
-    protected void prepareSpawnRegion() throws IOException {
+    protected void prepareSpawnRegion() {
         final int spawnRadius = this.config.getAmountOfChunksForSpawnArea();
         if ( spawnRadius == 0 ) {
             return;

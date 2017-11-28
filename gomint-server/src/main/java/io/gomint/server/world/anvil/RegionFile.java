@@ -38,7 +38,6 @@ class RegionFile {
 
         if ( this.file.length() < 8192 ) {
             // Add the region file metadata table / header:
-            System.out.println( "Creating region file " + file.getName() );
             byte[] header = new byte[8192];
             this.file.seek( 0L );
             this.file.write( header );
@@ -51,7 +50,7 @@ class RegionFile {
      * @param x The x-coordinate of the chunk
      * @param z The z-coordinate of the chunk
      * @return The chunk if found
-     * @throws IOException Thrown in case an I/O error occurs or the chunk was not found
+     * @throws IOException        Thrown in case an I/O error occurs or the chunk was not found
      * @throws WorldLoadException Thrown in the case that the chunk loaded was corrupted
      */
     AnvilChunkAdapter loadChunk( int x, int z ) throws IOException, WorldLoadException {
@@ -104,11 +103,10 @@ class RegionFile {
     /**
      * Write a chunk into this regionfile
      *
-     * @param chunk          The chunk which should be written to the region file
-     * @param writeTimestamp Boolean which decides whether or not to write the timestamp
+     * @param chunk The chunk which should be written to the region file
      * @throws IOException A exception which get thrown when a I/O error occurred
      */
-    void saveChunk( AnvilChunkAdapter chunk, boolean writeTimestamp ) throws IOException {
+    void saveChunk( AnvilChunkAdapter chunk ) throws IOException {
         int x = chunk.getX();
         int z = chunk.getZ();
 
@@ -157,11 +155,9 @@ class RegionFile {
         this.file.write( buffer );
 
         // Adjust timestamp:
-        if ( writeTimestamp ) {
-            int timestamp = (int) ( System.currentTimeMillis() / 1000 );
-            this.file.skipBytes( 4092 );
-            this.file.writeInt( timestamp );
-        }
+        int timestamp = (int) ( System.currentTimeMillis() / 1000 );
+        this.file.skipBytes( 4092 );
+        this.file.writeInt( timestamp );
 
         // Finally write out the actual chunk data:
         this.file.seek( byteOffset );

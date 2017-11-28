@@ -49,8 +49,6 @@ import java.util.concurrent.TimeUnit;
 @EqualsAndHashCode( callSuper = false, of = { "x", "z" } )
 public class ChunkAdapter implements Chunk {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( ChunkAdapter.class );
-
     // CHECKSTYLE:OFF
     // World
     @Getter protected final WorldAdapter world;
@@ -142,6 +140,8 @@ public class ChunkAdapter implements Chunk {
                             }
                         }
 
+                        break;
+
                     default:
                         break;
                 }
@@ -186,7 +186,6 @@ public class ChunkAdapter implements Chunk {
      * @param entity The entity which should be added
      */
     void addEntity( Entity entity ) {
-        LOGGER.debug( "Adding entity " + entity + " to chunk " + x + ", " + z );
         this.entities.justPut( entity.getEntityId(), entity );
     }
 
@@ -196,7 +195,6 @@ public class ChunkAdapter implements Chunk {
      * @param entity The entity which should be removed
      */
     void removeEntity( Entity entity ) {
-        LOGGER.debug( "Removing entity " + entity + " from chunk " + x + ", " + z );
         this.entities.justRemove( entity.getEntityId() );
     }
 
@@ -307,10 +305,6 @@ public class ChunkAdapter implements Chunk {
 
         TileEntity tileEntity1 = TileEntities.construct( tileEntity, this.world );
         if ( tileEntity1 != null ) {
-            if ( tileEntity1 instanceof CommandBlockTileEntity ) {
-                LOGGER.debug( "Custom name: " + ( (CommandBlockTileEntity) tileEntity1 ).getCustomName() );
-            }
-
             ChunkSlice slice = ensureSlice( y >> 4 );
             slice.addTileEntity( x, y - slice.getSectionY() * 16, z, tileEntity1 );
         }

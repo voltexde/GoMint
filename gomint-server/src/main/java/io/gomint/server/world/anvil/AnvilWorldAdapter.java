@@ -11,10 +11,9 @@ import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.world.*;
 import io.gomint.taglib.NBTStream;
-import io.gomint.taglib.NBTStreamListener;
 import io.gomint.world.Difficulty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.io.*;
 import java.nio.ByteOrder;
@@ -24,7 +23,10 @@ import java.util.zip.GZIPInputStream;
  * @author BlackyPaw
  * @version 1.0
  */
+@EqualsAndHashCode( callSuper = true )
 public final class AnvilWorldAdapter extends WorldAdapter {
+
+    private static final String REGION_FILE_FORMAT = "region%sr.%d.%d.mca";
 
     // ==================================== FIELDS ==================================== //
 
@@ -33,24 +35,30 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     private int regionZRead;
     private RegionFile regionFileRead;
 
+    // Overrides
+    @Getter private boolean overrideConverter;
+
     /**
      * Construct and init a new Anvil based World
      *
      * @param server   which has requested to load this world
      * @param worldDir the folder where the world should be in
+     * @throws WorldLoadException Thrown in case the world could not be loaded successfully
      */
-    private AnvilWorldAdapter( final GoMintServer server, final File worldDir ) {
+    private AnvilWorldAdapter( final GoMintServer server, final File worldDir ) throws WorldLoadException {
         super( server, worldDir );
         this.chunkCache = new ChunkCache( this );
 
         // Load this world
         // CHECKSTYLE:OFF
-        try {
-            this.loadLevelDat();
-            this.prepareSpawnRegion();
-        } catch ( Exception e ) {
-            e.printStackTrace();
+        // Check for non convert override
+        File convertOverride = new File( worldDir, "ALREADY_CONVERTED" );
+        if ( convertOverride.exists() ) {
+            this.overrideConverter = true;
         }
+
+        this.loadLevelDat();
+        this.prepareSpawnRegion();
         // CHECKSTYLE:ON
     }
 
@@ -62,9 +70,9 @@ public final class AnvilWorldAdapter extends WorldAdapter {
      * @param server      The GoMint Server which runs this
      * @param pathToWorld The path to the world's directory
      * @return The anvil world adapter used to access the world
-     * @throws Exception Thrown in case the world could not be loaded successfully
+     * @throws WorldLoadException Thrown in case the world could not be loaded successfully
      */
-    public static AnvilWorldAdapter load( GoMintServer server, File pathToWorld ) throws Exception {
+    public static AnvilWorldAdapter load( GoMintServer server, File pathToWorld ) throws WorldLoadException {
         return new AnvilWorldAdapter( server, pathToWorld );
     }
 
@@ -72,13 +80,13 @@ public final class AnvilWorldAdapter extends WorldAdapter {
      * Loads all information about the world given inside the level.dat file found
      * in the world's root directory.
      *
-     * @throws IOException Thrown in case the level.dat file could not be loaded
+     * @throws WorldLoadException Thrown in case the level.dat file could not be loaded
      */
-    private void loadLevelDat() throws Exception {
+    private void loadLevelDat() throws WorldLoadException {
         try {
             File levelDat = new File( this.worldDir, "level.dat" );
             if ( !levelDat.exists() || !levelDat.isFile() ) {
-                throw new IOException( "Missing level.dat" );
+                throw new WorldLoadException( "Missing level.dat" );
             }
 
             // Default the settings
@@ -88,45 +96,48 @@ public final class AnvilWorldAdapter extends WorldAdapter {
             // Stream the contents to save memory usage
             try ( InputStream in = new BufferedInputStream( new GZIPInputStream( new FileInputStream( levelDat ) ) ) ) {
                 NBTStream nbtStream = new NBTStream(
-                        in,
-                        ByteOrder.BIG_ENDIAN
+                    in,
+                    ByteOrder.BIG_ENDIAN
                 );
 
-                nbtStream.addListener( new NBTStreamListener() {
-                    @Override
-                    public void onNBTValue( String path, Object value ) throws Exception {
-                        switch ( path ) {
-                            case ".Data.version":
-                                if ( (int) value != 19133 ) {
-                                    throw new IOException( "unsupported world format" );
-                                }
-                                break;
-                            case ".Data.LevelName":
-                                AnvilWorldAdapter.this.levelName = (String) value;
-                                break;
-                            case ".Data.SpawnX":
-                                AnvilWorldAdapter.this.spawn.setX( (int) value );
-                                break;
-                            case ".Data.SpawnY":
-                                AnvilWorldAdapter.this.spawn.setY( (int) value );
-                                break;
-                            case ".Data.SpawnZ":
-                                AnvilWorldAdapter.this.spawn.setZ( (int) value );
-                                break;
-                            case ".Data.Difficulty":
-                                AnvilWorldAdapter.this.difficulty = Difficulty.valueOf( (byte) value );
-                                break;
-                            default:
-                                // logger.debug( "Found level dat NBT Tag: " + path );
-                                break;
-                        }
+                nbtStream.addListener( ( path, value ) -> {
+                    switch ( path ) {
+                        case ".Data.version":
+                            if ( (int) value != 19133 ) {
+                                throw new IOException( "unsupported world format" );
+                            }
+                            break;
+                        case ".Data.LevelName":
+                            AnvilWorldAdapter.this.levelName = (String) value;
+                            break;
+                        case ".Data.SpawnX":
+                            AnvilWorldAdapter.this.spawn.setX( (int) value );
+                            break;
+                        case ".Data.SpawnY":
+                            AnvilWorldAdapter.this.spawn.setY( (int) value );
+                            break;
+                        case ".Data.SpawnZ":
+                            AnvilWorldAdapter.this.spawn.setZ( (int) value );
+                            break;
+                        case ".Data.Difficulty":
+                            AnvilWorldAdapter.this.difficulty = Difficulty.valueOf( (byte) value );
+                            break;
+                        default:
+                            logger.debug( "Found level dat NBT Tag: {}", path );
+                            break;
                     }
                 } );
 
-                nbtStream.parse();
+                // CHECKSTYLE:OFF
+                try {
+                    nbtStream.parse();
+                } catch ( Exception e ) {
+                    throw new WorldLoadException( "Could not load level.dat NBT: " + e.getMessage() );
+                }
+                // CHECKSTYLE:ON
             }
         } catch ( IOException e ) {
-            throw new IOException( "Failed to load anvil world: " + e.getMessage() );
+            throw new WorldLoadException( "Failed to load anvil world: " + e.getMessage() );
         }
     }
 
@@ -144,7 +155,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                 }
 
                 if ( regionFile == null ) {
-                    this.regionFileRead = new RegionFile( this, new File( this.worldDir, String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) ) );
+                    this.regionFileRead = new RegionFile( this, new File( this.worldDir, String.format( REGION_FILE_FORMAT, File.separator, regionX, regionZ ) ) );
                     this.regionXRead = regionX;
                     this.regionZRead = regionZ;
                     regionFile = this.regionFileRead;
@@ -154,7 +165,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                     chunk = regionFile.loadChunk( x, z );
                 } catch ( WorldLoadException e ) {
                     // This means the chunk is corrupted, generate a new one?
-                    this.logger.error( "Found corrupted chunk in %s, generating a new one if needed", String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) );
+                    this.logger.error( "Found corrupted chunk in %s, generating a new one if needed", String.format( REGION_FILE_FORMAT, File.separator, regionX, regionZ ) );
                 }
 
                 if ( chunk != null ) {
@@ -195,13 +206,13 @@ public final class AnvilWorldAdapter extends WorldAdapter {
             }
 
             if ( regionFile == null ) {
-                this.regionFileRead = new RegionFile( this, new File( this.worldDir, String.format( "region%sr.%d.%d.mca", File.separator, regionX, regionZ ) ) );
+                this.regionFileRead = new RegionFile( this, new File( this.worldDir, String.format( REGION_FILE_FORMAT, File.separator, regionX, regionZ ) ) );
                 this.regionXRead = regionX;
                 this.regionZRead = regionZ;
                 regionFile = this.regionFileRead;
             }
 
-            regionFile.saveChunk( (AnvilChunkAdapter) chunk, true );
+            regionFile.saveChunk( (AnvilChunkAdapter) chunk );
         } catch ( IOException e ) {
             this.logger.error( "Failed to save chunk to region file", e );
         }
