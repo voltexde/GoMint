@@ -107,6 +107,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_MOB_EQUIPMENT:
+                return new PacketMobEquipment();
+
             case PACKET_MODAL_RESPONSE:
                 return new PacketModalResponse();
 

@@ -200,8 +200,9 @@ public class SimplePluginManager implements PluginManager {
         }
 
         // Ok everything is fine now, load the plugin
+        PluginClassloader loader = null;
         try {
-            PluginClassloader loader = new PluginClassloader( pluginMeta.getPluginFile() );
+            loader = new PluginClassloader( pluginMeta.getPluginFile() );
             Plugin clazz = (Plugin) constructAndInject( pluginMeta.getMainClass(), loader );
             if ( clazz == null ) {
                 return;
@@ -233,6 +234,11 @@ public class SimplePluginManager implements PluginManager {
         } catch ( Exception e ) {
             LOGGER.warn( "Error whilst starting plugin " + pluginMeta.getName(), e );
             this.metadata.remove( pluginMeta.getName() );
+
+            // Unload if needed
+            if ( loader != null ) {
+                loader.remove();
+            }
         }
     }
 
@@ -479,6 +485,10 @@ public class SimplePluginManager implements PluginManager {
         LOGGER.info( "Uninstalled plugin " + plugin.getName() );
         this.installedPlugins.remove( plugin.getName() );
         this.metadata.remove( plugin.getName() );
+
+        // Unload the loader
+        PluginClassloader classloader = (PluginClassloader) plugin.getClass().getClassLoader();
+        classloader.remove();
     }
 
     @Override
