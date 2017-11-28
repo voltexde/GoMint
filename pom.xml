@@ -18,7 +18,6 @@
     <modules>
         <module>gomint-api</module>
         <module>gomint-server</module>
-        <module>gomint-helper</module>
         <module>gomint-testplugin</module>
         <module>gomint-performanceviewer</module>
     </modules>
