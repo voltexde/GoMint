@@ -567,14 +567,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      * Send all data which the client needs before getting chunks
      */
     public void prepareEntity() {
-        // Update player list
-        PacketPlayerlist playerlist = new PacketPlayerlist();
-        playerlist.setMode( (byte) 0 );
-        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, skin ) );
-        }} );
-        this.getConnection().addToSendQueue( playerlist );
-
         // Send world init data
         this.connection.sendWorldTime( 0 );
         this.connection.sendWorldInitialization();
@@ -1274,6 +1266,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void firstSpawn() {
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
         this.getConnection().sendMovePlayer( this.getLocation() );
+
+        // Update player list
+        PacketPlayerlist playerlist = new PacketPlayerlist();
+        playerlist.setMode( (byte) 0 );
+        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, skin ) );
+        }} );
+        this.getConnection().addToSendQueue( playerlist );
 
         // Spawn for others
         this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );

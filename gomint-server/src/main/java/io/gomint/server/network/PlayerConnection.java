@@ -214,7 +214,7 @@ public class PlayerConnection {
         if ( this.connection == null ) {
             this.releaseSendQueue();
         } else {
-            if ( this.deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ) {
+            if ( this.deviceInfo != null && this.deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ) {
                 this.releaseSendQueue();
             }
         }
@@ -222,7 +222,7 @@ public class PlayerConnection {
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
-            if ( this.connection != null &&this.deviceInfo.getOs() != DeviceInfo.DeviceOS.WINDOWS ) {
+            if ( this.connection != null && ( this.deviceInfo == null || this.deviceInfo.getOs() != DeviceInfo.DeviceOS.WINDOWS ) ) {
                 this.releaseSendQueue();
             }
 

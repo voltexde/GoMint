@@ -279,16 +279,13 @@ public class SimplePluginManager implements PluginManager {
     }
 
     public void installPlugins() {
-        this.loadedPlugins.forEach( new BiConsumer<String, Plugin>() {
-            @Override
-            public void accept( String name, Plugin plugin ) {
-                try {
-                    plugin.onInstall();
-                    installedPlugins.put( name, plugin );
-                } catch ( Exception e ) {
-                    LOGGER.error( "Plugin did startup but could not be installed: " + name, e );
-                    metadata.remove( plugin.getName() );
-                }
+        this.loadedPlugins.forEach( ( name, plugin ) -> {
+            try {
+                plugin.onInstall();
+                installedPlugins.put( name, plugin );
+            } catch ( Exception e ) {
+                LOGGER.error( "Plugin did startup but could not be installed: " + name, e );
+                metadata.remove( plugin.getName() );
             }
         } );
 
@@ -437,22 +434,17 @@ public class SimplePluginManager implements PluginManager {
     }
 
     private void uninstallPlugin0( Plugin plugin ) {
-        new Exception().printStackTrace();
-
         // Did we already disable this plugin?
         if ( !this.installedPlugins.containsKey( plugin.getName() ) ) {
             return;
         }
 
         // Check for plugins with hard depends
-        new HashMap<>( this.metadata ).forEach( new BiConsumer<String, PluginMeta>() {
-            @Override
-            public void accept( String name, PluginMeta meta ) {
-                if ( meta.getDepends() != null && meta.getDepends().contains( plugin.getName() ) ) {
-                    Plugin pluginToUninstall = installedPlugins.get( name );
-                    if ( pluginToUninstall != null ) {
-                        uninstallPlugin0( pluginToUninstall );
-                    }
+        new HashMap<>( this.metadata ).forEach( ( name, meta ) -> {
+            if ( meta.getDepends() != null && meta.getDepends().contains( plugin.getName() ) ) {
+                Plugin pluginToUninstall = installedPlugins.get( name );
+                if ( pluginToUninstall != null ) {
+                    uninstallPlugin0( pluginToUninstall );
                 }
             }
         } );
@@ -469,15 +461,15 @@ public class SimplePluginManager implements PluginManager {
 
         // Cancel all tasks and cleanup scheduler
         try {
-            PluginScheduler scheduler = (PluginScheduler) this.schedulerField.get( plugin );
-            scheduler.cleanup();
+            PluginScheduler pluginScheduler = (PluginScheduler) this.schedulerField.get( plugin );
+            pluginScheduler.cleanup();
         } catch ( IllegalAccessException e ) {
             e.printStackTrace();
         }
 
         // CHECKSTYLE:OFF
         try {
-            LOGGER.debug( "Starting to shutdown " + plugin.getName() );
+            LOGGER.debug( "Starting to shutdown {}", plugin.getName() );
             plugin.onUninstall();
         } catch ( Exception e ) {
             LOGGER.warn( "Plugin throw an exception whilst uninstalling: " + plugin.getName(), e );
