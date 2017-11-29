@@ -27,6 +27,7 @@ import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.*;
+import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.player.PlayerSkin;
@@ -204,10 +205,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void transfer( String host, int port ) {
-        PacketTransfer packetTransfer = new PacketTransfer();
-        packetTransfer.setAddress( host );
-        packetTransfer.setPort( port );
-        this.connection.addToSendQueue( packetTransfer );
+        if ( this.world.getServer().getServerConfig().getListener().isUseTCP() ) {
+            SendPlayerToServerPacket sendPlayerToServerPacket = new SendPlayerToServerPacket();
+            sendPlayerToServerPacket.setHost( host );
+            sendPlayerToServerPacket.setPort( port );
+            this.connection.getConnectionHandler().send( sendPlayerToServerPacket );
+        } else {
+            PacketTransfer packetTransfer = new PacketTransfer();
+            packetTransfer.setAddress( host );
+            packetTransfer.setPort( port );
+            this.connection.addToSendQueue( packetTransfer );
+        }
     }
 
     @Override

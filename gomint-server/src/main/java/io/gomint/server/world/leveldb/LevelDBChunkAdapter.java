@@ -8,6 +8,7 @@
 package io.gomint.server.world.leveldb;
 
 import io.gomint.math.BlockPosition;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
@@ -96,6 +97,8 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                             BlockPosition position = new BlockPosition( ( this.x << 4 ) + k, y , ( this.z << 4 ) + i );
                             this.postProcessors.offer( new PistonPostProcessor( this.world, position ) );
                             break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -105,7 +108,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
     void loadTileEntities( byte[] tileEntityData ) {
         ByteArrayInputStream bais = new ByteArrayInputStream( tileEntityData );
         NBTReader nbtReader = new NBTReader( bais, ByteOrder.LITTLE_ENDIAN );
-        while ( true ) {
+        while ( bais.available() > 0 ) {
             try {
                 NBTTagCompound compound = nbtReader.parse();
                 this.addTileEntity( compound );
@@ -120,7 +123,9 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         while ( bais.available() > 0 ) {
             try {
                 NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( bais, false, ByteOrder.LITTLE_ENDIAN );
-                // DumpUtil.dumpNBTCompund( nbtTagCompound );
+                int entityId = nbtTagCompound.getInteger( "id", 0 ) & 0xFF;
+                System.out.println( entityId );
+                DumpUtil.dumpNBTCompund( nbtTagCompound );
             } catch ( IOException e ) {
                 e.printStackTrace();
             }

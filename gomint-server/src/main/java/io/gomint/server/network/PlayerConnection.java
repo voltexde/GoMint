@@ -93,9 +93,12 @@ public class PlayerConnection {
     // Actual connection for wire transfer:
     @Getter
     private final Connection connection;
+    @Getter
     private final ConnectionHandler connectionHandler;
     @Setter
     private long tcpId;
+    @Setter
+    private int tcpPing;
 
     // World data
     @Getter
@@ -777,8 +780,7 @@ public class PlayerConnection {
      * @return ping of UDP connection or 0 when TCP is used
      */
     public int getPing() {
-        // TODO: Implement TCP ping proxy
-        return ( this.connection != null ) ? (int) this.connection.getPing() : 0;
+        return ( this.connection != null ) ? (int) this.connection.getPing() : this.tcpPing;
     }
 
     public long getId() {

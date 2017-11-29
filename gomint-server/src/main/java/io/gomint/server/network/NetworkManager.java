@@ -107,31 +107,24 @@ public class NetworkManager {
 
         // Check which listener to use
         if ( this.server.getServerConfig().getListener().isUseTCP() ) {
-            this.tcpListener = Initializer.buildServerBootstrap( new Consumer<ConnectionHandler>() {
-                @Override
-                public void accept( ConnectionHandler connectionHandler ) {
-                    PlayerPreLoginEvent playerPreLoginEvent = getServer().getPluginManager().callEvent(
-                        new PlayerPreLoginEvent( (InetSocketAddress) connectionHandler.getChannel().remoteAddress() )
-                    );
+            this.tcpListener = Initializer.buildServerBootstrap( connectionHandler -> {
+                PlayerPreLoginEvent playerPreLoginEvent = getServer().getPluginManager().callEvent(
+                    new PlayerPreLoginEvent( (InetSocketAddress) connectionHandler.getChannel().remoteAddress() )
+                );
 
-                    if ( playerPreLoginEvent.isCancelled() ) {
-                        connectionHandler.disconnect();
-                        return;
-                    }
-
-                    PlayerConnection playerConnection = new PlayerConnection( NetworkManager.this, null,
-                        connectionHandler, PlayerConnectionState.HANDSHAKE );
-                    playerConnection.setTcpId( idCounter.incrementAndGet() );
-
-                    incomingConnections.offer( playerConnection );
-
-                    connectionHandler.whenDisconnected( new Consumer<Void>() {
-                        @Override
-                        public void accept( Void aVoid ) {
-                            handleConnectionClosed( playerConnection.getId() );
-                        }
-                    } );
+                if ( playerPreLoginEvent.isCancelled() ) {
+                    connectionHandler.disconnect();
+                    return;
                 }
+
+                PlayerConnection playerConnection = new PlayerConnection( NetworkManager.this, null,
+                    connectionHandler, PlayerConnectionState.HANDSHAKE );
+                playerConnection.setTcpId( idCounter.incrementAndGet() );
+
+                incomingConnections.offer( playerConnection );
+
+                connectionHandler.onPing( playerConnection::setTcpPing );
+                connectionHandler.whenDisconnected( aVoid -> handleConnectionClosed( playerConnection.getId() ) );
             } );
 
             this.tcpChannel = this.tcpListener.bind( host, port ).syncUninterruptibly().channel();
@@ -148,12 +141,7 @@ public class NetworkManager {
             this.socket = new ServerSocket( maxConnections );
             this.socket.setMojangModificationEnabled( true );
             this.socket.setEventLoopFactory( this.server.getThreadFactory() );
-            this.socket.setEventHandler( new SocketEventHandler() {
-                @Override
-                public void onSocketEvent( Socket socket, SocketEvent socketEvent ) {
-                    NetworkManager.this.handleSocketEvent( socketEvent );
-                }
-            } );
+            this.socket.setEventHandler( ( socket, socketEvent ) -> NetworkManager.this.handleSocketEvent( socketEvent ) );
             this.socket.bind( host, port );
         }
     }
