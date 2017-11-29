@@ -7,8 +7,12 @@
 
 package io.gomint.server.world.anvil;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.util.Pair;
 import io.gomint.server.world.*;
 import io.gomint.taglib.NBTStream;
 import io.gomint.world.Difficulty;
@@ -17,6 +21,8 @@ import lombok.Getter;
 
 import java.io.*;
 import java.nio.ByteOrder;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -30,10 +36,17 @@ public final class AnvilWorldAdapter extends WorldAdapter {
 
     // ==================================== FIELDS ==================================== //
 
-    // I/O
-    private int regionXRead;
-    private int regionZRead;
-    private RegionFile regionFileRead;
+    // Cache
+    private LoadingCache<Pair<Integer, Integer>, RegionFile> openFileCache = CacheBuilder.newBuilder()
+        .expireAfterAccess( 10, TimeUnit.MINUTES )
+        .build( new CacheLoader<Pair<Integer, Integer>, RegionFile>() {
+            @Override
+            public RegionFile load( Pair<Integer, Integer> pair ) throws Exception {
+                AnvilWorldAdapter.this.logger.debug( "Opening new region file {}, {}", pair.getFirst(), pair.getSecond() );
+                return new RegionFile( AnvilWorldAdapter.this, new File( AnvilWorldAdapter.this.worldDir,
+                    String.format( REGION_FILE_FORMAT, File.separator, pair.getFirst(), pair.getSecond() ) ) );
+            }
+        } );
 
     // Overrides
     @Getter private boolean overrideConverter;
@@ -142,24 +155,14 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     }
 
     @Override
-    protected ChunkAdapter loadChunk( int x, int z, boolean generate ) {
+    protected synchronized ChunkAdapter loadChunk( int x, int z, boolean generate ) {
         ChunkAdapter chunk = this.chunkCache.getChunk( x, z );
         if ( chunk == null ) {
             try {
                 int regionX = CoordinateUtils.fromChunkToRegion( x );
                 int regionZ = CoordinateUtils.fromChunkToRegion( z );
 
-                RegionFile regionFile = null;
-                if ( this.regionFileRead != null && this.regionXRead == regionX && this.regionZRead == regionZ ) {
-                    regionFile = this.regionFileRead;
-                }
-
-                if ( regionFile == null ) {
-                    this.regionFileRead = new RegionFile( this, new File( this.worldDir, String.format( REGION_FILE_FORMAT, File.separator, regionX, regionZ ) ) );
-                    this.regionXRead = regionX;
-                    this.regionZRead = regionZ;
-                    regionFile = this.regionFileRead;
-                }
+                RegionFile regionFile = this.openFileCache.get( new Pair<>( regionX, regionZ ) );
 
                 try {
                     chunk = regionFile.loadChunk( x, z );
@@ -176,7 +179,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                 }
 
                 return chunk;
-            } catch ( IOException e ) {
+            } catch ( IOException | ExecutionException e ) {
                 if ( generate ) {
                     return this.generate( x, z );
                 } else {
@@ -189,7 +192,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     }
 
     @Override
-    protected void saveChunk( ChunkAdapter chunk ) {
+    protected synchronized void saveChunk( ChunkAdapter chunk ) {
         if ( chunk == null ) {
             return;
         }
@@ -200,20 +203,9 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         int regionZ = CoordinateUtils.fromChunkToRegion( chunkZ );
 
         try {
-            RegionFile regionFile = null;
-            if ( this.regionFileRead != null && this.regionXRead == regionX && this.regionZRead == regionZ ) {
-                regionFile = this.regionFileRead;
-            }
-
-            if ( regionFile == null ) {
-                this.regionFileRead = new RegionFile( this, new File( this.worldDir, String.format( REGION_FILE_FORMAT, File.separator, regionX, regionZ ) ) );
-                this.regionXRead = regionX;
-                this.regionZRead = regionZ;
-                regionFile = this.regionFileRead;
-            }
-
+            RegionFile regionFile = this.openFileCache.get( new Pair<>( regionX, regionZ ) );
             regionFile.saveChunk( (AnvilChunkAdapter) chunk );
-        } catch ( IOException e ) {
+        } catch ( IOException | ExecutionException e ) {
             this.logger.error( "Failed to save chunk to region file", e );
         }
     }

@@ -12,9 +12,11 @@ import io.gomint.taglib.NBTStream;
 
 import java.io.*;
 import java.nio.ByteOrder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.DataFormatException;
 import java.util.zip.DeflaterOutputStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.InflaterInputStream;
+import java.util.zip.Inflater;
 
 /**
  * @author BlackyPaw
@@ -24,6 +26,13 @@ class RegionFile {
 
     private final AnvilWorldAdapter world;
     private final RandomAccessFile file;
+    private final Map<Integer, int[]> lookupCache = new HashMap<>();
+
+    // Caches
+    private final byte[] decompressBuffer = new byte[64 * 1024];
+    private final ByteArrayOutputStream decompressOutput = new ByteArrayOutputStream();
+    private final Inflater inflater = new Inflater();
+    private final Inflater gzipInflater = new Inflater( true );
 
     /**
      * Constructs a new region file that will load from the specified file.
@@ -42,6 +51,18 @@ class RegionFile {
             this.file.seek( 0L );
             this.file.write( header );
         }
+
+        // Read offset header
+        for ( int i = 0; i < 1024; i++ ) {
+            // First int is the offset in the file
+            byte[] buffer = new byte[4];
+            this.file.read( buffer, 0, 3 );
+
+            int offset = ( ( (int) buffer[0] << 16 & 0xFF0000 ) | ( (int) buffer[1] << 8 & 0xFF00 ) | ( (int) buffer[2] & 0xFF ) );
+            int length = this.file.read();
+
+            this.lookupCache.put( i, new int[]{ offset, length } );
+        }
     }
 
     /**
@@ -54,24 +75,20 @@ class RegionFile {
      * @throws WorldLoadException Thrown in the case that the chunk loaded was corrupted
      */
     AnvilChunkAdapter loadChunk( int x, int z ) throws IOException, WorldLoadException {
-        long fileOffset = ( ( x & 31 ) + ( ( z & 31 ) << 5 ) ) << 2;
+        int chunkIndex = ( ( x & 31 ) + ( ( z & 31 ) << 5 ) );
+        int[] lookup = this.lookupCache.get( chunkIndex );
 
-        // Navigate to entry in location table:
-        this.file.seek( fileOffset );
+        int offset = lookup[0];
+        int length = lookup[1];
 
-        byte[] buffer = new byte[4];
-        this.file.read( buffer, 0, 3 );
-
-        int offset = ( ( (int) buffer[0] << 16 & 0xFF0000 ) | ( (int) buffer[1] << 8 & 0xFF00 ) | ( (int) buffer[2] & 0xFF ) );
-
-        int length = this.file.read();
         if ( offset == 0 || length == 0 ) {
             throw new IOException( "Chunk not found inside region" );
         }
 
-        fileOffset = (long) offset << 12;
+        long fileOffset = (long) offset << 12;
 
         // Seek chunk data:
+        byte[] buffer = new byte[4];
         this.file.seek( fileOffset );
         this.file.read( buffer, 0, 4 );
 
@@ -83,18 +100,44 @@ class RegionFile {
         InputStream input;
         switch ( compressionScheme ) {
             case 1:
-                input = new GZIPInputStream( new ByteArrayInputStream( nbtBuffer ) );
+                this.gzipInflater.setInput( nbtBuffer );
+
+                this.decompressOutput.reset();
+                try {
+                    int amountOfBytesDecompressed = -1;
+                    while ( ( amountOfBytesDecompressed = this.gzipInflater.inflate( this.decompressBuffer ) ) > 0 ) {
+                        this.decompressOutput.write( this.decompressBuffer, 0, amountOfBytesDecompressed );
+                    }
+                } catch ( DataFormatException e ) {
+                    throw new IOException( "Could not decompress data due to zlib error: ", e );
+                }
+
+                this.gzipInflater.reset();
+                input = new ByteArrayInputStream( this.decompressOutput.toByteArray() );
                 break;
 
             case 2:
-                input = new InflaterInputStream( new ByteArrayInputStream( nbtBuffer ) );
+                this.inflater.setInput( nbtBuffer );
+
+                this.decompressOutput.reset();
+                try {
+                    int amountOfBytesDecompressed = -1;
+                    while ( ( amountOfBytesDecompressed = this.inflater.inflate( this.decompressBuffer ) ) > 0 ) {
+                        this.decompressOutput.write( this.decompressBuffer, 0, amountOfBytesDecompressed );
+                    }
+                } catch ( DataFormatException e ) {
+                    throw new IOException( "Could not decompress data due to zlib error: ", e );
+                }
+
+                this.inflater.reset();
+                input = new ByteArrayInputStream( this.decompressOutput.toByteArray() );
                 break;
 
             default:
                 throw new IOException( "Unsupported compression scheme for chunk data (" + compressionScheme + ")" );
         }
 
-        NBTStream nbtStream = new NBTStream( new BufferedInputStream( input ), ByteOrder.BIG_ENDIAN );
+        NBTStream nbtStream = new NBTStream( input, ByteOrder.BIG_ENDIAN );
         AnvilChunkAdapter chunkAdapter = new AnvilChunkAdapter( this.world, x, z );
         chunkAdapter.loadFromNBT( nbtStream );
         return chunkAdapter;
@@ -110,7 +153,8 @@ class RegionFile {
         int x = chunk.getX();
         int z = chunk.getZ();
 
-        long fileOffset = ( ( x & 31 ) + ( ( z & 31 ) << 5 ) ) << 2;
+        int chunkIndex = ( ( x & 31 ) + ( ( z & 31 ) << 5 ) );
+        long fileOffset = chunkIndex << 2;
 
         // Navigate to entry in location table:
         this.file.seek( fileOffset );
@@ -153,6 +197,9 @@ class RegionFile {
         buffer[3] = (byte) sectorLength;
 
         this.file.write( buffer );
+
+        // Update cache
+        this.lookupCache.put( chunkIndex, new int[]{ sectorOffset, sectorLength } );
 
         // Adjust timestamp:
         int timestamp = (int) ( System.currentTimeMillis() / 1000 );
