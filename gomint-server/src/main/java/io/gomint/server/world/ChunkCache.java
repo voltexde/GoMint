@@ -105,6 +105,12 @@ public class ChunkCache {
                     continue;
                 }
 
+                // Check if we need to save
+                if ( this.autoSaveInterval > 0 && chunk.getLastSavedTimestamp() + this.autoSaveInterval < currentTimeMS ) {
+                    this.world.saveChunkAsynchronously( chunk );
+                    chunk.setLastSavedTimestamp( currentTimeMS );
+                }
+
                 this.currentX = (int) ( chunkHash >> 32 );
                 this.currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
 
@@ -129,11 +135,6 @@ public class ChunkCache {
                 }
 
                 LOGGER.debug( "Cleaning up chunk @ " + this.currentX + " " + this.currentZ );
-
-                if ( chunk.getLastSavedTimestamp() + this.autoSaveInterval < currentTimeMS ) {
-                    this.world.saveChunkAsynchronously( chunk );
-                    chunk.setLastSavedTimestamp( currentTimeMS );
-                }
 
                 // Ask this chunk if he wants to be gced
                 if ( toRemoveHashes == null ) {

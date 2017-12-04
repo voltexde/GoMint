@@ -116,6 +116,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             try {
                 skinToken.validateSignature( JwtAlgorithm.ES384, trusted );
             } catch ( JwtSignatureException e ) {
+                LOGGER.info( "Invalid skin: ", e );
                 validSkin = false;
             }
 

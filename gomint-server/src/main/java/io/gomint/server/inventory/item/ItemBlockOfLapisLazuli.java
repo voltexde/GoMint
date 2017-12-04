@@ -10,14 +10,14 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 22 )
- public class ItemLapisLazuliBlock extends ItemStack implements io.gomint.inventory.item.ItemLapisLazuliBlock {
+ public class ItemBlockOfLapisLazuli extends ItemStack implements io.gomint.inventory.item.ItemBlockOfLapisLazuli {
 
     // CHECKSTYLE:OFF
-    public ItemLapisLazuliBlock( short data, int amount ) {
+    public ItemBlockOfLapisLazuli( short data, int amount ) {
         super( 22, data, amount );
     }
 
-    public ItemLapisLazuliBlock( short data, int amount, NBTTagCompound nbt ) {
+    public ItemBlockOfLapisLazuli( short data, int amount, NBTTagCompound nbt ) {
         super( 22, data, amount, nbt );
     }
     // CHECKSTYLE:ON
