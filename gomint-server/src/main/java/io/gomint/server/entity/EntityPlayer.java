@@ -311,6 +311,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void hidePlayer( io.gomint.entity.EntityPlayer player ) {
+        // Never hide myself (client crashes when this is done)
+        if ( player.equals( this ) ) {
+            LOGGER.warn( "You can't hide a player itself. Please tell the plugin author to remove the hidePlayer call" );
+            return;
+        }
+
         EntityPlayer other = (EntityPlayer) player;
 
         if ( this.hiddenPlayers == null ) {
