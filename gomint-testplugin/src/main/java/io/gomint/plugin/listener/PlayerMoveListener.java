@@ -5,9 +5,7 @@ import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerMoveEvent;
 import io.gomint.math.BlockPosition;
-import io.gomint.math.Vector;
 import io.gomint.world.block.Block;
-import io.gomint.world.block.BlockDirt;
 
 /**
  * @author geNAZt
