@@ -42,7 +42,7 @@ public class SubCommand extends Command {
     }
 
     public void addCommand( Plugin plugin, String subCommandName, CommandHolder holder ) {
-        if ( this.plugin.equals( plugin ) ) {
+        if ( plugin == null || this.plugin.equals( plugin ) ) {
             this.subCommands.put( subCommandName, holder );
         }
     }

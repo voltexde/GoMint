@@ -35,7 +35,7 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
         String commandName = commandParts[consumed++];
 
         CommandHolder selected = null;
-        while ( selected == null && commandParts.length <= consumed ) {
+        while ( selected == null && commandParts.length >= consumed ) {
             for ( CommandHolder commandHolder : connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
                 if ( commandName.equalsIgnoreCase( commandHolder.getName() ) ) {
                     selected = commandHolder;
@@ -65,7 +65,7 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
             } else {
                 // Now we need to parse all additional parameters
                 String[] params;
-                if ( commandParts.length < consumed ) {
+                if ( commandParts.length > consumed ) {
                     params = new String[commandParts.length - consumed];
                     System.arraycopy( commandParts, consumed - 1, params, 0, commandParts.length - consumed );
                 } else {
