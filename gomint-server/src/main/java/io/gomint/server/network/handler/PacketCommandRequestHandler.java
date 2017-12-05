@@ -29,13 +29,22 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
 
         // Search for correct command holder
         String removedFirstChar = packet.getInputCommand().substring( 1 );
-        String commandName = removedFirstChar.split( " " )[0];
+        String[] commandParts = removedFirstChar.split( " " );
+        int consumed = 0;
+
+        String commandName = commandParts[consumed++];
 
         CommandHolder selected = null;
-        for ( CommandHolder commandHolder : connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
-            if ( commandName.equalsIgnoreCase( commandHolder.getName() ) ) {
-                selected = commandHolder;
-                break;
+        while ( selected == null && commandParts.length <= consumed ) {
+            for ( CommandHolder commandHolder : connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
+                if ( commandName.equalsIgnoreCase( commandHolder.getName() ) ) {
+                    selected = commandHolder;
+                    break;
+                }
+            }
+
+            if ( selected == null ) {
+                commandName += " " + commandParts[consumed++];
             }
         }
 
@@ -55,14 +64,13 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                 }} );
             } else {
                 // Now we need to parse all additional parameters
-                String restData;
-                if ( removedFirstChar.length() > selected.getName().length() ) {
-                    restData = removedFirstChar.substring( selected.getName().length() + 1 );
+                String[] params;
+                if ( commandParts.length < consumed ) {
+                    params = new String[commandParts.length - consumed];
+                    System.arraycopy( commandParts, consumed - 1, params, 0, commandParts.length - consumed );
                 } else {
-                    restData = "";
+                    params = new String[0];
                 }
-
-                String[] params = !restData.isEmpty() ? restData.split( " " ) : new String[0];
 
                 PacketCommandOutput output = new PacketCommandOutput();
                 packet.getCommandOrigin().setType( (byte) 3 );
