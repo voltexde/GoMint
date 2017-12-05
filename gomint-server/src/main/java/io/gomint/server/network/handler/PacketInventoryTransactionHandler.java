@@ -21,6 +21,7 @@ import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.world.Gamemode;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockAir;
+import io.gomint.world.block.BlockFace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +35,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
     @Override
     public void handle( PacketInventoryTransaction packet, long currentTimeMillis, PlayerConnection connection ) {
-        LOGGER.info( packet.toString() );
-
         switch ( packet.getType() ) {
             case PacketInventoryTransaction.TYPE_NORMAL:
                 this.handleTypeNormal( connection, packet );
@@ -50,7 +49,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 double distance = packetPosition.distanceSquared( playerPosition );
                 double offsetLimit = 0.5;
                 if ( distance > offsetLimit ) {
-                    LOGGER.warn( "Mismatching position: " + distance + " -> " + playerPosition );
+                    LOGGER.warn( "Mismatching position: {} -> {}", distance, playerPosition );
                     reset( packet, connection );
                     return;
                 }
@@ -61,7 +60,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     Vector interactCheckVector = packet.getBlockPosition().toVector().add( .5f, .5f, .5f );
                     if ( !connection.getEntity().canInteract( interactCheckVector, 13 ) ||
                         connection.getEntity().getGamemode() == Gamemode.SPECTATOR ) {
-                        LOGGER.warn( "Can't interact from position: " + connection.getEntity().getPosition() + " / " + packet.getBlockPosition() );
+                        LOGGER.warn( "Can't interact from position: {} / {}", connection.getEntity().getPosition(), packet.getBlockPosition() );
                         reset( packet, connection );
                         return;
                     }
@@ -71,18 +70,15 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
                 ItemStack packetItemInHand = packet.getItemInHand();
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
-                    LOGGER.warn( connection.getEntity().getName() + " item in hand does not match: " + itemInHand + " / " + packetItemInHand );
+                    LOGGER.warn( "{} item in hand does not match: {} / {}", connection.getEntity().getName(), itemInHand, packetItemInHand );
                     reset( packet, connection );
                     return;
                 }
 
-                switch ( packet.getType() ) {
-                    case PacketInventoryTransaction.TYPE_USE_ITEM:
-                        this.handleUseItem( itemInHand, connection, packet );
-                        break;
-                    default:
-                        this.handleConsumeItem( itemInHand, connection, packet );
-                        break;
+                if ( packet.getType() == PacketInventoryTransaction.TYPE_USE_ITEM ) {
+                    this.handleUseItem( itemInHand, connection, packet );
+                } else {
+                    this.handleConsumeItem( itemInHand, connection, packet );
                 }
 
                 break;
@@ -91,14 +87,14 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 itemInHand = connection.getEntity().getInventory().getItemInHand();
                 packetItemInHand = packet.getItemInHand();
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
-                    LOGGER.warn( connection.getEntity().getName() + " item in hand does not match: " + itemInHand + " / " + packetItemInHand );
+                    LOGGER.warn( "{} item in hand does not match: {} / {}", connection.getEntity().getName(), itemInHand, packetItemInHand );
                     reset( packet, connection );
                     return;
                 }
 
                 // When the player wants to do this it should have selected a entity in its interact
                 if ( connection.getEntity().getHoverEntity() == null ) {
-                    LOGGER.warn( connection.getEntity().getName() + " selected entity is null" );
+                    LOGGER.warn( "{} selected entity is null", connection.getEntity().getName() );
                     reset( packet, connection );
                     return;
                 }
@@ -106,7 +102,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Find the entity from this packet
                 io.gomint.entity.Entity entity = connection.getEntity().getWorld().findEntity( packet.getEntityId() );
                 if ( entity == null || !connection.getEntity().getHoverEntity().equals( entity ) ) {
-                    LOGGER.warn( connection.getEntity().getName() + " entity does not match: " + entity + "; " + connection.getEntity().getHoverEntity() + "; " + packet.getEntityId() );
+                    LOGGER.warn( "{} entity does not match: {}; {}; {}", connection.getEntity().getName(), entity, connection.getEntity().getHoverEntity(), packet.getEntityId() );
                     reset( packet, connection );
                     return;
                 }
@@ -144,6 +140,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     reset( packet, connection );
                 }
 
+                break;
+            default:
                 break;
         }
     }
@@ -361,7 +359,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
     private Inventory getInventory( PacketInventoryTransaction.NetworkTransaction transaction, EntityPlayer entity ) {
         Inventory inventory = null;
         switch ( transaction.getWindowId() ) {
-            // TODO: Please look away, crafting hacks at work
             case -2:    // Add to crafting
             case -3:    // Removed from crafting
                 inventory = entity.getCraftingInventory();
@@ -394,7 +391,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 if ( containerInventory != null ) {
                     inventory = containerInventory;
                 } else {
-                    LOGGER.warn( "Unknown window id: " + transaction.getWindowId() );
+                    LOGGER.warn( "Unknown window id: {}", transaction.getWindowId() );
                 }
         }
 
@@ -411,6 +408,10 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             if ( packet.getFace() > -1 ) {
                 io.gomint.server.world.block.Block replacedBlock = (io.gomint.server.world.block.Block) clickedBlock.getSide( packet.getFace() );
                 replacedBlock.send( connection );
+
+                for ( BlockFace face : BlockFace.values() ) {
+                    ( (io.gomint.server.world.block.Block) replacedBlock.getSide( face.getValue() ) ).send( connection );
+                }
             }
 
             clickedBlock.send( connection );

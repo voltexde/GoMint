@@ -68,7 +68,8 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         ByteBuffer buf = ByteBuffer.wrap( chunkData );
 
         // First byte is chunk section version
-        buf.get();
+        byte version = buf.get();
+        this.world.getLogger().debug( "LevelDB chunk version: {}", version );
 
         // Next 4096 bytes are block data
         byte[] blockData = new byte[4096];
@@ -119,7 +120,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
     }
 
     void loadEntities( byte[] entityData ) {
-        ByteArrayInputStream bais = new ByteArrayInputStream( entityData );
+        /*ByteArrayInputStream bais = new ByteArrayInputStream( entityData );
         while ( bais.available() > 0 ) {
             try {
                 NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( bais, false, ByteOrder.LITTLE_ENDIAN );
@@ -129,7 +130,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             } catch ( IOException e ) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
 }

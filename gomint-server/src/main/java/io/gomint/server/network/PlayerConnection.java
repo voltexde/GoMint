@@ -138,6 +138,29 @@ public class PlayerConnection {
         this.state = initialState;
         this.server = networkManager.getServer();
         this.playerChunks = ChunkHashSet.withExpectedSize( 100 );
+
+        // Attach data processor if needed
+        if ( this.connection != null ) {
+            this.connection.addDataProcessor( packetData -> {
+                PacketBuffer buffer = new PacketBuffer( packetData.getPacketData(), 0 );
+                if ( buffer.getRemaining() <= 0 ) {
+                    // Malformed packet:
+                    return packetData;
+                }
+
+                // Check if packet is batched
+                byte packetId = buffer.readByte();
+                if ( packetId == Protocol.PACKET_BATCH ) {
+                    // Decompress and decrypt
+                    byte[] pureData = handleBatchPacket( buffer );
+                    EncapsulatedPacket newPacket = new EncapsulatedPacket();
+                    newPacket.setPacketData( pureData );
+                    return newPacket;
+                }
+
+                return packetData;
+            } );
+        }
     }
 
     /**
@@ -266,7 +289,7 @@ public class PlayerConnection {
             EncapsulatedPacket packetData;
             while ( ( packetData = this.connection.receive() ) != null ) {
                 try {
-                    this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ), false );
+                    this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ) );
                 } catch ( Exception e ) {
                     LOGGER.error( "Error whilst processing packet: ", e );
                 }
@@ -275,7 +298,7 @@ public class PlayerConnection {
             while ( !this.connectionHandler.getData().isEmpty() ) {
                 PacketBuffer buffer = this.connectionHandler.getData().poll();
                 try {
-                    this.handleSocketData( currentMillis, buffer, true );
+                    this.handleSocketData( currentMillis, buffer );
                 } catch ( Exception e ) {
                     LOGGER.error( "Error whilst processing packet: ", e );
                 }
@@ -382,30 +405,50 @@ public class PlayerConnection {
      *
      * @param currentTimeMillis The time in millis of this tick
      * @param buffer            The buffer containing the received data
-     * @param batch             Does this packet come out of a batch
      */
-    private void handleSocketData( long currentTimeMillis, PacketBuffer buffer, boolean batch ) {
+    private void handleSocketData( long currentTimeMillis, PacketBuffer buffer ) {
         if ( buffer.getRemaining() <= 0 ) {
             // Malformed packet:
             return;
         }
 
+        if ( this.connection != null ) {
+            while ( buffer.getRemaining() > 0 ) {
+                int packetLength = buffer.readUnsignedVarInt();
+
+                byte[] payData = new byte[packetLength];
+                buffer.readBytes( payData );
+                PacketBuffer pktBuf = new PacketBuffer( payData, 0 );
+                this.handleBufferData( currentTimeMillis, pktBuf );
+
+                if ( pktBuf.getRemaining() > 0 ) {
+                    LOGGER.error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x{} remaining {} bytes", Integer.toHexString( payData[0] ), pktBuf.getRemaining() );
+                    return;
+                }
+            }
+        } else {
+            this.handleBufferData( currentTimeMillis, buffer );
+        }
+    }
+
+    private void handleBufferData( long currentTimeMillis, PacketBuffer buffer ) {
+
         // Grab the packet ID from the packet's data
         byte packetId = buffer.readByte();
 
         // There is some data behind the packet id when non batched packets (2 bytes)
-        // TODO: Find out if MCPE uses triads as packetnumbers now
-        if ( packetId != PACKET_BATCH ) {
-            buffer.readShort();
+        if ( packetId == PACKET_BATCH ) {
+            LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
         }
+
+        // TODO: Proper implement sending subclient and target subclient (two bytes)
+        buffer.readShort();
 
         // LOGGER.info( "Got packet with ID: " + Integer.toHexString( packetId & 0xff ) );
 
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
-            if ( packetId == PACKET_BATCH ) {
-                this.handleBatchPacket( currentTimeMillis, buffer, batch );
-            } else if ( packetId == PACKET_LOGIN ) {
+            if ( packetId == PACKET_LOGIN ) {
                 PacketLogin packet = new PacketLogin();
                 packet.deserialize( buffer );
                 this.handlePacket( currentTimeMillis, packet );
@@ -419,9 +462,7 @@ public class PlayerConnection {
 
         // When we are in encryption init state
         if ( this.state == PlayerConnectionState.ENCRPYTION_INIT ) {
-            if ( packetId == PACKET_BATCH ) {
-                this.handleBatchPacket( currentTimeMillis, buffer, batch );
-            } else if ( packetId == PACKET_ENCRYPTION_RESPONSE ) {
+            if ( packetId == PACKET_ENCRYPTION_RESPONSE ) {
                 this.handlePacket( currentTimeMillis, new PacketEncryptionResponse() );
             } else {
                 LOGGER.error( "Received odd packet" );
@@ -433,9 +474,7 @@ public class PlayerConnection {
 
         // When we are in resource pack state
         if ( this.state == PlayerConnectionState.RESOURCE_PACK ) {
-            if ( packetId == PACKET_BATCH ) {
-                this.handleBatchPacket( currentTimeMillis, buffer, batch );
-            } else if ( packetId == PACKET_RESOURCEPACK_RESPONSE ) {
+            if ( packetId == PACKET_RESOURCEPACK_RESPONSE ) {
                 PacketResourcePackResponse packet = new PacketResourcePackResponse();
                 packet.deserialize( buffer );
                 this.handlePacket( currentTimeMillis, packet );
@@ -447,34 +486,27 @@ public class PlayerConnection {
             return;
         }
 
-        if ( packetId == PACKET_BATCH ) {
-            this.handleBatchPacket( currentTimeMillis, buffer, batch );
-        } else {
-            Packet packet = Protocol.createPacket( packetId );
-            if ( packet == null ) {
-                this.networkManager.notifyUnknownPacket( packetId, buffer );
 
-                // Got to skip
-                buffer.skip( buffer.getRemaining() );
-                return;
-            }
+        Packet packet = Protocol.createPacket( packetId );
+        if ( packet == null ) {
+            this.networkManager.notifyUnknownPacket( packetId, buffer );
 
-            packet.deserialize( buffer );
-            this.handlePacket( currentTimeMillis, packet );
+            // Got to skip
+            buffer.skip( buffer.getRemaining() );
+            return;
         }
+
+        packet.deserialize( buffer );
+        this.handlePacket( currentTimeMillis, packet );
     }
 
     /**
      * Handles compressed batch packets directly by decoding their payload.
      *
      * @param buffer The buffer containing the batch packet's data (except packet ID)
+     * @return decompressed and decrypted data
      */
-    private void handleBatchPacket( long currentTimeMillis, PacketBuffer buffer, boolean batch ) {
-        if ( batch ) {
-            LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
-            return;
-        }
-
+    private byte[] handleBatchPacket( PacketBuffer buffer ) {
         // Encrypted?
         byte[] input = new byte[buffer.getRemaining()];
         System.arraycopy( buffer.getBuffer(), buffer.getPosition(), input, 0, input.length );
@@ -483,7 +515,7 @@ public class PlayerConnection {
             if ( input == null ) {
                 // Decryption error
                 disconnect( "Checksum of encrypted packet was wrong" );
-                return;
+                return null;
             }
         }
 
@@ -499,26 +531,10 @@ public class PlayerConnection {
             }
         } catch ( IOException e ) {
             LOGGER.error( "Failed to decompress batch packet", e );
-            return;
+            return null;
         }
 
-        byte[] payload = bout.toByteArray();
-
-        PacketBuffer payloadBuffer = new PacketBuffer( payload, 0 );
-        while ( payloadBuffer.getRemaining() > 0 ) {
-            int packetLength = payloadBuffer.readUnsignedVarInt();
-
-            byte[] payData = new byte[packetLength];
-            payloadBuffer.readBytes( payData );
-            PacketBuffer pktBuf = new PacketBuffer( payData, 0 );
-            this.handleSocketData( currentTimeMillis, pktBuf, true );
-
-            if ( pktBuf.getRemaining() > 0 ) {
-                LOGGER.error( "Malformed batch packet payload: Could not read enclosed packet data correctly: 0x" +
-                    Integer.toHexString( payData[0] ) + " remaining " + pktBuf.getRemaining() + " bytes" );
-                return;
-            }
-        }
+        return bout.toByteArray();
     }
 
     /**

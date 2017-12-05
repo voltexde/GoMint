@@ -132,14 +132,14 @@ public enum TileEntities {
                 try {
                     return (TileEntity) tileEntities.tileEntityConstructor.invoke( compound, world );
                 } catch ( Throwable throwable ) {
-                    throwable.printStackTrace();
+                    LOGGER.warn( "Could not build up tile entity: ", throwable );
                     return null;
                 }
 
             }
         }
 
-        LOGGER.warn( "Unknown tile entity found: " + id );
+        LOGGER.warn( "Unknown tile entity found: {}", id );
         return null;
     }
 

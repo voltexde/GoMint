@@ -29,12 +29,13 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
 
         // Search for correct command holder
         String removedFirstChar = packet.getInputCommand().substring( 1 );
+        String commandName = removedFirstChar.split( " " )[0];
+
         CommandHolder selected = null;
         for ( CommandHolder commandHolder : connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
-            if ( removedFirstChar.startsWith( commandHolder.getName() ) ) {
-                if ( selected == null || selected.getName().length() < commandHolder.getName().length() ) {
-                    selected = commandHolder;
-                }
+            if ( commandName.equalsIgnoreCase( commandHolder.getName() ) ) {
+                selected = commandHolder;
+                break;
             }
         }
 

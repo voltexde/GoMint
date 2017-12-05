@@ -58,6 +58,7 @@ public abstract class WorldAdapter implements World {
     // Shared objects
     @Getter
     protected final GoMintServer server;
+    @Getter
     protected final Logger logger;
 
     // World properties
