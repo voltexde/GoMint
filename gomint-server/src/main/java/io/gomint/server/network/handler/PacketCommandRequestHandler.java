@@ -67,7 +67,7 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                 String[] params;
                 if ( commandParts.length > consumed ) {
                     params = new String[commandParts.length - consumed];
-                    System.arraycopy( commandParts, consumed - 1, params, 0, commandParts.length - consumed );
+                    System.arraycopy( commandParts, consumed, params, 0, commandParts.length - consumed );
                 } else {
                     params = new String[0];
                 }
