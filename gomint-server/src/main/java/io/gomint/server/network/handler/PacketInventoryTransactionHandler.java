@@ -218,7 +218,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 break;
             case 2: // Break block
                 // Breaking blocks too fast / missing start_break
-                if ( connection.getEntity().getBreakVector() == null ) {
+                if ( connection.getEntity().getGamemode() != Gamemode.CREATIVE && connection.getEntity().getBreakVector() == null ) {
                     reset( packet, connection );
                     LOGGER.debug( "Breaking block without break vector" );
                     return;
@@ -229,6 +229,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     if ( packet.getActions().length > 1 ) {
                         // This can only have 0 or 1 transaction
                         reset( packet, connection );
+                        connection.getEntity().setBreakVector( null );
                         return;
                     }
 
@@ -238,6 +239,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                         if ( !source.equals( itemInHand ) || source.getAmount() != itemInHand.getAmount() ) {
                             // Transaction is invalid
                             reset( packet, connection );
+                            connection.getEntity().setBreakVector( null );
                             return;
                         }
 
@@ -246,27 +248,31 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                         if ( target.getMaterial() != ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).getMaterial() && target.getMaterial() != 0 ) {
                             // Transaction is invalid
                             reset( packet, connection );
+                            connection.getEntity().setBreakVector( null );
                             return;
                         }
                     }
                 }
 
                 // Transaction seems valid
-                io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getBreakVector() );
+                io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getGamemode() == Gamemode.CREATIVE ? packet.getBlockPosition() : connection.getEntity().getBreakVector() );
                 if ( block != null ) {
                     BlockBreakEvent blockBreakEvent = new BlockBreakEvent( connection.getEntity(), block );
                     connection.getEntity().getWorld().getServer().getPluginManager().callEvent( blockBreakEvent );
                     if ( blockBreakEvent.isCancelled() ) {
                         reset( packet, connection );
+                        connection.getEntity().setBreakVector( null );
                         return;
                     }
 
                     // Check for special break rights (creative)
                     if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE ) {
-                        if ( block.onBreak() ) {
+                        if ( connection.getEntity().getWorld().breakBlock( packet.getBlockPosition(), connection.getEntity().getGamemode() == Gamemode.SURVIVAL, itemInHand ) ) {
                             block.setType( BlockAir.class );
+                            connection.getEntity().setBreakVector( null );
                         } else {
                             reset( packet, connection );
+                            connection.getEntity().setBreakVector( null );
                         }
 
                         return;
@@ -278,8 +284,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     if ( connection.getEntity().getBreakTime() + 50 < breakTime ) {
                         LOGGER.warn( connection.getEntity().getName() + " broke block too fast: break time: " + ( connection.getEntity().getBreakTime() + 50 ) +
                             "; should: " + breakTime + " for " + block.getClass().getSimpleName() + " with " + itemInHand.getClass().getSimpleName() );
-                        connection.getEntity().setBreakVector( null );
                         reset( packet, connection );
+                        connection.getEntity().setBreakVector( null );
                     } else {
                         if ( connection.getEntity().getWorld().breakBlock( connection.getEntity().getBreakVector(), connection.getEntity().getGamemode() == Gamemode.SURVIVAL, itemInHand ) ) {
                             // Add exhaustion
@@ -312,6 +318,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     }
                 } else {
                     reset( packet, connection );
+                    connection.getEntity().setBreakVector( null );
                 }
 
                 break;

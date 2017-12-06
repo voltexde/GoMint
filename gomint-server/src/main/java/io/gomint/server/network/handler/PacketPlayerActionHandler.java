@@ -101,12 +101,6 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 break;
 
             case CONTINUE_BREAK:
-                // When the player is in creative this is the only way to get needed data since it doesn't send a
-                // START_BREAK
-                if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE && connection.getEntity().getBreakVector() == null ) {
-                    connection.getEntity().setBreakVector( packet.getPosition() );
-                }
-
                 // Broadcast break effects
                 if ( connection.getEntity().getBreakVector() != null ) {
                     Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getBreakVector() );
