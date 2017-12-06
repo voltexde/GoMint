@@ -360,7 +360,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             }
         }
 
-        transactionGroup.execute();
+        transactionGroup.execute( connection.getEntity().getGamemode() == Gamemode.CREATIVE );
     }
 
     private Inventory getInventory( PacketInventoryTransaction.NetworkTransaction transaction, EntityPlayer entity ) {

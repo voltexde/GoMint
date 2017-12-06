@@ -127,10 +127,10 @@ public class TransactionGroup {
     /**
      * Try to execute the transaction
      *
-     * If it fails
+     * @param forceExecute to force execution (like creative mode does)
      */
-    public void execute() {
-        if ( this.canExecute() ) {
+    public void execute( boolean forceExecute ) {
+        if ( this.canExecute() || forceExecute ) {
             for ( Transaction transaction : this.transactions ) {
                 transaction.commit();
             }
