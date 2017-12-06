@@ -109,12 +109,10 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             byteBuffer.get( skin );
 
             JwtToken skinToken = JwtToken.parse( new String( skin ) );
-            String key = (String) skinToken.getHeader().getProperty( "x5u" );
-            Key trusted = chainValidator.getTrustedKeys().get( key );
             boolean validSkin = true;
 
             try {
-                skinToken.validateSignature( JwtAlgorithm.ES384, trusted );
+                skinToken.validateSignature( JwtAlgorithm.ES384, chainValidator.getClientPublicKey() );
             } catch ( JwtSignatureException e ) {
                 LOGGER.info( "Invalid skin: ", e );
                 validSkin = false;

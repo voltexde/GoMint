@@ -40,6 +40,8 @@ public class PlayerJoinListener implements EventListener {
                 plugin.getLogger().info( String.valueOf( formResponse.getToogle( "show-position" ) ) );
             }
         } );
+
+        event.getPlayer().transfer( "127.0.0.1", 19134 );
     }
 
 }
