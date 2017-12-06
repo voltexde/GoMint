@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockBirchDoor;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.registry.RegisterInfo;
@@ -9,7 +10,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 194 )
-public class BirchDoor extends Door {
+public class BirchDoor extends Door implements BlockBirchDoor {
 
     @Override
     public int getBlockId() {

@@ -9,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 197 )
-public class DarkOakDoor extends Door {
+public class DarkOakDoor extends Door implements io.gomint.world.block.BlockDarkOakDoor {
 
     @Override
     public int getBlockId() {

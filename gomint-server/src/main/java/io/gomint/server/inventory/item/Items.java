@@ -2,16 +2,11 @@ package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.generator.ItemGenerator;
-import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
 import io.gomint.taglib.NBTTagCompound;
-import javassist.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Collection;
 
 /**

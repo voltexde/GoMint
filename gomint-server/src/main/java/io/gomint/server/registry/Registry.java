@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -18,6 +20,7 @@ public class Registry<R> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
+    private final List<Integer> registered = new ArrayList<>();
     private final GeneratorCallback<R> generatorCallback;
     private final GeneratorMap<R> generators = GeneratorMap.withExpectedSize( 250 );
     private final GeneratorAPIClassMap<Class<?>> apiReferences = GeneratorAPIClassMap.withExpectedSize( 250 );
@@ -72,6 +75,8 @@ public class Registry<R> {
                 LOGGER.debug( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
             }
 
+            this.registered.add( id );
+
             // Check for API interfaces
             for ( Class<?> apiInter : clazz.getInterfaces() ) {
                 this.apiReferences.put( apiInter, id );
@@ -101,6 +106,19 @@ public class Registry<R> {
 
     public int getId( Class<?> clazz ) {
         return apiReferences.getOrDefault( clazz, -1 );
+    }
+
+    public void debugPrint() {
+        this.registered.sort( Integer::compareTo );
+        int beforeID = -1;
+        for ( Integer id : this.registered ) {
+            LOGGER.info( "Registered ID: {} - {}", id, getGenerator( id ).getClass().getSimpleName() );
+
+            if ( id != ++beforeID ) {
+                LOGGER.warn( "Missing ID {} ?", id - 1 );
+                beforeID = id;
+            }
+        }
     }
 
 }

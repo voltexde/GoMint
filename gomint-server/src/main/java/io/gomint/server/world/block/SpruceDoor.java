@@ -9,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 193 )
-public class SpruceDoor extends Door {
+public class SpruceDoor extends Door implements io.gomint.world.block.BlockSpruceDoor {
 
     @Override
     public int getBlockId() {

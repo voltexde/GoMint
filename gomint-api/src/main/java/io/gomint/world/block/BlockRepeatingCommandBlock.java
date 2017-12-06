@@ -11,5 +11,5 @@ package io.gomint.world.block;
  * @author geNAZt
  * @version 1.0
  */
-public interface BlockReserved6 extends Block {
+public interface BlockRepeatingCommandBlock extends Block {
 }

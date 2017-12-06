@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockAcaciaDoor;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.*;
@@ -15,7 +16,7 @@ import java.util.List;
  * @version 1.0
  */
 @RegisterInfo( id = 196 )
-public class AcaciaDoor extends Door {
+public class AcaciaDoor extends Door implements BlockAcaciaDoor {
 
     @Override
     public int getBlockId() {

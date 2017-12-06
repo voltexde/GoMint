@@ -246,7 +246,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.recipeManager.registerRecipe( recipe );
         }
 
-        this.creativeInventory = new CreativeInventory( this );
+        this.creativeInventory = assetsLibrary.getCreativeInventory();
         this.permissionGroupManager = new PermissionGroupManager();
 
         // ------------------------------------ //

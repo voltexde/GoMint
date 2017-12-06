@@ -56,7 +56,7 @@ public class ShulkerBox extends Block implements io.gomint.world.block.BlockShul
         compound.addValue( "z", position.getZ() );
 
         // Add flags
-        compound.addValue( "isUndyed", (byte) 1 );
+        compound.addValue( "isUndyed", (byte) 0 );
         compound.addValue( "facing", (byte) 1 );
 
         return new ShulkerBoxTileEntity( compound, this.world );

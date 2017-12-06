@@ -9,7 +9,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 255 )
-public class Reserved6 extends Block implements io.gomint.world.block.BlockReserved6 {
+public class Reserved6 extends Block {
 
     @Override
     public int getBlockId() {
