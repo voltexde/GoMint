@@ -81,7 +81,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private String xboxId;
     @Setter
     private PlayerSkin skin;
-    private Gamemode gamemode = Gamemode.CREATIVE;
+    private Gamemode gamemode = Gamemode.SURVIVAL;
     @Getter
     private AdventureSettings adventureSettings;
     @Getter
