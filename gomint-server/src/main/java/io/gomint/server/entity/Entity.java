@@ -239,7 +239,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
 
             // Check for void damage
-            if ( this.getPositionY() < -64F ) {
+            if ( this.getPositionY() < -16.0f ) {
                 this.dealVoidDamage();
             }
 

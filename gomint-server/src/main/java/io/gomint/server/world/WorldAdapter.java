@@ -1014,6 +1014,10 @@ public abstract class WorldAdapter implements World {
                 // Let the item build up the block
                 boolean success = Blocks.replaceWithItem( entity, clickedBlock, replaceBlock, itemInHand, clickPosition );
                 if ( success ) {
+                    // Play sound
+                    io.gomint.server.world.block.Block newBlock = replaceBlock.getLocation().getWorld().getBlockAt( replaceBlock.getLocation().toBlockPosition() );
+                    playSound( null, newBlock.getLocation(), Sound.PLACE, (byte) 1, newBlock.getBlockId() );
+
                     // Schedule neighbour updates
 
                 }
@@ -1037,7 +1041,6 @@ public abstract class WorldAdapter implements World {
 
         // Wait until the thread is done
         try {
-            this.asyncWorkerThread.interrupt();
             this.asyncWorkerThread.join();
         } catch ( InterruptedException e ) {
             this.logger.warn( "Async thread did not end correctly: ", e );
