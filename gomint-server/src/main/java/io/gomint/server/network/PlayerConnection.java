@@ -444,8 +444,6 @@ public class PlayerConnection {
         // TODO: Proper implement sending subclient and target subclient (two bytes)
         buffer.readShort();
 
-        // LOGGER.info( "Got packet with ID: " + Integer.toHexString( packetId & 0xff ) );
-
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
             if ( packetId == PACKET_LOGIN ) {

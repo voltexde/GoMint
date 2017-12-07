@@ -3,15 +3,12 @@ package io.gomint.server.network;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
 
 /**
@@ -19,6 +16,8 @@ import java.util.zip.Deflater;
  * @version 1.0
  */
 public class PostProcessWorker implements Runnable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( PostProcessWorker.class );
 
     private static final ThreadLocal<BatchStreamHolder> BATCH_HOLDER = new ThreadLocal<>();
     private final PlayerConnection connection;
@@ -45,8 +44,6 @@ public class PostProcessWorker implements Runnable {
 
         // Batch them first
         for ( Packet packet : this.packets ) {
-            // LOGGER.debug( "Sending to " + connection.getEntity().getName() + ": " + packet );
-
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
@@ -56,7 +53,7 @@ public class PostProcessWorker implements Runnable {
                 writeVarInt( buffer.getPosition(), holder.getOutputStream() );
                 holder.getOutputStream().write( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
             } catch ( IOException e ) {
-                e.printStackTrace();
+                LOGGER.error( "Could not write packet data into batch: ", e );
             }
         }
 

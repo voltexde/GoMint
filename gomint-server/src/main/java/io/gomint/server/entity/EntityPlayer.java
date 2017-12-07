@@ -232,8 +232,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         int tempViewDistance = Math.min( viewDistance, this.world.getConfig().getViewDistance() );
         if ( this.viewDistance != tempViewDistance ) {
             this.viewDistance = tempViewDistance;
-            this.connection.onViewDistanceChanged();
         }
+
+        this.connection.onViewDistanceChanged();
     }
 
     /**
@@ -478,7 +479,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
                 ByteObjCursor<ContainerInventory> cursor = this.windowIds.cursor();
                 while ( cursor.moveNext() ) {
-                    LOGGER.warn( "ID " + cursor.key() + " -> " + cursor.value().getClass().getName() );
+                    LOGGER.warn( "ID {} -> {}", cursor.key(), cursor.value().getClass().getName() );
                 }
 
                 return;
@@ -620,7 +621,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.connection.addToSendQueue( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
 
         // Send chunk radius
-        PacketSetChunkRadius chunkRadius = new PacketSetChunkRadius();
+        PacketConfirmChunkRadius chunkRadius = new PacketConfirmChunkRadius();
         chunkRadius.setChunkRadius( 3 );
         this.connection.addToSendQueue( chunkRadius );
 
@@ -629,6 +630,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // Start sending chunks
         this.neededChunksForSpawn = this.getWorld().addPlayer( this );
+        LOGGER.debug( "We need to send {} chunks to the player for first spawn", this.neededChunksForSpawn );
     }
 
     @Override

@@ -434,10 +434,10 @@ public abstract class WorldAdapter implements World {
      */
     public int addPlayer( io.gomint.server.entity.EntityPlayer player ) {
         // Schedule sending spawn region chunks:
-        final int minChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) - 4;
-        final int minChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) - 4;
-        final int maxChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) + 4;
-        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) + 4;
+        final int minChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) - player.getViewDistance();
+        final int minChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) - player.getViewDistance();
+        final int maxChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) + player.getViewDistance();
+        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) + player.getViewDistance();
 
         int amountOfChunks = 0;
         for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
