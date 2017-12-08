@@ -66,4 +66,9 @@ public class Carrots extends Growable implements BlockCarrots {
         return BlockType.CARROTS;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

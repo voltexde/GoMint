@@ -25,4 +25,9 @@ public class StructureBlock extends Block implements io.gomint.world.block.Block
         return BlockType.STRUCTURE_BLOCK;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -36,4 +36,9 @@ public class EnchantmentTable extends Block implements io.gomint.world.block.Blo
         return BlockType.ENCHANTMENT_TABLE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

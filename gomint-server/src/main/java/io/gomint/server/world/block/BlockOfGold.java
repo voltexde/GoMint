@@ -31,4 +31,11 @@ public class BlockOfGold extends Block implements io.gomint.world.block.BlockBlo
         return BlockType.BLOCK_OF_GOLD;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
+
+
 }

@@ -67,4 +67,9 @@ public class TNT extends Block implements BlockTNT {
         return BlockType.TNT;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

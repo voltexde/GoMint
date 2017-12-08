@@ -87,4 +87,9 @@ public class Sign extends Block implements BlockSign {
         return BlockType.SIGN;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -31,4 +31,9 @@ public class Stone extends Block implements io.gomint.world.block.BlockStone {
         return BlockType.STONE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

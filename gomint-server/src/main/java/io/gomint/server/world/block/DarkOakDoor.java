@@ -26,4 +26,9 @@ public class DarkOakDoor extends Door implements io.gomint.world.block.BlockDark
         return BlockType.DARK_OAK_DOOR;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

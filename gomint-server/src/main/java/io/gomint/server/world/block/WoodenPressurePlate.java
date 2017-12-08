@@ -92,4 +92,9 @@ public class WoodenPressurePlate extends Block implements io.gomint.world.block.
         return BlockType.WOODEN_PRESSURE_PLATE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

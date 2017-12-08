@@ -31,4 +31,9 @@ public class Netherrack extends Block implements io.gomint.world.block.BlockNeth
         return BlockType.NETHERRACK;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

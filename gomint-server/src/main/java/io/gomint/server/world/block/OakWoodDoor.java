@@ -36,4 +36,9 @@ public class OakWoodDoor extends Door implements BlockOakWoodDoor {
         return BlockType.WOODEN_DOOR;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

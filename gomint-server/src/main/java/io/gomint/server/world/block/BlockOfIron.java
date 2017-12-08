@@ -31,4 +31,9 @@ public class BlockOfIron extends Block implements io.gomint.world.block.BlockBlo
         return BlockType.BLOCK_OF_IRON;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

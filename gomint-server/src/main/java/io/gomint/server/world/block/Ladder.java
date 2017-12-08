@@ -53,4 +53,9 @@ public class Ladder extends Block implements io.gomint.world.block.BlockLadder {
         return BlockType.LADDER;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

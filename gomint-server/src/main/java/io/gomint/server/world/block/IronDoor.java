@@ -31,4 +31,9 @@ public class IronDoor extends Door implements io.gomint.world.block.BlockIronDoo
         return BlockType.IRON_DOOR;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

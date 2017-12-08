@@ -26,4 +26,9 @@ public class SpruceDoor extends Door implements io.gomint.world.block.BlockSpruc
         return BlockType.SPRUCE_DOOR;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -39,4 +39,9 @@ public class RedNetherBrick extends Block implements BlockRedNetherBrick {
         return BlockType.RED_NETHER_BRICK;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

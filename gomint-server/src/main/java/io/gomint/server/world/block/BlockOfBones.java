@@ -37,4 +37,9 @@ public class BlockOfBones extends Block implements io.gomint.world.block.BlockOf
         return BlockType.BLOCK_OF_BONES;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

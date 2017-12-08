@@ -72,4 +72,9 @@ public class Crops extends Growable {
         return BlockType.CROPS;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

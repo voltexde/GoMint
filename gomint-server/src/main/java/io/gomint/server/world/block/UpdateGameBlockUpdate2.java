@@ -26,4 +26,9 @@ public class UpdateGameBlockUpdate2 extends Block {
         return BlockType.UPDATE_GAME_BLOCK_UPDATE2;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

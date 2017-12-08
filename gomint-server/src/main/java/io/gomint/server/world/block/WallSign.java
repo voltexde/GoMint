@@ -93,4 +93,9 @@ public class WallSign extends Block implements BlockWallSign {
         return BlockType.WALL_SIGN;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

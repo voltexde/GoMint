@@ -33,4 +33,9 @@ public class ChainCommandBlock extends Block implements BlockChainCommandBlock {
         return BlockType.CHAIN_COMMAND_BLOCK;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

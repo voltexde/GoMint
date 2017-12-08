@@ -38,4 +38,9 @@ public class Magma extends Block implements BlockMagma {
         return BlockType.MAGMA;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

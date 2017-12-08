@@ -41,4 +41,9 @@ public class StonePressurePlate extends Block implements io.gomint.world.block.B
         return BlockType.STONE_PRESSURE_PLATE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -26,4 +26,9 @@ public class Reserved6 extends Block {
         return BlockType.RESERVED6;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

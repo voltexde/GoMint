@@ -31,4 +31,9 @@ public class Dispenser extends Block implements io.gomint.world.block.BlockDispe
         return BlockType.DISPENSER;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

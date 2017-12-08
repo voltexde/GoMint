@@ -67,4 +67,9 @@ public class Cake extends Block implements io.gomint.world.block.BlockCake {
         return BlockType.CAKE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

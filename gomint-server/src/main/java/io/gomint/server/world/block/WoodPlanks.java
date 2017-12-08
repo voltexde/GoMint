@@ -43,4 +43,9 @@ public class WoodPlanks extends Block implements io.gomint.world.block.BlockWood
         return BlockType.WOOD_PLANKS;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

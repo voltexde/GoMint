@@ -62,4 +62,9 @@ public class Piston extends Block implements io.gomint.world.block.BlockPiston {
         return BlockType.PISTON;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

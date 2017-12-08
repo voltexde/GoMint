@@ -22,4 +22,9 @@ public class StandingBanner extends Banner {
         return BlockType.STANDING_BANNER;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

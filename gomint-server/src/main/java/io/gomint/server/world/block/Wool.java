@@ -125,4 +125,9 @@ public class Wool extends Block implements io.gomint.world.block.BlockWool {
         }
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -110,4 +110,9 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
         this.updateBlock();
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }
