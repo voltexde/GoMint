@@ -32,6 +32,11 @@ public class SugarCane extends Block implements io.gomint.world.block.BlockSugar
     }
 
     @Override
+    public long getBreakTime() {
+        return 0;
+    }
+
+    @Override
     public BlockType getType() {
         return BlockType.SUGAR_CANE;
     }

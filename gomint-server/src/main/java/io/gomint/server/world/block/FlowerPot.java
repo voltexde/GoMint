@@ -27,6 +27,11 @@ public class FlowerPot extends Block implements io.gomint.world.block.BlockFlowe
     }
 
     @Override
+    public long getBreakTime() {
+        return 0;
+    }
+
+    @Override
     public BlockType getType() {
         return BlockType.FLOWER_POT;
     }
