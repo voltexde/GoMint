@@ -31,4 +31,9 @@ public class FlowerPot extends Block implements io.gomint.world.block.BlockFlowe
         return BlockType.FLOWER_POT;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

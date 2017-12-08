@@ -136,4 +136,8 @@ public class StainedHardenedClay extends Block implements io.gomint.world.block.
         }
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
 }

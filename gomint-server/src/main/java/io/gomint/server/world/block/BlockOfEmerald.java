@@ -31,4 +31,9 @@ public class BlockOfEmerald extends Block implements io.gomint.world.block.Block
         return BlockType.BLOCK_OF_EMERALD;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

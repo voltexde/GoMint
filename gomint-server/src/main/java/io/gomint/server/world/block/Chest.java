@@ -89,4 +89,9 @@ public class Chest extends Block implements BlockChest {
         return BlockType.CHEST;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -101,4 +101,9 @@ public class Farmland extends Block implements io.gomint.world.block.BlockFarmla
         return BlockType.FARMLAND;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

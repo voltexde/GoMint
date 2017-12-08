@@ -33,4 +33,9 @@ public class RepeatingCommandBlock extends Block implements BlockRepeatingComman
         return BlockType.REPEATING_COMMAND_BLOCK;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

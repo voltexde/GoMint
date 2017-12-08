@@ -36,4 +36,9 @@ public class BlockOfRedstone extends Block implements io.gomint.world.block.Bloc
         return BlockType.BLOCK_OF_REDSTONE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

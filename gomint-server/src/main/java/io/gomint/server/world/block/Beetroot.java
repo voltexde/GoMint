@@ -73,4 +73,9 @@ public class Beetroot extends Growable implements BlockBeetroot {
         return BlockType.BEETROOT;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

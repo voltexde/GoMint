@@ -36,4 +36,9 @@ public class DaylightDetector extends Block implements io.gomint.world.block.Blo
         return BlockType.DAYLIGHT_DETECTOR;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

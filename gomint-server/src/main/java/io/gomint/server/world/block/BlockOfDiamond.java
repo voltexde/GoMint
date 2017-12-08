@@ -31,4 +31,9 @@ public class BlockOfDiamond extends Block implements io.gomint.world.block.Block
         return BlockType.BLOCK_OF_DIAMOND;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

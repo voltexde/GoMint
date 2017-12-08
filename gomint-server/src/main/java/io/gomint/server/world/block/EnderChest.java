@@ -51,4 +51,9 @@ public class EnderChest extends Block implements io.gomint.world.block.BlockEnde
         return BlockType.ENDER_CHEST;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

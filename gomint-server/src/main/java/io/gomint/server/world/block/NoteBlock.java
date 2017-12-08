@@ -54,4 +54,9 @@ public class NoteBlock extends Block implements BlockNoteblock {
         return BlockType.NOTE_BLOCK;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

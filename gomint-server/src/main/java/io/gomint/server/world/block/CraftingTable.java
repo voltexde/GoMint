@@ -51,4 +51,9 @@ public class CraftingTable extends Block implements io.gomint.world.block.BlockC
         return BlockType.CRAFTING_TABLE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

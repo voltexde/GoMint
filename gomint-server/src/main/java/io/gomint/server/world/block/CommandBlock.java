@@ -26,4 +26,9 @@ public class CommandBlock extends Block implements io.gomint.world.block.BlockCo
         return BlockType.COMMAND_BLOCK;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

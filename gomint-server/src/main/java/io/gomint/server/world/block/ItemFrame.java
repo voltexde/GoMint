@@ -58,4 +58,9 @@ public class ItemFrame extends Block implements io.gomint.world.block.BlockItemF
         return BlockType.ITEM_FRAME;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

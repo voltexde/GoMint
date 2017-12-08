@@ -44,4 +44,9 @@ public class Cactus extends Block implements io.gomint.world.block.BlockCactus {
         return BlockType.CACTUS;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

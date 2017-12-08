@@ -36,4 +36,9 @@ public class SugarCane extends Block implements io.gomint.world.block.BlockSugar
         return BlockType.SUGAR_CANE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

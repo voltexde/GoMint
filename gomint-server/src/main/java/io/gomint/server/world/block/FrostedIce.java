@@ -37,4 +37,9 @@ public class FrostedIce extends Block implements io.gomint.world.block.BlockFros
         return BlockType.FROSTED_ICE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

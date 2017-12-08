@@ -30,4 +30,9 @@ public class Concrete extends Block implements io.gomint.world.block.BlockConcre
         return BlockType.CONCRETE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

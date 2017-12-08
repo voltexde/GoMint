@@ -37,4 +37,9 @@ public class WoodenSlab extends Slab {
         return BlockType.WOODEN_SLAB;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

@@ -31,4 +31,9 @@ public class NetherQuartzOre extends Block implements io.gomint.world.block.Bloc
         return BlockType.NETHER_QUARTZ_ORE;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

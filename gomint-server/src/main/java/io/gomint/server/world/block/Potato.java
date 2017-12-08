@@ -72,4 +72,9 @@ public class Potato extends Growable implements BlockPotato {
         return BlockType.POTATO;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
+
 }

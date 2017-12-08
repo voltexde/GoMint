@@ -27,4 +27,8 @@ public class BirchDoor extends Door implements BlockBirchDoor {
         return BlockType.BIRCH_DOOR;
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
 }

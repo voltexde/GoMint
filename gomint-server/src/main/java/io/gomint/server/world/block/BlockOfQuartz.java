@@ -68,4 +68,8 @@ public class BlockOfQuartz extends Block implements io.gomint.world.block.BlockB
         }
     }
 
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
 }
