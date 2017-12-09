@@ -15,7 +15,7 @@ pipeline {
     }
     stage('Build') {
       steps {
-        sh 'mvn -B -DskipTests clean install'
+        sh 'mvn -U -B -DskipTests clean install'
       }
     }
     stage('Store') {
