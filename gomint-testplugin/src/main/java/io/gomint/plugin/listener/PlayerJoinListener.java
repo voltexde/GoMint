@@ -30,18 +30,14 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 1, ItemCarrot.create( 64 ) );
         event.getPlayer().getInventory().setItem( 2, ItemGoldenCarrot.create( 64 ) );
 
+        event.getPlayer().getInventory().setItem( 3, ItemDiamond.create( 2 ) );
+        event.getPlayer().getInventory().setItem( 4, ItemStick.create( 1 ) );
+
         CustomForm settings = CustomForm.create( "GoMint" );
         settings.addLabel( "General" );
         settings.addToggle( "show-position", "Show current position", true );
         FormListener<FormResponse> response = event.getPlayer().addSettingsForm( settings );
-        response.onResponse( new Consumer<FormResponse>() {
-            @Override
-            public void accept( FormResponse formResponse ) {
-                plugin.getLogger().info( String.valueOf( formResponse.getToogle( "show-position" ) ) );
-            }
-        } );
-
-        event.getPlayer().transfer( "127.0.0.1", 19134 );
+        response.onResponse( formResponse -> plugin.getLogger().info( String.valueOf( formResponse.getToogle( "show-position" ) ) ) );
     }
 
 }

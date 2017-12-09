@@ -68,6 +68,9 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
             return;
         }
 
+        // TODO: Let the recipe check this
+
+
         // Now we have to look if we have the correct items
         ItemStack[] inputItems = connection.getEntity().getCraftingInputInventory().getContents();
         boolean craftable = true;
