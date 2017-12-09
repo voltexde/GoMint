@@ -79,6 +79,15 @@ public interface Block {
     <T extends Block> T setType( Class<T> blockType );
 
     /**
+     * Set the data and tiles from a block which has been on the same position before
+     *
+     * @param block which should be set
+     * @param <T> type of block
+     * @return null when location doesn't match, block when set
+     */
+    <T extends Block> T setFromBlock( T block );
+
+    /**
      * Can a bounding box pass through this block?
      *
      * @return if a bounding box can pass though or not
@@ -114,5 +123,13 @@ public interface Block {
      * @return list of item stacks which can be used as drops
      */
     List<ItemStack> getDrops( ItemStack toolItem );
+
+    /**
+     * This method tells you if you can modify the block. A block gets unmodifiable
+     * when the block id in the same location differs ({@link #setType(Class)}.
+     *
+     * @return true when the block has been placed in the world, false when not
+     */
+    boolean isPlaced();
 
 }

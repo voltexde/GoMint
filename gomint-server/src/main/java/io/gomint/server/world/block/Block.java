@@ -180,6 +180,16 @@ public abstract class Block implements io.gomint.world.block.Block {
         worldAdapter.updateBlock( pos );
     }
 
+    @Override
+    public boolean isPlaced() {
+        if ( this.location == null ) {
+            return false;
+        }
+
+        WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
+        return worldAdapter.getBlockId( this.location.toBlockPosition() ) == this.getBlockId();
+    }
+
     /**
      * Internal overload for NBT compound calculations
      *
@@ -243,6 +253,29 @@ public abstract class Block implements io.gomint.world.block.Block {
         return world.getBlockAt( pos );
     }
 
+    @Override
+    public <T extends io.gomint.world.block.Block> T setFromBlock( T apiInstance ) {
+        // Fast fail when location doesn't match
+        if ( !this.location.equals( apiInstance.getLocation() ) ) {
+            return null;
+        }
+
+        Block instance = (Block) apiInstance;
+        BlockPosition pos = this.location.toBlockPosition();
+        WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
+        worldAdapter.setBlockId( pos, instance.getBlockId() );
+        worldAdapter.setBlockData( pos, instance.getBlockData() );
+        worldAdapter.resetTemporaryStorage( pos );
+
+        // Check if new block needs tile entity
+        if ( instance.getTileEntity() != null ) {
+            worldAdapter.storeTileEntity( pos, instance.getTileEntity() );
+        }
+
+        worldAdapter.updateBlock( pos );
+        return apiInstance;
+    }
+
     /**
      * Get the break time needed to break this block without any enchantings or tools
      *
@@ -259,6 +292,10 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @return null when there is not tile entity attached, otherwise the stored tile entity
      */
     public <T extends TileEntity> T getTileEntity() {
+        if ( !isPlaced() ) {
+            return null;
+        }
+
         return (T) this.tileEntity;
     }
 
@@ -320,6 +357,10 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @param connection which should get the block data
      */
     public void send( PlayerConnection connection ) {
+        if ( !isPlaced() ) {
+            return;
+        }
+
         BlockPosition position = this.location.toBlockPosition();
 
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
@@ -462,6 +503,10 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @param blockData which should be set
      */
     public void setBlockData( byte blockData ) {
+        if ( !isPlaced() ) {
+            return;
+        }
+
         // Only update when there has been a value already loaded
         if ( this.blockData > -1 ) {
             this.world.setBlockData( this.location.toBlockPosition(), blockData );

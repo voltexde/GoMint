@@ -279,6 +279,21 @@ public abstract class WorldAdapter implements World {
     }
 
     /**
+     * Get the current id at the given location
+     *
+     * @param position where we want to search
+     * @return id of the block
+     */
+    public byte getBlockId( BlockPosition position ) {
+        final ChunkAdapter chunk = this.loadChunk(
+            CoordinateUtils.fromBlockToChunk( position.getX() ),
+            CoordinateUtils.fromBlockToChunk( position.getZ() ),
+            true );
+
+        return chunk.getBlock( position.getX() & 0xF, position.getY(), position.getZ() & 0xF );
+    }
+
+    /**
      * Set the data byte for the given block
      *
      * @param position Position of the block
