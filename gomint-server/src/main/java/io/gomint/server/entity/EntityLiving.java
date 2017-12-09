@@ -302,6 +302,12 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     }
 
     @Override
+    public void attack( float damage, EntityDamageEvent.DamageSource source ) {
+        EntityDamageEvent damageEvent = new EntityDamageEvent( this, source, damage );
+        this.damage( damageEvent );
+    }
+
+    @Override
     public boolean damage( EntityDamageEvent damageEvent ) {
         // Don't damage dead entities
         if ( this.getHealth() <= 0 ) {

@@ -153,4 +153,12 @@ public interface EntityLiving extends Entity {
      */
     void setNameTag( String nameTag );
 
+    /**
+     * Attack given entity
+     *
+     * @param damage amount which should be dealt
+     * @param source of the damage, controls armor calcs etc.
+     */
+    void attack( float damage, EntityDamageEvent.DamageSource source );
+
 }
