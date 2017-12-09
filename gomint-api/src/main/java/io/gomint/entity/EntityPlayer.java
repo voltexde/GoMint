@@ -291,4 +291,18 @@ public interface EntityPlayer extends EntityCreature {
      */
     void sendParticle( Vector location, Particle particle );
 
+    /**
+     * Allow flying for the client
+     *
+     * @param value if true the client can fly, if false the client can't fly
+     */
+    void setAllowFlight( boolean value );
+
+    /**
+     * Get the setting for allowing flight
+     *
+     * @return true when the player can fly, false when not
+     */
+    boolean getAllowFlight();
+
 }

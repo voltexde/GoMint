@@ -622,7 +622,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // Send chunk radius
         PacketConfirmChunkRadius chunkRadius = new PacketConfirmChunkRadius();
-        chunkRadius.setChunkRadius( 3 );
+        chunkRadius.setChunkRadius( this.viewDistance );
         this.connection.addToSendQueue( chunkRadius );
 
         // Send entity metadata
@@ -1342,6 +1342,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public void sendParticle( Vector location, Particle particle ) {
         this.world.sendParticle( this, location, particle, 0 );
+    }
+
+    @Override
+    public void setAllowFlight( boolean value ) {
+        this.adventureSettings.setCanFly( value );
+        this.adventureSettings.update();
+    }
+
+    @Override
+    public boolean getAllowFlight() {
+        return this.adventureSettings.isCanFly();
     }
 
     public void firstSpawn() {
