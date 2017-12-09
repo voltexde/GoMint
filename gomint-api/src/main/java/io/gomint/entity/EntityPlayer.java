@@ -305,4 +305,18 @@ public interface EntityPlayer extends EntityCreature {
      */
     boolean getAllowFlight();
 
+    /**
+     * Set flying state of the player
+     *
+     * @param value if true the player is flying, if false the player doesn't fly
+     */
+    void setFlying( boolean value );
+
+    /**
+     * Check if this player is flying
+     *
+     * @return true when flying otherwise false
+     */
+    boolean getFlying();
+
 }

@@ -1355,6 +1355,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         return this.adventureSettings.isCanFly();
     }
 
+    @Override
+    public void setFlying( boolean value ) {
+        this.adventureSettings.setFlying( value );
+        this.adventureSettings.update();
+    }
+
+    @Override
+    public boolean getFlying() {
+        return this.adventureSettings.isFlying();
+    }
+
     public void firstSpawn() {
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
         this.getConnection().sendMovePlayer( this.getLocation() );
