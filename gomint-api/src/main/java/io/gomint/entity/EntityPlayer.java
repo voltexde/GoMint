@@ -319,4 +319,30 @@ public interface EntityPlayer extends EntityCreature {
      */
     boolean getFlying();
 
+    /**
+     *
+     * @param title
+     * @param subtitle
+     * @param fadein
+     * @param duration
+     * @param fadeout
+     */
+
+    void sendTitle( String title, String subtitle, int fadein, int duration, int fadeout );
+
+    /**
+     *
+     * @param title
+     */
+
+    void sendTitle( String title );
+
+    /**
+     *
+     * @param title
+     * @param subtitle
+     */
+
+    void sendTitle( String title, String subtitle );
+
 }

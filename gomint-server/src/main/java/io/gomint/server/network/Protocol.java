@@ -90,6 +90,7 @@ public final class Protocol {
     public static final byte PACKET_MODAL_RESPONSE = (byte) 0x65;
     public static final byte PACKET_SERVER_SETTINGS_REQUEST = (byte) 0x66;
     public static final byte PACKET_SERVER_SETTINGS_RESPONSE = (byte) 0x67;
+    public static final byte PACKET_SET_TITLE = (byte) 0x58;
 
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     // CHECKSTYLE:ON

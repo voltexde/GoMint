@@ -1366,6 +1366,36 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         return this.adventureSettings.isFlying();
     }
 
+    @Override
+    public void sendTitle( String title, String subtitle, int fadein, int duration, int fadeout ) {
+        if(!subtitle.equals( "" )){
+            PacketSetTitle subtitlePacket = new PacketSetTitle();
+            subtitlePacket.setType( PacketSetTitle.TYPE_SUBTITLE );
+            subtitlePacket.setText( subtitle );
+            subtitlePacket.setFadeInTime( fadein );
+            subtitlePacket.setStayTime( duration );
+            subtitlePacket.setFadeOutTime( fadeout );
+            this.getConnection().addToSendQueue( subtitlePacket );
+        }
+        PacketSetTitle titlePacket = new PacketSetTitle();
+        titlePacket.setType( PacketSetTitle.TYPE_TITLE );
+        titlePacket.setText( title );
+        titlePacket.setFadeInTime( fadein );
+        titlePacket.setStayTime( duration );
+        titlePacket.setFadeOutTime( fadeout );
+        this.getConnection().addToSendQueue( titlePacket );
+    }
+
+    @Override
+    public void sendTitle( String title ) {
+        this.sendTitle( title, "", 20, 20, 5 );
+    }
+
+    @Override
+    public void sendTitle( String title, String subtitle ) {
+        this.sendTitle( title, subtitle, 20, 20, 5 );
+    }
+
     public void firstSpawn() {
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
         this.getConnection().sendMovePlayer( this.getLocation() );
