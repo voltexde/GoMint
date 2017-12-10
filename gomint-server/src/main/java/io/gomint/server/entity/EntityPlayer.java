@@ -11,7 +11,6 @@ import com.koloboke.collect.IntCursor;
 import com.koloboke.collect.ObjCursor;
 import com.koloboke.collect.map.ByteObjCursor;
 import com.koloboke.collect.map.IntObjCursor;
-import io.gomint.TitleType;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
@@ -53,9 +52,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import static io.gomint.TitleType.TYPE_SUBTITLE;
-import static io.gomint.TitleType.TYPE_TITLE;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -1375,7 +1371,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void sendTitle( String title, String subtitle, long fadein, long duration, long fadeout, TimeUnit unit ) {
         if(!subtitle.equals( "" )){
             PacketSetTitle subtitlePacket = new PacketSetTitle();
-            subtitlePacket.setType( TYPE_SUBTITLE.getId() );
+            subtitlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
             subtitlePacket.setText( subtitle );
             subtitlePacket.setFadeInTime( (int) unit.toMillis( fadein ) / 50 );
             subtitlePacket.setStayTime( (int) unit.toMillis( duration ) / 50 );
@@ -1383,7 +1379,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             this.getConnection().addToSendQueue( subtitlePacket );
         }
         PacketSetTitle titlePacket = new PacketSetTitle();
-        titlePacket.setType( TYPE_TITLE.getId() );
+        titlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
         titlePacket.setText( title );
         titlePacket.setFadeInTime( (int) unit.toMillis( fadein ) / 50 );
         titlePacket.setStayTime( (int) unit.toMillis( duration ) / 50 );
