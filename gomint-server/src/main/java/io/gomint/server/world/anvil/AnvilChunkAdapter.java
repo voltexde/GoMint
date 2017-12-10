@@ -423,13 +423,47 @@ public class AnvilChunkAdapter extends ChunkAdapter {
     }
 
     private int parseInt( final String s ) {
-        int num  = 0;
+        if ( s == null )
+            throw new NumberFormatException( "Null string" );
 
-        for ( int i = 0; i < s.length(); i++ ) {
-            num = num * 10 + '0' - s.charAt( i++ );
+        // Check for a sign.
+        int num  = 0;
+        int sign = -1;
+        final int len  = s.length( );
+        final char ch  = s.charAt( 0 );
+        if ( ch == '-' )
+        {
+            if ( len == 1 )
+                throw new NumberFormatException( "Missing digits:  " + s );
+            sign = 1;
+        }
+        else
+        {
+            final int d = ch - '0';
+            if ( d < 0 || d > 9 )
+                throw new NumberFormatException( "Malformed:  " + s );
+            num = -d;
         }
 
-        return -1 * num;
+        // Build the number.
+        final int max = (sign == -1) ?
+            -Integer.MAX_VALUE : Integer.MIN_VALUE;
+        final int multmax = max / 10;
+        int i = 1;
+        while ( i < len )
+        {
+            int d = s.charAt(i++) - '0';
+            if ( d < 0 || d > 9 )
+                throw new NumberFormatException( "Malformed:  " + s );
+            if ( num < multmax )
+                throw new NumberFormatException( "Over/underflow:  " + s );
+            num *= 10;
+            if ( num < (max+d) )
+                throw new NumberFormatException( "Over/underflow:  " + s );
+            num -= d;
+        }
+
+        return sign * num;
     }
 
 }
