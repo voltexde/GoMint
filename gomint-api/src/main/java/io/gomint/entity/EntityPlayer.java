@@ -21,6 +21,7 @@ import io.gomint.world.SoundData;
 
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author BlackyPaw
@@ -321,26 +322,36 @@ public interface EntityPlayer extends EntityCreature {
 
     /**
      *
+     * Send a title text to the user's screen, with an optional subtitle.
+     *
      * @param title
      * @param subtitle
      * @param fadein
      * @param duration
      * @param fadeout
+     * @param unit
      */
 
-    void sendTitle( String title, String subtitle, int fadein, int duration, int fadeout );
+    void sendTitle( String title, String subtitle, long fadein, long duration, long fadeout, TimeUnit unit );
 
     /**
+     * Send a title without subtitle.
      *
      * @param title
+     *
+     * Default time for fadin and duration is 1 second.
      */
 
     void sendTitle( String title );
 
     /**
      *
+     * Send a title with title and subtitle.
+     *
      * @param title
      * @param subtitle
+     *
+     * Default time for fadin and duration is 1 second.
      */
 
     void sendTitle( String title, String subtitle );

@@ -11,6 +11,7 @@ import com.koloboke.collect.IntCursor;
 import com.koloboke.collect.ObjCursor;
 import com.koloboke.collect.map.ByteObjCursor;
 import com.koloboke.collect.map.IntObjCursor;
+import io.gomint.TitleType;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
@@ -51,6 +52,10 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import static io.gomint.TitleType.TYPE_SUBTITLE;
+import static io.gomint.TitleType.TYPE_TITLE;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -1367,33 +1372,33 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public void sendTitle( String title, String subtitle, int fadein, int duration, int fadeout ) {
+    public void sendTitle( String title, String subtitle, long fadein, long duration, long fadeout, TimeUnit unit ) {
         if(!subtitle.equals( "" )){
             PacketSetTitle subtitlePacket = new PacketSetTitle();
-            subtitlePacket.setType( PacketSetTitle.TYPE_SUBTITLE );
+            subtitlePacket.setType( TYPE_SUBTITLE.getId() );
             subtitlePacket.setText( subtitle );
-            subtitlePacket.setFadeInTime( fadein );
-            subtitlePacket.setStayTime( duration );
-            subtitlePacket.setFadeOutTime( fadeout );
+            subtitlePacket.setFadeInTime( (int) unit.toMillis( fadein ) / 50 );
+            subtitlePacket.setStayTime( (int) unit.toMillis( duration ) / 50 );
+            subtitlePacket.setFadeOutTime( (int) unit.toMillis( fadeout ) / 50 );
             this.getConnection().addToSendQueue( subtitlePacket );
         }
         PacketSetTitle titlePacket = new PacketSetTitle();
-        titlePacket.setType( PacketSetTitle.TYPE_TITLE );
+        titlePacket.setType( TYPE_TITLE.getId() );
         titlePacket.setText( title );
-        titlePacket.setFadeInTime( fadein );
-        titlePacket.setStayTime( duration );
-        titlePacket.setFadeOutTime( fadeout );
+        titlePacket.setFadeInTime( (int) unit.toMillis( fadein ) / 50 );
+        titlePacket.setStayTime( (int) unit.toMillis( duration ) / 50 );
+        titlePacket.setFadeOutTime( (int) unit.toMillis( fadeout ) / 50 );
         this.getConnection().addToSendQueue( titlePacket );
     }
 
     @Override
     public void sendTitle( String title ) {
-        this.sendTitle( title, "", 20, 20, 5 );
+        this.sendTitle( title, "", 1, 1, (long) 0.5, TimeUnit.SECONDS);
     }
 
     @Override
     public void sendTitle( String title, String subtitle ) {
-        this.sendTitle( title, subtitle, 20, 20, 5 );
+        this.sendTitle( title, subtitle, 1, 1, (long) 0.5, TimeUnit.SECONDS );
     }
 
     public void firstSpawn() {
