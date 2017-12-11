@@ -432,10 +432,14 @@ public class ChunkAdapter implements Chunk {
     /**
      * Recalculates the height map of the chunk.
      */
-    public void calculateHeightmap() {
+    public void calculateHeightmap( int maxHeight ) {
+        if ( maxHeight == 0 ) {
+            return;
+        }
+
         for ( int i = 0; i < 16; ++i ) {
             for ( int k = 0; k < 16; ++k ) {
-                for ( int j = 255; j > 0; --j ) {
+                for ( int j = ( maxHeight + 16 ) - 1; j > 0; --j ) {
                     if ( this.getBlock( i, j, k ) != 0 ) {
                         this.setHeight( i, k, (byte) j );
                         break;

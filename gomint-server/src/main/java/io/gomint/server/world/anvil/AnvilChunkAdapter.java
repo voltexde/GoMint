@@ -165,10 +165,24 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     AnvilChunkAdapter.this.converted = true;
                     break;
                 default:
+                    // We need to split the path
+                    List<String> split = new ArrayList<>();
+                    StringBuilder current = new StringBuilder();
+                    for ( int i = 0; i < path.length(); i++ ) {
+                        char c = path.charAt( i );
+                        if ( c == '.' ) {
+                            split.add( current.toString() );
+                            current = new StringBuilder();
+                        } else {
+                            current.append( c );
+                        }
+                    }
+
+                    split.add( current.toString() );
+
                     if ( path.startsWith( ".Level.Sections" ) ) {
                         // Parse the index
-                        String[] split = path.split( "\\." );
-                        int sectionIndex = Integer.parseInt( split[3] );
+                        int sectionIndex = parseInt( split.get( 3 ) );
 
                         // Check if we completed a chunk
                         if ( oldSectionIndex[0] != -1 && oldSectionIndex[0] != sectionIndex ) {
@@ -182,7 +196,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                         oldSectionIndex[0] = sectionIndex;
 
                         // Check what we have got from the chunk
-                        switch ( split[4] ) {
+                        switch ( split.get( 4 ) ) {
                             case "Y":
                                 currentSectionCache[0].setSectionY( (byte) object << 4 );
                                 break;
@@ -199,8 +213,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                                 break;
                         }
                     } else if ( path.startsWith( ".Level.TileEntities" ) ) {
-                        String[] split = path.split( "\\." );
-                        int index = Integer.parseInt( split[3] );
+                        int index = parseInt( split.get( 3 ) );
 
                         if ( tileEntityHolders.size() == index ) {
                             tileEntityHolders.add( new NBTTagCompound( null ) );
@@ -209,21 +222,21 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                         NBTTagCompound entityHolder = tileEntityHolders.get( index );
                         String key;
 
-                        if ( split.length > 5 ) {
+                        if ( split.size() > 5 ) {
                             // Restore missing maps and lists
-                            for ( int i = 4; i < split.length - 1; i++ ) {
+                            for ( int i = 4; i < split.size() - 1; i++ ) {
                                 // Peek one to terminate if this is a map or a list
                                 try {
-                                    int idx = Integer.parseInt( split[i + 1] );
+                                    int idx = Integer.parseInt( split.get( i + 1 ) );
 
                                     // Get or create list
-                                    List list = entityHolder.getList( split[i], true );
+                                    List list = entityHolder.getList( split.get( i ), true );
                                     if ( list.size() == idx ) {
                                         Object obj = null;
 
-                                        if ( split.length > i + 1 ) {
+                                        if ( split.size() > i + 1 ) {
                                             // Need another list of nbt compounds
-                                            obj = entityHolder = new NBTTagCompound( split[i + 2] );
+                                            obj = entityHolder = new NBTTagCompound( split.get( i + 2 ) );
                                         }
 
                                         if ( obj != null ) {
@@ -232,18 +245,18 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                                     }
                                 } catch ( Exception ignored ) {
                                     try {
-                                        Integer.parseInt( split[i] );
+                                        Integer.parseInt( split.get( i ) );
                                     } catch ( Exception ignored1 ) {
-                                        NBTTagCompound temp = new NBTTagCompound( split[i] );
-                                        entityHolder.addValue( split[i], temp );
+                                        NBTTagCompound temp = new NBTTagCompound( split.get( i ) );
+                                        entityHolder.addValue( split.get( i ), temp );
                                         entityHolder = temp;
                                     }
                                 }
                             }
 
-                            key = split[split.length - 1];
+                            key = split.get( split.size() - 1 );
                         } else {
-                            key = split[4];
+                            key = split.get( 4 );
                         }
 
                         Class clazz = object.getClass();
@@ -278,8 +291,15 @@ public class AnvilChunkAdapter extends ChunkAdapter {
         }
 
         // Load sections
+        int maxHeight = 0;
         for ( SectionCache section : sections ) {
-            this.loadSection( section );
+            if ( !section.isAllAir() ) {
+                if ( section.getSectionY() > maxHeight ){
+                    maxHeight = section.getSectionY();
+                }
+
+                this.loadSection( section );
+            }
         }
 
         sections.clear();
@@ -330,7 +350,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             }
         }
 
-        this.calculateHeightmap();
+        this.calculateHeightmap( maxHeight );
     }
     // CHECKSTYLE:ON
 
@@ -400,6 +420,50 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                 }
             }
         }
+    }
+
+    private int parseInt( final String s ) {
+        if ( s == null )
+            throw new NumberFormatException( "Null string" );
+
+        // Check for a sign.
+        int num  = 0;
+        int sign = -1;
+        final int len  = s.length( );
+        final char ch  = s.charAt( 0 );
+        if ( ch == '-' )
+        {
+            if ( len == 1 )
+                throw new NumberFormatException( "Missing digits:  " + s );
+            sign = 1;
+        }
+        else
+        {
+            final int d = ch - '0';
+            if ( d < 0 || d > 9 )
+                throw new NumberFormatException( "Malformed:  " + s );
+            num = -d;
+        }
+
+        // Build the number.
+        final int max = (sign == -1) ?
+            -Integer.MAX_VALUE : Integer.MIN_VALUE;
+        final int multmax = max / 10;
+        int i = 1;
+        while ( i < len )
+        {
+            int d = s.charAt(i++) - '0';
+            if ( d < 0 || d > 9 )
+                throw new NumberFormatException( "Malformed:  " + s );
+            if ( num < multmax )
+                throw new NumberFormatException( "Over/underflow:  " + s );
+            num *= 10;
+            if ( num < (max+d) )
+                throw new NumberFormatException( "Over/underflow:  " + s );
+            num -= d;
+        }
+
+        return sign * num;
     }
 
 }
