@@ -9,6 +9,7 @@ package io.gomint.server.crafting;
 
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.inventory.Inventory;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -39,7 +40,7 @@ public abstract class Recipe implements io.gomint.crafting.Recipe {
     }
 
     @Override
-    public abstract Collection<ItemStack> getIngredients();
+    public abstract ItemStack[] getIngredients();
 
     /**
      * Creates a collections of items stacks which represent the
@@ -60,5 +61,7 @@ public abstract class Recipe implements io.gomint.crafting.Recipe {
      * @param buffer       The buffer to serialize the recipe into
      */
     public abstract void serialize( PacketBuffer buffer );
+
+    public abstract int[] isCraftable( Inventory inputInventory );
 
 }

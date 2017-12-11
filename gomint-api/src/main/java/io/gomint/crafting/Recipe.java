@@ -19,10 +19,10 @@ public interface Recipe {
     UUID getUUID();
 
     /**
-     * Returns a list of ingredients required by this recipe.
+     * Returns a array of ingredients required by this recipe.
      *
-     * @return The list of ingredients required by this recipe
+     * @return The array of ingredients required by this recipe
      */
-    Collection<ItemStack> getIngredients();
+    ItemStack[] getIngredients();
 
 }

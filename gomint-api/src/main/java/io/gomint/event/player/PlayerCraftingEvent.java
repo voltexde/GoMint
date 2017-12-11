@@ -1,5 +1,6 @@
 package io.gomint.event.player;
 
+import io.gomint.crafting.Recipe;
 import io.gomint.entity.EntityPlayer;
 
 /**
@@ -8,8 +9,20 @@ import io.gomint.entity.EntityPlayer;
  */
 public class PlayerCraftingEvent extends CancellablePlayerEvent {
 
-    public PlayerCraftingEvent( EntityPlayer player ) {
+    private final Recipe recipe;
+
+    public PlayerCraftingEvent( EntityPlayer player, Recipe recipe ) {
         super( player );
+        this.recipe = recipe;
+    }
+
+    /**
+     * The recipe the player crafted
+     *
+     * @return recipe which has been crafted
+     */
+    public Recipe getRecipe() {
+        return this.recipe;
     }
 
 }
