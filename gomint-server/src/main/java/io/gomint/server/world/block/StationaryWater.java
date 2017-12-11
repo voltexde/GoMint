@@ -41,7 +41,7 @@ public class StationaryWater extends Liquid implements BlockStationaryWater {
     @Override
     public void onEntityStanding( EntityLiving entityLiving ) {
         if ( entityLiving.isOnFire() ) {
-            entityLiving.setFire( 0 );
+            entityLiving.extinguish();
         }
     }
 

@@ -316,10 +316,10 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
         // Check for effect blocking
         if ( hasEffect( PotionEffect.FIRE_RESISTANCE ) && (
-                damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FIRE ||
-                    damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.LAVA ||
-                    damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.ON_FIRE
-            ) ) {
+            damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FIRE ||
+                damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.LAVA ||
+                damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.ON_FIRE
+        ) ) {
             return false;
         }
 
@@ -413,7 +413,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
         int damageResistanceAmplifier = getEffectAmplifier( PotionEffect.DAMAGE_RESISTANCE );
         if ( damageResistanceAmplifier != -1 && damageEvent.getDamageSource() != EntityDamageEvent.DamageSource.VOID ) {
-            float maxReductionDiff = 25 -  ( ( damageResistanceAmplifier + 1 ) * 5);
+            float maxReductionDiff = 25 - ( ( damageResistanceAmplifier + 1 ) * 5 );
             float amplifiedDamage = damage * maxReductionDiff;
             damage = amplifiedDamage / 25.0F;
         }
@@ -469,13 +469,9 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         this.damage( damageEvent );
     }
 
-    /**
-     * Set entity on fire for given amount of seconds
-     *
-     * @param seconds for how long this entity should be on fire
-     */
-    public void setFire( int seconds ) {
-        int newFireTicks = seconds * 20;
+    @Override
+    public void setBurning( long duration, TimeUnit unit ) {
+        int newFireTicks = (int) ( unit.toMillis( duration ) / 50 );
         if ( newFireTicks > this.fireTicks ) {
             this.fireTicks = newFireTicks;
             setOnFire( true );
@@ -485,6 +481,10 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         }
     }
 
+    @Override
+    public void extinguish() {
+        this.setBurning( 0, TimeUnit.SECONDS );
+    }
 
     @Override
     public void addEffect( PotionEffect effect, int amplifier, long duration, TimeUnit timeUnit ) {

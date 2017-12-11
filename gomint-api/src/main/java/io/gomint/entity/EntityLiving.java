@@ -161,4 +161,17 @@ public interface EntityLiving extends Entity {
      */
     void attack( float damage, EntityDamageEvent.DamageSource source );
 
+    /**
+     * Set entity on fire for given amount of seconds
+     *
+     * @param duration for how long this entity should be on fire
+     * @param unit     with which the duration should be multiplied
+     */
+    void setBurning( long duration, TimeUnit unit );
+
+    /**
+     * Extinguish this entity
+     */
+    void extinguish();
+
 }
