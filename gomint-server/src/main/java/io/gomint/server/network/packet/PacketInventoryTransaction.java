@@ -62,10 +62,10 @@ public class PacketInventoryTransaction extends Packet {
         // Read transaction action(s)
         int actionCount = buffer.readUnsignedVarInt();
         this.actions = new NetworkTransaction[actionCount];
-        for ( int i = actionCount; i > 0; i-- ) {
+        for ( int i = 0; i < actionCount; i++ ) {
             NetworkTransaction networkTransaction = new NetworkTransaction();
             networkTransaction.deserialize( buffer );
-            this.actions[i - 1] = networkTransaction;
+            this.actions[i] = networkTransaction;
         }
 
         // Read transaction data

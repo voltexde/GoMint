@@ -30,7 +30,7 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 1, ItemCarrot.create( 64 ) );
         event.getPlayer().getInventory().setItem( 2, ItemGoldenCarrot.create( 64 ) );
 
-        event.getPlayer().getInventory().setItem( 3, ItemDiamond.create( 2 ) );
+        event.getPlayer().getInventory().setItem( 3, ItemDiamond.create( 64 ) );
         event.getPlayer().getInventory().setItem( 4, ItemStick.create( 1 ) );
 
         event.getPlayer().getInventory().setItem( 5, ItemLog.create( 5 ) );

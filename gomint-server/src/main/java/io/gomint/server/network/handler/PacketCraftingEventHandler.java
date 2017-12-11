@@ -100,9 +100,10 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
 
         // Consume items
         for ( int slot : consumeSlots ) {
-            LOGGER.debug( "Consuming slot " + slot );
+            LOGGER.debug( "Consuming slot {}", slot );
 
             io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) connection.getEntity().getCraftingInputInventory().getItem( slot );
+            LOGGER.debug( "ItemStack before {}", itemStack );
             if ( itemStack.afterPlacement() ) {
                 LOGGER.debug( "Removing slot from crafting input" );
                 connection.getEntity().getCraftingInputInventory().setItem( slot, ItemAir.create( 0 ) );

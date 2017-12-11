@@ -11,11 +11,8 @@ import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.inventory.item.ItemType;
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.inventory.CraftingInputInventory;
 import io.gomint.server.inventory.Inventory;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.packet.Packet;
-import javafx.scene.paint.Material;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,7 +82,7 @@ public class ShapedRecipe extends CraftingRecipe {
             for ( int j = 0; j < this.height; ++j ) {
                 for ( int i = 0; i < this.width; ++i ) {
                     ItemStack stack = this.arrangement[j * this.width + i];
-                    if ( !(stack instanceof ItemAir) ) {
+                    if ( !( stack instanceof ItemAir ) ) {
                         this.ingredients.add( stack );
                     }
                 }
@@ -125,9 +122,11 @@ public class ShapedRecipe extends CraftingRecipe {
     @Override
     public int[] isCraftable( Inventory inputInventory ) {
         // Order the input so the recipe is in the upper left corner
-        int xSpace, zSpace = xSpace = 0;
+        int xSpace = 0;
+        int zSpace = 0;
 
-        int x, z = x = inputInventory.size() == 4 ? 2 : 3;
+        int x;
+        int z = x = inputInventory.size() == 4 ? 2 : 3;
 
         // Default order is:
         // 0 1 2
@@ -153,7 +152,7 @@ public class ShapedRecipe extends CraftingRecipe {
         for ( int i = 0; i < x; i++ ) {
             boolean freeZ = true;
             for ( int i2 = 0; i2 < z; i2++ ) {
-                ItemStack itemStack = inputInventory.getItem( ( i * x ) + i2 );
+                ItemStack itemStack = inputInventory.getItem( ( i2 * z ) + i );
                 if ( itemStack.getType() != ItemType.AIR ) {
                     freeZ = false;
                     break;
@@ -167,9 +166,22 @@ public class ShapedRecipe extends CraftingRecipe {
             }
         }
 
+        int[] consumeItems = new int[this.width * this.height];
+        for ( int i = 0; i < this.height; i++ ) {
+            for ( int j = 0; j < this.width; j++ ) {
+                int itemSlot = ( ( i + xSpace ) * x ) + ( j + zSpace );
+                ItemStack invItem = inputInventory.getItem( itemSlot );
+                ItemStack recipeItem = this.arrangement[i * x + j];
 
+                if ( !canBeUsedForCrafting( recipeItem, invItem ) ) {
+                    return null;
+                }
 
-        return new int[0];
+                consumeItems[i + ( this.height * j )] = itemSlot;
+            }
+        }
+
+        return consumeItems;
     }
 
 }

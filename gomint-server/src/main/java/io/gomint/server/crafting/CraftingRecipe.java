@@ -41,4 +41,22 @@ public abstract class CraftingRecipe extends Recipe {
         }
     }
 
+    /**
+     * Check if the two given items are equal enough to be used as crafting input
+     *
+     * @param recipeItem of the recipe
+     * @param invItem of the inventory
+     * @return
+     */
+    protected boolean canBeUsedForCrafting( ItemStack recipeItem, ItemStack invItem ) {
+        io.gomint.server.inventory.item.ItemStack rI = (io.gomint.server.inventory.item.ItemStack) recipeItem;
+        io.gomint.server.inventory.item.ItemStack iI = (io.gomint.server.inventory.item.ItemStack) invItem;
+
+        int recipeMaterial = rI.getMaterial();
+        int inputMaterial = iI.getMaterial();
+
+        return recipeMaterial == inputMaterial &&
+            ( recipeItem.getData() == -1 || recipeItem.getData() == invItem.getData() );
+    }
+
 }

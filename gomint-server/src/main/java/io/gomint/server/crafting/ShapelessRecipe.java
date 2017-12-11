@@ -71,11 +71,7 @@ public class ShapelessRecipe extends CraftingRecipe {
             for ( int i = 0; i < inputItems.length; i++ ) {
                 ItemStack input = inputItems[i];
 
-                int recipeMaterial = ( (io.gomint.server.inventory.item.ItemStack) recipeWanted ).getMaterial();
-                int inputMaterial = ( (io.gomint.server.inventory.item.ItemStack) input ).getMaterial();
-
-                if ( recipeMaterial == inputMaterial &&
-                    ( recipeWanted.getData() == -1 || recipeWanted.getData() == input.getData() ) ) {
+                if ( canBeUsedForCrafting( recipeWanted, input ) ) {
                     // Check if we already consumed this
                     int alreadyConsumed = 0;
                     for ( int consumeSlot : consumeSlots ) {
