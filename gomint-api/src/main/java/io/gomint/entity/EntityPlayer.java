@@ -159,7 +159,7 @@ public interface EntityPlayer extends EntityCreature {
     /**
      * Return the network latency
      *
-     * @return
+     * @return network latencs in ms
      */
     int getPing();
 
@@ -321,38 +321,32 @@ public interface EntityPlayer extends EntityCreature {
     boolean getFlying();
 
     /**
-     *
      * Send a title text to the user's screen, with an optional subtitle.
      *
-     * @param title Big text displayed in the middle of the screen
-     * @param subtitle Smaller big text displayed below the title text
-     * @param fadein
-     * @param duration
-     * @param fadeout
-     * @param unit
+     * @param title    Big text displayed in the middle of the screen
+     * @param subtitle Smaller text displayed below the title text
+     * @param fadein   duration for the fade in effect
+     * @param duration which is used for how long the title should be shown
+     * @param fadeout  duration for the fade out effect
+     * @param unit     of duration multiplier
      */
-
     void sendTitle( String title, String subtitle, long fadein, long duration, long fadeout, TimeUnit unit );
 
     /**
      * Send a title without subtitle.
      *
      * @param title Big text displayed in the middle of the screen
-     *
      */
-
     void sendTitle( String title );
 
     /**
-     *
      * Send a title with title and subtitle.
      *
-     * @param title Big text displayed in the middle of the screen
-     * @param subtitle Smaller big text displayed below the title text
-     *
-     * Default time for fadin and duration is 1 second.
+     * @param title    Big text displayed in the middle of the screen
+     * @param subtitle Smaller text displayed below the title text
+     *                 <p>
+     *                 Default time for fadein and duration is 1 second
      */
-
     void sendTitle( String title, String subtitle );
 
 }
