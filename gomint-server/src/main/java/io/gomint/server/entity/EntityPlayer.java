@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -1364,6 +1365,36 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public boolean getFlying() {
         return this.adventureSettings.isFlying();
+    }
+
+    @Override
+    public void sendTitle( String title, String subtitle, long fadein, long duration, long fadeout, TimeUnit unit ) {
+        if(!subtitle.equals( "" )){
+            PacketSetTitle subtitlePacket = new PacketSetTitle();
+            subtitlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
+            subtitlePacket.setText( subtitle );
+            subtitlePacket.setFadeInTime( (int) unit.toMillis( fadein ) / 50 );
+            subtitlePacket.setStayTime( (int) unit.toMillis( duration ) / 50 );
+            subtitlePacket.setFadeOutTime( (int) unit.toMillis( fadeout ) / 50 );
+            this.getConnection().addToSendQueue( subtitlePacket );
+        }
+        PacketSetTitle titlePacket = new PacketSetTitle();
+        titlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
+        titlePacket.setText( title );
+        titlePacket.setFadeInTime( (int) unit.toMillis( fadein ) / 50 );
+        titlePacket.setStayTime( (int) unit.toMillis( duration ) / 50 );
+        titlePacket.setFadeOutTime( (int) unit.toMillis( fadeout ) / 50 );
+        this.getConnection().addToSendQueue( titlePacket );
+    }
+
+    @Override
+    public void sendTitle( String title ) {
+        this.sendTitle( title, "", 1, 1, (long) 0.5, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void sendTitle( String title, String subtitle ) {
+        this.sendTitle( title, subtitle, 1, 1, (long) 0.5, TimeUnit.SECONDS );
     }
 
     public void firstSpawn() {
