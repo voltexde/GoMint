@@ -4,20 +4,16 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Data
 public class PacketSetTitle extends Packet {
 
-    @Getter@Setter
     private int type;
-    @Getter@Setter
     private String text = "";
-    @Getter@Setter
     private int fadeInTime = 0;
-    @Getter@Setter
     private int stayTime = 0;
-    @Getter@Setter
     private int fadeOutTime = 0;
 
     public PacketSetTitle() {
@@ -42,6 +38,7 @@ public class PacketSetTitle extends Packet {
         this.fadeOutTime = buffer.readSignedVarInt();
     }
 
+    @RequiredArgsConstructor
     public enum TitleType {
 
         TYPE_CLEAR( 0 ),
@@ -53,10 +50,6 @@ public class PacketSetTitle extends Packet {
 
         @Getter
         private final int id;
-
-        TitleType( int id ) {
-            this.id = id;
-        }
 
     }
 }

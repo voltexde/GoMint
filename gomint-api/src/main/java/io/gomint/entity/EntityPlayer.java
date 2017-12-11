@@ -324,8 +324,8 @@ public interface EntityPlayer extends EntityCreature {
      *
      * Send a title text to the user's screen, with an optional subtitle.
      *
-     * @param title
-     * @param subtitle
+     * @param title Big text displayed in the middle of the screen
+     * @param subtitle Smaller big text displayed below the title text
      * @param fadein
      * @param duration
      * @param fadeout
@@ -337,9 +337,8 @@ public interface EntityPlayer extends EntityCreature {
     /**
      * Send a title without subtitle.
      *
-     * @param title
+     * @param title Big text displayed in the middle of the screen
      *
-     * Default time for fadin and duration is 1 second.
      */
 
     void sendTitle( String title );
@@ -348,8 +347,8 @@ public interface EntityPlayer extends EntityCreature {
      *
      * Send a title with title and subtitle.
      *
-     * @param title
-     * @param subtitle
+     * @param title Big text displayed in the middle of the screen
+     * @param subtitle Smaller big text displayed below the title text
      *
      * Default time for fadin and duration is 1 second.
      */
