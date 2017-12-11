@@ -7,6 +7,8 @@ import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockFlowingLava;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -38,7 +40,7 @@ public class FlowingLava extends Liquid implements BlockFlowingLava {
     public void onEntityStanding( EntityLiving entityLiving ) {
         EntityDamageEvent damageEvent = new EntityDamageEvent( entityLiving, EntityDamageEvent.DamageSource.LAVA, 4.0f );
         entityLiving.damage( damageEvent );
-        entityLiving.setFire( 15 );
+        entityLiving.setBurning( 15, TimeUnit.SECONDS );
         entityLiving.multiplyFallDistance( 0.5f );
     }
 

@@ -36,7 +36,7 @@ public class FlowingWater extends Liquid implements BlockFlowingWater {
     @Override
     public void onEntityStanding( EntityLiving entityLiving ) {
         if ( entityLiving.isOnFire() ) {
-            entityLiving.setFire( 0 );
+            entityLiving.extinguish();
         }
     }
 
