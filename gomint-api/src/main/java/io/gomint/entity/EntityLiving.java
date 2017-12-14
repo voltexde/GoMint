@@ -34,6 +34,13 @@ public interface EntityLiving extends Entity {
     float getHealth();
 
     /**
+     * Set the maximum amount of health this entity can have
+     *
+     * @param amount of health this entity can have as a max
+     */
+    void setMaxHealth( float amount );
+
+    /**
      * Get the maximum amount of health this entity can have
      *
      * @return maximum amount of health this entity can have
@@ -115,13 +122,6 @@ public interface EntityLiving extends Entity {
     void removeAllEffects();
 
     /**
-     * Teleport to the given location
-     *
-     * @param to The location where the entity should be teleported to
-     */
-    void teleport( Location to );
-
-    /**
      * Get the movement speed of this entity
      *
      * @return movement speed
@@ -134,24 +134,6 @@ public interface EntityLiving extends Entity {
      * @param value of the new movement speed
      */
     void setMovementSpeed( float value );
-
-    /**
-     * Get the name tag of this entity
-     * 
-     * The name tag is shown above the entity in the client
-     * 
-     * @return The name tag of the entity
-     */
-    String getNameTag();
-
-    /**
-     * Set the name tag of this entity
-     *
-     * The name tag is shown above the entity in the client
-     * 
-     * @param nameTag The new name tag of this entity
-     */
-    void setNameTag( String nameTag );
 
     /**
      * Attack given entity

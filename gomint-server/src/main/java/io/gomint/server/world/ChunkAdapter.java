@@ -8,12 +8,10 @@
 package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.entity.tileentity.CommandBlockTileEntity;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
@@ -21,7 +19,6 @@ import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.util.collection.EntityIDMap;
 import io.gomint.server.world.postprocessor.PostProcessor;
 import io.gomint.server.world.storage.TemporaryStorage;
-import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
@@ -30,10 +27,7 @@ import io.gomint.world.block.Block;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
@@ -51,7 +45,8 @@ public class ChunkAdapter implements Chunk {
 
     // CHECKSTYLE:OFF
     // World
-    @Getter protected final WorldAdapter world;
+    @Getter
+    protected final WorldAdapter world;
 
     // Networking
     boolean dirty;

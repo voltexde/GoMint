@@ -282,6 +282,11 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     }
 
     @Override
+    public void setMaxHealth( float amount ) {
+        this.getAttributeInstance( Attribute.HEALTH ).setMaxValue( amount );
+    }
+
+    @Override
     public float getMaxHealth() {
         return this.getAttributeInstance( Attribute.HEALTH ).getMaxValue();
     }
@@ -520,21 +525,6 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     }
 
     @Override
-    public void teleport( Location to ) {
-        WorldAdapter actualWorld = this.getWorld();
-
-        this.setAndRecalcPosition( to );
-
-        if ( !to.getWorld().equals( actualWorld ) ) {
-            actualWorld.removeEntity( this );
-            this.setWorld( (WorldAdapter) to.getWorld() );
-            ( (WorldAdapter) to.getWorld() ).spawnEntityAt( this, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch() );
-        }
-
-        this.fallDistance = 0;
-    }
-
-    @Override
     public float getMovementSpeed() {
         return this.getAttribute( Attribute.MOVEMENT_SPEED );
     }
@@ -542,16 +532,6 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     @Override
     public void setMovementSpeed( float value ) {
         this.setAttribute( Attribute.MOVEMENT_SPEED, value );
-    }
-
-    @Override
-    public String getNameTag() {
-        return getMetadata().getString( 4 );
-    }
-
-    @Override
-    public void setNameTag( String nameTag ) {
-        getMetadata().putString( 4, nameTag );
     }
 
 }

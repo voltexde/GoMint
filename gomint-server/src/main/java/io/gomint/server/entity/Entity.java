@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.entity.BossBar;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.math.*;
 import io.gomint.server.entity.component.TransformComponent;
@@ -110,8 +111,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Getter
     private List<EntityLink> links;
 
+    @Setter @Getter
+    protected boolean ticking = true;
+
     // Some tracker for "smooth" movement
     private int stuckInBlockTicks = 0;
+
+    private io.gomint.server.entity.BossBar bossBar;
 
     /**
      * Construct a new Entity
@@ -381,6 +387,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return new Vector( dX, dY, dZ );
     }
 
+    /**
+     * Does this entity needs to be pushed out of blocks when stuck?
+     *
+     * @return true or false, depending of it needing to be pushed
+     */
     protected boolean needsToBePushedOutOfBlocks() {
         return true;
     }
@@ -848,6 +859,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     @Override
+    public String getNameTag() {
+        return this.metadataContainer.getString( MetadataContainer.DATA_NAMETAG );
+    }
+
+    @Override
+    public void setNameTag( String nameTag ) {
+        this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, nameTag );
+    }
+
+    @Override
     public void setNameTagAlwaysVisible( boolean value ) {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ALWAYS_SHOW_NAMETAG, value );
     }
@@ -1031,8 +1052,28 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     @Override
+    public void teleport( Location to ) {
+        WorldAdapter actualWorld = this.getWorld();
+
+        this.setAndRecalcPosition( to );
+
+        if ( !to.getWorld().equals( actualWorld ) ) {
+            actualWorld.removeEntity( this );
+            this.setWorld( (WorldAdapter) to.getWorld() );
+            ( (WorldAdapter) to.getWorld() ).spawnEntityAt( this, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch() );
+        }
+
+        this.fallDistance = 0;
+    }
+
+    @Override
     public void setAge( long duration, TimeUnit unit ) {
         this.age = MathUtils.fastFloor( unit.toMillis( duration ) / 50f );
+    }
+
+    @Override
+    public BossBar getBossBar() {
+        return this.bossBar != null ? this.bossBar : ( this.bossBar = new io.gomint.server.entity.BossBar( this ) );
     }
 
 }

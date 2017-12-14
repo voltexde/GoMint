@@ -6,13 +6,9 @@ import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.gui.CustomForm;
 import io.gomint.gui.FormListener;
 import io.gomint.gui.FormResponse;
-import io.gomint.gui.Modal;
 import io.gomint.inventory.item.*;
 import io.gomint.plugin.TestPlugin;
 import lombok.RequiredArgsConstructor;
-
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -40,6 +36,8 @@ public class PlayerJoinListener implements EventListener {
         settings.addToggle( "show-position", "Show current position", true );
         FormListener<FormResponse> response = event.getPlayer().addSettingsForm( settings );
         response.onResponse( formResponse -> plugin.getLogger().info( String.valueOf( formResponse.getToogle( "show-position" ) ) ) );
+
+        this.plugin.getBossBarOrb().getBossBar().addPlayer( event.getPlayer() );
     }
 
 }

@@ -82,6 +82,7 @@ public final class Protocol {
     public static final byte PACKET_PLAYER_LIST = (byte) 0x3F;
     public static final byte PACKET_SET_CHUNK_RADIUS = (byte) 0x45;
     public static final byte PACKET_CONFIRM_CHUNK_RADIUS = (byte) 0x46;
+    public static final byte PACKET_BOSS_BAR = (byte) 0x4a;
     public static final byte PACKET_AVAILABLE_COMMANDS = (byte) 0x4c;
     public static final byte PACKET_COMMAND_REQUEST = (byte) 0x4d;
     public static final byte PACKET_COMMAND_OUTPUT = (byte) 0x4f;
@@ -110,6 +111,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_BOSS_BAR:
+                return new PacketBossBar();
+
             case PACKET_SERVER_SETTINGS_REQUEST:
                 return new PacketServerSettingsRequest();
 

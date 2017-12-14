@@ -14,6 +14,8 @@ import io.gomint.entity.EntityPlayer;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.collection.EntityIDMap;
 import io.gomint.world.Chunk;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,6 +29,8 @@ import java.util.Set;
  * @version 1.0
  */
 public class EntityManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( EntityManager.class );
 
     private final WorldAdapter world;
     private EntityIDMap entitiesById;
@@ -61,6 +65,10 @@ public class EntityManager {
         LongObjCursor<Entity> cursor = this.entitiesById.cursor();
         while ( cursor.moveNext() ) {
             io.gomint.server.entity.Entity entity = (io.gomint.server.entity.Entity) cursor.value();
+            if ( !entity.isTicking() ) {
+                continue;
+            }
+
             if ( !entity.isDead() ) {
                 ChunkAdapter current = (ChunkAdapter) entity.getChunk();
                 entity.update( currentTimeMS, dT );
@@ -216,12 +224,7 @@ public class EntityManager {
     }
 
     private void mergeSpawnedEntities() {
-        this.spawnedInThisTick.cursor().forEachForward( new LongObjConsumer<Entity>() {
-            @Override
-            public void accept( long l, Entity entity ) {
-                entitiesById.justPut( l, entity );
-            }
-        } );
+        this.spawnedInThisTick.cursor().forEachForward( ( l, entity ) -> entitiesById.justPut( l, entity ) );
         this.spawnedInThisTick.clear();
     }
 
@@ -357,6 +360,8 @@ public class EntityManager {
                 entityPlayer.getEntityVisibilityManager().addEntity( entity );
             }
         }
+
+        LOGGER.debug( "Spawning entity {} at {}", entity.getClass(), entity.getLocation() );
     }
 
     /**

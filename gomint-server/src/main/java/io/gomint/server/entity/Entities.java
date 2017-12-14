@@ -57,7 +57,11 @@ public class Entities {
     } );
 
     static {
-        GENERATORS.registerRecursive( "io.gomint.server.entity" );
+        GENERATORS.register( "io.gomint.server.entity" );
+        GENERATORS.register( "io.gomint.server.entity.active" );
+        GENERATORS.register( "io.gomint.server.entity.animal" );
+        GENERATORS.register( "io.gomint.server.entity.passive" );
+        GENERATORS.register( "io.gomint.server.entity.projectile" );
     }
 
     public static <T extends Entity> T create( Class<T> entityClass ) {

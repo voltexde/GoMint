@@ -92,6 +92,29 @@ public interface Entity {
      */
     Vector getVelocity();
 
+    /**
+     * Get the name tag of this entity
+     *
+     * The name tag is shown above the entity in the client
+     *
+     * @return The name tag of the entity
+     */
+    String getNameTag();
+
+    /**
+     * Set the name tag of this entity
+     *
+     * The name tag is shown above the entity in the client
+     *
+     * @param nameTag The new name tag of this entity
+     */
+    void setNameTag( String nameTag );
+
+    /**
+     * Set name tag to always visible even when not looking at it
+     *
+     * @param value true for always visible, otherwise false
+     */
     void setNameTagAlwaysVisible( boolean value );
 
     boolean isNameTagAlwaysVisible();
@@ -114,9 +137,16 @@ public interface Entity {
     /**
      * Spawn this entity
      *
-     * @param location
+     * @param location where the entity should spawn
      */
     void spawn( Location location );
+
+    /**
+     * Teleport to the given location
+     *
+     * @param to The location where the entity should be teleported to
+     */
+    void teleport( Location to );
 
     /**
      * Despawn this entity on the next tick
@@ -137,5 +167,27 @@ public interface Entity {
      * @param unit of time
      */
     void setAge( long duration, TimeUnit unit );
+
+    /**
+     * Disable ticking of this entity. This causes the given entity to stop moving, it also stops decaying,
+     * aging and all the other stuff which requires ticking.
+     *
+     * @param value true when the entity should tick, false when not
+     */
+    void setTicking( boolean value );
+
+    /**
+     * Check if this entity is currently allow to tick.
+     *
+     * @return true when ticking, false when not
+     */
+    boolean isTicking();
+
+    /**
+     * Create if needed and return the entities boss bar
+     *
+     * @return boss bar of this entity
+     */
+    BossBar getBossBar();
 
 }

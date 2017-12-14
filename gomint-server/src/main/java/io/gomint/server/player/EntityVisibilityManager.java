@@ -16,6 +16,8 @@ import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.world.Chunk;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
@@ -26,10 +28,13 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class EntityVisibilityManager {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( EntityVisibilityManager.class );
     private final EntityPlayer player;
     private EntityHashSet visible = EntityHashSet.withExpectedSize( 10 );
 
     public void updateAddedChunk( ChunkAdapter chunk ) {
+        LOGGER.debug( "Checking chunk {}, {}", chunk.getX(), chunk.getZ() );
+
         Collection<Entity> collection = chunk.getEntities();
         if ( collection != null ) {
             for ( Entity entity : collection ) {
@@ -79,6 +84,7 @@ public class EntityVisibilityManager {
 
     public void addEntity( Entity entity ) {
         if ( !this.visible.contains( entity ) && !this.player.equals( entity ) ) {
+            LOGGER.debug( "Showing entity {} for player", entity );
             io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) entity;
 
             this.player.getConnection().addToSendQueue( implEntity.createSpawnPacket() );

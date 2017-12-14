@@ -15,7 +15,7 @@ public class AttributeInstance {
 
     private final String key;
     private final float minValue;
-    private final float maxValue;
+    private float maxValue;
     private final float defaultValue;
     private float value;
     private boolean dirty;
@@ -64,6 +64,10 @@ public class AttributeInstance {
         this.modifiers.clear();
         this.value = this.defaultValue;
         this.dirty = true;
+    }
+
+    public void setMaxValue( float maxValue ) {
+        this.maxValue = maxValue;
     }
 
 }

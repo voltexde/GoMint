@@ -159,7 +159,7 @@ public interface EntityPlayer extends EntityCreature {
     /**
      * Return the network latency
      *
-     * @return network latencs in ms
+     * @return network latency in ms
      */
     int getPing();
 
