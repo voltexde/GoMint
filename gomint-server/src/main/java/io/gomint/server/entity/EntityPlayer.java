@@ -30,7 +30,6 @@ import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
-import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.collection.*;
 import io.gomint.server.world.ChunkAdapter;
@@ -80,16 +79,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private String displayName;
     private UUID uuid;
     private String xboxId;
-    @Setter
-    private PlayerSkin skin;
     private Gamemode gamemode = Gamemode.CREATIVE;
     @Getter
     private AdventureSettings adventureSettings;
-    @Getter
-    @Setter
-    private Entity hoverEntity;
-    @Getter
-    private final PermissionManager permissionManager = new PermissionManager( this );
+    @Getter @Setter private Entity hoverEntity;
+    @Getter  private final PermissionManager permissionManager = new PermissionManager( this );
     @Getter
     private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
     private Location respawnPosition = null;
@@ -100,7 +94,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     // Inventory
     private PlayerInventory inventory;
-    private ArmorInventory armorInventory;
     private Inventory craftingInventory;
     private Inventory cursorInventory;
     private Inventory offhandInventory;
@@ -110,14 +103,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter
-    @Getter
+    @Setter @Getter
     private BlockPosition breakVector;
-    @Setter
-    @Getter
+    @Setter @Getter
     private long startBreak;
-    @Setter
-    @Getter
+    @Setter @Getter
     private long breakTime;
 
     // Update data
@@ -364,11 +354,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public boolean isHidden( io.gomint.entity.EntityPlayer player ) {
         return this.hiddenPlayers != null && this.hiddenPlayers.contains( player.getEntityId() );
-    }
-
-    @Override
-    public io.gomint.player.PlayerSkin getSkin() {
-        return this.skin;
     }
 
     @Override
@@ -1125,7 +1110,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
             packetPlayerlist.setMode( (byte) 0 );
             packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-                add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, skin ) );
+                add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, getSkin() ) );
             }} );
 
             for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
@@ -1405,7 +1390,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketPlayerlist playerlist = new PacketPlayerlist();
         playerlist.setMode( (byte) 0 );
         playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, skin ) );
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, getSkin() ) );
         }} );
         this.getConnection().addToSendQueue( playerlist );
 

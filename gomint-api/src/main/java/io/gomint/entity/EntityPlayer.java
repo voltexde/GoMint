@@ -7,6 +7,7 @@
 
 package io.gomint.entity;
 
+import io.gomint.entity.passive.EntityHuman;
 import io.gomint.gui.Form;
 import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * @author Digot
  * @version 1.0
  */
-public interface EntityPlayer extends EntityCreature {
+public interface EntityPlayer extends EntityHuman {
 
     /**
      * Gets the name of the player. It is NOT globally unique since the
@@ -89,13 +90,6 @@ public interface EntityPlayer extends EntityCreature {
      * @return true if this player can't see the player given, false it it can
      */
     boolean isHidden( EntityPlayer player );
-
-    /**
-     * Get the skin of a player. This is readonly access currently since we figure out how to change the skin.
-     *
-     * @return skin which the client has sent on login
-     */
-    PlayerSkin getSkin();
 
     /**
      * Get the players inventory

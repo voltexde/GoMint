@@ -7,6 +7,10 @@
 
 package io.gomint.player;
 
+import java.io.IOError;
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * @author BlackyPaw
  * @version 1.0
@@ -47,5 +51,13 @@ public interface PlayerSkin {
      * @return geometry data
      */
     byte[] getGeometryData();
+
+    /**
+     * Save the skin to a given file in PNG format
+     *
+     * @param out stream to which the image should be saved
+     * @throws IOException which can be thrown in case of errors while saving
+     */
+    void saveSkinTo( OutputStream out ) throws IOException;
 
 }

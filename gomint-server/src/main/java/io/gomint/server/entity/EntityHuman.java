@@ -4,10 +4,13 @@ import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerFoodLevelChangeEvent;
+import io.gomint.math.MathUtils;
 import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.Difficulty;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,13 +18,15 @@ import org.slf4j.LoggerFactory;
  * @author geNAZt
  * @version 1.0
  */
-public class EntityHuman extends EntityLiving {
+public class EntityHuman extends EntityCreature implements io.gomint.entity.passive.EntityHuman {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( EntityHuman.class );
     private static final int DATA_PLAYER_BED_POSITION = 29;
 
     private int foodTicks;
     private float lastUpdateDT;
+
+    // Basis information
+    private PlayerSkin skin;
 
     /**
      * Constructs a new EntityLiving
@@ -155,13 +160,8 @@ public class EntityHuman extends EntityLiving {
      * @param amount which should be added to the saturation
      */
     public void addSaturation( float amount ) {
-        if ( amount < 0 ) {
-            return;
-        }
-
         AttributeInstance instance = this.getAttributeInstance( Attribute.SATURATION );
-        float newAmount = Math.max( Math.min( this.getSaturation() + amount, instance.getMaxValue() ), instance.getMinValue() );
-        this.setSaturation( newAmount );
+        this.setSaturation( instance.getValue() + amount );
     }
 
     /**
@@ -170,7 +170,10 @@ public class EntityHuman extends EntityLiving {
      * @param amount of saturation
      */
     public void setSaturation( float amount ) {
-        this.setAttribute( Attribute.SATURATION, amount );
+        AttributeInstance instance = this.getAttributeInstance( Attribute.SATURATION );
+        float maxVal = instance.getMaxValue();
+        float minVal = instance.getMinValue();
+        this.setAttribute( Attribute.SATURATION, MathUtils.clamp( amount, minVal, maxVal ) );
     }
 
     /**
@@ -202,11 +205,9 @@ public class EntityHuman extends EntityLiving {
         float old = this.getAttribute( Attribute.HUNGER );
         this.setAttribute( Attribute.HUNGER, amount );
 
-        if ( old < 17 && amount >= 17 ) {
-            this.foodTicks = 0;
-        } else if ( old < 6 && amount >= 6 ) {
-            this.foodTicks = 0;
-        } else if ( old > 0 && amount == 0 ) {
+        if ( ( old < 17 && amount >= 17 ) ||
+            ( old < 6 && amount >= 6 ) ||
+            ( old > 0 && amount == 0 ) ) {
             this.foodTicks = 0;
         }
     }
@@ -307,6 +308,16 @@ public class EntityHuman extends EntityLiving {
     @Override
     protected void kill() {
         super.kill();
+    }
+
+    @Override
+    public io.gomint.player.PlayerSkin getSkin() {
+        return this.skin;
+    }
+
+    @Override
+    public void setSkin( io.gomint.player.PlayerSkin skin ) {
+        this.skin = (PlayerSkin) skin;
     }
 
 }
