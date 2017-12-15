@@ -106,9 +106,9 @@ public class ChunkCache {
                 }
 
                 // Check if we need to save
-                if ( this.autoSaveInterval > 0 && chunk.getLastSavedTimestamp() + this.autoSaveInterval < currentTimeMS ) {
-                    this.world.saveChunkAsynchronously( chunk );
+                if ( this.autoSaveInterval > 0 && currentTimeMS - chunk.getLastSavedTimestamp() >= this.autoSaveInterval ) {
                     chunk.setLastSavedTimestamp( currentTimeMS );
+                    this.world.saveChunkAsynchronously( chunk );
                 }
 
                 this.currentX = (int) ( chunkHash >> 32 );

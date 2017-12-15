@@ -209,7 +209,7 @@ public class ChunkAdapter implements Chunk {
      *
      * @return The timestamp this chunk was last written out at
      */
-    long getLastSavedTimestamp() {
+    public long getLastSavedTimestamp() {
         return this.lastSavedTimestamp;
     }
 

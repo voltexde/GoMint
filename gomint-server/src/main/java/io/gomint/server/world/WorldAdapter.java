@@ -684,7 +684,7 @@ public abstract class WorldAdapter implements World {
      */
     void saveChunkAsynchronously( ChunkAdapter chunk ) {
         AsyncChunkSaveTask task = new AsyncChunkSaveTask( chunk );
-        this.asyncChunkTasks.add( task );
+        this.asyncChunkTasks.offer( task );
     }
 
     /**

@@ -9,11 +9,14 @@ package io.gomint.server.world.anvil;
 
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.taglib.NBTStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.DataFormatException;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
@@ -26,7 +29,8 @@ class RegionFile {
 
     private final AnvilWorldAdapter world;
     private final RandomAccessFile file;
-    private final Map<Integer, int[]> lookupCache = new HashMap<>();
+    private final int[][] lookupCache = new int[4096][];
+    private final int[] lastSaveTimes = new int[4096];
 
     // Caches
     private final byte[] decompressBuffer = new byte[64 * 1024];
@@ -61,7 +65,12 @@ class RegionFile {
             int offset = ( ( (int) buffer[0] << 16 & 0xFF0000 ) | ( (int) buffer[1] << 8 & 0xFF00 ) | ( (int) buffer[2] & 0xFF ) );
             int length = this.file.read();
 
-            this.lookupCache.put( i, new int[]{ offset, length } );
+            this.lookupCache[i] = new int[]{ offset, length };
+        }
+
+        // Read timestamps
+        for ( int i = 0; i < 1024; i++ ) {
+            this.lastSaveTimes[i] = this.file.readInt();
         }
     }
 
@@ -76,7 +85,7 @@ class RegionFile {
      */
     AnvilChunkAdapter loadChunk( int x, int z ) throws IOException, WorldLoadException {
         int chunkIndex = ( ( x & 31 ) + ( ( z & 31 ) << 5 ) );
-        int[] lookup = this.lookupCache.get( chunkIndex );
+        int[] lookup = this.lookupCache[chunkIndex];
 
         int offset = lookup[0];
         int length = lookup[1];
@@ -138,7 +147,7 @@ class RegionFile {
         }
 
         NBTStream nbtStream = new NBTStream( input, ByteOrder.BIG_ENDIAN );
-        AnvilChunkAdapter chunkAdapter = new AnvilChunkAdapter( this.world, x, z );
+        AnvilChunkAdapter chunkAdapter = new AnvilChunkAdapter( this.world, x, z, TimeUnit.SECONDS.toMillis( this.lastSaveTimes[chunkIndex] ) );
         chunkAdapter.loadFromNBT( nbtStream );
         return chunkAdapter;
     }
@@ -199,10 +208,10 @@ class RegionFile {
         this.file.write( buffer );
 
         // Update cache
-        this.lookupCache.put( chunkIndex, new int[]{ sectorOffset, sectorLength } );
+        this.lookupCache[chunkIndex] = new int[]{ sectorOffset, sectorLength };
 
         // Adjust timestamp:
-        int timestamp = (int) ( System.currentTimeMillis() / 1000 );
+        int timestamp = (int) ( chunk.getLastSavedTimestamp() / 1000 );
         this.file.skipBytes( 4092 );
         this.file.writeInt( timestamp );
 
