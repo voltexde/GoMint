@@ -50,7 +50,7 @@ public interface PlayerSkin {
      *
      * @return geometry data
      */
-    byte[] getGeometryData();
+    String getGeometryData();
 
     /**
      * Save the skin to a given file in PNG format

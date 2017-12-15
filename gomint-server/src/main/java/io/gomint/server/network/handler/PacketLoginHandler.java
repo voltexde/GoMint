@@ -161,7 +161,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                         Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinData" ) ),
                         capeData.isEmpty() ? null : Base64.getDecoder().decode( capeData ),
                         skinToken.getClaim( "SkinGeometryName" ),
-                        Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinGeometry" ) )
+                        new String( Base64.getDecoder().decode( (String) skinToken.getClaim( "SkinGeometry" ) ) )
                     );
 
                     // Create needed device info

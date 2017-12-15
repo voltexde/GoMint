@@ -52,8 +52,8 @@ public class PacketPlayerlist extends Packet {
                 buffer.writeString( entry.skin.getGeometryName() );
 
                 // Geometry data
-                buffer.writeUnsignedVarInt( entry.skin.getGeometryData().length );
-                buffer.writeBytes( entry.skin.getGeometryData() );
+                buffer.writeUnsignedVarInt( entry.skin.getGeometryData().length() );
+                buffer.writeBytes( entry.skin.getGeometryData().getBytes() );
 
                 // xbox user id
                 buffer.writeString( entry.xboxId );
