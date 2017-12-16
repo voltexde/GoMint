@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.passive;
 
+import afu.org.checkerframework.checker.oigj.qual.O;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
@@ -219,11 +220,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.setAttribute( Attribute.EXHAUSTION, amount );
     }
 
-    /**
-     * Get the saturation level
-     *
-     * @return saturation level
-     */
+    @Override
     public float getSaturation() {
         return this.getAttribute( Attribute.SATURATION );
     }
@@ -238,11 +235,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.setSaturation( instance.getValue() + amount );
     }
 
-    /**
-     * Set saturation level
-     *
-     * @param amount of saturation
-     */
+
     public void setSaturation( float amount ) {
         AttributeInstance instance = this.getAttributeInstance( Attribute.SATURATION );
         float maxVal = instance.getMaxValue();
@@ -250,11 +243,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.setAttribute( Attribute.SATURATION, MathUtils.clamp( amount, minVal, maxVal ) );
     }
 
-    /**
-     * Get the hunger level
-     *
-     * @return hunger level
-     */
+    @Override
     public float getHunger() {
         return this.getAttribute( Attribute.HUNGER );
     }
@@ -268,11 +257,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.setHunger( this.getHunger() + amount );
     }
 
-    /**
-     * Set hunger level
-     *
-     * @param amount of hunger
-     */
+    @Override
     public void setHunger( float amount ) {
         AttributeInstance instance = this.getAttributeInstance( Attribute.HUNGER );
         float old = instance.getValue();

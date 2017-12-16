@@ -88,4 +88,32 @@ public interface EntityHuman extends EntityCreature {
      */
     PlayerInventory getInventory();
 
+    /**
+     * Set hunger level
+     *
+     * @param amount of hunger
+     */
+    void setHunger( float amount );
+
+    /**
+     * Get the hunger level
+     *
+     * @return hunger level
+     */
+    float getHunger();
+
+    /**
+     * Set saturation level
+     *
+     * @param amount of saturation
+     */
+    void setSaturation( float amount );
+
+    /**
+     * Get the saturation level
+     *
+     * @return saturation level
+     */
+    float getSaturation();
+
 }
