@@ -1,23 +1,43 @@
-package io.gomint.server.entity;
+/*
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+package io.gomint.server.entity.passive;
 
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerFoodLevelChangeEvent;
 import io.gomint.math.MathUtils;
+import io.gomint.server.entity.*;
 import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.inventory.ArmorInventory;
+import io.gomint.server.inventory.PlayerInventory;
+import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketPlayerlist;
+import io.gomint.server.network.packet.PacketSpawnPlayer;
 import io.gomint.server.player.PlayerSkin;
+import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.Difficulty;
-import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.UUID;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@EqualsAndHashCode( callSuper = false, of = { "uuid" } )
+@ToString( of = { "uuid", "username" } )
+@RegisterInfo( id = 63 )
 public class EntityHuman extends EntityCreature implements io.gomint.entity.passive.EntityHuman {
 
     private static final int DATA_PLAYER_BED_POSITION = 29;
@@ -25,8 +45,18 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     private int foodTicks;
     private float lastUpdateDT;
 
-    // Basis information
+    // Basic information
+    private String username;
+    private String displayName;
+    private UUID uuid;
+    private String xboxId = "";
+
     private PlayerSkin skin;
+
+    /**
+     * Player inventory which needs to be inited
+     */
+    protected PlayerInventory inventory;
 
     /**
      * Constructs a new EntityLiving
@@ -36,6 +66,30 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
      */
     protected EntityHuman( EntityType type, WorldAdapter world ) {
         super( type, world );
+        this.setSize( 0.6f, 1.8f );
+        this.eyeHeight = 1.62f;
+
+        this.metadataContainer.putByte( MetadataContainer.DATA_PLAYER_INDEX, (byte) 0 );
+
+        // Sleeping stuff
+        this.setPlayerFlag( EntityFlag.PLAYER_SLEEP, false );
+        this.metadataContainer.putPosition( DATA_PLAYER_BED_POSITION, 0, 0, 0 );
+
+        this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
+
+        // Exhaustion, saturation and food
+        addAttribute( Attribute.EXHAUSTION );
+        addAttribute( Attribute.SATURATION );
+    }
+
+    /**
+     * Create new entity human for API
+     */
+    public EntityHuman() {
+        super( EntityType.PLAYER, null );
+        this.setSize( 0.6f, 1.8f );
+        this.eyeHeight = 1.62f;
+
         this.metadataContainer.putByte( MetadataContainer.DATA_PLAYER_INDEX, (byte) 0 );
 
         // Sleeping stuff
@@ -45,6 +99,26 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         // Exhaustion, saturation and food
         addAttribute( Attribute.EXHAUSTION );
         addAttribute( Attribute.SATURATION );
+
+        // Init inventories
+        this.inventory = new PlayerInventory( this );
+        this.armorInventory = new ArmorInventory( this );
+
+        // Some default values
+        this.uuid = UUID.randomUUID();
+        this.username = "NPC: " + this.uuid.toString();
+        this.displayName = this.username;
+        this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
+    }
+
+    @Override
+    public String getName() {
+        return this.username;
+    }
+
+    @Override
+    public UUID getUUID() {
+        return this.uuid;
     }
 
     @Override
@@ -191,9 +265,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
      * @param amount which should be added to the hunger
      */
     public void addHunger( float amount ) {
-        AttributeInstance instance = this.getAttributeInstance( Attribute.HUNGER );
-        float newAmount = Math.max( Math.min( this.getHunger() + amount, instance.getMaxValue() ), instance.getMinValue() );
-        this.setHunger( newAmount );
+        this.setHunger( this.getHunger() + amount );
     }
 
     /**
@@ -202,8 +274,9 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
      * @param amount of hunger
      */
     public void setHunger( float amount ) {
-        float old = this.getAttribute( Attribute.HUNGER );
-        this.setAttribute( Attribute.HUNGER, amount );
+        AttributeInstance instance = this.getAttributeInstance( Attribute.HUNGER );
+        float old = instance.getValue();
+        this.setAttribute( Attribute.HUNGER, MathUtils.clamp( amount, instance.getMinValue(), instance.getMaxValue() ) );
 
         if ( ( old < 17 && amount >= 17 ) ||
             ( old < 6 && amount >= 6 ) ||
@@ -316,8 +389,113 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     }
 
     @Override
+    public String getXboxID() {
+        return this.xboxId;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    @Override
+    public void setDisplayName( String displayName ) {
+        this.displayName = displayName;
+
+        if ( this.world != null ) {
+            this.updatePlayerList();
+        }
+    }
+
+    @Override
     public void setSkin( io.gomint.player.PlayerSkin skin ) {
-        this.skin = (PlayerSkin) skin;
+        if ( this.skin != null ) {
+            this.skin = (PlayerSkin) skin;
+            this.updatePlayerList();
+        } else {
+            this.skin = (PlayerSkin) skin;
+        }
+    }
+
+    private void updatePlayerList() {
+        PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+        packetPlayerlist.setMode( (byte) 0 );
+        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, getSkin() ) );
+        }} );
+
+        for ( io.gomint.entity.EntityPlayer player : this.world.getServer().getPlayers() ) {
+            ( (EntityPlayer) player ).getConnection().addToSendQueue( packetPlayerlist );
+        }
+    }
+
+    @Override
+    public PlayerInventory getInventory() {
+        return inventory;
+    }
+
+    /**
+     * Init data from players
+     *
+     * @param username    of the player
+     * @param displayName which should be the same as the username
+     * @param xboxId      of the account, empty string if in offline mode
+     * @param uuid        of this player
+     */
+    public void setPlayerData( String username, String displayName, String xboxId, UUID uuid ) {
+        this.username = username;
+        this.displayName = displayName;
+        this.xboxId = xboxId;
+        this.uuid = uuid;
+
+        this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
+    }
+
+    @Override
+    public Packet createSpawnPacket() {
+        PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
+        packetSpawnPlayer.setUuid( this.getUUID() );
+        packetSpawnPlayer.setName( this.getName() );
+        packetSpawnPlayer.setEntityId( this.getEntityId() );
+        packetSpawnPlayer.setRuntimeEntityId( this.getEntityId() );
+
+        packetSpawnPlayer.setX( this.getPositionX() );
+        packetSpawnPlayer.setY( this.getPositionY() );
+        packetSpawnPlayer.setZ( this.getPositionZ() );
+
+        packetSpawnPlayer.setVelocityX( this.getMotionX() );
+        packetSpawnPlayer.setVelocityY( this.getMotionY() );
+        packetSpawnPlayer.setVelocityZ( this.getMotionZ() );
+
+        packetSpawnPlayer.setPitch( this.getPitch() );
+        packetSpawnPlayer.setYaw( this.getYaw() );
+        packetSpawnPlayer.setHeadYaw( this.getHeadYaw() );
+
+        packetSpawnPlayer.setItemInHand( this.getInventory().getItemInHand() );
+        packetSpawnPlayer.setMetadataContainer( this.getMetadata() );
+        return packetSpawnPlayer;
+    }
+
+    @Override
+    public void preSpawn( PlayerConnection connection ) {
+        PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+        packetPlayerlist.setMode( (byte) 0 );
+        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, getSkin() ) );
+        }} );
+
+        connection.addToSendQueue( packetPlayerlist );
+    }
+
+    @Override
+    public void postSpawn( PlayerConnection connection ) {
+        PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+        packetPlayerlist.setMode( (byte) 1 );
+        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, getSkin() ) );
+        }} );
+
+        connection.addToSendQueue( packetPlayerlist );
     }
 
 }

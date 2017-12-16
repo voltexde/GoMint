@@ -461,7 +461,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         this.attachedEntities.remove( player );
     }
 
-    void resetAttributes() {
+    public void resetAttributes() {
         for ( AttributeInstance instance : this.attributes.values() ) {
             instance.reset();
         }

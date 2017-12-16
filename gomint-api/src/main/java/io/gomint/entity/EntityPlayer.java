@@ -32,23 +32,6 @@ import java.util.concurrent.TimeUnit;
 public interface EntityPlayer extends EntityHuman {
 
     /**
-     * Gets the name of the player. It is NOT globally unique since the
-     * player can change it inside the Client. Yet it is unique for all
-     * players on the same server.
-     *
-     * @return The name player's name
-     */
-    String getName();
-
-    /**
-     * Gets the player's UUID. It has yet to be researched how unique this
-     * one is as it may be specified by the player during the login sequence.
-     *
-     * @return The player's UUID.
-     */
-    UUID getUUID();
-
-    /**
      * Set the new gamemode for this player
      *
      * @param gamemode The new gamemode to be used
@@ -92,25 +75,11 @@ public interface EntityPlayer extends EntityHuman {
     boolean isHidden( EntityPlayer player );
 
     /**
-     * Get the players inventory
-     *
-     * @return players inventory
-     */
-    PlayerInventory getInventory();
-
-    /**
      * Opens a inventory for the player
      *
      * @param inventory which should be opened
      */
     void openInventory( Inventory inventory );
-
-    /**
-     * Get the unique XBOX live id. Is empty string if not in xbox live mode
-     *
-     * @return xbox live id or empty string
-     */
-    String getXboxID();
 
     /**
      * Send a message to the client, this uses the normal {@link ChatType} enum.
@@ -188,20 +157,6 @@ public interface EntityPlayer extends EntityHuman {
      * @return permission manager
      */
     PermissionManager getPermissionManager();
-
-    /**
-     * Get the name which is listed in the tablist (displayName)
-     *
-     * @return display name
-     */
-    String getDisplayName();
-
-    /**
-     * Set a new display name
-     *
-     * @param displayName which should be used
-     */
-    void setDisplayName( String displayName );
 
     /**
      * Is this player still online?

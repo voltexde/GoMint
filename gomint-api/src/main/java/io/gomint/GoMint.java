@@ -14,9 +14,11 @@ import io.gomint.gui.CustomForm;
 import io.gomint.gui.Modal;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
+import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.PluginManager;
 import io.gomint.world.World;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -171,5 +173,20 @@ public interface GoMint {
      * @return true if main thread, false if not
      */
     boolean isMainThread();
+
+    /**
+     * Create a player skin from the given input stream
+     *
+     * @param inputStream which should be read
+     * @return skin or null on error
+     */
+    PlayerSkin createPlayerSkin( InputStream inputStream );
+
+    /**
+     * Get the empty player skin
+     *
+     * @return empty player skin
+     */
+    PlayerSkin getEmptyPlayerSkin();
 
 }

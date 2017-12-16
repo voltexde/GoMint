@@ -190,4 +190,18 @@ public interface Entity {
      */
     BossBar getBossBar();
 
+    /**
+     * Set the scale of this entity
+     *
+     * @param scale which should be used (defaults to 1)
+     */
+    void setScale( float scale );
+
+    /**
+     * Get the scale of this entity
+     *
+     * @return scale of this entity
+     */
+    float getScale();
+
 }

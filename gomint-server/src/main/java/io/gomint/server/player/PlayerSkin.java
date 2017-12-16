@@ -18,36 +18,9 @@ import java.io.*;
  */
 public class PlayerSkin implements io.gomint.player.PlayerSkin {
 
+    private static final GeometryCache GEOMETRY_CACHE = new GeometryCache();
     private static final int SKIN_DATA_SIZE_STEVE = 8192;
     private static final int SKIN_DATA_SIZE_ALEX = 16384;
-
-    public static PlayerSkin fromInputStream( InputStream inputStream ) throws IOException {
-        ImageInputStream imageInputStream = ImageIO.createImageInputStream( inputStream );
-        BufferedImage image = ImageIO.read( imageInputStream );
-
-        if ( image.getWidth() != 64 ) {
-            throw new IOException( "Input picture is not 64 pixel wide" );
-        }
-
-        if ( image.getHeight() == 64 || image.getHeight() == 32 ) {
-            byte[] skinData = new byte[image.getHeight() == 64 ? SKIN_DATA_SIZE_ALEX : SKIN_DATA_SIZE_STEVE];
-            int cursor = 0;
-
-            for ( int y = 0; y < image.getWidth(); y++ ) {
-                for ( int x = 0; x < image.getHeight(); x++ ) {
-                    int color = image.getRGB( x, y );
-                    skinData[cursor++] = (byte) ( ( color >> 16 ) & 0xFF ); // R
-                    skinData[cursor++] = (byte) ( ( color >> 8 ) & 0xFF );  // G
-                    skinData[cursor++] = (byte) ( color & 0xFF );           // B
-                    skinData[cursor++] = (byte) ( ( color >> 24 ) & 0xFF ); // A
-                }
-            }
-
-            return new PlayerSkin( "Gomint_Skin", skinData, new byte[0], "", "" );
-        } else {
-            throw new IOException( "Input picture is not 64 / 32 pixel high" );
-        }
-    }
 
     private String name;
     private byte[] data;
@@ -58,6 +31,15 @@ public class PlayerSkin implements io.gomint.player.PlayerSkin {
     // Internal image caching
     private BufferedImage image;
 
+    /**
+     * Create new skin
+     *
+     * @param name of the skin
+     * @param data byte array of skin data ( R G B A )
+     * @param capeData byte array of the cape data (mostly null) ( R G B A )
+     * @param geometryName name of the geometry to use for this skin
+     * @param geometryData json data of the geometry with parents which has been sent from the client
+     */
     public PlayerSkin( String name, byte[] data, byte[] capeData, String geometryName, String geometryData ) {
         if ( data.length != SKIN_DATA_SIZE_STEVE && data.length != SKIN_DATA_SIZE_ALEX ) {
             throw new IllegalArgumentException( "Invalid skin data buffer length" );
@@ -68,12 +50,6 @@ public class PlayerSkin implements io.gomint.player.PlayerSkin {
         this.capeData = capeData;
         this.geometryName = geometryName;
         this.geometryData = geometryData;
-
-        try ( FileOutputStream fileOutputStream = new FileOutputStream( new File( this.name + ".png" ) ) ) {
-            saveSkinTo( fileOutputStream );
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
     }
 
     private void createImageFromSkinData() {
@@ -131,6 +107,50 @@ public class PlayerSkin implements io.gomint.player.PlayerSkin {
     public void saveSkinTo( OutputStream out ) throws IOException {
         this.createImageFromSkinData();
         ImageIO.write( this.image, "PNG", out );
+    }
+
+    /**
+     * Create a skin from a given input stream
+     *
+     * @param inputStream which holds the data for this skin
+     * @return skin which can be applied to entity human
+     * @throws IOException when there was an error with the image
+     */
+    public static PlayerSkin fromInputStream( InputStream inputStream ) throws IOException {
+        ImageInputStream imageInputStream = ImageIO.createImageInputStream( inputStream );
+        BufferedImage image = ImageIO.read( imageInputStream );
+
+        if ( image.getWidth() != 64 ) {
+            throw new IOException( "Input picture is not 64 pixel wide" );
+        }
+
+        if ( image.getHeight() == 64 || image.getHeight() == 32 ) {
+            byte[] skinData = new byte[image.getHeight() == 64 ? SKIN_DATA_SIZE_ALEX : SKIN_DATA_SIZE_STEVE];
+            int cursor = 0;
+
+            for ( int y = 0; y < image.getWidth(); y++ ) {
+                for ( int x = 0; x < image.getHeight(); x++ ) {
+                    int color = image.getRGB( x, y );
+                    skinData[cursor++] = (byte) ( ( color >> 16 ) & 0xFF ); // R
+                    skinData[cursor++] = (byte) ( ( color >> 8 ) & 0xFF );  // G
+                    skinData[cursor++] = (byte) ( color & 0xFF );           // B
+                    skinData[cursor++] = (byte) ( ( color >> 24 ) & 0xFF ); // A
+                }
+            }
+
+            return new PlayerSkin( "Gomint_Skin", skinData, new byte[0], "geometry.humanoid.custom", GEOMETRY_CACHE.get( "geometry.humanoid.custom" ) );
+        } else {
+            throw new IOException( "Input picture is not 64 / 32 pixel high" );
+        }
+    }
+
+    /**
+     * Create a new empty skin
+     *
+     * @return empty skin
+     */
+    public static PlayerSkin emptySkin() {
+        return new PlayerSkin( "Gomint_Skin", new byte[8192], new byte[0], "geometry.humanoid.custom", GEOMETRY_CACHE.get( "geometry.humanoid.custom" ) );
     }
 
 }

@@ -17,6 +17,7 @@ import io.gomint.gui.CustomForm;
 import io.gomint.gui.Modal;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.permission.GroupManager;
+import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.StartupPriority;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -601,6 +603,21 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Override
     public boolean isMainThread() {
         return GoMintServer.mainThread == Thread.currentThread().getId();
+    }
+
+    @Override
+    public PlayerSkin createPlayerSkin( InputStream inputStream ) {
+        try {
+            return io.gomint.server.player.PlayerSkin.fromInputStream( inputStream );
+        } catch ( IOException e ) {
+            LOGGER.error( "Could not read skin from input: ", e );
+            return null;
+        }
+    }
+
+    @Override
+    public PlayerSkin getEmptyPlayerSkin() {
+        return io.gomint.server.player.PlayerSkin.emptySkin();
     }
 
     public long getCurrentTickTime() {

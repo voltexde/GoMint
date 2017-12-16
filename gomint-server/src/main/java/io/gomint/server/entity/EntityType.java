@@ -168,7 +168,7 @@ public enum EntityType {
     /**
      * Entity Type value for a player.
      */
-    PLAYER( 0x00013F ),
+    PLAYER( 63 ),
 
     /**
      * Entity Type value for a fishing hook floating on water.

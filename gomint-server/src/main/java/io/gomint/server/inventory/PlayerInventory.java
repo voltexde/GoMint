@@ -4,6 +4,7 @@ import com.koloboke.collect.ObjCursor;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryContent;
 import io.gomint.server.network.packet.PacketInventorySetSlot;
@@ -22,7 +23,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
      *
      * @param player for which this inventory is
      */
-    public PlayerInventory( EntityPlayer player ) {
+    public PlayerInventory( EntityHuman player ) {
         super( player, 36 );
     }
 

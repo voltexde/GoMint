@@ -9,7 +9,10 @@ package io.gomint.entity.passive;
 
 import io.gomint.GoMint;
 import io.gomint.entity.EntityCreature;
+import io.gomint.inventory.PlayerInventory;
 import io.gomint.player.PlayerSkin;
+
+import java.util.UUID;
 
 /**
  * @author geNAZt
@@ -27,6 +30,23 @@ public interface EntityHuman extends EntityCreature {
     }
 
     /**
+     * Gets the name of the player. It is NOT globally unique since the
+     * player can change it inside the Client. Yet it is unique for all
+     * players on the same server.
+     *
+     * @return The name player's name
+     */
+    String getName();
+
+    /**
+     * Gets the player's UUID. It has yet to be researched how unique this
+     * one is as it may be specified by the player during the login sequence.
+     *
+     * @return The player's UUID.
+     */
+    UUID getUUID();
+
+    /**
      * Get the skin of a player. This is readonly access currently since we figure out how to change the skin.
      *
      * @return skin which the client has sent on login
@@ -39,5 +59,33 @@ public interface EntityHuman extends EntityCreature {
      * @param skin which should be set
      */
     void setSkin( PlayerSkin skin );
+
+    /**
+     * Get the name which is listed in the tablist (displayName)
+     *
+     * @return display name
+     */
+    String getDisplayName();
+
+    /**
+     * Set a new display name
+     *
+     * @param displayName which should be used
+     */
+    void setDisplayName( String displayName );
+
+    /**
+     * Get the unique XBOX live id. Is empty string if not in xbox live mode
+     *
+     * @return xbox live id or empty string
+     */
+    String getXboxID();
+
+    /**
+     * Get the players inventory
+     *
+     * @return players inventory
+     */
+    PlayerInventory getInventory();
 
 }

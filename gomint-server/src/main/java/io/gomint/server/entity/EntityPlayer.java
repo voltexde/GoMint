@@ -20,12 +20,12 @@ import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.entity.projectile.EntityFishingHook;
 import io.gomint.server.inventory.*;
 import io.gomint.server.inventory.item.ItemAir;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
@@ -40,10 +40,8 @@ import io.gomint.world.Gamemode;
 import io.gomint.world.Particle;
 import io.gomint.world.Sound;
 import io.gomint.world.SoundData;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +60,6 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
-@EqualsAndHashCode( callSuper = false, of = { "uuid" } )
-@ToString( of = { "username" } )
 public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
@@ -75,15 +71,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
 
     // EntityPlayer Information
-    private String username;
-    private String displayName;
-    private UUID uuid;
-    private String xboxId;
     private Gamemode gamemode = Gamemode.CREATIVE;
     @Getter
     private AdventureSettings adventureSettings;
-    @Getter @Setter private Entity hoverEntity;
-    @Getter  private final PermissionManager permissionManager = new PermissionManager( this );
+    @Getter
+    @Setter
+    private Entity hoverEntity;
+    @Getter
+    private final PermissionManager permissionManager = new PermissionManager( this );
     @Getter
     private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
     private Location respawnPosition = null;
@@ -93,7 +88,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private HiddenPlayerSet hiddenPlayers;
 
     // Inventory
-    private PlayerInventory inventory;
     private Inventory craftingInventory;
     private Inventory cursorInventory;
     private Inventory offhandInventory;
@@ -103,11 +97,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private ContainerIDMap containerIds;
 
     // Block break data
-    @Setter @Getter
+    @Setter
+    @Getter
     private BlockPosition breakVector;
-    @Setter @Getter
+    @Setter
+    @Getter
     private long startBreak;
-    @Setter @Getter
+    @Setter
+    @Getter
     private long breakTime;
 
     // Update data
@@ -157,21 +154,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                          Locale locale ) {
         super( EntityType.PLAYER, world );
         this.connection = connection;
-        this.username = username;
-        this.displayName = username;
-        this.xboxId = xboxId;
-        this.uuid = uuid;
+
+        // EntityHuman stuff
+        this.setPlayerData( username, username, xboxId, uuid );
+
         this.locale = locale;
         this.adventureSettings = new AdventureSettings( this );
-        this.setSize( 0.6f, 1.8f );
-        this.eyeHeight = 1.62f;
         this.stepHeight = 0.6f;
         this.initAttributes();
 
         this.setNameTagAlwaysVisible( true );
         this.setCanClimb( true );
-
-        this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
     }
 
     private void initAttributes() {
@@ -238,16 +231,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public String getName() {
-        return this.username;
-    }
-
-    @Override
-    public UUID getUUID() {
-        return this.uuid;
-    }
-
-    @Override
     public void setGamemode( Gamemode gamemode ) {
         this.gamemode = gamemode;
         this.updateGamemode();
@@ -277,6 +260,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
     }
 
+    /**
+     * Send adventure settings based on the gamemode
+     */
     public void sendAdventureSettings() {
         int gameModeNumber = EnumConnectors.GAMEMODE_CONNECTOR.convert( this.gamemode ).getMagicNumber();
 
@@ -435,16 +421,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public AxisAlignedBB getBoundingBox() {
         return this.boundingBox;
-    }
-
-    /**
-     * Get the players inventory
-     *
-     * @return the players inventory
-     */
-    @Override
-    public PlayerInventory getInventory() {
-        return inventory;
     }
 
     @Override
@@ -620,31 +596,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public Packet createSpawnPacket() {
-        PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
-        packetSpawnPlayer.setUuid( this.getUUID() );
-        packetSpawnPlayer.setName( this.getName() );
-        packetSpawnPlayer.setEntityId( this.getEntityId() );
-        packetSpawnPlayer.setRuntimeEntityId( this.getEntityId() );
-
-        packetSpawnPlayer.setX( this.getPositionX() );
-        packetSpawnPlayer.setY( this.getPositionY() );
-        packetSpawnPlayer.setZ( this.getPositionZ() );
-
-        packetSpawnPlayer.setVelocityX( this.getMotionX() );
-        packetSpawnPlayer.setVelocityY( this.getMotionY() );
-        packetSpawnPlayer.setVelocityZ( this.getMotionZ() );
-
-        packetSpawnPlayer.setPitch( this.getPitch() );
-        packetSpawnPlayer.setYaw( this.getYaw() );
-        packetSpawnPlayer.setHeadYaw( this.getHeadYaw() );
-
-        packetSpawnPlayer.setItemInHand( this.getInventory().getItemInHand() );
-        packetSpawnPlayer.setMetadataContainer( this.getMetadata() );
-        return packetSpawnPlayer;
-    }
-
-    @Override
     protected boolean shouldMove() {
         return false;
     }
@@ -676,7 +627,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      */
     public void cleanup() {
         this.connection.getServer().getCreativeInventory().removeViewer( this );
-        this.connection.getServer().getPlayersByUUID().remove( this.uuid );
+        this.connection.getServer().getPlayersByUUID().remove( this.getUUID() );
 
         Block block = this.world.getBlockAt( this.getPosition().toBlockPosition() );
         block.gotOff( this );
@@ -685,7 +636,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 1 );
         packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), null, null, null ) );
+            add( new PacketPlayerlist.Entry( getUUID(), getEntityId(), null, null, null ) );
         }} );
 
         // Cleanup the visibility manager
@@ -730,7 +681,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void closeInventory( byte windowId ) {
         ContainerInventory containerInventory = this.windowIds.remove( windowId );
         if ( containerInventory != null ) {
-            LOGGER.info( getName() + " closing inventory " + windowId );
             containerInventory.removeViewer( this );
             this.containerIds.justRemove( containerInventory );
         }
@@ -744,16 +694,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      */
     public ContainerInventory getContainerId( byte windowId ) {
         return this.windowIds.get( windowId );
-    }
-
-    /**
-     * Xbox User ID
-     *
-     * @return xbox user id
-     */
-    @Override
-    public String getXboxID() {
-        return this.xboxId;
     }
 
     @Override
@@ -1099,29 +1039,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public String getDisplayName() {
-        return this.displayName;
-    }
-
-    @Override
-    public void setDisplayName( String displayName ) {
-        this.displayName = displayName;
-        if ( this.connection.getState() == PlayerConnectionState.PLAYING ) {
-            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
-            packetPlayerlist.setMode( (byte) 0 );
-            packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-                add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, getSkin() ) );
-            }} );
-
-            for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
-                ( (EntityPlayer) player ).connection.addToSendQueue( packetPlayerlist );
-            }
-        }
-    }
-
-    @Override
     public boolean isOnline() {
-        return this.connection.getServer().findPlayerByUUID( this.uuid ).equals( this );
+        return this.connection.getServer().findPlayerByUUID( this.getUUID() ).equals( this );
     }
 
     @Override
@@ -1354,7 +1273,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void sendTitle( String title, String subtitle, long fadein, long duration, long fadeout, TimeUnit unit ) {
-        if(!subtitle.equals( "" )){
+        if ( !subtitle.equals( "" ) ) {
             PacketSetTitle subtitlePacket = new PacketSetTitle();
             subtitlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
             subtitlePacket.setText( subtitle );
@@ -1363,6 +1282,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             subtitlePacket.setFadeOutTime( (int) unit.toMillis( fadeout ) / 50 );
             this.getConnection().addToSendQueue( subtitlePacket );
         }
+
         PacketSetTitle titlePacket = new PacketSetTitle();
         titlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
         titlePacket.setText( title );
@@ -1374,7 +1294,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void sendTitle( String title ) {
-        this.sendTitle( title, "", 1, 1, (long) 0.5, TimeUnit.SECONDS);
+        this.sendTitle( title, "", 1, 1, (long) 0.5, TimeUnit.SECONDS );
     }
 
     @Override
@@ -1390,7 +1310,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketPlayerlist playerlist = new PacketPlayerlist();
         playerlist.setMode( (byte) 0 );
         playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, xboxId, getSkin() ) );
+            add( new PacketPlayerlist.Entry( getUUID(), getEntityId(), getDisplayName(), getXboxID(), getSkin() ) );
         }} );
         this.getConnection().addToSendQueue( playerlist );
 
@@ -1402,6 +1322,16 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         if ( event.isCancelled() ) {
             this.connection.disconnect( event.getKickReason() );
         }
+    }
+
+    @Override
+    public void preSpawn( PlayerConnection connection ) {
+
+    }
+
+    @Override
+    public void postSpawn( PlayerConnection connection ) {
+
     }
 
 }

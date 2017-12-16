@@ -87,7 +87,9 @@ public class EntityVisibilityManager {
             LOGGER.debug( "Showing entity {} for player", entity );
             io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) entity;
 
+            implEntity.preSpawn( this.player.getConnection() );
             this.player.getConnection().addToSendQueue( implEntity.createSpawnPacket() );
+            implEntity.postSpawn( this.player.getConnection() );
 
             implEntity.attach( this.player );
             this.visible.add( entity );

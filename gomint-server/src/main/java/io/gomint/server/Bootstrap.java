@@ -46,6 +46,9 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
+        // User agent
+        System.setProperty( "http.agent", "GoMint/1.0" );
+
         // Check if classloader has been changed (it should be a URLClassLoader)
         if ( !( ClassLoader.getSystemClassLoader() instanceof URLClassLoader ) ) {
             System.out.println( "System Classloader is no URLClassloader" );

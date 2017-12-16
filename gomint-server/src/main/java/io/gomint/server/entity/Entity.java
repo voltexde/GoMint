@@ -12,6 +12,7 @@ import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.math.*;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketEntityMotion;
@@ -133,6 +134,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.metadataContainer.putLong( MetadataContainer.DATA_INDEX, 0 );
         this.metadataContainer.putInt( MetadataContainer.DATA_VARIANT, 0 );
         this.metadataContainer.putInt( MetadataContainer.DATA_POTION_COLOR, 0 );
+        this.setScale( 1.0f );
         this.transform = new TransformComponent();
         this.boundingBox = new AxisAlignedBB( 0, 0, 0, 0, 0, 0 );
 
@@ -1074,6 +1076,34 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Override
     public BossBar getBossBar() {
         return this.bossBar != null ? this.bossBar : ( this.bossBar = new io.gomint.server.entity.BossBar( this ) );
+    }
+
+    /**
+     * Pre spawn packets when needed
+     *
+     * @param connection which is used to spawn this entity to
+     */
+    public void preSpawn( PlayerConnection connection ) {
+
+    }
+
+    /**
+     * Post spawn packets when needed
+     *
+     * @param connection which is used to spawn this entity to
+     */
+    public void postSpawn( PlayerConnection connection ) {
+
+    }
+
+    @Override
+    public void setScale( float scale ) {
+        this.metadataContainer.putFloat( MetadataContainer.DATA_SCALE, scale );
+    }
+
+    @Override
+    public float getScale() {
+        return this.metadataContainer.getFloat( MetadataContainer.DATA_SCALE );
     }
 
 }
