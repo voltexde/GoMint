@@ -1,7 +1,9 @@
 package io.gomint.plugin;
 
 import io.gomint.GoMint;
+import io.gomint.entity.Entity;
 import io.gomint.entity.passive.EntityHuman;
+import io.gomint.entity.passive.EntityVillager;
 import io.gomint.entity.passive.EntityXPOrb;
 import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
@@ -51,6 +53,10 @@ public class TestPlugin extends Plugin {
         floatingText.setTicking( false );
         floatingText.setNameTag( "Test floating text" );
         floatingText.spawn( new Location( GoMint.instance().getWorld( "Skywars" ), 5, 71, 2 ) );
+
+        // Spawn villager
+        EntityVillager villager = EntityVillager.create();
+        villager.spawn( new Location( GoMint.instance().getWorld( "Skywars" ), 3, 67, 2 ) );
 
         // Register listener
         registerListener( new PlayerMoveListener() );

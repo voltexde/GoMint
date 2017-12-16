@@ -11,6 +11,7 @@ import com.koloboke.collect.map.LongObjCursor;
 import com.koloboke.function.LongObjConsumer;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
+import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.collection.EntityIDMap;
 import io.gomint.world.Chunk;
@@ -170,7 +171,8 @@ public class EntityManager {
                 packetEntityMovement.setEntityId( movedEntity.getEntityId() );
 
                 packetEntityMovement.setX( movedEntity.getPositionX() );
-                packetEntityMovement.setY( movedEntity.getPositionY() + movedEntity.getEyeHeight() );
+                // Only players are offset measured with eye position locations (don't ask me why)
+                packetEntityMovement.setY( movedEntity.getPositionY() + ( ( movedEntity instanceof EntityHuman ) ? movedEntity.getEyeHeight() : 0 ) );
                 packetEntityMovement.setZ( movedEntity.getPositionZ() );
 
                 packetEntityMovement.setYaw( movedEntity.getYaw() );
