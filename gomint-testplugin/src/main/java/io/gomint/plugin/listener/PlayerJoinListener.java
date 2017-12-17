@@ -10,6 +10,8 @@ import io.gomint.inventory.item.*;
 import io.gomint.plugin.TestPlugin;
 import lombok.RequiredArgsConstructor;
 
+import java.awt.*;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -32,6 +34,11 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 5, ItemLog.create( 5 ) );
 
         event.getPlayer().getInventory().setItem( 6, ItemElytra.create( 1 ) );
+
+        // Create red leather armor
+        ItemLeatherHelmet redHelmet = ItemLeatherHelmet.create( 1 );
+        redHelmet.setColor( new Color( 193, 19, 25 ) );
+        event.getPlayer().getInventory().setItem( 7, redHelmet );
 
         CustomForm settings = CustomForm.create( "GoMint" );
         settings.addLabel( "General" );

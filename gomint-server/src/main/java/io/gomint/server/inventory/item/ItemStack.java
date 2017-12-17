@@ -133,7 +133,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     /**
-     * Set new nbt data into the itemstack
+     * Set new nbt data into the item stack
      *
      * @param compound The raw NBT data of this item
      */

@@ -14,7 +14,7 @@ import io.gomint.world.block.Block;
  * @version 1.0
  */
 @RegisterInfo( id = 299 )
-public class ItemLeatherChestplate extends ItemArmor implements io.gomint.inventory.item.ItemLeatherChestplate {
+public class ItemLeatherChestplate extends ItemColoredArmor implements io.gomint.inventory.item.ItemLeatherChestplate {
 
     // CHECKSTYLE:OFF
     public ItemLeatherChestplate( short data, int amount ) {

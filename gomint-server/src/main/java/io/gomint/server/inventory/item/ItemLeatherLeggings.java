@@ -14,7 +14,7 @@ import io.gomint.world.block.Block;
  * @version 1.0
  */
 @RegisterInfo( id = 300 )
-public class ItemLeatherLeggings extends ItemArmor implements io.gomint.inventory.item.ItemLeatherLeggings {
+public class ItemLeatherLeggings extends ItemColoredArmor implements io.gomint.inventory.item.ItemLeatherLeggings {
 
     // CHECKSTYLE:OFF
     public ItemLeatherLeggings( short data, int amount ) {
