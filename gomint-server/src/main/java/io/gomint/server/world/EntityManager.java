@@ -67,6 +67,11 @@ public class EntityManager {
         while ( cursor.moveNext() ) {
             io.gomint.server.entity.Entity entity = (io.gomint.server.entity.Entity) cursor.value();
             if ( !entity.isTicking() ) {
+                if ( entity.isDead() ) {
+                    cursor.remove();
+                    despawnEntity( entity );
+                }
+
                 continue;
             }
 
