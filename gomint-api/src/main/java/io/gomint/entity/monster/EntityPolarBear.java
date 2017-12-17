@@ -1,4 +1,4 @@
-package io.gomint.entity.passive;
+package io.gomint.entity.monster;
 
 import io.gomint.GoMint;
 import io.gomint.entity.EntityLiving;

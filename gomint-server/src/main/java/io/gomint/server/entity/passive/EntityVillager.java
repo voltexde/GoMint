@@ -24,7 +24,7 @@ public class EntityVillager extends EntityLiving implements io.gomint.entity.pas
     }
 
     /**
-     * Create new entity human for API
+     * Create new entity villager for API
      */
     public EntityVillager() {
         super( EntityType.VILLAGER, null );
@@ -32,7 +32,7 @@ public class EntityVillager extends EntityLiving implements io.gomint.entity.pas
     }
 
     private void initEntity() {
-        this.setSize( 0.6f, 1.8f );
+        this.setSize( 0.6f, 1.95f );
         this.eyeHeight = 1.62f;
         this.addAttribute( Attribute.HEALTH );
     }
