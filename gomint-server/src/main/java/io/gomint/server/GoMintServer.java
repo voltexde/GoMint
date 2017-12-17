@@ -450,6 +450,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         return true;
     }
 
+    @Override
     public WorldAdapter getDefaultWorld() {
         return this.worldManager.getWorld( this.serverConfig.getDefaultWorld() );
     }
