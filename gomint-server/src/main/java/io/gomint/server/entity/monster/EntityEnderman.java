@@ -30,6 +30,8 @@ public class EntityEnderman extends EntityLiving implements io.gomint.entity.mon
     private void initEntity() {
         this.setSize( 0.6f, 2.9f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 40 );
+        this.setHealth( 40 );
     }
 
     @Override

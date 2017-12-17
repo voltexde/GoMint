@@ -30,6 +30,8 @@ public class EntitySlime extends EntityLiving implements io.gomint.entity.monste
     private void initEntity() {
         this.setSize( 2.04f, 2.04f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 16 );
+        this.setHealth( 16 );
     }
 
     @Override

@@ -30,6 +30,8 @@ public class EntityOcelot extends EntityLiving implements io.gomint.entity.passi
     private void initEntity() {
         this.setSize( 0.6f, 0.7f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 16 );
+        this.setHealth( 16 );
     }
 
     @Override

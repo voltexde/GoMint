@@ -30,6 +30,8 @@ public class EntityGhast extends EntityLiving implements io.gomint.entity.monste
     private void initEntity() {
         this.setSize( 4.0f, 4.0f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 10);
+        this.setHealth( 10 );
     }
 
     @Override

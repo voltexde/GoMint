@@ -29,6 +29,8 @@ public class EntityWither extends EntityLiving implements io.gomint.entity.monst
     private void initEntity() {
         this.setSize( 0.9f, 3.5f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 600 );
+        this.setHealth( 600 );
     }
 
     @Override

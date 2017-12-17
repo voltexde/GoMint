@@ -30,6 +30,8 @@ public class EntityStray extends EntityLiving implements io.gomint.entity.monste
     private void initEntity() {
         this.setSize( 0.6f, 1.99f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 20 );
+        this.setHealth( 20 );
     }
 
     @Override

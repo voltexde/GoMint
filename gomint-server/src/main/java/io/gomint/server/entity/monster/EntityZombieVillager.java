@@ -30,6 +30,8 @@ public class EntityZombieVillager extends EntityLiving implements io.gomint.enti
     private void initEntity() {
         this.setSize( 0.6f, 1.95f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 20 );
+        this.setHealth( 20 );
     }
 
     @Override

@@ -30,6 +30,8 @@ public class EntitySpider extends EntityLiving implements io.gomint.entity.monst
     private void initEntity() {
         this.setSize( 1.4f, 0.9f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 16 );
+        this.setHealth( 16 );
     }
 
     @Override

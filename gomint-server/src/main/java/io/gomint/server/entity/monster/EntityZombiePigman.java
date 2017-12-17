@@ -30,6 +30,7 @@ public class EntityZombiePigman extends EntityLiving implements io.gomint.entity
     private void initEntity() {
         this.setSize( 0.6f, 1.95f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 10 );
     }
 
     @Override

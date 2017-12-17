@@ -30,6 +30,8 @@ public class EntityShulker extends EntityLiving implements io.gomint.entity.mons
     private void initEntity() {
         this.setSize( 1.0f, 1.0f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 30 );
+        this.setHealth( 30 );
     }
 
     @Override

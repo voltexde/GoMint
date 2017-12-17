@@ -30,6 +30,8 @@ public class EntityBat extends EntityLiving implements io.gomint.entity.passive.
     private void initEntity() {
         this.setSize( 0.5f, 0.9f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 12 );
+        this.setHealth( 12 );
     }
 
     @Override

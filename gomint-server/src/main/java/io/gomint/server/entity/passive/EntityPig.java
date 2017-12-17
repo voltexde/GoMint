@@ -30,6 +30,8 @@ public class EntityPig extends EntityLiving implements io.gomint.entity.passive.
     private void initEntity() {
         this.setSize( 0.9f, 0.9f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 20 );
+        this.setHealth( 20 );
     }
 
     @Override

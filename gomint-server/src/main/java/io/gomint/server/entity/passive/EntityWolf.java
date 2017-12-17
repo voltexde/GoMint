@@ -30,6 +30,8 @@ public class EntityWolf extends EntityLiving implements io.gomint.entity.passive
     private void initEntity() {
         this.setSize( 0.6f, 0.85f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 16 );
+        this.setHealth( 16 );
     }
 
     @Override

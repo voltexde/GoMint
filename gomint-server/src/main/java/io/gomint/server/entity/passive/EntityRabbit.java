@@ -30,6 +30,8 @@ public class EntityRabbit extends EntityLiving implements io.gomint.entity.passi
     private void initEntity() {
         this.setSize( 0.4f, 0.5f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 20 );
+        this.setHealth( 20 );
     }
 
     @Override

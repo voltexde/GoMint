@@ -30,6 +30,8 @@ public class EntityChicken extends EntityLiving implements io.gomint.entity.pass
     private void initEntity() {
         this.setSize( 0.4f, 0.7f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 8 );
+        this.setHealth( 8 );
     }
 
     @Override

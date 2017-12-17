@@ -30,6 +30,8 @@ public class EntityDonkey extends EntityLiving implements io.gomint.entity.passi
     private void initEntity() {
         this.setSize( 1.3965f, 1.6f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 30 );
+        this.setHealth( 30 );
     }
 
     @Override

@@ -30,6 +30,8 @@ public class EntityEnderDragon extends EntityLiving implements io.gomint.entity.
     private void initEntity() {
         this.setSize( 13.0f, 4.0f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 200 );
+        this.setHealth( 200 );
     }
 
     @Override

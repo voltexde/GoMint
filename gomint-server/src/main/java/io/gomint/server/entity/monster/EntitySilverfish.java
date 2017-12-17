@@ -30,6 +30,8 @@ public class EntitySilverfish extends EntityLiving implements io.gomint.entity.m
     private void initEntity() {
         this.setSize( 0.4f, 0.3f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 8 );
+        this.setHealth( 8 );
     }
 
     @Override

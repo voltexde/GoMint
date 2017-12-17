@@ -30,6 +30,8 @@ public class EntityLama extends EntityLiving implements io.gomint.entity.passive
     private void initEntity() {
         this.setSize( 0.9f, 1.87f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 30 );
+        this.setHealth( 30 );
     }
 
     @Override

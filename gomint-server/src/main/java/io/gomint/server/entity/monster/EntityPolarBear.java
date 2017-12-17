@@ -30,6 +30,8 @@ public class EntityPolarBear extends EntityLiving implements io.gomint.entity.mo
     private void initEntity() {
         this.setSize( 1.3f, 1.4f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 30 );
+        this.setHealth( 30 );
     }
 
     @Override

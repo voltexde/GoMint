@@ -30,6 +30,8 @@ public class EntityCaveSpider extends EntityLiving implements io.gomint.entity.m
     private void initEntity() {
         this.setSize( 0.7f, 0.5f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 12 );
+        this.setHealth( 12 );
     }
 
     @Override

@@ -30,6 +30,8 @@ public class EntityElderGuardian extends EntityLiving implements io.gomint.entit
     private void initEntity() {
         this.setSize( 1.9975f, 1.9975f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 80 );
+        this.setHealth( 80 );
     }
 
     @Override

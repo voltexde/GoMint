@@ -30,6 +30,8 @@ public class EntityWitch extends EntityLiving implements io.gomint.entity.monste
     private void initEntity() {
         this.setSize( 0.6f, 1.95f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 26 );
+        this.setHealth( 26 );
     }
 
     @Override

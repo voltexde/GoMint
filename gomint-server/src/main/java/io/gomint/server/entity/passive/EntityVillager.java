@@ -35,6 +35,8 @@ public class EntityVillager extends EntityLiving implements io.gomint.entity.pas
         this.setSize( 0.6f, 1.95f );
         this.eyeHeight = 1.62f;
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 20 );
+        this.setHealth( 20 );
     }
 
     @Override

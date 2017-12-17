@@ -29,6 +29,8 @@ public class EntityMooshroom extends EntityLiving implements io.gomint.entity.pa
     private void initEntity() {
         this.setSize( 0.9f, 1.4f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 20 );
+        this.setHealth( 20 );
     }
 
     @Override

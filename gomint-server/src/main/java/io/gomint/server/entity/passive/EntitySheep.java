@@ -30,6 +30,8 @@ public class EntitySheep extends EntityLiving implements io.gomint.entity.passiv
     private void initEntity() {
         this.setSize( 0.9f, 1.3f );
         this.addAttribute( Attribute.HEALTH );
+        this.setMaxHealth( 16 );
+        this.setHealth( 16 );
     }
 
     @Override
