@@ -58,6 +58,9 @@ public class PacketPlayerAction extends Packet {
         DIMENSION_CHANGE,
         ABORT_DIMENSION_CHANGE,
 
+        START_GLIDE,
+        STOP_GLIDE,
+
         INTERACT_BLOCK;
 
         public static PlayerAction valueOf( int actionId ) {
@@ -88,6 +91,10 @@ public class PacketPlayerAction extends Packet {
                     return DIMENSION_CHANGE;
                 case 14:
                     return ABORT_DIMENSION_CHANGE;
+                case 15:
+                    return START_GLIDE;
+                case 16:
+                    return STOP_GLIDE;
                 case 17:
                     return INTERACT_BLOCK;
                 case 18:

@@ -35,8 +35,9 @@ public class ItemDiamondChestplate extends ItemArmor implements io.gomint.invent
     public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
         if ( clickedBlock == null ) {
             if ( isBetter( (ItemStack) entity.getArmorInventory().getChestplate() ) ) {
+                ItemStack old = (ItemStack) entity.getArmorInventory().getChestplate();
                 entity.getArmorInventory().setChestplate( this );
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), old );
             }
         }
 

@@ -298,4 +298,18 @@ public interface EntityPlayer extends EntityHuman {
      */
     void sendTitle( String title, String subtitle );
 
+    /**
+     * Toggle gliding status of the player
+     *
+     * @param value true for gliding, false for not gliding
+     */
+    void setGliding( boolean value );
+
+    /**
+     * Is the player currently gliding?
+     *
+     * @return true when gliding, false when not
+     */
+    boolean isGliding();
+
 }

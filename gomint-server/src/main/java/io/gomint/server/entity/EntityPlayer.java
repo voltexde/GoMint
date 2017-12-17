@@ -1334,4 +1334,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     }
 
+    @Override
+    public void setGliding( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.GLIDING, value );
+    }
+
+    @Override
+    public boolean isGliding() {
+        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.GLIDING );
+    }
+
 }

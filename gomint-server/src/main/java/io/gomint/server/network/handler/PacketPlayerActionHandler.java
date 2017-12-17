@@ -1,6 +1,7 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerInteractEvent;
+import io.gomint.event.player.PlayerToggleGlideEvent;
 import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketPlayerAction;
@@ -118,7 +119,32 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
             case RESPAWN:
                 connection.getEntity().respawn();
+                break;
 
+            case START_GLIDE:
+                // Accept client value (to get the dirty state in the metadata)
+                if ( !connection.getEntity().isGliding() ) {
+                    PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent( connection.getEntity(), true );
+                    connection.getEntity().getWorld().getServer().getPluginManager().callEvent( playerToggleGlideEvent );
+                    if ( playerToggleGlideEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    } else {
+                        connection.getEntity().setGliding( true );
+                    }
+                }
+
+                break;
+
+            case STOP_GLIDE:
+                if ( connection.getEntity().isGliding() ) {
+                    PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent( connection.getEntity(), false );
+                    connection.getEntity().getWorld().getServer().getPluginManager().callEvent( playerToggleGlideEvent );
+                    if ( playerToggleGlideEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    } else {
+                        connection.getEntity().setGliding( false );
+                    }
+                }
                 break;
 
             default:

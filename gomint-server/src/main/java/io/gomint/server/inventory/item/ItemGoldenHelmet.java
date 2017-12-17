@@ -35,8 +35,9 @@ public class ItemGoldenHelmet extends ItemArmor implements io.gomint.inventory.i
     public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
         if ( clickedBlock == null ) {
             if ( isBetter( (ItemStack) entity.getArmorInventory().getHelmet() ) ) {
+                ItemStack old = (ItemStack) entity.getArmorInventory().getHelmet();
                 entity.getArmorInventory().setHelmet( this );
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), old );
             }
         }
 

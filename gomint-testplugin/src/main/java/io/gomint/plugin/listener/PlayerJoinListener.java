@@ -31,6 +31,8 @@ public class PlayerJoinListener implements EventListener {
 
         event.getPlayer().getInventory().setItem( 5, ItemLog.create( 5 ) );
 
+        event.getPlayer().getInventory().setItem( 6, ItemElytra.create( 1 ) );
+
         CustomForm settings = CustomForm.create( "GoMint" );
         settings.addLabel( "General" );
         settings.addToggle( "show-position", "Show current position", true );

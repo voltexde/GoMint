@@ -35,8 +35,9 @@ public class ItemDiamondLeggings extends ItemArmor implements io.gomint.inventor
     public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
         if ( clickedBlock == null ) {
             if ( isBetter( (ItemStack) entity.getArmorInventory().getLeggings() ) ) {
+                ItemStack old = (ItemStack) entity.getArmorInventory().getLeggings();
                 entity.getArmorInventory().setLeggings( this );
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), old );
             }
         }
 

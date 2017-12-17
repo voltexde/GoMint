@@ -35,8 +35,9 @@ public class ItemIronBoots extends ItemArmor implements io.gomint.inventory.item
     public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
         if ( clickedBlock == null ) {
             if ( isBetter( (ItemStack) entity.getArmorInventory().getBoots() ) ) {
+                ItemStack old = (ItemStack) entity.getArmorInventory().getBoots();
                 entity.getArmorInventory().setBoots( this );
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), old );
             }
         }
 
