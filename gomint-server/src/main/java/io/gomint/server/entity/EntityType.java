@@ -98,52 +98,52 @@ public enum EntityType {
     /**
      * Entity Type value for a zombie.
      */
-    ZOMBIE( 0x30B20 ),
+    ZOMBIE( 32 ),
 
     /**
      * Entity Type value for a creeper.
      */
-    CREEPER( 0x000B21 ),
+    CREEPER( 33 ),
 
     /**
      * Entity Type value for a skeleton.
      */
-    SKELETON( 0x010B22 ),
+    SKELETON( 34 ),
 
     /**
      * Entity Type value for a spider.
      */
-    SPIDER( 0x040B23 ),
+    SPIDER( 35 ),
 
     /**
      * Entity Type value for a pig zombie.
      */
-    PIG_ZOMBIE( 0x010B24 ),
+    PIG_ZOMBIE( 36 ),
 
     /**
      * Entity Type value for a slime.
      */
-    SLIME( 0x000B25 ),
+    SLIME( 37 ),
 
     /**
      * Entity Type value for an enderman.
      */
-    ENDERMAN( 0x000B26 ),
+    ENDERMAN( 38 ),
 
     /**
      * Entity Type value for a silverfish.
      */
-    SILVERFISH( 0x040B27 ),
+    SILVERFISH( 39 ),
 
     /**
      * Entity Type value for a cavespider.
      */
-    CAVESPIDER( 0x040B28 ),
+    CAVESPIDER( 40 ),
 
     /**
      * Entity Type value for a ghast.
      */
-    GHAST( 0x000B29 ),
+    GHAST( 41 ),
 
     /**
      * Entity Type value for a lava slime.
@@ -153,17 +153,17 @@ public enum EntityType {
     /**
      * Entity Type value for a blaze.
      */
-    BLAZE( 0x000B2B ),
+    BLAZE( 43 ),
 
     /**
      * Entity Type value for a zombified villager.
      */
-    ZOMBIE_VILLAGER( 0x30B2C ),
+    ZOMBIE_VILLAGER( 44 ),
 
     /**
      * Entity Type value for a witch.
      */
-    WITCH( 0x000B2D ),
+    WITCH( 45 ),
 
     /**
      * Entity Type value for a player.
@@ -223,7 +223,115 @@ public enum EntityType {
     /**
      * Entity Type value for a small fireball as thrown by blazes.
      */
-    SMALL_FIREBALL( 0x00005E );
+    SMALL_FIREBALL( 0x00005E ),
+
+    /**
+     * Entity Type value for a donkey.
+     */
+
+    DONKEY( 24 ),
+
+    /**
+     * Entity Type value for a horse.
+     */
+
+    HORSE( 23 ),
+
+    /**
+     * Entity Type value for a lama.
+     */
+
+    LAMA( 29 ),
+
+    /**
+     * Entity Type value for a mule.
+     */
+
+    MULE( 25 ),
+
+    /**
+     * Entity Type value for a ocelot.
+     */
+
+    OCELOT( 22 ),
+
+    /**
+     * Entity Type value for a polar bear.
+     */
+
+    POLAR_BEAR( 28 ),
+
+    /**
+     * Entity Type value for a skeleton horse.
+     */
+
+    SKELETON_HORSE( 26 ),
+
+    /**
+     * Entity Type value for a zombie horse.
+     */
+
+    ZOMBIE_HORSE( 27 ),
+
+    /**
+     * Entity Type value for a elder guardian.
+     */
+
+    ELDER_GUARDIAN( 50 ),
+
+    /**
+     * Entity Type value for a ender dragon.
+     */
+
+    ENDER_DRAGON( 53 ),
+
+    /**
+     * Entity Type value for a endermite.
+     */
+
+    ENDERMITE( 55 ),
+
+    /**
+     * Entity Type value for a guardian.
+     */
+
+    GUARDIAN( 49 ),
+
+    /**
+     * Entity Type value for a husk.
+     */
+
+    HUSK( 47 ),
+
+    /**
+     * Entity Type value for a magma cube.
+     */
+
+    MAGMA_CUBE( 42 ),
+
+    /**
+     * Entity Type value for a shulker.
+     */
+
+    SHULKER( 54 ),
+
+    /**
+     * Entity Type value for a stray.
+     */
+
+    STRAY( 46 ),
+
+    /**
+     * Entity Type value for a wither.
+     */
+
+    WITHER( 52 ),
+
+    /**
+     * Entity Type value for a wither skeleton.
+     */
+
+    WITHER_SKELETON( 48 );
 
     private final int id;
 

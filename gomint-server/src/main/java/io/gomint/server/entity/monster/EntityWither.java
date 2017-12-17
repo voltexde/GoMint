@@ -1,4 +1,4 @@
-package io.gomint.server.entity.passive;
+package io.gomint.server.entity.monster;
 
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.EntityLiving;
@@ -6,42 +6,35 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-/**
- * @author geNAZt
- * @version 1.0
- */
-@RegisterInfo( id = 15 )
-public class EntityVillager extends EntityLiving implements io.gomint.entity.passive.EntityVillager {
-
+@RegisterInfo( id = 52 )
+public class EntityWither extends EntityLiving implements io.gomint.entity.monster.EntityWither {
     /**
      * Constructs a new EntityLiving
      *
      * @param world The world in which this entity is in
      */
-    public EntityVillager( WorldAdapter world ) {
-        super( EntityType.VILLAGER, world );
+    public EntityWither( WorldAdapter world ) {
+        super( EntityType.WITHER, world );
         this.initEntity();
     }
 
     /**
-     * Create new entity villager for API
+     * Create new entity wither for API
      */
-    public EntityVillager() {
-        super( EntityType.VILLAGER, null );
+    public EntityWither() {
+        super( EntityType.WITHER, null );
         this.initEntity();
     }
 
     private void initEntity() {
-        this.setSize( 0.6f, 1.95f );
-        this.eyeHeight = 1.62f;
+        this.setSize( 0.9f, 3.5f );
         this.addAttribute( Attribute.HEALTH );
-        this.setMaxHealth( 20 );
-        this.setHealth( 20 );
+        this.setMaxHealth( 600 );
+        this.setHealth( 600 );
     }
 
     @Override
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
     }
-
 }

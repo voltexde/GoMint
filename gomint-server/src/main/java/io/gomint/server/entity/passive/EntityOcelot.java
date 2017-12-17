@@ -6,42 +6,36 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-/**
- * @author geNAZt
- * @version 1.0
- */
-@RegisterInfo( id = 15 )
-public class EntityVillager extends EntityLiving implements io.gomint.entity.passive.EntityVillager {
+@RegisterInfo( id = 22 )
+public class EntityOcelot extends EntityLiving implements io.gomint.entity.passive.EntityOcelot {
 
     /**
      * Constructs a new EntityLiving
      *
      * @param world The world in which this entity is in
      */
-    public EntityVillager( WorldAdapter world ) {
-        super( EntityType.VILLAGER, world );
+    public EntityOcelot( WorldAdapter world ) {
+        super( EntityType.OCELOT, world );
         this.initEntity();
     }
 
     /**
-     * Create new entity villager for API
+     * Create new entity ocelot for API
      */
-    public EntityVillager() {
-        super( EntityType.VILLAGER, null );
+    public EntityOcelot() {
+        super( EntityType.OCELOT, null );
         this.initEntity();
     }
 
     private void initEntity() {
-        this.setSize( 0.6f, 1.95f );
-        this.eyeHeight = 1.62f;
+        this.setSize( 0.6f, 0.7f );
         this.addAttribute( Attribute.HEALTH );
-        this.setMaxHealth( 20 );
-        this.setHealth( 20 );
+        this.setMaxHealth( 16 );
+        this.setHealth( 16 );
     }
 
     @Override
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
     }
-
 }

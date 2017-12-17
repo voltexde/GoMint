@@ -59,7 +59,7 @@ public class Entities {
     static {
         GENERATORS.register( "io.gomint.server.entity" );
         GENERATORS.register( "io.gomint.server.entity.active" );
-        GENERATORS.register( "io.gomint.server.entity.animal" );
+        GENERATORS.register( "io.gomint.server.entity.monster" );
         GENERATORS.register( "io.gomint.server.entity.passive" );
         GENERATORS.register( "io.gomint.server.entity.projectile" );
     }

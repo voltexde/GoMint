@@ -6,34 +6,28 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-/**
- * @author geNAZt
- * @version 1.0
- */
-@RegisterInfo( id = 15 )
-public class EntityVillager extends EntityLiving implements io.gomint.entity.passive.EntityVillager {
-
+@RegisterInfo( id = 16 )
+public class EntityMooshroom extends EntityLiving implements io.gomint.entity.passive.EntityMooshroom {
     /**
      * Constructs a new EntityLiving
      *
      * @param world The world in which this entity is in
      */
-    public EntityVillager( WorldAdapter world ) {
-        super( EntityType.VILLAGER, world );
+    public EntityMooshroom( WorldAdapter world ) {
+        super( EntityType.MUSHROOM_COW, world );
         this.initEntity();
     }
 
     /**
-     * Create new entity villager for API
+     * Create new entity mooshroom for API
      */
-    public EntityVillager() {
-        super( EntityType.VILLAGER, null );
+    public EntityMooshroom() {
+        super( EntityType.MUSHROOM_COW, null );
         this.initEntity();
     }
 
     private void initEntity() {
-        this.setSize( 0.6f, 1.95f );
-        this.eyeHeight = 1.62f;
+        this.setSize( 0.9f, 1.4f );
         this.addAttribute( Attribute.HEALTH );
         this.setMaxHealth( 20 );
         this.setHealth( 20 );
@@ -43,5 +37,4 @@ public class EntityVillager extends EntityLiving implements io.gomint.entity.pas
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
     }
-
 }
