@@ -317,11 +317,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.setExhaustion( exhaustion );
     }
 
-    /**
-     * Set player sprinting or not
-     *
-     * @param value true for sprinting, false for not sprinting
-     */
+    @Override
     public void setSprinting( boolean value ) {
         // Alter movement speed if needed
         if ( value != isSprinting() ) {
@@ -331,31 +327,19 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         }
     }
 
-    /**
-     * Check if entity is sprinting
-     *
-     * @return true when sprinting, false when not
-     */
+    @Override
     public boolean isSprinting() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SPRINTING );
     }
 
-    /**
-     * Set player sneaking or not
-     *
-     * @param value true for sneaking, false for not sneaking
-     */
+    @Override
     public void setSneaking( boolean value ) {
         if ( value != isSneaking() ) {
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SNEAKING, value );
         }
     }
 
-    /**
-     * Is this player sneaking?
-     *
-     * @return true when sneaking, false when not
-     */
+    @Override
     public boolean isSneaking() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SNEAKING );
     }

@@ -116,4 +116,32 @@ public interface EntityHuman extends EntityCreature {
      */
     float getSaturation();
 
+    /**
+     * Set player sneaking or not
+     *
+     * @param value true for sneaking, false for not sneaking
+     */
+    void setSneaking( boolean value );
+
+    /**
+     * Is this player sneaking?
+     *
+     * @return true when sneaking, false when not
+     */
+    boolean isSneaking();
+
+    /**
+     * Set player sprinting or not
+     *
+     * @param value true for sprinting, false for not sprinting
+     */
+    void setSprinting( boolean value );
+
+    /**
+     * Check if entity is sprinting
+     *
+     * @return true when sprinting, false when not
+     */
+    boolean isSprinting();
+
 }
