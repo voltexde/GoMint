@@ -189,4 +189,11 @@ public interface GoMint {
      */
     PlayerSkin getEmptyPlayerSkin();
 
+    /**
+     * Get the default world of this server
+     *
+     * @return default world
+     */
+    World getDefaultWorld();
+
 }
