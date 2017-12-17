@@ -7,7 +7,6 @@
 
 package io.gomint.server.entity.passive;
 
-import afu.org.checkerframework.checker.oigj.qual.O;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
@@ -67,20 +66,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
      */
     protected EntityHuman( EntityType type, WorldAdapter world ) {
         super( type, world );
-        this.setSize( 0.6f, 1.8f );
-        this.eyeHeight = 1.62f;
-
-        this.metadataContainer.putByte( MetadataContainer.DATA_PLAYER_INDEX, (byte) 0 );
-
-        // Sleeping stuff
-        this.setPlayerFlag( EntityFlag.PLAYER_SLEEP, false );
-        this.metadataContainer.putPosition( DATA_PLAYER_BED_POSITION, 0, 0, 0 );
-
-        this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
-
-        // Exhaustion, saturation and food
-        addAttribute( Attribute.EXHAUSTION );
-        addAttribute( Attribute.SATURATION );
+        this.initEntity();
     }
 
     /**
@@ -88,18 +74,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
      */
     public EntityHuman() {
         super( EntityType.PLAYER, null );
-        this.setSize( 0.6f, 1.8f );
-        this.eyeHeight = 1.62f;
-
-        this.metadataContainer.putByte( MetadataContainer.DATA_PLAYER_INDEX, (byte) 0 );
-
-        // Sleeping stuff
-        this.setPlayerFlag( EntityFlag.PLAYER_SLEEP, false );
-        this.metadataContainer.putPosition( DATA_PLAYER_BED_POSITION, 0, 0, 0 );
-
-        // Exhaustion, saturation and food
-        addAttribute( Attribute.EXHAUSTION );
-        addAttribute( Attribute.SATURATION );
+        this.initEntity();
 
         // Init inventories
         this.inventory = new PlayerInventory( this );
@@ -110,6 +85,28 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.username = "NPC: " + this.uuid.toString();
         this.displayName = this.username;
         this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
+    }
+
+    private void initEntity() {
+        this.setSize( 0.6f, 1.8f );
+        this.eyeHeight = 1.62f;
+        this.stepHeight = 0.6f;
+
+        this.metadataContainer.putByte( MetadataContainer.DATA_PLAYER_INDEX, (byte) 0 );
+
+        // Sleeping stuff
+        this.setPlayerFlag( EntityFlag.PLAYER_SLEEP, false );
+        this.metadataContainer.putPosition( DATA_PLAYER_BED_POSITION, 0, 0, 0 );
+
+        // Exhaustion, saturation and food
+        addAttribute( Attribute.HUNGER );
+        addAttribute( Attribute.SATURATION );
+        addAttribute( Attribute.EXHAUSTION );
+        addAttribute( Attribute.EXPERIENCE_LEVEL );
+        addAttribute( Attribute.EXPERIENCE );
+
+        this.setNameTagAlwaysVisible( true );
+        this.setCanClimb( true );
     }
 
     @Override

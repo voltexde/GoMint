@@ -160,19 +160,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.locale = locale;
         this.adventureSettings = new AdventureSettings( this );
-        this.stepHeight = 0.6f;
-        this.initAttributes();
-
-        this.setNameTagAlwaysVisible( true );
-        this.setCanClimb( true );
-    }
-
-    private void initAttributes() {
-        addAttribute( Attribute.HUNGER );
-        addAttribute( Attribute.SATURATION );
-        addAttribute( Attribute.EXHAUSTION );
-        addAttribute( Attribute.EXPERIENCE_LEVEL );
-        addAttribute( Attribute.EXPERIENCE );
     }
 
     // ==================================== ACCESSORS ==================================== //
