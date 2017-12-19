@@ -87,14 +87,29 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     // Hidden players
     private HiddenPlayerSet hiddenPlayers;
 
-    // Inventory
-    private Inventory craftingInventory;
-    private Inventory cursorInventory;
-    private Inventory offhandInventory;
-    private Inventory craftingInputInventory;
-    private Inventory craftingResultInventory;
+    // Container handling
     private ContainerObjectMap windowIds;
     private ContainerIDMap containerIds;
+
+    // Inventory
+    private Inventory cursorInventory;
+    private Inventory offhandInventory;
+
+    // Crafting
+    @Getter
+    private Inventory craftingInventory;
+    @Getter
+    private Inventory craftingInputInventory;
+    @Getter
+    private Inventory craftingResultInventory;
+
+    // Enchantment table
+    @Getter
+    private EnchantmentTableInventory enchantmentInputInventory;
+    @Getter
+    private Inventory enchantmentMaterialInventory;
+    @Getter
+    private Inventory enchantmentOutputInventory;
 
     // Block break data
     @Setter
@@ -443,40 +458,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     /**
-     * Get the players armor
-     *
-     * @return the players armor
-     */
-    @Override
-    public ArmorInventory getArmorInventory() {
-        return armorInventory;
-    }
-
-    /**
-     * Get the virtual inventory for the crafting slots
-     *
-     * @return the players crafting field
-     */
-    public Inventory getCraftingInventory() {
-        return craftingInventory;
-    }
-
-    /**
      * Get the virtual inventory for the cursor item
      *
      * @return the players cursor item
      */
     public Inventory getCursorInventory() {
-        return cursorInventory;
-    }
-
-    /**
-     * Get the virtual inventory of the current crafting process
-     *
-     * @return the current crafting input inventory
-     */
-    public Inventory getCraftingInputInventory() {
-        return craftingInputInventory;
+        return this.cursorInventory;
     }
 
     /**
@@ -485,16 +472,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      * @return current offhand inventory
      */
     public Inventory getOffhandInventory() {
-        return offhandInventory;
-    }
-
-    /**
-     * Get the virtual inventory of the current crafting process
-     *
-     * @return the current crafting result inventory
-     */
-    public Inventory getCraftingResultInventory() {
-        return craftingResultInventory;
+        return this.offhandInventory;
     }
 
     /**
@@ -557,11 +535,18 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Inventories
         this.inventory = new PlayerInventory( this );
         this.armorInventory = new ArmorInventory( this );
-        this.craftingInventory = new CraftingInputInventory( this );
+
         this.cursorInventory = new CursorInventory( this );
         this.offhandInventory = new OffhandInventory( this );
+
+        this.craftingInventory = new CraftingInputInventory( this );
         this.craftingInputInventory = new CraftingInputInventory( this );
         this.craftingResultInventory = new CursorInventory( this );
+
+        this.enchantmentInputInventory = new EnchantmentTableInventory( this );
+        this.enchantmentMaterialInventory = new CursorInventory( this );
+        this.enchantmentOutputInventory = new CursorInventory( this );
+
         this.windowIds = ContainerObjectMap.withExpectedSize( 2 );
         this.containerIds = ContainerIDMap.withExpectedSize( 2 );
         this.connection.getServer().getCreativeInventory().addViewer( this );

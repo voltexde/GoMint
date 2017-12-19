@@ -33,27 +33,6 @@ public class ChestInventory extends ContainerInventory implements io.gomint.inve
     }
 
     @Override
-    public void sendContents( PlayerConnection playerConnection ) {
-        byte windowId = playerConnection.getEntity().getWindowId( this );
-
-        PacketInventoryContent inventoryContent = new PacketInventoryContent();
-        inventoryContent.setWindowId( windowId );
-        inventoryContent.setItems( this.getContents() );
-        playerConnection.addToSendQueue( inventoryContent );
-    }
-
-    @Override
-    public void sendContents( int slot, PlayerConnection playerConnection ) {
-        byte windowId = playerConnection.getEntity().getWindowId( this );
-
-        PacketInventorySetSlot inventorySetSlot = new PacketInventorySetSlot();
-        inventorySetSlot.setWindowId( windowId );
-        inventorySetSlot.setSlot( slot );
-        inventorySetSlot.setItemStack( this.getItem( slot ) );
-        playerConnection.addToSendQueue( inventorySetSlot );
-    }
-
-    @Override
     public WindowType getType() {
         return WindowType.CONTAINER;
     }
@@ -90,6 +69,27 @@ public class ChestInventory extends ContainerInventory implements io.gomint.inve
             world.sendToVisible( position, blockEvent, entity -> true );
             world.playSound( position.toVector().add( 0.5f, 0.5f, 0.5f ), Sound.CHEST_CLOSED, (byte) 1 );
         }
+    }
+
+    @Override
+    public void sendContents( PlayerConnection playerConnection ) {
+        byte windowId = playerConnection.getEntity().getWindowId( this );
+
+        PacketInventoryContent inventoryContent = new PacketInventoryContent();
+        inventoryContent.setWindowId( windowId );
+        inventoryContent.setItems( this.getContents() );
+        playerConnection.addToSendQueue( inventoryContent );
+    }
+
+    @Override
+    public void sendContents( int slot, PlayerConnection playerConnection ) {
+        byte windowId = playerConnection.getEntity().getWindowId( this );
+
+        PacketInventorySetSlot inventorySetSlot = new PacketInventorySetSlot();
+        inventorySetSlot.setWindowId( windowId );
+        inventorySetSlot.setSlot( slot );
+        inventorySetSlot.setItemStack( this.getItem( slot ) );
+        playerConnection.addToSendQueue( inventorySetSlot );
     }
 
 }

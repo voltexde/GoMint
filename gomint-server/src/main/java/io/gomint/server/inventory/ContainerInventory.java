@@ -3,7 +3,10 @@ package io.gomint.server.inventory;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketContainerOpen;
+import io.gomint.server.network.packet.PacketInventoryContent;
+import io.gomint.server.network.packet.PacketInventorySetSlot;
 import io.gomint.server.network.type.WindowType;
 import io.gomint.server.world.WorldAdapter;
 

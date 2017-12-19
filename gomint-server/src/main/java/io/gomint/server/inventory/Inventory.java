@@ -18,9 +18,7 @@ import java.util.Set;
  */
 public abstract class Inventory implements io.gomint.inventory.Inventory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( Inventory.class );
-
-    protected final InventoryHolder owner;
+    protected InventoryHolder owner;
     protected Set<PlayerConnection> viewer = new HashSet<>();
 
     protected int size;

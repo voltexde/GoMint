@@ -22,13 +22,4 @@ public class CraftingInputInventory extends Inventory {
 
     }
 
-    public int getWidth() {
-        return this.size == 4 ? 2 : 3;
-    }
-
-    public int getHeight() {
-        return this.size == 4 ? 2 : 3;
-    }
-
-
 }

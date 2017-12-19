@@ -7,6 +7,7 @@ import io.gomint.gui.CustomForm;
 import io.gomint.gui.FormListener;
 import io.gomint.gui.FormResponse;
 import io.gomint.inventory.item.*;
+import io.gomint.inventory.item.data.DyeType;
 import io.gomint.plugin.TestPlugin;
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +40,13 @@ public class PlayerJoinListener implements EventListener {
         ItemLeatherHelmet redHelmet = ItemLeatherHelmet.create( 1 );
         redHelmet.setColor( new Color( 193, 19, 25 ) );
         event.getPlayer().getInventory().setItem( 7, redHelmet );
+
+        // Create lapis
+        ItemDye dye = ItemDye.create( 32 );
+        dye.setDyeType( DyeType.LAPIS_LAZULI );
+        event.getPlayer().getInventory().setItem( 8, dye );
+
+        event.getPlayer().setLevel( 67 );
 
         CustomForm settings = CustomForm.create( "GoMint" );
         settings.addLabel( "General" );

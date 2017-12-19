@@ -35,6 +35,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
     @Override
     public void handle( PacketInventoryTransaction packet, long currentTimeMillis, PlayerConnection connection ) {
+        LOGGER.debug( packet.toString() );
+
         switch ( packet.getType() ) {
             case PacketInventoryTransaction.TYPE_NORMAL:
                 this.handleTypeNormal( connection, packet );
@@ -375,6 +377,15 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 break;
             case -5:    // Crafting result input
                 inventory = entity.getCraftingInputInventory();
+                break;
+            case -15:   // Input of items which should be enchanted
+                inventory = entity.getEnchantmentInputInventory();
+                break;
+            case -16:   // Lapis input
+                inventory = entity.getEnchantmentMaterialInventory();
+                break;
+            case -17:   // Enchanted item output
+                inventory = entity.getEnchantmentOutputInventory();
                 break;
             case -100:  // Crafting container dropped contents
                 inventory = entity.getCraftingInventory();

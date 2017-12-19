@@ -34,7 +34,7 @@ public class EntityCreature extends EntityLiving implements io.gomint.entity.Ent
     }
 
     @Override
-    public io.gomint.inventory.ArmorInventory getArmorInventory() {
+    public ArmorInventory getArmorInventory() {
         return this.armorInventory;
     }
 
