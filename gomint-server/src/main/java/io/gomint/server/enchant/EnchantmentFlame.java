@@ -7,6 +7,8 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.inventory.item.ItemType;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -23,6 +25,21 @@ public class EnchantmentFlame extends Enchantment implements io.gomint.enchant.E
      */
     public EnchantmentFlame( short level ) {
         super( (short) 1, level );
+    }
+
+    @Override
+    public byte getMinEnchantAbility( short level ) {
+        return 20;
+    }
+
+    @Override
+    public byte getMaxEnchantAbility( short level ) {
+        return 50;
+    }
+
+    @Override
+    public boolean canBeApplied( ItemStack itemStack ) {
+        return itemStack.getType() == ItemType.BOW;
     }
 
 }

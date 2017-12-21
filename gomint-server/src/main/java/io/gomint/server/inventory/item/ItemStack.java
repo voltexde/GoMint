@@ -311,7 +311,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
             }
         }
 
-        return (T) this.enchantments.get( clazz );
+        return this.enchantments == null ? null : (T) this.enchantments.get( clazz );
     }
 
     @Override

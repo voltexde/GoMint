@@ -7,6 +7,8 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.inventory.item.ItemType;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -23,6 +25,25 @@ public class EnchantmentFeatherfalling extends Enchantment implements io.gomint.
      */
     public EnchantmentFeatherfalling( short level ) {
         super( (short) 4, level );
+    }
+
+    @Override
+    public byte getMinEnchantAbility( short level ) {
+        return (byte) ( 5 + ( level - 1 ) * 6 );
+    }
+
+    @Override
+    public byte getMaxEnchantAbility( short level ) {
+        return (byte) ( getMinEnchantAbility( level ) + 10 );
+    }
+
+    @Override
+    public boolean canBeApplied( ItemStack itemStack ) {
+        return itemStack.getType() == ItemType.CHAIN_BOOTS ||
+            itemStack.getType() == ItemType.DIAMOND_BOOTS ||
+            itemStack.getType() == ItemType.GOLDEN_BOOTS ||
+            itemStack.getType() == ItemType.IRON_BOOTS ||
+            itemStack.getType() == ItemType.LEATHER_BOOTS;
     }
 
 }

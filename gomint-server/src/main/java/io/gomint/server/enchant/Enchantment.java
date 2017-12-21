@@ -7,6 +7,7 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.server.inventory.item.ItemStack;
 import lombok.Getter;
 
 /**
@@ -53,6 +54,16 @@ public class Enchantment implements io.gomint.enchant.Enchantment {
      */
     public byte getMaxEnchantAbility( short level ) {
         return 0;
+    }
+
+    /**
+     * Check if the item can apply this enchantment
+     *
+     * @param itemStack which wants this enchantment applied
+     * @return true when it can be applied, false otherwise
+     */
+    public boolean canBeApplied( ItemStack itemStack ) {
+        return true;
     }
 
 }

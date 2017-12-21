@@ -82,6 +82,11 @@ public class EnchantmentProcessor {
 
         // Calculate needed enchant ability of this enchantments
         for ( Enchantment enchantment : this.enchantments ) {
+            if ( !enchantment.canBeApplied( this.startItem ) ) {
+                this.reset();
+                return;
+            }
+
             byte min = enchantment.getMinEnchantAbility( enchantment.getLevel() );
             byte max = enchantment.getMaxEnchantAbility( enchantment.getLevel() );
             LOGGER.debug( "Needed ability: {} -> {}; having: {}", min, max, totalEnchantAbility );
@@ -141,8 +146,12 @@ public class EnchantmentProcessor {
     }
 
     private void reset() {
+        // Reset inventory
         this.player.getEnchantmentInputInventory().setItem( 0, this.startItem );
         this.player.getEnchantmentInputInventory().setItem( 1, this.lapisItem );
+
+        // Reset level
+        this.player.sendData( this.player );
     }
 
     /**

@@ -7,6 +7,8 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.inventory.item.ItemType;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -33,6 +35,15 @@ public class EnchantmentAquaAffinity extends Enchantment implements io.gomint.en
     @Override
     public byte getMaxEnchantAbility( short level ) {
         return 41;
+    }
+
+    @Override
+    public boolean canBeApplied( ItemStack itemStack ) {
+        return itemStack.getType() == ItemType.CHAIN_HELMET ||
+            itemStack.getType() == ItemType.DIAMOND_HELMET ||
+            itemStack.getType() == ItemType.GOLDEN_HELMET ||
+            itemStack.getType() == ItemType.IRON_HELMET ||
+            itemStack.getType() == ItemType.LEATHER_HELMET;
     }
 
 }
