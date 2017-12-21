@@ -21,15 +21,22 @@ public class PacketEntityEventHandler implements PacketHandler<PacketEntityEvent
 
     @Override
     public void handle( PacketEntityEvent packet, long currentTimeMillis, PlayerConnection connection ) {
-        ObjCursor<Entity> entityObjCursor = connection.getEntity().getAttachedEntities().cursor();
-        while ( entityObjCursor.moveNext() ) {
-            Entity entity = entityObjCursor.elem();
-            if ( entity instanceof EntityPlayer ) {
-                ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
-            }
-        }
+        switch ( packet.getEventId() ) {
+            case 34:
+                connection.getEntity().getEnchantmentProcessor().checkEntityEvent( (short) Math.abs( packet.getEventData() ) );
+                break;
 
-        connection.addToSendQueue( packet );
+            default:
+                ObjCursor<Entity> entityObjCursor = connection.getEntity().getAttachedEntities().cursor();
+                while ( entityObjCursor.moveNext() ) {
+                    Entity entity = entityObjCursor.elem();
+                    if ( entity instanceof EntityPlayer ) {
+                        ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
+                    }
+                }
+
+                connection.addToSendQueue( packet );
+        }
     }
 
 }

@@ -11,6 +11,8 @@ import com.koloboke.collect.IntCursor;
 import com.koloboke.collect.ObjCursor;
 import com.koloboke.collect.map.ByteObjCursor;
 import com.koloboke.collect.map.IntObjCursor;
+import io.gomint.enchant.EnchantmentKnockback;
+import io.gomint.enchant.EnchantmentSharpness;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
@@ -19,6 +21,7 @@ import io.gomint.event.player.*;
 import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
+import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.entity.projectile.EntityFishingHook;
@@ -104,12 +107,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Inventory craftingResultInventory;
 
     // Enchantment table
-    @Getter
+    @Setter @Getter
     private EnchantmentTableInventory enchantmentInputInventory;
     @Getter
-    private Inventory enchantmentMaterialInventory;
-    @Getter
     private Inventory enchantmentOutputInventory;
+    @Setter @Getter
+    private EnchantmentProcessor enchantmentProcessor;
 
     // Block break data
     @Setter
@@ -543,8 +546,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.craftingInputInventory = new CraftingInputInventory( this );
         this.craftingResultInventory = new CursorInventory( this );
 
-        this.enchantmentInputInventory = new EnchantmentTableInventory( this );
-        this.enchantmentMaterialInventory = new CursorInventory( this );
         this.enchantmentOutputInventory = new CursorInventory( this );
 
         this.windowIds = ContainerObjectMap.withExpectedSize( 2 );
@@ -777,7 +778,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                     EntityDamageEvent.DamageSource damageSource = EntityDamageEvent.DamageSource.ENTITY_ATTACK;
                     float damage = this.getAttribute( Attribute.ATTACK_DAMAGE );
 
-                    // TODO: Enchantment modifiers
+                    EnchantmentSharpness sharpness = this.getInventory().getItemInHand().getEnchantment( EnchantmentSharpness.class );
+                    if ( sharpness != null ) {
+                        damage += sharpness.getLevel() * 1.25f;
+                    }
 
                     // Check for knockback stuff
                     int knockbackLevel = 0;
@@ -786,7 +790,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                         knockbackLevel++;
                     }
 
-                    // TODO: Add knockback enchantment
+                    EnchantmentKnockback knockback = this.getInventory().getItemInHand().getEnchantment( EnchantmentKnockback.class );
+                    if ( knockback != null ) {
+                        knockbackLevel += knockback.getLevel();
+                    }
 
                     if ( damage > 0 ) {
                         boolean crit = this.fallDistance > 0 && !this.onGround && !this.isOnLadder() && !this.isInsideLiquid();

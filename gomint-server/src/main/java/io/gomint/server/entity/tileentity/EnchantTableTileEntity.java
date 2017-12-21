@@ -30,9 +30,8 @@ public class EnchantTableTileEntity extends ContainerTileEntity implements Inven
         // Open the chest inventory for the entity
         if ( entity instanceof EntityPlayer ) {
             EntityPlayer player = (EntityPlayer) entity;
-            player.getEnchantmentInputInventory().setTileEntity( this );
+            player.setEnchantmentInputInventory( new EnchantmentTableInventory( this ) );
             player.openInventory( player.getEnchantmentInputInventory() );
-            player.getEnchantmentInputInventory().setTileEntity( null );
         }
     }
 

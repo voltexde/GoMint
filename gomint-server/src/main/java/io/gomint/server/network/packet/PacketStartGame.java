@@ -15,6 +15,7 @@ import java.util.Map;
  */
 @Data
 public class PacketStartGame extends Packet {
+
     // Entity data
     private long entityId;
     private long runtimeEntityId;

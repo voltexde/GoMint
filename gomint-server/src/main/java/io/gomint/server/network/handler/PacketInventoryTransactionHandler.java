@@ -8,6 +8,7 @@ import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
+import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.ContainerInventory;
 import io.gomint.server.inventory.Inventory;
@@ -35,7 +36,12 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
     @Override
     public void handle( PacketInventoryTransaction packet, long currentTimeMillis, PlayerConnection connection ) {
-        LOGGER.debug( packet.toString() );
+        // Hack for enchantment tables
+        EnchantmentProcessor processor = connection.getEntity().getEnchantmentProcessor();
+        if ( processor != null ) {
+            processor.addTranscation( packet );
+            return;
+        }
 
         switch ( packet.getType() ) {
             case PacketInventoryTransaction.TYPE_NORMAL:
@@ -382,7 +388,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 inventory = entity.getEnchantmentInputInventory();
                 break;
             case -16:   // Lapis input
-                inventory = entity.getEnchantmentMaterialInventory();
+                inventory = entity.getEnchantmentInputInventory();
+                transaction.setSlot( 1 );
                 break;
             case -17:   // Enchanted item output
                 inventory = entity.getEnchantmentOutputInventory();

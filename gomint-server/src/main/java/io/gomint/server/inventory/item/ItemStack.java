@@ -7,13 +7,19 @@
 
 package io.gomint.server.inventory.item;
 
+import io.gomint.enchant.Enchantment;
 import io.gomint.math.Vector;
+import io.gomint.server.enchant.Enchantments;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a stack of up to 255 items of the same type which may
@@ -22,12 +28,18 @@ import java.util.List;
  * @author BlackyPaw
  * @version 1.0
  */
+@ToString
+@EqualsAndHashCode
 public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack {
 
     private int material;
     private short data;
     private byte amount;
     private NBTTagCompound nbt;
+
+    // Cached enchantments
+    private Map<Class, Enchantment> enchantments;
+    private boolean dirtyEnchantments;
 
     /**
      * Constructs a new item stack that will hold the given amount
@@ -253,17 +265,53 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     @Override
-    public int hashCode() {
-        int hash = 157;
-        hash = 31 * hash + this.material;
-        hash = 31 * hash + this.data;
-        hash = 31 * hash + this.amount;
-        return hash;
+    public void addEnchantment( Class<? extends Enchantment> clazz, short level ) {
+        short id = Enchantments.getId( clazz );
+        if ( id == -1 ) {
+            return;
+        }
+
+        if ( this.nbt == null ) {
+            this.nbt = new NBTTagCompound( "" );
+        }
+
+        List<Object> enchantmentList = this.nbt.getList( "ench", true );
+
+        NBTTagCompound enchCompound = new NBTTagCompound( "" );
+        enchCompound.addValue( "id", id );
+        enchCompound.addValue( "lvl", level );
+        enchantmentList.add( enchCompound );
+
+        this.dirtyEnchantments = true;
     }
 
     @Override
-    public String toString() {
-        return String.format( "[ItemStack %s:%d x %d]", this.material, this.data, this.amount );
+    public <T extends Enchantment> T getEnchantment( Class<? extends Enchantment> clazz ) {
+        if ( this.dirtyEnchantments ) {
+            this.dirtyEnchantments = false;
+
+            if ( this.nbt == null ) {
+                return null;
+            }
+
+            List<Object> nbtEnchCompounds = this.nbt.getList( "ench", false );
+            if ( nbtEnchCompounds == null ) {
+                return null;
+            }
+
+            this.enchantments = new HashMap<>();
+            for ( Object compound : nbtEnchCompounds ) {
+                NBTTagCompound enchantCompound = (NBTTagCompound) compound;
+                io.gomint.server.enchant.Enchantment enchantment = Enchantments.create(
+                    enchantCompound.getShort( "id", (short) 0 ),
+                    enchantCompound.getShort( "lvl", (short) 0 )
+                );
+
+                this.enchantments.put( enchantment.getClass().getInterfaces()[0], enchantment );
+            }
+        }
+
+        return (T) this.enchantments.get( clazz );
     }
 
     @Override
@@ -349,6 +397,15 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         }
 
         return false;
+    }
+
+    /**
+     * Get the enchant ability of this item
+     *
+     * @return enchantment possibility
+     */
+    public int getEnchantAbility() {
+        return 0;
     }
 
 }

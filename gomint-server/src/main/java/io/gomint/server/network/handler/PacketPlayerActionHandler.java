@@ -3,6 +3,7 @@ package io.gomint.server.network.handler;
 import io.gomint.event.player.PlayerInteractEvent;
 import io.gomint.event.player.PlayerToggleGlideEvent;
 import io.gomint.event.world.BlockBreakEvent;
+import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketPlayerAction;
 import io.gomint.server.world.LevelEvent;
@@ -24,6 +25,11 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
     @Override
     public void handle( PacketPlayerAction packet, long currentTimeMillis, PlayerConnection connection ) {
         switch ( packet.getAction() ) {
+            case SET_ENCHANT_SEED:
+                // Just ignore the seed, it just announces that we enchanted
+                connection.getEntity().setEnchantmentProcessor( new EnchantmentProcessor( connection.getEntity() ) );
+                break;
+
             case START_BREAK:
                 // Sanity checks (against crashes)
                 if ( connection.getEntity().canInteract( packet.getPosition().toVector().add( .5f, .5f, .5f ), 13 ) ) {

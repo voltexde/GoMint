@@ -22,4 +22,8 @@ public abstract class Element {
         return element;
     }
 
+    public Object getAnswer( Object answerOption ) {
+        return answerOption;
+    }
+
 }

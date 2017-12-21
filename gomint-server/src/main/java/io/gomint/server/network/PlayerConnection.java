@@ -29,6 +29,7 @@ import io.gomint.server.util.Pair;
 import io.gomint.server.util.StringUtil;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.ChunkHashSet;
+import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
@@ -762,6 +763,7 @@ public class PlayerConnection {
         packet.setGamerules( world.getGamerules() );
         packet.setTexturePacksRequired( false );
         packet.setCommandsEnabled( true );
+        packet.setEnchantmentSeed( FastRandom.current().nextInt() );
 
         this.entity.setPosition( world.getSpawnLocation() );
         this.addToSendQueue( packet );

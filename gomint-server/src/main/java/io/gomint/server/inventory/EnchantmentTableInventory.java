@@ -1,8 +1,6 @@
 package io.gomint.server.inventory;
 
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.entity.tileentity.EnchantTableTileEntity;
-import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.type.WindowType;
 
 /**
@@ -17,7 +15,7 @@ public class EnchantmentTableInventory extends ContainerInventory {
      * @param owner of the container (mostly a tile or normal entity)
      */
     public EnchantmentTableInventory( InventoryHolder owner ) {
-        super( owner, 1 );
+        super( owner, 2 );
     }
 
     @Override
@@ -33,20 +31,6 @@ public class EnchantmentTableInventory extends ContainerInventory {
     @Override
     public void onClose( EntityPlayer player ) {
 
-    }
-
-    @Override
-    public void sendContents( PlayerConnection playerConnection ) {
-
-    }
-
-    @Override
-    public void sendContents( int slot, PlayerConnection playerConnection ) {
-
-    }
-
-    public void setTileEntity( EnchantTableTileEntity tileEntity ) {
-        this.owner = tileEntity;
     }
 
 }

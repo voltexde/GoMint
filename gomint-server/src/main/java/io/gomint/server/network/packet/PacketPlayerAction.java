@@ -61,7 +61,9 @@ public class PacketPlayerAction extends Packet {
         START_GLIDE,
         STOP_GLIDE,
 
-        INTERACT_BLOCK;
+        INTERACT_BLOCK,
+
+        SET_ENCHANT_SEED;
 
         public static PlayerAction valueOf( int actionId ) {
             switch ( actionId ) {
@@ -99,6 +101,8 @@ public class PacketPlayerAction extends Packet {
                     return INTERACT_BLOCK;
                 case 18:
                     return CONTINUE_BREAK;
+                case 20:
+                    return SET_ENCHANT_SEED;
             }
 
             System.out.println( "Unknown action id: " + actionId );

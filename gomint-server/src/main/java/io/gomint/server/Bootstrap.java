@@ -46,6 +46,11 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
+        // Enchantment value diamond sword = 10
+        int itemEnchantable = 1 + ( ( 5 >> 1 ) * 2 ) + 2;
+        int bookEnchantable = 9 + ( 0 >> 1 ) + 16;
+        System.out.println( itemEnchantable + bookEnchantable );
+
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
 

@@ -6,12 +6,15 @@ import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.gui.CustomForm;
 import io.gomint.gui.FormListener;
 import io.gomint.gui.FormResponse;
+import io.gomint.gui.element.Dropdown;
 import io.gomint.inventory.item.*;
 import io.gomint.inventory.item.data.DyeType;
 import io.gomint.plugin.TestPlugin;
 import lombok.RequiredArgsConstructor;
 
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -53,6 +56,23 @@ public class PlayerJoinListener implements EventListener {
         settings.addToggle( "show-position", "Show current position", true );
         FormListener<FormResponse> response = event.getPlayer().addSettingsForm( settings );
         response.onResponse( formResponse -> plugin.getLogger().info( String.valueOf( formResponse.getToogle( "show-position" ) ) ) );
+
+        this.plugin.getScheduler().schedule( new Runnable() {
+            @Override
+            public void run() {
+                CustomForm dropboxTest = CustomForm.create( "Test" );
+                Dropdown dropdown = dropboxTest.createDropdown( "test-drop", "Dropdown" );
+                dropdown.addOption( "Test" );
+                dropdown.addOption( "Test 1" );
+                FormListener<FormResponse> responseFormListener = event.getPlayer().showForm( dropboxTest );
+                responseFormListener.onResponse( new Consumer<FormResponse>() {
+                    @Override
+                    public void accept( FormResponse formResponse ) {
+                        System.out.println( formResponse.getDropbox( "test-drop" ) );
+                    }
+                } );
+            }
+        }, 1, TimeUnit.SECONDS );
 
         this.plugin.getBossBarOrb().getBossBar().addPlayer( event.getPlayer() );
     }

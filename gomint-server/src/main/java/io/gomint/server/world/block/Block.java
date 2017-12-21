@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.enchant.EnchantmentAquaAffinity;
 import io.gomint.entity.potion.PotionEffect;
 import io.gomint.inventory.item.ItemReduceBreaktime;
 import io.gomint.inventory.item.ItemStack;
@@ -461,7 +462,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         }
 
         // When in water
-        if ( player.isInsideLiquid() ) {
+        if ( player.isInsideLiquid() && player.getArmorInventory().getHelmet().getEnchantment( EnchantmentAquaAffinity.class ) == null ) {
             base *= 5.0f;
         }
 
