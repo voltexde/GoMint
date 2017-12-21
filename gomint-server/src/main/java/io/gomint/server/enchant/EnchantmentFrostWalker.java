@@ -7,6 +7,7 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -23,6 +24,21 @@ public class EnchantmentFrostWalker extends Enchantment implements io.gomint.enc
      */
     public EnchantmentFrostWalker( short level ) {
         super( (short) 2, level );
+    }
+
+    @Override
+    public byte getMinEnchantAbility( short level ) {
+        return (byte) ( level * 10 );
+    }
+
+    @Override
+    public byte getMaxEnchantAbility( short level ) {
+        return (byte) ( getMinEnchantAbility( level ) + 15 );
+    }
+
+    @Override
+    public boolean canBeApplied( ItemStack itemStack ) {
+        return false;
     }
 
 }

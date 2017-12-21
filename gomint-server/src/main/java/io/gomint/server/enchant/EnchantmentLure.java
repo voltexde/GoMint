@@ -7,6 +7,8 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.inventory.item.ItemType;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -23,6 +25,21 @@ public class EnchantmentLure extends Enchantment implements io.gomint.enchant.En
      */
     public EnchantmentLure( short level ) {
         super( (short) 3, level );
+    }
+
+    @Override
+    public byte getMinEnchantAbility( short level ) {
+        return (byte) ( 15 + ( level - 1 ) * 9 );
+    }
+
+    @Override
+    public byte getMaxEnchantAbility( short level ) {
+        return (byte) ( getMinEnchantAbility( level ) + 50 );
+    }
+
+    @Override
+    public boolean canBeApplied( ItemStack itemStack ) {
+        return itemStack.getType() == ItemType.FISHING_ROD;
     }
 
 }

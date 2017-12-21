@@ -56,7 +56,9 @@ public class EnchantmentProcessor {
 
         // Calculate enchant ability of the item
         int itemEnchantable = 3 + ( ( this.startItem.getEnchantAbility() >> 1 ) * 2 );
+        int itemEnchantableMin = 1;
         int bookEnchantable = 25 + ( bookShelves >> 1 );
+        int bookEnchantableMin = 1 + ( bookShelves >> 1 );
 
         /* Check for iteration differences:
          * 0: book / 3; max 1
@@ -66,12 +68,15 @@ public class EnchantmentProcessor {
         switch ( this.data - 1 ) {
             case 0:
                 bookEnchantable = Math.max( bookEnchantable / 3, 1 );
+                bookEnchantableMin = Math.max( bookEnchantableMin / 3, 1 );
                 break;
             case 1:
                 bookEnchantable = bookShelves * 2 / 3 + 1;
+                bookEnchantableMin = bookShelves * 2 / 3 + 1;
                 break;
             case 2:
                 bookEnchantable = Math.max( bookEnchantable, bookShelves * 2 );
+                bookEnchantableMin = Math.max( bookEnchantableMin, bookShelves * 2 );
                 break;
             default:
                 this.reset();
@@ -79,6 +84,7 @@ public class EnchantmentProcessor {
         }
 
         int totalEnchantAbility = itemEnchantable + bookEnchantable;
+        int totalEnchantAbilityMin = itemEnchantableMin + bookEnchantableMin;
 
         // Calculate needed enchant ability of this enchantments
         for ( Enchantment enchantment : this.enchantments ) {
@@ -89,7 +95,7 @@ public class EnchantmentProcessor {
 
             byte min = enchantment.getMinEnchantAbility( enchantment.getLevel() );
             byte max = enchantment.getMaxEnchantAbility( enchantment.getLevel() );
-            LOGGER.debug( "Needed ability: {} -> {}; having: {}", min, max, totalEnchantAbility );
+            LOGGER.debug( "Needed ability: {} -> {}; having: {} -> {}", min, max, totalEnchantAbilityMin, totalEnchantAbility );
         }
 
         this.reset();

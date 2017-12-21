@@ -7,6 +7,8 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.inventory.item.ItemType;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -25,4 +27,18 @@ public class EnchantmentPower extends Enchantment implements io.gomint.enchant.E
         super( (short) 5, level );
     }
 
+    @Override
+    public byte getMinEnchantAbility( short level ) {
+        return (byte) ( 1 + ( level - 1 ) * 10 );
+    }
+
+    @Override
+    public byte getMaxEnchantAbility( short level ) {
+        return (byte) ( getMinEnchantAbility( level ) + 15 );
+    }
+
+    @Override
+    public boolean canBeApplied( ItemStack itemStack ) {
+        return itemStack.getType() == ItemType.BOW;
+    }
 }

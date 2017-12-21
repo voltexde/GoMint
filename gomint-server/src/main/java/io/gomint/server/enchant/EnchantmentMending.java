@@ -7,6 +7,7 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -23,6 +24,21 @@ public class EnchantmentMending extends Enchantment implements io.gomint.enchant
      */
     public EnchantmentMending( short level ) {
         super( (short) 1, level );
+    }
+
+    @Override
+    public byte getMinEnchantAbility( short level ) {
+        return (byte) ( level * 25 );
+    }
+
+    @Override
+    public byte getMaxEnchantAbility( short level ) {
+        return (byte) ( getMinEnchantAbility( level ) + 50 );
+    }
+
+    @Override
+    public boolean canBeApplied( ItemStack itemStack ) {
+        return false;
     }
 
 }
