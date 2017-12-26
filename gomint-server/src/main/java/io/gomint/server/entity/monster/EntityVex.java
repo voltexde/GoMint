@@ -12,10 +12,10 @@ public class EntityVex extends EntityLiving implements io.gomint.entity.monster.
     /**
      * Constructs a new EntityLiving
      *
-     * @param type  The type of the Entity
      * @param world The world in which this entity is in
      */
-    protected EntityVex( EntityType type, WorldAdapter world ) {
+
+    public EntityVex( EntityType type, WorldAdapter world ) {
         super( type, world );
         this.initEntity();
     }
