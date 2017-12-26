@@ -88,7 +88,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Locale locale;
 
     // Hidden players
-    private HiddenPlayerSet hiddenPlayers;
+    private Set<Long> hiddenPlayers;
 
     // Container handling
     private ContainerObjectMap windowIds;
@@ -303,7 +303,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         EntityPlayer other = (EntityPlayer) player;
 
         if ( this.hiddenPlayers == null ) {
-            this.hiddenPlayers = HiddenPlayerSet.withExpectedSize( 5 );
+            this.hiddenPlayers = new HashSet<>(  );
         }
 
         this.hiddenPlayers.add( other.getEntityId() );
@@ -328,7 +328,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             return;
         }
 
-        if ( this.hiddenPlayers.removeLong( player.getEntityId() ) ) {
+        if ( this.hiddenPlayers.remove( player.getEntityId() ) ) {
             EntityPlayer other = (EntityPlayer) player;
 
             // Send tablist and spawn packet
@@ -624,7 +624,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
             // Check if player did hide this one
             if ( entityPlayer.hiddenPlayers != null && entityPlayer.hiddenPlayers.contains( getEntityId() ) ) {
-                entityPlayer.hiddenPlayers.removeLong( getEntityId() );
+                entityPlayer.hiddenPlayers.remove( getEntityId() );
             }
 
             // Check if mouseover is the entity
