@@ -1323,4 +1323,26 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.GLIDING );
     }
 
+    @Override
+    protected void checkAfterGravity() {
+        float dX = this.getMotionX();
+        float dY = this.getMotionY();
+        float dZ = this.getMotionZ();
+
+        // Check if we collide with some blocks when we would move that fast
+        List<AxisAlignedBB> collisionList = this.world.getCollisionCubes( this, this.boundingBox.getOffsetBoundingBox( dX, dY, dZ ), false );
+        if ( collisionList != null ) {
+            // Check if we would hit a y border block
+            for ( AxisAlignedBB axisAlignedBB : collisionList ) {
+                dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
+            }
+
+            if ( Math.abs( dY ) <= 0.001 ) {
+                dY = 0;
+            }
+
+            this.getTransform().setMotion( dX, dY, dZ );
+        }
+    }
+
 }

@@ -228,6 +228,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
                     float newMovZ = this.transform.getMotionZ() * friction;
 
                     this.transform.setMotion( newMovX, newMovY, newMovZ );
+                    this.checkAfterGravity();
                 }
 
                 if ( moved != null ) {
@@ -267,6 +268,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
             this.transform.move( 0, 0, 0 );
         }
+    }
+
+    /**
+     * Allow for custom capping of gravity
+     */
+    protected void checkAfterGravity() {
+
     }
 
     protected boolean shouldMove() {
