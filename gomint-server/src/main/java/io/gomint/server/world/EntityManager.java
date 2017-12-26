@@ -177,7 +177,7 @@ public class EntityManager {
 
                 packetEntityMovement.setX( movedEntity.getPositionX() );
                 // Only players are offset measured with eye position locations (don't ask me why)
-                packetEntityMovement.setY( movedEntity.getPositionY() + ( ( movedEntity instanceof EntityHuman ) ? movedEntity.getEyeHeight() : 0 ) );
+                packetEntityMovement.setY( movedEntity.getPositionY() + movedEntity.getOffsetY() );
                 packetEntityMovement.setZ( movedEntity.getPositionZ() );
 
                 packetEntityMovement.setYaw( movedEntity.getYaw() );

@@ -90,6 +90,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     private void initEntity() {
         this.setSize( 0.6f, 1.8f );
         this.eyeHeight = 1.62f;
+        this.offsetY = this.eyeHeight;
         this.stepHeight = 0.6f;
 
         this.metadataContainer.putByte( MetadataContainer.DATA_PLAYER_INDEX, (byte) 0 );

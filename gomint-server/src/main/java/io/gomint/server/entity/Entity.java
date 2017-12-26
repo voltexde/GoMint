@@ -98,6 +98,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     @Getter
     protected float eyeHeight;
+    @Getter
+    protected float offsetY;
 
     /**
      * Dead status
