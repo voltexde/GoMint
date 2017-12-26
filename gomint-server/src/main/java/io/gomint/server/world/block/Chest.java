@@ -44,18 +44,25 @@ public class Chest extends Block implements BlockChest {
         ChestTileEntity tileEntity = this.getTileEntity();
         if ( tileEntity != null ) {
             tileEntity.interact( entity, face, facePos, item );
-            return true;
         } else {
-            LOGGER.warn( "Chest @ " + getLocation() + " has no tile entity" );
+            LOGGER.warn( "Chest @ {} has no tile entity. Generating new tile entity", this.location );
+            tileEntity = (ChestTileEntity) this.createTileEntity( new NBTTagCompound( "" ) );
+            this.setTileEntity( tileEntity );
+            this.world.storeTileEntity( this.location.toBlockPosition(), tileEntity );
+            tileEntity.interact( entity, face, facePos, item );
         }
 
-        return false;
+        return true;
     }
 
     @Override
     public Inventory getInventory() {
         ChestTileEntity tileEntity = this.getTileEntity();
-        return tileEntity.getInventory();
+        if ( tileEntity != null ) {
+            return tileEntity.getInventory();
+        }
+
+        return null;
     }
 
     @Override
@@ -65,17 +72,7 @@ public class Chest extends Block implements BlockChest {
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        if ( compound == null ) {
-            compound = new NBTTagCompound( "" );
-        }
-
-        BlockPosition position = this.location.toBlockPosition();
-
-        // Add generic tile entity stuff
-        compound.addValue( "x", position.getX() );
-        compound.addValue( "y", position.getY() );
-        compound.addValue( "z", position.getZ() );
-
+        super.createTileEntity( compound );
         return new ChestTileEntity( compound, this.world );
     }
 

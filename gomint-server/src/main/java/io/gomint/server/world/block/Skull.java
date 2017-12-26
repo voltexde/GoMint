@@ -70,10 +70,7 @@ public class Skull extends Block implements io.gomint.world.block.BlockSkull {
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        if ( compound == null ) {
-            compound = new NBTTagCompound( "" );
-        }
-
+        super.createTileEntity( compound );
         compound.addValue( "SkullType", this.getBlockData() );
         return new SkullTileEntity( compound, this.world );
     }

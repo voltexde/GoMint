@@ -169,6 +169,13 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @return new tile entity or null if there is none
      */
     TileEntity createTileEntity( NBTTagCompound compound ) {
+        BlockPosition position = this.location.toBlockPosition();
+
+        // Add generic tile entity stuff
+        compound.addValue( "x", position.getX() );
+        compound.addValue( "y", position.getY() );
+        compound.addValue( "z", position.getZ() );
+
         return null;
     }
 
@@ -241,7 +248,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
             // Check if new block needs tile entity
             if ( instance.needsTileEntity() ) {
-                TileEntity tileEntity = instance.createTileEntity( null );
+                TileEntity tileEntity = instance.createTileEntity( new NBTTagCompound( "" ) );
                 if ( tileEntity != null ) {
                     instance.setTileEntity( tileEntity );
                     worldAdapter.storeTileEntity( pos, tileEntity );

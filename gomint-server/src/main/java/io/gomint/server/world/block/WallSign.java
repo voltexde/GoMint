@@ -45,12 +45,17 @@ public class WallSign extends Block implements BlockWallSign {
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
+        super.createTileEntity( compound );
         return new SignTileEntity( compound, this.world );
     }
 
     @Override
     public List<String> getLines() {
         SignTileEntity sign = this.getTileEntity();
+        if ( sign == null ) {
+            return null;
+        }
+
         return new ArrayList<>( sign.getLines() );
     }
 
@@ -62,6 +67,10 @@ public class WallSign extends Block implements BlockWallSign {
         }
 
         SignTileEntity sign = this.getTileEntity();
+        if ( sign == null ) {
+            return;
+        }
+
         if ( sign.getLines().size() < line ) {
             for ( int i = 0; i < line - sign.getLines().size(); i++ ) {
                 sign.getLines().add( "" );
@@ -76,10 +85,14 @@ public class WallSign extends Block implements BlockWallSign {
     public String getLine( int line ) {
         // Silenty fail when line is incorrect
         if ( line > 4 || line < 1 ) {
-            return "";
+            return null;
         }
 
         SignTileEntity sign = this.getTileEntity();
+        if ( sign == null ) {
+            return null;
+        }
+
         return sign.getLines().get( line - 1 );
     }
 

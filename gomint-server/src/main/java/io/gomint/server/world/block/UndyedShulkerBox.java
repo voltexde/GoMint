@@ -17,6 +17,8 @@ import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockType;
 import io.gomint.world.block.BlockUndyedShulkerBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -24,6 +26,8 @@ import io.gomint.world.block.BlockUndyedShulkerBox;
  */
 @RegisterInfo( id = 205 )
 public class UndyedShulkerBox extends Block implements BlockUndyedShulkerBox {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( ShulkerBox.class );
 
     @Override
     public int getBlockId() {
@@ -66,22 +70,20 @@ public class UndyedShulkerBox extends Block implements BlockUndyedShulkerBox {
         ShulkerBoxTileEntity tileEntity = this.getTileEntity();
         if ( tileEntity != null ) {
             tileEntity.interact( entity, face, facePos, item );
-            return true;
+        } else {
+            LOGGER.warn( "ShulkerBox @ {} has no tile entity. Generating new tile entity", this.location );
+            tileEntity = (ShulkerBoxTileEntity) this.createTileEntity( new NBTTagCompound( "" ) );
+            this.setTileEntity( tileEntity );
+            this.world.storeTileEntity( this.location.toBlockPosition(), tileEntity );
+            tileEntity.interact( entity, face, facePos, item );
         }
 
-        return false;
+        return true;
     }
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        BlockPosition position = this.location.toBlockPosition();
-
-        compound = new NBTTagCompound( "" );
-
-        // Add generic tile entity stuff
-        compound.addValue( "x", position.getX() );
-        compound.addValue( "y", position.getY() );
-        compound.addValue( "z", position.getZ() );
+        super.createTileEntity( compound );
 
         // Add flags
         compound.addValue( "isUndyed", (byte) 1 );
