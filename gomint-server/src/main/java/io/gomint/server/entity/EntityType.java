@@ -331,7 +331,13 @@ public enum EntityType {
      * Entity Type value for a wither skeleton.
      */
 
-    WITHER_SKELETON( 48 );
+    WITHER_SKELETON( 48 ),
+
+    /**
+     * Entity Type value for a wither skeleton.
+     */
+
+    VEX( 105 );
 
     private final int id;
 
