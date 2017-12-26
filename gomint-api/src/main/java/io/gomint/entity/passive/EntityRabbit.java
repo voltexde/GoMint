@@ -11,8 +11,8 @@ public interface EntityRabbit extends EntityLiving {
      * @return empty, fresh rabbit
      */
 
-    static EntityCow create() {
-        return GoMint.instance().createEntity( EntityCow.class );
+    static EntityRabbit create() {
+        return GoMint.instance().createEntity( EntityRabbit.class );
     }
 
 }
