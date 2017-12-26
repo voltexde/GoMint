@@ -42,9 +42,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
     public EntityItem( ItemStack itemStack, WorldAdapter world ) {
         super( EntityType.ITEM_DROP, world );
         this.itemStack = itemStack;
-        this.setSize( 0.25f, 0.25f );
-        setPickupDelay( 1250, TimeUnit.MILLISECONDS );
-        this.setHasCollision( false );
+        this.initEntity();
     }
 
     /**
@@ -52,9 +50,14 @@ public class EntityItem extends Entity implements EntityItemDrop {
      */
     public EntityItem() {
         super( EntityType.ITEM_DROP, null );
+        this.initEntity();
+    }
+
+    private void initEntity() {
         this.setSize( 0.25f, 0.25f );
         setPickupDelay( 1250, TimeUnit.MILLISECONDS );
         this.setHasCollision( false );
+        this.offsetY = 0.125f;
     }
 
     @Override
