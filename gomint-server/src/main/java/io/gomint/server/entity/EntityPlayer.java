@@ -1263,7 +1263,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
 
         PacketSetTitle titlePacket = new PacketSetTitle();
-        titlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
+        titlePacket.setType( PacketSetTitle.TitleType.TYPE_TITLE.getId() );
         titlePacket.setText( title );
         titlePacket.setFadeInTime( (int) unit.toMillis( fadein ) / 50 );
         titlePacket.setStayTime( (int) unit.toMillis( duration ) / 50 );
