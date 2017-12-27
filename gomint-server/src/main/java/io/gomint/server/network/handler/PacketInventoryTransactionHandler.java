@@ -138,11 +138,13 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 break;
             case 1:     // Attack
                 if ( connection.getEntity().attackWithItemInHand( target ) ) {
-                    ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
-                    if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).damage( 1 ) ) {
-                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                    } else {
-                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
+                    if ( connection.getEntity().getGamemode() != Gamemode.CREATIVE ) {
+                        ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
+                        if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).damage( 1 ) ) {
+                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                        } else {
+                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
+                        }
                     }
                 } else {
                     reset( packet, connection );
@@ -206,10 +208,12 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     return;
                 }
 
-                if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).afterPlacement() ) {
-                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                } else {
-                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
+                if ( connection.getEntity().getGamemode() != Gamemode.CREATIVE ) {
+                    if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).afterPlacement() ) {
+                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                    } else {
+                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
+                    }
                 }
 
                 break;
