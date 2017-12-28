@@ -138,7 +138,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private FormListenerIDMap formListeners = FormListenerIDMap.withExpectedSize( 2 );
 
     // Server settings
-    private ServerSettingsFormSet serverSettingsFormSet = ServerSettingsFormSet.withExpectedSize( 2 );
+    private int serverSettingsForm = -1;
 
     // Entity data
     @Getter
@@ -1034,14 +1034,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     // ------- GUI stuff
     public void sendServerSettings() {
-        IntCursor serverSettingsCursor = this.serverSettingsFormSet.cursor();
-        while ( serverSettingsCursor.moveNext() ) {
-            int currentFormId = serverSettingsCursor.elem();
-            io.gomint.server.gui.Form form = this.forms.get( currentFormId );
+        if ( this.serverSettingsForm != -1 ) {
+            io.gomint.server.gui.Form form = this.forms.get( this.serverSettingsForm );
 
             PacketServerSettingsResponse response = new PacketServerSettingsResponse();
-            response.setFormId( currentFormId );
+            response.setFormId( this.serverSettingsForm );
             response.setJson( form.toJSON().toJSONString() );
+            LOGGER.debug( "Sending settings form: {}", response );
             this.connection.addToSendQueue( response );
         }
     }
@@ -1075,7 +1074,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public <T> FormListener<T> addSettingsForm( Form form ) {
+    public <T> FormListener<T> setSettingsForm( Form form ) {
+        if ( this.serverSettingsForm != -1 ) {
+            this.removeSettingsForm();
+        }
+
         int formId = this.formId++;
         io.gomint.server.gui.Form implForm = (io.gomint.server.gui.Form) form;
 
@@ -1091,25 +1094,16 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
 
         this.formListeners.justPut( formId, formListener );
-        this.serverSettingsFormSet.add( formId );
+        this.serverSettingsForm = formId;
         return formListener;
     }
 
     @Override
-    public void removeSettingsForm( Form form ) {
-        int foundId = -1;
-        IntObjCursor<io.gomint.server.gui.Form> formCursor = this.forms.cursor();
-        while ( formCursor.moveNext() ) {
-            if ( formCursor.value().equals( form ) ) {
-                foundId = formCursor.key();
-                break;
-            }
-        }
-
-        if ( foundId != -1 ) {
-            this.serverSettingsFormSet.removeInt( foundId );
-            this.forms.justRemove( formId );
-            this.formListeners.justRemove( formId );
+    public void removeSettingsForm() {
+        if ( this.serverSettingsForm != -1 ) {
+            this.forms.justRemove( this.serverSettingsForm );
+            this.formListeners.justRemove( this.serverSettingsForm );
+            this.serverSettingsForm = -1;
         }
     }
 
@@ -1120,7 +1114,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             // Get listener
             io.gomint.server.gui.FormListener formListener = this.formListeners.get( formId );
 
-            if ( !this.serverSettingsFormSet.contains( formId ) ) {
+            if ( this.serverSettingsForm != formId ) {
                 this.forms.justRemove( formId );
                 this.formListeners.justRemove( formId );
             }

@@ -49,7 +49,7 @@ public class PlayerJoinListener implements EventListener {
         CustomForm settings = CustomForm.create( "GoMint" );
         settings.addLabel( "General" );
         settings.addToggle( "show-position", "Show current position", true );
-        FormListener<FormResponse> response = event.getPlayer().addSettingsForm( settings );
+        FormListener<FormResponse> response = event.getPlayer().setSettingsForm( settings );
         response.onResponse( formResponse -> plugin.getLogger().info( String.valueOf( formResponse.getToogle( "show-position" ) ) ) );
 
         this.plugin.getScheduler().schedule( new Runnable() {

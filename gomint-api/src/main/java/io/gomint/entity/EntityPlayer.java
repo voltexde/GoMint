@@ -136,20 +136,18 @@ public interface EntityPlayer extends EntityHuman {
     <T> FormListener<T> showForm( Form form );
 
     /**
-     * Add a server settings form
+     * Set the server settings form
      *
-     * @param form which will be added to the settings
+     * @param form which will be set as the new settings form
      * @param <T>  type of return value from the response
      * @return form listener to attaching for response
      */
-    <T> FormListener<T> addSettingsForm( Form form );
+    <T> FormListener<T> setSettingsForm( Form form );
 
     /**
-     * Remove a form from the server settings
-     *
-     * @param form which should be removed
+     * Remove the current stored settings form
      */
-    void removeSettingsForm( Form form );
+    void removeSettingsForm();
 
     /**
      * Get the players permission manager
