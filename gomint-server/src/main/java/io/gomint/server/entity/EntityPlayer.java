@@ -736,6 +736,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             this.world.getServer().getPluginManager().callEvent( exhaustEvent );
 
             if ( exhaustEvent.isCancelled() ) {
+                this.resendAttributes();
                 return;
             }
 

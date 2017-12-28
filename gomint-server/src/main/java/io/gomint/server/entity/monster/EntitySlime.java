@@ -3,6 +3,7 @@ package io.gomint.server.entity.monster;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityType;
+import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
@@ -28,10 +29,18 @@ public class EntitySlime extends EntityLiving implements io.gomint.entity.monste
     }
 
     private void initEntity() {
-        this.setSize( 2.04f, 2.04f );
         this.addAttribute( Attribute.HEALTH );
-        this.setMaxHealth( 16 );
-        this.setHealth( 16 );
+
+        this.setSizeFactor( (byte) 4 );
+    }
+
+    public void setSizeFactor( byte factor ) {
+        float newHealth = (float) Math.pow( 2, factor );
+        this.setMaxHealth( newHealth );
+        this.setHealth( newHealth );
+        this.setSize( factor * 0.51f, factor * 0.51f );
+
+        this.metadataContainer.putByte( MetadataContainer.DATA_SIZE, factor );
     }
 
     @Override
