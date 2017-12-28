@@ -1,4 +1,4 @@
-package io.gomint.server.entity.passive;
+package io.gomint.server.entity.monster;
 
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.EntityLiving;
@@ -6,32 +6,33 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 27 )
-public class EntityZombieHorse extends EntityLiving implements io.gomint.entity.passive.EntityZombieHorse {
+@RegisterInfo( id = 105 )
+public class EntityVex extends EntityLiving implements io.gomint.entity.monster.EntityVex {
 
     /**
      * Constructs a new EntityLiving
      *
      * @param world The world in which this entity is in
      */
-    public EntityZombieHorse( WorldAdapter world ) {
-        super( EntityType.ZOMBIE_HORSE, world );
+
+    public EntityVex( EntityType type, WorldAdapter world ) {
+        super( type, world );
         this.initEntity();
     }
 
     /**
-     * Create new entity zombie horse for API
+     * Create new entity stray for API
      */
-    public EntityZombieHorse() {
-        super( EntityType.ZOMBIE_HORSE, null );
+    public EntityVex() {
+        super( EntityType.VEX, null );
         this.initEntity();
     }
 
     private void initEntity() {
-        this.setSize( 1.3965f, 1.6f );
+        this.setSize( 0.4f, 0.8f );
         this.addAttribute( Attribute.HEALTH );
-        this.setMaxHealth( 30 );
-        this.setHealth( 30 );
+        this.setMaxHealth( 14 );
+        this.setHealth( 14 );
     }
 
     @Override
