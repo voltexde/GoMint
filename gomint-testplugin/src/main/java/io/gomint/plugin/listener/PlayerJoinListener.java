@@ -1,5 +1,6 @@
 package io.gomint.plugin.listener;
 
+import io.gomint.enchant.EnchantmentKnockback;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
@@ -7,7 +8,9 @@ import io.gomint.gui.CustomForm;
 import io.gomint.gui.FormListener;
 import io.gomint.gui.FormResponse;
 import io.gomint.gui.element.Dropdown;
-import io.gomint.inventory.item.*;
+import io.gomint.inventory.item.ItemDye;
+import io.gomint.inventory.item.ItemLeatherHelmet;
+import io.gomint.inventory.item.ItemStick;
 import io.gomint.inventory.item.data.DyeType;
 import io.gomint.plugin.TestPlugin;
 import lombok.RequiredArgsConstructor;
@@ -27,17 +30,9 @@ public class PlayerJoinListener implements EventListener {
 
     @EventHandler
     public void onPlayerJoin( PlayerJoinEvent event ) {
-        event.getPlayer().getInventory().setItem( 0, ItemCake.create( 1 ) );
-
-        event.getPlayer().getInventory().setItem( 1, ItemCarrot.create( 64 ) );
-        event.getPlayer().getInventory().setItem( 2, ItemGoldenCarrot.create( 64 ) );
-
-        event.getPlayer().getInventory().setItem( 3, ItemDiamond.create( 64 ) );
-        event.getPlayer().getInventory().setItem( 4, ItemStick.create( 1 ) );
-
-        event.getPlayer().getInventory().setItem( 5, ItemLog.create( 5 ) );
-
-        event.getPlayer().getInventory().setItem( 6, ItemElytra.create( 1 ) );
+        ItemStick itemStick = ItemStick.create( 1 );
+        itemStick.addEnchantment( EnchantmentKnockback.class, (short) 2 );
+        event.getPlayer().getInventory().setItem( 1, itemStick );
 
         // Create red leather armor
         ItemLeatherHelmet redHelmet = ItemLeatherHelmet.create( 1 );

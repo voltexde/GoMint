@@ -277,7 +277,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
 
         List<Object> enchantmentList = this.nbt.getList( "ench", true );
 
-        NBTTagCompound enchCompound = new NBTTagCompound( "" );
+        NBTTagCompound enchCompound = new NBTTagCompound( null );
         enchCompound.addValue( "id", id );
         enchCompound.addValue( "lvl", level );
         enchantmentList.add( enchCompound );
