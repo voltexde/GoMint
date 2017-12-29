@@ -7,6 +7,10 @@ import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
+/**
+ * @author LucGames
+ * @version 1.0
+ */
 @RegisterInfo( id = 37 )
 public class EntitySlime extends EntityLiving implements io.gomint.entity.monster.EntitySlime {
 
@@ -31,16 +35,17 @@ public class EntitySlime extends EntityLiving implements io.gomint.entity.monste
     private void initEntity() {
         this.addAttribute( Attribute.HEALTH );
 
-        this.setSizeFactor( (byte) 4 );
+        this.setSizeFactor( 4 );
     }
 
-    public void setSizeFactor( byte factor ) {
+    @Override
+    public void setSizeFactor( int factor ) {
         float newHealth = (float) Math.pow( 2, factor );
         this.setMaxHealth( newHealth );
         this.setHealth( newHealth );
         this.setSize( factor * 0.51f, factor * 0.51f );
 
-        this.metadataContainer.putByte( MetadataContainer.DATA_SIZE, factor );
+        this.metadataContainer.putInt( MetadataContainer.DATA_VARIANT, factor );
     }
 
     @Override

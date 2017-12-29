@@ -88,7 +88,6 @@ public class MetadataContainer {
     public static final int DATA_PADDLE_TIME_RIGHT = 14; //float
     public static final int DATA_EXPERIENCE_VALUE = 15; //int (xp orb)
     public static final int DATA_MINECART_DISPLAY_BLOCK = 16; //int (id | (data << 16))
-    public static final int DATA_SIZE = 16; // byte
     public static final int DATA_MINECART_DISPLAY_OFFSET = 17; //int
     public static final int DATA_MINECART_HAS_DISPLAY = 18; //byte (must be 1 for minecart to show block inside)
     public static final int DATA_PLAYER_INDEX = 27;
