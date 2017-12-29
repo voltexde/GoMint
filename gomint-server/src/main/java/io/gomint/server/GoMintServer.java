@@ -85,6 +85,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     // World Management
     @Getter
     private WorldManager worldManager;
+    private String defaultWorld;
 
     // Game Information
     private RecipeManager recipeManager;
@@ -156,13 +157,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
             reader = LineReaderBuilder.builder()
                 .appName( "GoMint" )
                 .terminal( terminal )
-                .completer( new Completer() {
-                    @Override
-                    public void complete( LineReader lineReader, ParsedLine parsedLine, List<Candidate> list ) {
-                        List<String> suggestions = pluginManager.getCommandManager().completeSystem( parsedLine.line() );
-                        for ( String suggestion : suggestions ) {
-                            list.add( new Candidate( suggestion ) );
-                        }
+                .completer( ( lineReader, parsedLine, list ) -> {
+                    List<String> suggestions = pluginManager.getCommandManager().completeSystem( parsedLine.line() );
+                    for ( String suggestion : suggestions ) {
+                        list.add( new Candidate( suggestion ) );
                     }
                 } )
                 .build();
@@ -208,6 +206,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // Configuration Initialization
         // ------------------------------------ //
         this.loadConfig();
+        this.defaultWorld = this.serverConfig.getDefaultWorld();
 
         // Calculate the nanoseconds we need for the tick loop
         long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
@@ -452,7 +451,17 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     @Override
     public WorldAdapter getDefaultWorld() {
-        return this.worldManager.getWorld( this.serverConfig.getDefaultWorld() );
+        return this.worldManager.getWorld( this.defaultWorld );
+    }
+
+    @Override
+    public void setDefaultWorld( World world ) {
+        if ( world == null ) {
+            LOGGER.warn( "Can't set default world to null" );
+            return;
+        }
+
+        this.defaultWorld = world.getWorldName();
     }
 
     public RecipeManager getRecipeManager() {

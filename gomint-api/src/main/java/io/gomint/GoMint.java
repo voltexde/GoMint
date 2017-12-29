@@ -196,4 +196,11 @@ public interface GoMint {
      */
     World getDefaultWorld();
 
+    /**
+     * Set a new default world for this server
+     *
+     * @param world which should be used as default one
+     */
+    void setDefaultWorld( World world );
+
 }
