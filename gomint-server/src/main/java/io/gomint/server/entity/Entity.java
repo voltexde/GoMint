@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -104,7 +105,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Dead status
      */
-    @Getter @Setter private boolean dead;
+    @Getter
+    @Setter
+    private boolean dead;
     protected int age;
 
     @Setter
@@ -114,13 +117,20 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Getter
     private List<EntityLink> links;
 
-    @Setter @Getter
+    @Setter
+    @Getter
     protected boolean ticking = true;
 
     // Some tracker for "smooth" movement
     private int stuckInBlockTicks = 0;
 
     private io.gomint.server.entity.BossBar bossBar;
+
+    /**
+     * Hidden status
+     */
+    private Set<Long> shownForPlayers;
+    private boolean hideByDefault;
 
     /**
      * Construct a new Entity
@@ -1114,6 +1124,43 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Override
     public float getScale() {
         return this.metadataContainer.getFloat( MetadataContainer.DATA_SCALE );
+    }
+
+    @Override
+    public void setHiddenByDefault( boolean value ) {
+        if ( this instanceof EntityPlayer ) {
+            return;
+        }
+
+        if ( !this.hideByDefault && value && this.world != null ) {
+            // Despawn
+            for ( io.gomint.entity.EntityPlayer entityPlayer : this.world.getPlayers() ) {
+                EntityPlayer entityPlayer1 = (EntityPlayer) entityPlayer;
+                entityPlayer1.getEntityVisibilityManager().removeEntity( this );
+            }
+        }
+
+        this.hideByDefault = value;
+    }
+
+    @Override
+    public void showFor( io.gomint.entity.EntityPlayer player ) {
+        ( (EntityPlayer) player ).getEntityVisibilityManager().addEntity( this );
+    }
+
+    @Override
+    public void hideFor( io.gomint.entity.EntityPlayer player ) {
+        ( (EntityPlayer) player ).getEntityVisibilityManager().removeEntity( this );
+    }
+
+    /**
+     * Check if a player can see this entity
+     *
+     * @param player for which we check
+     * @return true when visible, false when not
+     */
+    public boolean canSee( EntityPlayer player ) {
+        return !this.hideByDefault || player.getEntityVisibilityManager().isVisible( this );
     }
 
 }

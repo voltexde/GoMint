@@ -204,4 +204,33 @@ public interface Entity {
      */
     float getScale();
 
+    /**
+     * Set hidden by default. This decides if the entity is spawned to the players normally or
+     * if vision control is done with {@link #showFor(EntityPlayer)} and {@link #hideFor(EntityPlayer)}.
+     * This has NO effect on {@link EntityPlayer} entities.
+     *
+     * @param value true when the server shouldn't broadcast packets for this entity (no movement, spawning etc).
+     *              when the value was false and will be set to true all players will despawn the entity, except
+     *              those who already have {@link #showFor(EntityPlayer)} called before setting this.
+     */
+    void setHiddenByDefault( boolean value );
+
+    /**
+     * Show this entity for the given player. This only works when {@link #setHiddenByDefault(boolean)} has been set
+     * to true.
+     * This has NO effect on {@link EntityPlayer} entities.
+     *
+     * @param player for which this entity should be shown
+     */
+    void showFor( EntityPlayer player );
+
+    /**
+     * Hide this entity for the given player. This only works when {@link #setHiddenByDefault(boolean)} has been set
+     * to true.
+     * This has NO effect on {@link EntityPlayer} entities.
+     *
+     * @param player for which this entity should be hidden
+     */
+    void hideFor( EntityPlayer player );
+
 }

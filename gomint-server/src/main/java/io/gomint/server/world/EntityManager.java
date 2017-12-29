@@ -364,7 +364,9 @@ public class EntityManager {
             Chunk playerChunk = entityPlayer.getChunk();
             if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
                 Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
-                entityPlayer.getEntityVisibilityManager().addEntity( entity );
+                if ( ( (io.gomint.server.entity.Entity) entity ).canSee( entityPlayer ) ) {
+                    entityPlayer.getEntityVisibilityManager().addEntity( entity );
+                }
             }
         }
 

@@ -38,12 +38,18 @@ public class EntityVisibilityManager {
         Collection<Entity> collection = chunk.getEntities();
         if ( collection != null ) {
             for ( Entity entity : collection ) {
-                addEntity( entity );
+                if ( ( (io.gomint.server.entity.Entity) entity ).canSee( this.player ) ) {
+                    addEntity( entity );
+                }
             }
         }
     }
 
     public void updateEntity( Entity entity, Chunk chunk ) {
+        if ( !( (io.gomint.server.entity.Entity) entity ).canSee( this.player ) ) {
+            return;
+        }
+
         int currentX = CoordinateUtils.fromBlockToChunk( (int) this.player.getPositionX() );
         int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.player.getPositionZ() );
 
