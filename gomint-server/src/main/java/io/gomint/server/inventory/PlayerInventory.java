@@ -1,8 +1,8 @@
 package io.gomint.server.inventory;
 
 import com.koloboke.collect.ObjCursor;
+import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.network.PlayerConnection;
@@ -37,6 +37,15 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
     }
 
     @Override
+    public void setItem( int index, ItemStack item ) {
+        super.setItem( index, item );
+
+        if ( index == this.itemInHandSlot ) {
+            this.updateItemInHand();
+        }
+    }
+
+    @Override
     public void sendContents( int slot, PlayerConnection playerConnection ) {
         PacketInventorySetSlot setSlot = new PacketInventorySetSlot();
         setSlot.setSlot( slot );
@@ -60,6 +69,25 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
      */
     public void setItemInHand( byte slot ) {
         this.itemInHandSlot = slot;
+        this.updateItemInHand();
+    }
+
+    private void updateItemInHand() {
+        EntityHuman player = (EntityHuman) this.owner;
+
+        PacketMobEquipment packet = new PacketMobEquipment();
+        packet.setEntityId( player.getEntityId() );
+        packet.setStack( this.getItemInHand() );
+        packet.setSlot( this.itemInHandSlot );
+
+        // Relay packet
+        ObjCursor<Entity> entityObjCursor = player.getAttachedEntities().cursor();
+        while ( entityObjCursor.moveNext() ) {
+            Entity entity = entityObjCursor.elem();
+            if ( entity instanceof EntityPlayer ) {
+                ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
+            }
+        }
     }
 
     /**

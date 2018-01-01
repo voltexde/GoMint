@@ -1,16 +1,22 @@
 package io.gomint.plugin;
 
 import io.gomint.GoMint;
-import io.gomint.entity.Entity;
 import io.gomint.entity.passive.EntityHuman;
 import io.gomint.entity.passive.EntityVillager;
 import io.gomint.entity.passive.EntityXPOrb;
+import io.gomint.inventory.item.ItemClock;
+import io.gomint.inventory.item.ItemDirt;
+import io.gomint.inventory.item.ItemLog;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerMoveListener;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,6 +51,21 @@ public class TestPlugin extends Plugin {
         npc.setSkin( PlayerSkin.fromURL( "http://puu.sh/yHz9d/1dee829ba6.png" ) );
         npc.setDisplayName( "Test" );
         npc.spawn( new Location( GoMint.instance().getWorld( "Skywars" ), 5, 65, 2 ) );
+
+        // Switch item in hand every second
+        this.getScheduler().schedule( new Runnable() {
+            private List<ItemStack> itemsToRandomWith = new ArrayList<ItemStack>() {{
+                add( ItemClock.create( 1 ) );
+                add( ItemDirt.create( 3 ) );
+                add( ItemLog.create( 2 ) );
+            }};
+
+            @Override
+            public void run() {
+                Collections.shuffle( itemsToRandomWith );
+                npc.getInventory().setItem( npc.getInventory().getItemInHandSlot(), itemsToRandomWith.get( 0 ) );
+            }
+        }, 1, 1, TimeUnit.SECONDS );
 
         // Spawn floating text
         EntityHuman floatingText = EntityHuman.create();

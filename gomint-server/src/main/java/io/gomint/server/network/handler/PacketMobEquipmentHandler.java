@@ -37,15 +37,6 @@ public class PacketMobEquipmentHandler implements PacketHandler<PacketMobEquipme
             io.gomint.server.inventory.item.ItemStack newItemInHand =
                 (io.gomint.server.inventory.item.ItemStack) connection.getEntity().getInventory().getItemInHand();
             newItemInHand.gotInHand( connection.getEntity() );
-
-            // Relay packet
-            ObjCursor<Entity> entityObjCursor = connection.getEntity().getAttachedEntities().cursor();
-            while ( entityObjCursor.moveNext() ) {
-                Entity entity = entityObjCursor.elem();
-                if ( entity instanceof EntityPlayer ) {
-                    ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
-                }
-            }
         }
     }
 
