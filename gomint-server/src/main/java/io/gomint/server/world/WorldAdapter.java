@@ -284,7 +284,7 @@ public abstract class WorldAdapter implements World {
      * @param position where we want to search
      * @return id of the block
      */
-    public byte getBlockId( BlockPosition position ) {
+    public int getBlockId( BlockPosition position ) {
         final ChunkAdapter chunk = this.loadChunk(
             CoordinateUtils.fromBlockToChunk( position.getX() ),
             CoordinateUtils.fromBlockToChunk( position.getZ() ),
@@ -828,7 +828,7 @@ public abstract class WorldAdapter implements World {
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( pos );
         updateBlock.setBlockId( block.getBlockId() );
-        updateBlock.setPrioAndMetadata( (byte) ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() ) ) );
+        updateBlock.setPrioAndMetadata( ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() ) ) );
         connection.addToSendQueue( updateBlock );
 
         // Check for tile entity

@@ -141,6 +141,8 @@ public class StainedGlass extends Block implements io.gomint.world.block.BlockSt
             case BLACK:
                 this.setBlockData( (byte) 15 );
         }
+
+        this.updateBlock();
     }
 
 }

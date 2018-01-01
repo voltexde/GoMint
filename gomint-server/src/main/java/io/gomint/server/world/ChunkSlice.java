@@ -48,8 +48,8 @@ class ChunkSlice {
      * @param z coordinate in this slice (capped to 16)
      * @return id of the block
      */
-    byte getBlock( int x, int y, int z ) {
-        return this.getBlockInternal( getIndex( x, y, z ) );
+    int getBlock( int x, int y, int z ) {
+        return this.getBlockInternal( getIndex( x, y, z ) ) & 0xFF;
     }
 
     /**

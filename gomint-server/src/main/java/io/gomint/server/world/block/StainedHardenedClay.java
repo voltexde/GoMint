@@ -134,6 +134,8 @@ public class StainedHardenedClay extends Block implements io.gomint.world.block.
             case BLACK:
                 this.setBlockData( (byte) 15 );
         }
+
+        this.updateBlock();
     }
 
     @Override

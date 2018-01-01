@@ -327,7 +327,7 @@ public class ChunkAdapter implements Chunk {
      * @param z The z-coordinate of the block
      * @return The ID of the block
      */
-    public byte getBlock( int x, int y, int z ) {
+    public int getBlock( int x, int y, int z ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         return slice.getBlock( x, y - 16 * ( y >> 4 ), z );
     }
