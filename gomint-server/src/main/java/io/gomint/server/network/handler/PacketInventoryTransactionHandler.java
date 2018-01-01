@@ -270,6 +270,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getGamemode() == Gamemode.CREATIVE ? packet.getBlockPosition() : connection.getEntity().getBreakVector() );
                 if ( block != null ) {
                     BlockBreakEvent blockBreakEvent = new BlockBreakEvent( connection.getEntity(), block );
+                    blockBreakEvent.setCancelled( connection.getEntity().getGamemode() == Gamemode.ADVENTURE ); // TODO: Better handling for canBreak rules for adventure gamemode
+
                     connection.getEntity().getWorld().getServer().getPluginManager().callEvent( blockBreakEvent );
                     if ( blockBreakEvent.isCancelled() ) {
                         reset( packet, connection );
@@ -432,18 +434,17 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
         if ( packet.getBlockPosition() != null ) {
             Block blockClicked = connection.getEntity().getWorld().getBlockAt( packet.getBlockPosition() );
-            io.gomint.server.world.block.Block clickedBlock = (io.gomint.server.world.block.Block) blockClicked;
+            connection.getEntity().getBlockUpdates().add( packet.getBlockPosition() );
 
             if ( packet.getFace() > -1 ) {
-                io.gomint.server.world.block.Block replacedBlock = (io.gomint.server.world.block.Block) clickedBlock.getSide( packet.getFace() );
-                replacedBlock.send( connection );
+                // Attach to block send queue
+                Block replacedBlock = blockClicked.getSide( packet.getFace() );
+                connection.getEntity().getBlockUpdates().add( replacedBlock.getLocation().toBlockPosition() );
 
                 for ( BlockFace face : BlockFace.values() ) {
-                    ( (io.gomint.server.world.block.Block) replacedBlock.getSide( face.getValue() ) ).send( connection );
+                    connection.getEntity().getBlockUpdates().add( replacedBlock.getSide( face.getValue() ).getLocation().toBlockPosition() );
                 }
             }
-
-            clickedBlock.send( connection );
         }
     }
 
