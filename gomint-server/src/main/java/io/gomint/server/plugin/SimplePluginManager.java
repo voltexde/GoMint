@@ -512,6 +512,7 @@ public class SimplePluginManager implements PluginManager {
 
     @Override
     public <T extends Event> T callEvent( T event ) {
+        LOGGER.debug( "Calling event {}", event );
         this.eventManager.triggerEvent( event );
         return event;
     }

@@ -773,6 +773,8 @@ public class PlayerConnection {
      * The underlying RakNet Connection closed. Cleanup
      */
     void close() {
+        LOGGER.info( "Player {} disconnected", this.entity );
+
         if ( this.entity != null && this.entity.getWorld() != null ) {
             this.networkManager.getServer().getPluginManager().callEvent( new PlayerQuitEvent( this.entity ) );
             this.entity.getWorld().removePlayer( this.entity );

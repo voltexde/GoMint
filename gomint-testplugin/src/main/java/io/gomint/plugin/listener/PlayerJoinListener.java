@@ -1,6 +1,7 @@
 package io.gomint.plugin.listener;
 
 import io.gomint.enchant.EnchantmentKnockback;
+import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
@@ -9,6 +10,7 @@ import io.gomint.gui.FormListener;
 import io.gomint.gui.FormResponse;
 import io.gomint.gui.element.Dropdown;
 import io.gomint.inventory.item.ItemDye;
+import io.gomint.inventory.item.ItemGoldIngot;
 import io.gomint.inventory.item.ItemLeatherHelmet;
 import io.gomint.inventory.item.ItemStick;
 import io.gomint.inventory.item.data.DyeType;
@@ -70,6 +72,12 @@ public class PlayerJoinListener implements EventListener {
         }, 1, TimeUnit.SECONDS );
 
         this.plugin.getBossBarOrb().getBossBar().addPlayer( event.getPlayer() );
+
+        ItemGoldIngot itemGoldIngot = ItemGoldIngot.create( 1 );
+
+        EntityItemDrop entityItemDrop = event.getPlayer().getWorld().createItemDrop( event.getPlayer().getLocation().add( 2, 0, 2 ),
+            itemGoldIngot );
+        entityItemDrop.setPickupDelay( 0, TimeUnit.SECONDS );
     }
 
 }

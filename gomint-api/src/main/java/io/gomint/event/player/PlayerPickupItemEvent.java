@@ -10,11 +10,15 @@ package io.gomint.event.player;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.inventory.item.ItemStack;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@EqualsAndHashCode( callSuper = true )
+@ToString( callSuper = true )
 public class PlayerPickupItemEvent extends CancellablePlayerEvent {
 
     private final EntityItemDrop itemDrop;
