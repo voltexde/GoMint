@@ -562,7 +562,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     public EntityPlayer findPlayerByName( String target ) {
         for ( WorldAdapter adapter : worldManager.getWorlds() ) {
             for ( EntityPlayer player : adapter.getPlayers() ) {
-                if ( player.getName().equals( target ) ) {
+                if ( player.getName().equalsIgnoreCase( target ) ) {
                     return player;
                 }
             }
