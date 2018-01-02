@@ -12,6 +12,7 @@ import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import javassist.*;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  */
 @EqualsAndHashCode( callSuper = false )
+@ToString
 class EventHandlerMethod implements Comparable<EventHandlerMethod> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EventHandlerMethod.class );
