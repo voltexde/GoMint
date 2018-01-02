@@ -336,8 +336,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
         LOGGER.info( "Starting shutdown..." );
 
         // Safe shutdown
-        this.networkManager.close();
         this.pluginManager.close();
+        this.networkManager.close();
         this.worldManager.close();
 
         int wait = 500;

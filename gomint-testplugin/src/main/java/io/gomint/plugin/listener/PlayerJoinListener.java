@@ -9,10 +9,7 @@ import io.gomint.gui.CustomForm;
 import io.gomint.gui.FormListener;
 import io.gomint.gui.FormResponse;
 import io.gomint.gui.element.Dropdown;
-import io.gomint.inventory.item.ItemDye;
-import io.gomint.inventory.item.ItemGoldIngot;
-import io.gomint.inventory.item.ItemLeatherHelmet;
-import io.gomint.inventory.item.ItemStick;
+import io.gomint.inventory.item.*;
 import io.gomint.inventory.item.data.DyeType;
 import io.gomint.plugin.TestPlugin;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +29,8 @@ public class PlayerJoinListener implements EventListener {
 
     @EventHandler
     public void onPlayerJoin( PlayerJoinEvent event ) {
-        ItemStick itemStick = ItemStick.create( 1 );
-        itemStick.addEnchantment( EnchantmentKnockback.class, (short) 2 );
+        ItemDiamondSword itemStick = ItemDiamondSword.create( 1 );
+        // itemStick.addEnchantment( EnchantmentKnockback.class, (short) 2 );
         event.getPlayer().getInventory().setItem( 1, itemStick );
 
         // Create red leather armor
