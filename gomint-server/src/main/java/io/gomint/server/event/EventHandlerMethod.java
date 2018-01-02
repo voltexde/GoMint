@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  */
 @EqualsAndHashCode( callSuper = false )
-@ToString
+@ToString( of = { "instance" } )
 class EventHandlerMethod implements Comparable<EventHandlerMethod> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EventHandlerMethod.class );
@@ -35,6 +35,9 @@ class EventHandlerMethod implements Comparable<EventHandlerMethod> {
 
     private final EventHandler annotation;
     private EventProxy proxy;
+
+    // For toString reference
+    private final EventListener instance;
 
     /**
      * Construct a new data holder for a EventHandler.
@@ -45,6 +48,7 @@ class EventHandlerMethod implements Comparable<EventHandlerMethod> {
      */
     EventHandlerMethod( final EventListener instance, final Method method, final EventHandler annotation ) {
         this.annotation = annotation;
+        this.instance = instance;
 
         // Build up proxy
         try {
