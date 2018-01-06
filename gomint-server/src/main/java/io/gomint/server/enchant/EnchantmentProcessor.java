@@ -7,6 +7,8 @@
 
 package io.gomint.server.enchant;
 
+import io.gomint.event.player.PlayerEnchantItemEvent;
+import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemType;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.EntityPlayer;
@@ -46,7 +48,8 @@ public class EnchantmentProcessor {
     private short data;
 
     private void check() {
-        if ( this.startItem.getEnchantAbility() == 0 || this.data < 1 || this.data > 3 ) {
+        if ( this.startItem.getEnchantAbility() == 0 || this.data < 1 || this.data > 3 ||
+            this.lapisItem.getType() != ItemType.DYE || this.lapisItem.getData() != 4 ) {
             this.reset();
             return;
         }
@@ -95,10 +98,42 @@ public class EnchantmentProcessor {
 
             byte min = enchantment.getMinEnchantAbility( enchantment.getLevel() );
             byte max = enchantment.getMaxEnchantAbility( enchantment.getLevel() );
+            if ( min > totalEnchantAbility ) {
+                this.reset();
+                return;
+            }
+
             LOGGER.debug( "Needed ability: {} -> {}; having: {} -> {}", min, max, totalEnchantAbilityMin, totalEnchantAbility );
         }
 
-        this.reset();
+        // Remap
+        List<io.gomint.enchant.Enchantment> apiEnchantments = new ArrayList<>( this.enchantments );
+
+        // Event for enchantment
+        PlayerEnchantItemEvent event = new PlayerEnchantItemEvent( this.player, this.startItem, apiEnchantments, this.data, this.data );
+        this.player.getWorld().getServer().getPluginManager().callEvent( event );
+
+        if ( event.isCancelled() ) {
+            this.reset();
+        } else {
+            // Remove amount of lapis and level
+            if ( this.lapisItem.getAmount() < this.data ) {
+                this.reset();
+            } else {
+                if ( this.player.getLevel() < this.data ) {
+                    this.reset();
+                } else {
+                    this.lapisItem.setAmount( this.lapisItem.getAmount() - this.data );
+                    if ( this.lapisItem.getAmount() == 0 ) {
+                        this.player.getEnchantmentInputInventory().setItem( 1, ItemAir.create( 0 ) );
+                    } else {
+                        this.player.getEnchantmentInputInventory().setItem( 1, this.lapisItem );
+                    }
+
+                    this.player.setLevel( this.player.getLevel() - this.data );
+                }
+            }
+        }
     }
 
     private int findBookshelves( BlockPosition position ) {
