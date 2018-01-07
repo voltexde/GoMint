@@ -32,19 +32,19 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
         String[] commandParts = removedFirstChar.split( " " );
         int consumed = 0;
 
-        String commandName = commandParts[consumed++];
+        StringBuilder commandName = new StringBuilder( commandParts[consumed++] );
 
         CommandHolder selected = null;
         while ( selected == null && commandParts.length >= consumed ) {
             for ( CommandHolder commandHolder : connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
-                if ( commandName.equalsIgnoreCase( commandHolder.getName() ) ) {
+                if ( commandName.toString().equalsIgnoreCase( commandHolder.getName() ) ) {
                     selected = commandHolder;
                     break;
                 }
             }
 
             if ( selected == null ) {
-                commandName += " " + commandParts[consumed++];
+                commandName.append( " " ).append( commandParts[consumed++] );
             }
         }
 

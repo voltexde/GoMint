@@ -131,6 +131,13 @@ public class EnchantmentProcessor {
                     }
 
                     this.player.setLevel( this.player.getLevel() - this.data );
+
+                    // Enchant the start item
+                    for ( Enchantment enchantment : this.enchantments ) {
+                        this.startItem.addEnchantment( enchantment.getClass(), enchantment.getLevel() );
+                    }
+
+                    this.player.getEnchantmentOutputInventory().setItem( 0, this.startItem );
                 }
             }
         }
