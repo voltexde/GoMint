@@ -22,6 +22,7 @@ import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.data.Facing;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -333,20 +334,39 @@ public abstract class Block implements io.gomint.world.block.Block {
     public io.gomint.world.block.Block getSide( int face ) {
         switch ( face ) {
             case 0:
-                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.DOWN ) );
+                return this.getRelative( BlockPosition.DOWN );
             case 1:
-                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
+                return this.getRelative( BlockPosition.UP );
             case 2:
-                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.NORTH ) );
+                return this.getRelative( BlockPosition.NORTH );
             case 3:
-                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.SOUTH ) );
+                return this.getRelative( BlockPosition.SOUTH );
             case 4:
-                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.WEST ) );
+                return this.getRelative( BlockPosition.WEST );
             case 5:
-                return location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.EAST ) );
+                return this.getRelative( BlockPosition.EAST );
         }
 
         return null;
+    }
+
+    public io.gomint.world.block.Block getSide( Facing face ) {
+        switch ( face ) {
+            case SOUTH:
+                return this.getRelative( BlockPosition.SOUTH );
+            case NORTH:
+                return this.getRelative( BlockPosition.NORTH );
+            case EAST:
+                return this.getRelative( BlockPosition.EAST );
+            case WEST:
+                return this.getRelative( BlockPosition.WEST );
+        }
+
+        return null;
+    }
+
+    private io.gomint.world.block.Block getRelative( BlockPosition position ) {
+        return this.location.getWorld().getBlockAt( this.location.toBlockPosition().add( position ) );
     }
 
     /**
@@ -386,7 +406,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         }
     }
 
-    public boolean beforePlacement( ItemStack item, Location location ) {
+    public boolean beforePlacement( Entity entity, ItemStack item, Location location ) {
         return true;
     }
 

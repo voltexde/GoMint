@@ -89,7 +89,12 @@ public enum TileEntities {
     /**
      * Data for a furnace
      */
-    FURNACE( "Furnace", FurnaceTileEntity.class );
+    FURNACE( "Furnace", FurnaceTileEntity.class ),
+
+    /**
+     * Data for a bed
+     */
+    BED( "Bed", BedTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;
@@ -120,6 +125,8 @@ public enum TileEntities {
      * @return The constructed and ready to use TileEntity or null
      */
     public static TileEntity construct( NBTTagCompound compound, WorldAdapter world ) {
+        LOGGER.debug( "Found NBT tile entity: {}", compound );
+
         // Check if compound has a id
         String id = compound.getString( "id", null );
         if ( id == null ) {

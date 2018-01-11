@@ -70,7 +70,7 @@ public class Blocks {
         int id = ( (io.gomint.server.inventory.item.ItemStack) item ).getBlockId();
         BlockGenerator blockGenerator = GENERATORS.getGenerator( id );
         Block newBlock = blockGenerator.generate();
-        if ( !newBlock.beforePlacement( item, block.location ) ) {
+        if ( !newBlock.beforePlacement( entity, item, block.location ) ) {
             return false;
         }
 

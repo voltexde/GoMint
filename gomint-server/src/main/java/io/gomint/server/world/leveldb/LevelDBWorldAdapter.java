@@ -7,6 +7,7 @@
 
 package io.gomint.server.world.leveldb;
 
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.util.DumpUtil;
@@ -43,6 +44,9 @@ import java.nio.ByteOrder;
 @EqualsAndHashCode( callSuper = true )
 public final class LevelDBWorldAdapter extends WorldAdapter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( LevelDBWorldAdapter.class );
+
+    private boolean needsSpawnAdjustment;
     private DB db;
     private int worldVersion;
 
@@ -71,6 +75,18 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
         }
 
         this.prepareSpawnRegion();
+
+        // Adjust spawn location if needed
+        if ( this.needsSpawnAdjustment ) {
+            BlockPosition check = new BlockPosition( (int) this.spawn.getX(), 0, (int) this.spawn.getZ() );
+            for ( int i = 255; i > 0; i-- ) {
+                check.setY( i );
+                if ( this.getBlockId( check ) != 0 ) {
+                    this.spawn.setY( i );
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -151,6 +167,11 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
                         LevelDBWorldAdapter.this.spawn.setX( (int) value );
                         break;
                     case ".SpawnY":
+                        int v = (int) value;
+                        if ( v == 32767 ) {
+                            LevelDBWorldAdapter.this.needsSpawnAdjustment = true;
+                        }
+
                         LevelDBWorldAdapter.this.spawn.setY( (int) value );
                         break;
                     case ".SpawnZ":
@@ -234,7 +255,8 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
                 }
             }
 
-            LevelDBChunkAdapter loadingChunk = new LevelDBChunkAdapter( this, x, z );
+            byte v =  version[0];
+            LevelDBChunkAdapter loadingChunk = new LevelDBChunkAdapter( this, x, z, v );
 
             for ( int sectionY = 0; sectionY < 16; sectionY++ ) {
                 try {
@@ -255,6 +277,7 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
                     loadingChunk.loadTileEntities( tileEntityData );
                 }
             } catch ( DbImpl.BackgroundProcessingException ignored ) {
+                ignored.printStackTrace();
                 // TODO: Implement proper error handling here
             }
 
@@ -264,6 +287,7 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
                     loadingChunk.loadEntities( entityData );
                 }
             } catch ( DbImpl.BackgroundProcessingException ignored ) {
+                ignored.printStackTrace();
                 // TODO: Implement proper error handling here
             }
 
@@ -271,6 +295,7 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
             try {
                 extraData = this.db.get( this.getKey( x, z, (byte) 0x34 ) );
             } catch ( DbImpl.BackgroundProcessingException ignored ) {
+                ignored.printStackTrace();
                 // TODO: Implement proper error handling here
             }
 

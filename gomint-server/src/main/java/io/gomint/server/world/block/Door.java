@@ -52,17 +52,13 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
     }
 
     @Override
-    public boolean beforePlacement( ItemStack item, Location location ) {
+    public boolean beforePlacement( Entity entity, ItemStack item, Location location ) {
         Block above = location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
         return above.canBeReplaced( item );
     }
 
     @Override
     public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
-        if ( entity == null ) {
-            return super.calculatePlacementData( null, item, clickVector );
-        }
-
         Vector2 directionPlane = entity.getDirectionVector();
         double xAbs = Math.abs( directionPlane.getX() );
         double zAbs = Math.abs( directionPlane.getZ() );

@@ -42,7 +42,7 @@ public abstract class TileEntity {
             tagCompound.getInteger( "z", 0 )
         );
 
-        this.moveable = tagCompound.getByte( "isMoveable", (byte) 1 );
+        this.moveable = tagCompound.getByte( "isMovable", (byte) 1 );
     }
 
     io.gomint.server.inventory.item.ItemStack getItemStack( NBTTagCompound compound ) {
@@ -100,7 +100,7 @@ public abstract class TileEntity {
         compound.addValue( "x", (int) this.location.getX() );
         compound.addValue( "y", (int) this.location.getY() );
         compound.addValue( "z", (int) this.location.getZ() );
-        compound.addValue( "isMoveable", this.moveable );
+        compound.addValue( "isMovable", this.moveable );
     }
 
 }
