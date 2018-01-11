@@ -285,6 +285,24 @@ public abstract class Block implements io.gomint.world.block.Block {
         return apiInstance;
     }
 
+    @Override
+    public <T extends io.gomint.world.block.Block> T copyFromBlock( T apiInstance ) {
+        Block instance = (Block) apiInstance;
+        BlockPosition pos = this.location.toBlockPosition();
+        WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
+        worldAdapter.setBlockId( pos, instance.getBlockId() );
+        worldAdapter.setBlockData( pos, instance.getBlockData() );
+        worldAdapter.resetTemporaryStorage( pos );
+
+        // Check if new block needs tile entity
+        if ( instance.getTileEntity() != null ) {
+            worldAdapter.storeTileEntity( pos, instance.getTileEntity() );
+        }
+
+        worldAdapter.updateBlock( pos );
+        return worldAdapter.getBlockAt( pos );
+    }
+
     /**
      * Get the break time needed to break this block without any enchantings or tools
      *

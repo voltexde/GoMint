@@ -88,6 +88,15 @@ public interface Block {
     <T extends Block> T setFromBlock( T block );
 
     /**
+     * Copy all data from the given block to this block
+     *
+     * @param block which should be set
+     * @param <T> type of block
+     * @return new block
+     */
+    <T extends Block> T copyFromBlock( T block );
+
+    /**
      * Can a bounding box pass through this block?
      *
      * @return if a bounding box can pass though or not
