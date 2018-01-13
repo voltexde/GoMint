@@ -102,8 +102,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private AtomicBoolean running = new AtomicBoolean( true );
     @Getter
     private ExecutorService executorService;
-    @Getter
-    private ThreadFactory threadFactory;
     private Thread readerThread;
     private long currentTickTime;
 
@@ -132,7 +130,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // Executor Initialization
         // ------------------------------------ //
-        this.threadFactory = new ThreadFactory() {
+        ThreadFactory threadFactory = new ThreadFactory() {
             private AtomicLong counter = new AtomicLong( 0 );
 
             @Override
@@ -144,7 +142,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         };
 
         this.executorService = new ThreadPoolExecutor( 0, 512, 60L,
-            TimeUnit.SECONDS, new SynchronousQueue<>(), this.threadFactory );
+            TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory );
 
         // ------------------------------------ //
         // jLine setup

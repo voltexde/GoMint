@@ -11,9 +11,11 @@ import com.koloboke.collect.LongCursor;
 import com.koloboke.function.LongObjConsumer;
 import io.gomint.event.network.PingEvent;
 import io.gomint.event.player.PlayerPreLoginEvent;
-import io.gomint.jraknet.*;
+import io.gomint.jraknet.Connection;
+import io.gomint.jraknet.PacketBuffer;
+import io.gomint.jraknet.ServerSocket;
+import io.gomint.jraknet.SocketEvent;
 import io.gomint.server.GoMintServer;
-import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.Initializer;
 import io.gomint.server.util.collection.GUIDSet;
 import io.gomint.server.util.collection.PlayerConnectionMap;
@@ -33,7 +35,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 /**
  * @author BlackyPaw
@@ -64,7 +65,8 @@ public class NetworkManager {
     private File dumpDirectory;
 
     // Motd
-    @Getter @Setter
+    @Getter
+    @Setter
     private String motd;
 
     // Internal ticking
@@ -140,7 +142,6 @@ public class NetworkManager {
 
             this.socket = new ServerSocket( maxConnections );
             this.socket.setMojangModificationEnabled( true );
-            this.socket.setEventLoopFactory( this.server.getThreadFactory() );
             this.socket.setEventHandler( ( socket, socketEvent ) -> NetworkManager.this.handleSocketEvent( socketEvent ) );
             this.socket.bind( host, port );
         }
@@ -256,7 +257,7 @@ public class NetworkManager {
         switch ( event.getType() ) {
             case NEW_INCOMING_CONNECTION:
                 PlayerPreLoginEvent playerPreLoginEvent = this.getServer().getPluginManager().callEvent(
-                        new PlayerPreLoginEvent( event.getConnection().getAddress() )
+                    new PlayerPreLoginEvent( event.getConnection().getAddress() )
                 );
 
                 if ( playerPreLoginEvent.isCancelled() ) {
@@ -286,11 +287,11 @@ public class NetworkManager {
     private void handleUnconnectedPing( SocketEvent event ) {
         // Fire ping event so plugins can modify the motd and player amounts
         PingEvent pingEvent = this.server.getPluginManager().callEvent(
-                new PingEvent(
-                    this.server.getMotd(),
-                    this.server.getAmountOfPlayers(),
-                    this.server.getServerConfig().getMaxPlayers()
-                )
+            new PingEvent(
+                this.server.getMotd(),
+                this.server.getAmountOfPlayers(),
+                this.server.getServerConfig().getMaxPlayers()
+            )
         );
 
         event.getPingPongInfo().setMotd( "MCPE;" + pingEvent.getMotd() + ";" + Protocol.MINECRAFT_PE_PROTOCOL_VERSION +
