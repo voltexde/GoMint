@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -89,7 +90,7 @@ public abstract class WorldAdapter implements World {
     private final Set<Long> neighbourUpdates = new HashSet<>();
 
     // I/O
-    private boolean asyncWorkerRunning;
+    private AtomicBoolean asyncWorkerRunning;
     private BlockingQueue<AsyncChunkTask> asyncChunkTasks;
     private Queue<AsyncChunkPackageTask> chunkPackageTasks;
     private Thread asyncWorkerThread;
@@ -744,7 +745,7 @@ public abstract class WorldAdapter implements World {
      * Starts the asynchronous worker thread used by the world to perform I/O operations for chunks.
      */
     private void startAsyncWorker( ExecutorService executorService ) {
-        this.asyncWorkerRunning = true;
+        this.asyncWorkerRunning = new AtomicBoolean( true );
 
         executorService.execute( () -> {
             Thread.currentThread().setName( Thread.currentThread().getName() + " [Async World I/O: " + WorldAdapter.this.getWorldName() + "]" );
@@ -757,9 +758,9 @@ public abstract class WorldAdapter implements World {
      * Main loop of the world's asynchronous worker thread.
      */
     private void asyncWorkerLoop() {
-        while ( this.asyncWorkerRunning ) {
+        while ( this.asyncWorkerRunning.get() ) {
             try {
-                AsyncChunkTask task = this.asyncChunkTasks.poll( 500, TimeUnit.MILLISECONDS );
+                AsyncChunkTask task = this.asyncChunkTasks.take();
                 if ( task == null ) {
                     continue;
                 }
@@ -783,6 +784,8 @@ public abstract class WorldAdapter implements World {
 
                         break;
                 }
+            } catch ( InterruptedException interrupted ) {
+                return;
             } catch ( Throwable cause ) {
                 // Catching throwable in order to make sure no uncaught exceptions puts
                 // the asynchronous worker into nirvana:
@@ -1052,14 +1055,10 @@ public abstract class WorldAdapter implements World {
 
     public void close() {
         // Stop async worker
-        this.asyncWorkerRunning = false;
+        this.asyncWorkerRunning.set( false );
 
         // Wait until the thread is done
-        try {
-            this.asyncWorkerThread.join();
-        } catch ( InterruptedException e ) {
-            this.logger.warn( "Async thread did not end correctly: ", e );
-        }
+        this.asyncWorkerThread.interrupt();
     }
 
     public TemporaryStorage getTemporaryBlockStorage( BlockPosition position ) {

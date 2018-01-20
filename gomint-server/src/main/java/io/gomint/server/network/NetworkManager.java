@@ -11,10 +11,7 @@ import com.koloboke.collect.LongCursor;
 import com.koloboke.function.LongObjConsumer;
 import io.gomint.event.network.PingEvent;
 import io.gomint.event.player.PlayerPreLoginEvent;
-import io.gomint.jraknet.Connection;
-import io.gomint.jraknet.PacketBuffer;
-import io.gomint.jraknet.ServerSocket;
-import io.gomint.jraknet.SocketEvent;
+import io.gomint.jraknet.*;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.network.tcp.Initializer;
 import io.gomint.server.util.collection.GUIDSet;
@@ -214,6 +211,13 @@ public class NetworkManager {
                     playerConnection.close();
                 }
             } );
+
+            // Close the jRaknet EventLoops, we don't need them anymore
+            try {
+                EventLoops.LOOP_GROUP.shutdownGracefully().await();
+            } catch ( InterruptedException e ) {
+                LOGGER.error( "Could not shutdown jRaknet loop: ", e );
+            }
         }
 
         if ( this.tcpListener != null ) {
