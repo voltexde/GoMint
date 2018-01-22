@@ -19,8 +19,8 @@ import java.util.List;
 public class AcaciaDoor extends Door implements BlockAcaciaDoor {
 
     @Override
-    public int getBlockId() {
-        return 196;
+    public byte getBlockId() {
+        return (byte) 196;
     }
 
     @Override

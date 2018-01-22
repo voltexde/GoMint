@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class BlockOfRedstone extends Block implements io.gomint.world.block.BlockBlockOfRedstone {
 
     @Override
-    public int getBlockId() {
-        return 152;
+    public byte getBlockId() {
+        return (byte) 152;
     }
 
     @Override

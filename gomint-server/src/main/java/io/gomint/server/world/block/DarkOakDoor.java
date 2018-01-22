@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class DarkOakDoor extends Door implements io.gomint.world.block.BlockDarkOakDoor {
 
     @Override
-    public int getBlockId() {
-        return 197;
+    public byte getBlockId() {
+        return (byte) 197;
     }
 
     @Override

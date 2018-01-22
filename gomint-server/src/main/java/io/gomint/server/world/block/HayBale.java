@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class HayBale extends Block implements io.gomint.world.block.BlockHayBale {
 
     @Override
-    public int getBlockId() {
-        return 170;
+    public byte getBlockId() {
+        return (byte) 170;
     }
 
     @Override

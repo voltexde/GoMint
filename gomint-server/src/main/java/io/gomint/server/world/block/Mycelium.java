@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Mycelium extends Block implements io.gomint.world.block.BlockMycelium {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 110;
     }
 

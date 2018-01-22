@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class CoalOre extends Block implements io.gomint.world.block.BlockCoalOre {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 16;
     }
 

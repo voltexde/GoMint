@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Tripwire extends Block implements io.gomint.world.block.BlockTripwire {
 
     @Override
-    public int getBlockId() {
-        return 132;
+    public byte getBlockId() {
+        return (byte) 132;
     }
 
     @Override

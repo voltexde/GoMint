@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Prismarine extends Block implements io.gomint.world.block.BlockPrismarine {
 
     @Override
-    public int getBlockId() {
-        return 168;
+    public byte getBlockId() {
+        return (byte) 168;
     }
 
     @Override

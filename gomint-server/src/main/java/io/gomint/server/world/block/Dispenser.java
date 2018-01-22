@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Dispenser extends Block implements io.gomint.world.block.BlockDispenser {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 23;
     }
 

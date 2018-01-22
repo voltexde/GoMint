@@ -20,8 +20,8 @@ import io.gomint.world.block.BlockType;
 public class RedNetherBrick extends Block implements BlockRedNetherBrick {
 
     @Override
-    public int getBlockId() {
-        return 215;
+    public byte getBlockId() {
+        return (byte) 215;
     }
 
     @Override

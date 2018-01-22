@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class OakWoodStairs extends Stairs {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 53;
     }
 

@@ -13,7 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class WoodPlanks extends Block implements io.gomint.world.block.BlockWoodPlanks {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 5;
     }
 

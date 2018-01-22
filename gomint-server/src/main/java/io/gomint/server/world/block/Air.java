@@ -14,7 +14,7 @@ import io.gomint.world.block.BlockAir;
 public class Air extends Block implements BlockAir {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 0;
     }
 

@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class MossyCobblestone extends Block implements io.gomint.world.block.BlockMossyCobblestone {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 48;
     }
 

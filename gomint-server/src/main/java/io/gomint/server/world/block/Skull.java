@@ -25,8 +25,8 @@ import java.util.List;
 public class Skull extends Block implements io.gomint.world.block.BlockSkull {
 
     @Override
-    public int getBlockId() {
-        return 144;
+    public byte getBlockId() {
+        return (byte) 144;
     }
 
     @Override

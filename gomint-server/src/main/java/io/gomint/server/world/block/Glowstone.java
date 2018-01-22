@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Glowstone extends Block implements io.gomint.world.block.BlockGlowstone {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 89;
     }
 

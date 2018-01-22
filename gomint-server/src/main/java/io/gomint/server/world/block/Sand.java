@@ -13,7 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Sand extends Block implements io.gomint.world.block.BlockSand {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 12;
     }
 

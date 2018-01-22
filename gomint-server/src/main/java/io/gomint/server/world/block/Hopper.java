@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Hopper extends Block implements io.gomint.world.block.BlockHopper {
 
     @Override
-    public int getBlockId() {
-        return 154;
+    public byte getBlockId() {
+        return (byte) 154;
     }
 
     @Override

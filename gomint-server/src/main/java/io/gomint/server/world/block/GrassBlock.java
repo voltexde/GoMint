@@ -14,7 +14,7 @@ import io.gomint.server.world.UpdateReason;
 public class GrassBlock extends Block implements io.gomint.world.block.BlockGrassBlock {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 2;
     }
 

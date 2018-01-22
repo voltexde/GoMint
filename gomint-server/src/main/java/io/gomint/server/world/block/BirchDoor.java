@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class BirchDoor extends Door implements BlockBirchDoor {
 
     @Override
-    public int getBlockId() {
-        return 194;
+    public byte getBlockId() {
+        return (byte) 194;
     }
 
     @Override

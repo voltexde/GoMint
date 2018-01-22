@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class DarkOakWoodStairs extends Stairs {
 
     @Override
-    public int getBlockId() {
-        return 164;
+    public byte getBlockId() {
+        return (byte) 164;
     }
 
     @Override

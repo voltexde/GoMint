@@ -21,7 +21,7 @@ public class EnchantmentTable extends Block implements io.gomint.world.block.Blo
     private static final Logger LOGGER = LoggerFactory.getLogger( EnchantmentTable.class );
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 116;
     }
 

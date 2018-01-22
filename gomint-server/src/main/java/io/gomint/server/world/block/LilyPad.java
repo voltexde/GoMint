@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class LilyPad extends Block implements io.gomint.world.block.BlockLilyPad {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 111;
     }
 

@@ -19,10 +19,8 @@ import java.util.function.Predicate;
 @RegisterInfo( id = 60 )
 public class Farmland extends Block implements io.gomint.world.block.BlockFarmland {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( Farmland.class );
-
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 60;
     }
 

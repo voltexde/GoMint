@@ -40,6 +40,12 @@ public class AnvilChunkAdapter extends ChunkAdapter {
     private boolean converted;
     private boolean invalid;
 
+    // Temporary variables for loading
+    private int maxHeight = 0;
+    private List<NBTTagCompound> tileEntityHolders;
+    private List<NBTTagCompound> entityHolders;
+    private List<NBTTagCompound> sections;
+
     /**
      * Load a Chunk from a NBTTagCompound. This is used when loaded from a Regionfile.
      *
@@ -134,12 +140,12 @@ public class AnvilChunkAdapter extends ChunkAdapter {
         this.biomes = new byte[256];
         Arrays.fill( this.biomes, (byte) -1 );
 
-        // Wait until the nbt stream sends some data
-        final int[] oldSectionIndex = new int[]{ -1 };
-        final SectionCache[] currentSectionCache = new SectionCache[]{ new SectionCache() };
-        final List<SectionCache> sections = new ArrayList<>();
-        final List<NBTTagCompound> tileEntityHolders = new ArrayList<>();
+        // Allow for compound return for given paths
+        nbtStream.addCompountAcceptor( path -> path.equals( ".Level.Entities" ) ||
+            path.equals( ".Level.TileEntities" ) ||
+            path.startsWith( ".Level.Sections." ) );
 
+        // Attach listener for NBT objects
         nbtStream.addListener( ( path, object ) -> {
             switch ( path ) {
                 case ".Level.xPos":
@@ -165,113 +171,31 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                 case ".Level.GoMintConverted":
                     AnvilChunkAdapter.this.converted = true;
                     break;
+                case ".Level.Entities":
+                    AnvilChunkAdapter.this.entityHolders = (List<NBTTagCompound>) object;
+                    break;
+                case ".Level.TileEntities":
+                    AnvilChunkAdapter.this.tileEntityHolders = (List<NBTTagCompound>) object;
+                    break;
+                case ".Level.HeightMap":
+                    LOGGER.debug( "" + object );
+                    break;
+                case ".Level.LastUpdate":
+                case ".Level.LightPopulated":
+                case ".Level.TerrainPopulated":
+                case ".Level.V":
+                    break;
                 default:
-                    // We need to split the path
-                    List<String> split = new ArrayList<>();
-                    StringBuilder current = new StringBuilder();
-                    for ( int i = 0; i < path.length(); i++ ) {
-                        char c = path.charAt( i );
-                        if ( c == '.' ) {
-                            split.add( current.toString() );
-                            current = new StringBuilder();
-                        } else {
-                            current.append( c );
-                        }
-                    }
-
-                    split.add( current.toString() );
-
                     if ( path.startsWith( ".Level.Sections" ) ) {
-                        // Parse the index
-                        int sectionIndex = parseInt( split.get( 3 ) );
-
-                        // Check if we completed a chunk
-                        if ( oldSectionIndex[0] != -1 && oldSectionIndex[0] != sectionIndex ) {
-                            // Load and convert this section
-                            sections.add( currentSectionCache[0] );
-
-                            // Reset the cache
-                            currentSectionCache[0] = new SectionCache();
+                        // Sections are always read from bottom to top
+                        NBTTagCompound compound = (NBTTagCompound) object;
+                        if ( AnvilChunkAdapter.this.sections == null ) {
+                            AnvilChunkAdapter.this.sections = new ArrayList<>();
                         }
 
-                        oldSectionIndex[0] = sectionIndex;
-
-                        // Check what we have got from the chunk
-                        switch ( split.get( 4 ) ) {
-                            case "Y":
-                                currentSectionCache[0].setSectionY( (byte) object << 4 );
-                                break;
-                            case "Blocks":
-                                currentSectionCache[0].setBlocks( (byte[]) object );
-                                break;
-                            case "Add":
-                                currentSectionCache[0].setAdd( new NibbleArray( (byte[]) object ) );
-                                break;
-                            case "Data":
-                                currentSectionCache[0].setData( new NibbleArray( (byte[]) object ) );
-                                break;
-                            default:
-                                break;
-                        }
-                    } else if ( path.startsWith( ".Level.TileEntities" ) ) {
-                        int index = parseInt( split.get( 3 ) );
-
-                        if ( tileEntityHolders.size() == index ) {
-                            tileEntityHolders.add( new NBTTagCompound( null ) );
-                        }
-
-                        NBTTagCompound entityHolder = tileEntityHolders.get( index );
-                        String key;
-
-                        if ( split.size() > 5 ) {
-                            // Restore missing maps and lists
-                            for ( int i = 4; i < split.size() - 1; i++ ) {
-                                // Peek one to terminate if this is a map or a list
-                                try {
-                                    int idx = Integer.parseInt( split.get( i + 1 ) );
-
-                                    // Get or create list
-                                    List list = entityHolder.getList( split.get( i ), true );
-                                    if ( list.size() == idx ) {
-                                        Object obj = null;
-
-                                        if ( split.size() > i + 1 ) {
-                                            // Need another list of nbt compounds
-                                            obj = entityHolder = new NBTTagCompound( split.get( i + 2 ) );
-                                        }
-
-                                        if ( obj != null ) {
-                                            list.add( obj );
-                                        }
-                                    }
-                                } catch ( Exception ignored ) {
-                                    try {
-                                        Integer.parseInt( split.get( i ) );
-                                    } catch ( Exception ignored1 ) {
-                                        NBTTagCompound temp = new NBTTagCompound( split.get( i ) );
-                                        entityHolder.addValue( split.get( i ), temp );
-                                        entityHolder = temp;
-                                    }
-                                }
-                            }
-
-                            key = split.get( split.size() - 1 );
-                        } else {
-                            key = split.get( 4 );
-                        }
-
-                        Class clazz = object.getClass();
-                        if ( clazz.equals( Integer.class ) ) {
-                            entityHolder.addValue( key, (int) object );
-                        } else if ( clazz.equals( String.class ) ) {
-                            entityHolder.addValue( key, (String) object );
-                        } else if ( clazz.equals( Byte.class ) ) {
-                            entityHolder.addValue( key, (Byte) object );
-                        } else if ( clazz.equals( Short.class ) ) {
-                            entityHolder.addValue( key, (Short) object );
-                        } else {
-                            LOGGER.warn( "Unknown tile entity data class {} for key {}", clazz, key );
-                        }
+                        AnvilChunkAdapter.this.sections.add( compound );
+                    } else {
+                        LOGGER.debug( "New path: {}", path );
                     }
             }
         } );
@@ -287,27 +211,23 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             throw new WorldLoadException( "Position stored in chunk does not match region file offset position" );
         }
 
-        if ( currentSectionCache[0].getBlocks() != null ) {
-            sections.add( currentSectionCache[0] );
-        }
+        if ( this.sections != null ) {
+            for ( NBTTagCompound section : this.sections ) {
+                int sectionY = section.getByte( "Y", (byte) 0 ) << 4;
 
-        // Load sections
-        int maxHeight = 0;
-        for ( SectionCache section : sections ) {
-            if ( !section.isAllAir() ) {
-                if ( section.getSectionY() > maxHeight ) {
-                    maxHeight = section.getSectionY();
+                if ( sectionY > this.maxHeight ) {
+                    this.maxHeight = sectionY;
                 }
 
-                this.loadSection( section );
+                this.loadSection( sectionY, section );
             }
+
+            this.sections = null;
         }
 
-        sections.clear();
-
         // Load tile entities
-        if ( !tileEntityHolders.isEmpty() ) {
-            for ( NBTTagCompound tileEntity : tileEntityHolders ) {
+        if ( this.tileEntityHolders != null && !this.tileEntityHolders.isEmpty() ) {
+            for ( NBTTagCompound tileEntity : this.tileEntityHolders ) {
                 String id = tileEntity.getString( "id", "" );
                 switch ( id ) {
                     case "Sign":
@@ -349,9 +269,11 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
                 this.addTileEntity( tileEntity );
             }
+
+            this.tileEntityHolders = null;
         }
 
-        this.calculateHeightmap( maxHeight );
+        this.calculateHeightmap( this.maxHeight );
     }
     // CHECKSTYLE:ON
 
@@ -360,13 +282,14 @@ public class AnvilChunkAdapter extends ChunkAdapter {
      *
      * @param section The section to be loaded
      */
-    private void loadSection( SectionCache section ) {
-        int sectionY = section.getSectionY();
-        byte[] blocks = section.getBlocks();
-        NibbleArray add = section.getAdd();
-        NibbleArray data = section.getData();
+    private void loadSection( int sectionY, NBTTagCompound section ) {
+        byte[] blocks = section.getByteArray( "Blocks", new byte[0] );
+        byte[] addBlocks = section.getByteArray( "Add", new byte[0] );
 
-        if ( blocks == null || data == null ) {
+        NibbleArray add = addBlocks.length > 0 ? new NibbleArray( addBlocks ) : null;
+        NibbleArray data = new NibbleArray( section.getByteArray( "Data", new byte[0] ) );
+
+        if ( blocks == null ) {
             throw new IllegalArgumentException( "Corrupt chunk: Section is missing obligatory compounds" );
         }
 
@@ -376,11 +299,11 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     int y = sectionY + j;
                     short blockIndex = (short) ( j << 8 | k << 4 | i );
 
-                    int blockId = ( ( add != null ? add.get( blockIndex ) << 8 : 0 ) | blocks[blockIndex] ) & 0xFF;
+                    byte blockId = (byte) ( ( ( add != null ? add.get( blockIndex ) << 8 : 0 ) | blocks[blockIndex] ) & 0xFF );
                     byte blockData = data.get( blockIndex );
 
-                    if ( !converted ) {
-                        Pair<Integer, Byte> convertedData = CONVERTER.convert( blockId, blockData );
+                    if ( !this.converted ) {
+                        Pair<Byte, Byte> convertedData = CONVERTER.convert( blockId, blockData );
                         if ( convertedData != null ) {
                             blockId = convertedData.getFirst();
                             blockData = convertedData.getSecond();
@@ -388,10 +311,10 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
                         // Block data converter
                         if ( blockId == 3 && blockData == 1 ) {
-                            blockId = 198;
+                            blockId = (byte) 198;
                             blockData = 0;
                         } else if ( blockId == 3 && blockData == 2 ) {
-                            blockId = 243;
+                            blockId = (byte) 243;
                             blockData = 0;
                         }
 
@@ -421,52 +344,6 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                 }
             }
         }
-    }
-
-    private int parseInt( final String s ) {
-        if ( s == null ) {
-            throw new NumberFormatException( "Null string" );
-        }
-
-        // Check for a sign.
-        int num = 0;
-        int sign = -1;
-        final int len = s.length();
-        final char ch = s.charAt( 0 );
-        if ( ch == '-' ) {
-            if ( len == 1 ) {
-                throw new NumberFormatException( "Missing digits:  " + s );
-            }
-            sign = 1;
-        } else {
-            final int d = ch - '0';
-            if ( d < 0 || d > 9 ) {
-                throw new NumberFormatException( "Malformed:  " + s );
-            }
-            num = -d;
-        }
-
-        // Build the number.
-        final int max = ( sign == -1 ) ?
-            -Integer.MAX_VALUE : Integer.MIN_VALUE;
-        final int multmax = max / 10;
-        int i = 1;
-        while ( i < len ) {
-            int d = s.charAt( i++ ) - '0';
-            if ( d < 0 || d > 9 ) {
-                throw new NumberFormatException( "Malformed:  " + s );
-            }
-            if ( num < multmax ) {
-                throw new NumberFormatException( "Over/underflow:  " + s );
-            }
-            num *= 10;
-            if ( num < ( max + d ) ) {
-                throw new NumberFormatException( "Over/underflow:  " + s );
-            }
-            num -= d;
-        }
-
-        return sign * num;
     }
 
 }

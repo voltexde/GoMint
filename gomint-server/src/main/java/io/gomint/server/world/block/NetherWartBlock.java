@@ -20,8 +20,8 @@ import io.gomint.world.block.BlockType;
 public class NetherWartBlock extends Block implements BlockNetherWartBlock {
 
     @Override
-    public int getBlockId() {
-        return 214;
+    public byte getBlockId() {
+        return (byte) 214;
     }
 
     @Override

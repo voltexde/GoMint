@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class BlockMovedByPiston extends Block implements io.gomint.world.block.BlockBlockMovedByPiston {
 
     @Override
-    public int getBlockId() {
-        return 250;
+    public byte getBlockId() {
+        return (byte) 250;
     }
 
     @Override

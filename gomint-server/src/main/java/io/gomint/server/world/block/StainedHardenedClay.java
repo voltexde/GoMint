@@ -13,8 +13,8 @@ import io.gomint.world.block.data.BlockColor;
 public class StainedHardenedClay extends Block implements io.gomint.world.block.BlockStainedHardenedClay {
 
     @Override
-    public int getBlockId() {
-        return 159;
+    public byte getBlockId() {
+        return (byte) 159;
     }
 
     @Override

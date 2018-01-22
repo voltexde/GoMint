@@ -16,7 +16,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Cake extends Block implements io.gomint.world.block.BlockCake {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 92;
     }
 

@@ -16,8 +16,8 @@ import java.util.List;
 public class StainedGlass extends Block implements io.gomint.world.block.BlockStainedGlass {
 
     @Override
-    public int getBlockId() {
-        return 241;
+    public byte getBlockId() {
+        return (byte) 241;
     }
 
     @Override

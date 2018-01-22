@@ -25,7 +25,7 @@ public class Chest extends Block implements BlockChest {
     private static final Logger LOGGER = LoggerFactory.getLogger( Chest.class );
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 54;
     }
 

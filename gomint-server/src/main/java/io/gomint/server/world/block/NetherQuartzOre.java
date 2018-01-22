@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class NetherQuartzOre extends Block implements io.gomint.world.block.BlockNetherQuartzOre {
 
     @Override
-    public int getBlockId() {
-        return 153;
+    public byte getBlockId() {
+        return (byte) 153;
     }
 
     @Override

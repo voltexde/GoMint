@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class JackOLantern extends Block implements io.gomint.world.block.BlockJackOLantern {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 91;
     }
 

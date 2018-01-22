@@ -46,17 +46,12 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
-        // Enchantment value diamond sword = 10
-        int itemEnchantable = 1 + ( ( 5 >> 1 ) * 2 ) + 2;
-        int bookEnchantable = 9 + ( 0 >> 1 ) + 16;
-        System.out.println( itemEnchantable + bookEnchantable );
-
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
 
         // Check if classloader has been changed (it should be a URLClassLoader)
         if ( !( ClassLoader.getSystemClassLoader() instanceof URLClassLoader ) ) {
-            System.out.println( "System Classloader is no URLClassloader" );
+            LOGGER.error( "System Classloader is no URLClassloader" );
             System.exit( -1 );
         }
 
@@ -71,7 +66,7 @@ public class Bootstrap {
         // Check if we need to create the libs Folder
         File libsFolder = new File( "libs/" );
         if ( !libsFolder.exists() && !libsFolder.mkdirs() ) {
-            System.out.println( "Could not create library Directory" );
+            LOGGER.error( "Could not create library Directory" );
             System.exit( -1 );
         }
 
@@ -83,7 +78,7 @@ public class Bootstrap {
 
         File[] files = libsFolder.listFiles();
         if ( files == null ) {
-            System.out.println( "Library Directory is corrupted" );
+            LOGGER.error( "Library Directory is corrupted" );
             System.exit( -1 );
         }
 
@@ -91,10 +86,10 @@ public class Bootstrap {
         for ( File file : files ) {
             if ( file.getAbsolutePath().endsWith( ".jar" ) ) {
                 try {
-                    System.out.println( "Loading lib: " + file.getAbsolutePath() );
+                    LOGGER.info( "Loading lib: " + file.getAbsolutePath() );
                     addJARToClasspath( file );
                 } catch ( IOException e ) {
-                    e.printStackTrace();
+                    LOGGER.warn( "Error attaching library to system classpath: ", e );
                 }
             }
         }
@@ -136,7 +131,7 @@ public class Bootstrap {
 
                 // Filter out non java archive content types
                 if ( !"application/java-archive".equals( urlConnection.getHeaderField( "Content-Type" ) ) ) {
-                    System.out.println( "Skipping the download of " + libURL + " because its not a Java Archive" );
+                    LOGGER.debug( "Skipping the download of {} because its not a Java Archive", libURL );
                     continue;
                 }
 
@@ -149,16 +144,16 @@ public class Bootstrap {
                 // Check if we have a file with the same length
                 File libFile = new File( libsFolder, fileName );
                 if ( libFile.exists() && libFile.length() == contentLength ) {
-                    System.out.println( "Skipping the download of " + libURL + " because there already is a correct sized copy" );
+                    LOGGER.debug( "Skipping the download of {} because there already is a correct sized copy", libURL );
                     continue;
                 }
 
                 // Download the file from the Server
                 Files.copy( url.openStream(), libFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                System.out.println( "Downloading library: " + fileName );
+                LOGGER.info( "Downloading library: {}", fileName );
             }
         } catch ( IOException e ) {
-            e.printStackTrace();
+            LOGGER.error( "Could not download needed library: ", e );
         }
     }
 

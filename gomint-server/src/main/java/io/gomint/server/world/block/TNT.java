@@ -19,7 +19,7 @@ import io.gomint.world.block.BlockType;
 public class TNT extends Block implements BlockTNT {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 46;
     }
 

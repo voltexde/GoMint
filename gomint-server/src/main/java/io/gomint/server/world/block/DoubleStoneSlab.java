@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class DoubleStoneSlab extends Block implements io.gomint.world.block.BlockDoubleStoneSlab {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 43;
     }
 

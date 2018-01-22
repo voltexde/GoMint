@@ -125,8 +125,6 @@ public enum TileEntities {
      * @return The constructed and ready to use TileEntity or null
      */
     public static TileEntity construct( NBTTagCompound compound, WorldAdapter world ) {
-        LOGGER.debug( "Found NBT tile entity: {}", compound );
-
         // Check if compound has a id
         String id = compound.getString( "id", null );
         if ( id == null ) {

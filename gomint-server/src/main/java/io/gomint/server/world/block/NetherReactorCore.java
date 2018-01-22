@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class NetherReactorCore extends Block implements io.gomint.world.block.BlockNetherReactorCore {
 
     @Override
-    public int getBlockId() {
-        return 247;
+    public byte getBlockId() {
+        return (byte) 247;
     }
 
     @Override

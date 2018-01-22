@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class PumpkinStem extends Block implements io.gomint.world.block.BlockPumpkinStem {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 104;
     }
 

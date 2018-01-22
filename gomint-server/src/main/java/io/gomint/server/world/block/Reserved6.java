@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Reserved6 extends Block {
 
     @Override
-    public int getBlockId() {
-        return 255;
+    public byte getBlockId() {
+        return (byte) 255;
     }
 
     @Override

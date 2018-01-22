@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class EndGateway extends Block implements io.gomint.world.block.BlockEndGateway {
 
     @Override
-    public int getBlockId() {
-        return 209;
+    public byte getBlockId() {
+        return (byte) 209;
     }
 
     @Override

@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class WallBanner extends Banner {
 
     @Override
-    public int getBlockId() {
-        return 177;
+    public byte getBlockId() {
+        return (byte) 177;
     }
 
     @Override

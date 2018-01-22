@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class JungleDoor extends Block implements io.gomint.world.block.BlockJungleDoor {
 
     @Override
-    public int getBlockId() {
-        return 195;
+    public byte getBlockId() {
+        return (byte) 195;
     }
 
     @Override

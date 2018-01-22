@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class FenceGate extends Block implements io.gomint.world.block.BlockFenceGate {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 107;
     }
 

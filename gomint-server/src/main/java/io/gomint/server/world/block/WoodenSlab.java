@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class WoodenSlab extends Slab {
 
     @Override
-    public int getBlockId() {
-        return 158;
+    public byte getBlockId() {
+        return (byte) 158;
     }
 
     @Override

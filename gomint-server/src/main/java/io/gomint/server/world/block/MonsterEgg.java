@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class MonsterEgg extends Block implements io.gomint.world.block.BlockMonsterEgg {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 97;
     }
 

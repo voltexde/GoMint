@@ -19,7 +19,7 @@ import java.util.List;
 public class Sign extends Block implements BlockSign {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 63;
     }
 

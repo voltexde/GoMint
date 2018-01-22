@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class MobSpawner extends Block implements io.gomint.world.block.BlockMobSpawner {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 52;
     }
 

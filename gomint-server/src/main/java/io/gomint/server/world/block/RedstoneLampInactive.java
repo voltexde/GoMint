@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class RedstoneLampInactive extends Block implements io.gomint.world.block.BlockRedstoneLampInactive {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 123;
     }
 

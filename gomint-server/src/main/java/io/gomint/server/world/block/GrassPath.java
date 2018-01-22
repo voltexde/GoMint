@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class GrassPath extends Block implements io.gomint.world.block.BlockGrassPath {
 
     @Override
-    public int getBlockId() {
-        return 198;
+    public byte getBlockId() {
+        return (byte) 198;
     }
 
     @Override

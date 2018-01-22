@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class JungleFenceGate extends Block implements io.gomint.world.block.BlockJungleFenceGate {
 
     @Override
-    public int getBlockId() {
-        return 185;
+    public byte getBlockId() {
+        return (byte) 185;
     }
 
     @Override

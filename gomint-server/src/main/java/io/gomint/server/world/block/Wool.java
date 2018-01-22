@@ -13,7 +13,7 @@ import io.gomint.world.block.data.BlockColor;
 public class Wool extends Block implements io.gomint.world.block.BlockWool {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 35;
     }
 

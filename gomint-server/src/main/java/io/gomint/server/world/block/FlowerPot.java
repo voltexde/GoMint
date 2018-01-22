@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class FlowerPot extends Block implements io.gomint.world.block.BlockFlowerPot {
 
     @Override
-    public int getBlockId() {
-        return 140;
+    public byte getBlockId() {
+        return (byte) 140;
     }
 
     @Override

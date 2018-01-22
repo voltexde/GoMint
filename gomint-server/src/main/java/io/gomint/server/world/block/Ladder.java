@@ -13,7 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Ladder extends Block implements io.gomint.world.block.BlockLadder {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 65;
     }
 

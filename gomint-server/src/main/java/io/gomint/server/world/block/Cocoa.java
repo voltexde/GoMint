@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Cocoa extends Block implements io.gomint.world.block.BlockCocoa {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 127;
     }
 

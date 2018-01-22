@@ -18,8 +18,8 @@ import io.gomint.world.block.BlockType;
 public class BlockOfBones extends Block implements io.gomint.world.block.BlockOfBones {
 
     @Override
-    public int getBlockId() {
-        return 216;
+    public byte getBlockId() {
+        return (byte) 216;
     }
 
     @Override

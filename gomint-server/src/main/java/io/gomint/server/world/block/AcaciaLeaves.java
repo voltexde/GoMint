@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class AcaciaLeaves extends Block implements io.gomint.world.block.BlockAcaciaLeaves {
 
     @Override
-    public int getBlockId() {
-        return 161;
+    public byte getBlockId() {
+        return (byte) 161;
     }
 
     @Override

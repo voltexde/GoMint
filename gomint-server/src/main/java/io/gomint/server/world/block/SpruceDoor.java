@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class SpruceDoor extends Door implements io.gomint.world.block.BlockSpruceDoor {
 
     @Override
-    public int getBlockId() {
-        return 193;
+    public byte getBlockId() {
+        return (byte) 193;
     }
 
     @Override

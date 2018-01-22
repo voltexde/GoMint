@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class StoneSlab extends Slab {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 44;
     }
 

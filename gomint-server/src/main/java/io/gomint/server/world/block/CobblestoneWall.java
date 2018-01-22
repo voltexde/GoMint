@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class CobblestoneWall extends Block implements io.gomint.world.block.BlockCobblestoneWall {
 
     @Override
-    public int getBlockId() {
-        return 139;
+    public byte getBlockId() {
+        return (byte) 139;
     }
 
     @Override

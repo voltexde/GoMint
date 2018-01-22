@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Rail extends Block implements io.gomint.world.block.BlockRail {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 66;
     }
 

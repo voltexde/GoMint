@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class RedstoneTorchActive extends Block implements io.gomint.world.block.BlockRedstoneTorchActive {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 76;
     }
 

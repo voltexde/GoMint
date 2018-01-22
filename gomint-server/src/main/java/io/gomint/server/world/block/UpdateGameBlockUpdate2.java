@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class UpdateGameBlockUpdate2 extends Block {
 
     @Override
-    public int getBlockId() {
-        return 249;
+    public byte getBlockId() {
+        return (byte) 249;
     }
 
     @Override

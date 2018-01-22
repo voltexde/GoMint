@@ -20,7 +20,7 @@ import java.util.List;
 public class PistonHead extends Block implements io.gomint.world.block.BlockPistonHead {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 34;
     }
 

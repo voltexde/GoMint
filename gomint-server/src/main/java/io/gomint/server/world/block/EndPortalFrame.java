@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class EndPortalFrame extends Block implements io.gomint.world.block.BlockEndPortalFrame {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 120;
     }
 

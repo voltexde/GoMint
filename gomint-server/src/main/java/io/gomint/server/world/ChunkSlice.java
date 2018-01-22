@@ -100,7 +100,7 @@ class ChunkSlice {
     }
 
     void setBlock( int x, int y, int z, byte blockId ) {
-        int index = getIndex( x, y, z );
+        short index = getIndex( x, y, z );
 
         if ( blockId != 0 ) {
             if ( this.blocks == null ) {

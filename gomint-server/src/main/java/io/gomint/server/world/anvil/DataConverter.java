@@ -12,8 +12,8 @@ import java.util.Map;
  */
 class DataConverter {
 
-    private Pair<Integer, Converter>[] converter = new Pair[255];
-    private Pair<Integer, Byte> convertedValue = new Pair<>( 0, (byte) 1 );
+    private Pair<Byte, Converter>[] converter = new Pair[255];
+    private Pair<Byte, Byte> convertedValue = new Pair<>( (byte) 0, (byte) 1 );
 
     public DataConverter() {
         addConverter( 36, 250, ( b, m ) -> m );                                                                                 // Piston extension
@@ -100,11 +100,11 @@ class DataConverter {
     }
 
     private void addConverter( int sourceId, int destId, Converter converter ) {
-        this.converter[sourceId] = new Pair<>( destId, converter );
+        this.converter[sourceId] = new Pair<>( (byte) destId, converter );
     }
 
-    Pair<Integer, Byte> convert( int blockId, byte metaData ) {
-        Pair<Integer, Converter> converterPair = this.converter[blockId];
+    Pair<Byte, Byte> convert( int blockId, byte metaData ) {
+        Pair<Byte, Converter> converterPair = this.converter[blockId];
         if ( converterPair == null ) {
             return null;
         } else {

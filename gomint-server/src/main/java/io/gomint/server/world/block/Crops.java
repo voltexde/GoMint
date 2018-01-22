@@ -17,7 +17,7 @@ import java.util.List;
 public class Crops extends Growable {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 59;
     }
 

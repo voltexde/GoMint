@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class DiamondOre extends Block implements io.gomint.world.block.BlockDiamondOre {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 56;
     }
 

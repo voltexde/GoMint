@@ -257,10 +257,7 @@ public abstract class WorldAdapter implements World {
             return (T) Blocks.get( 0, (byte) 0, (byte) ( y > 255 ? 15 : 0 ), (byte) 0, null, new Location( this, x, y, z ) );
         }
 
-        int xChunk = CoordinateUtils.fromBlockToChunk( x );
-        int zChunk = CoordinateUtils.fromBlockToChunk( z );
-
-        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
+        ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, true );
         return chunk.getBlockAt( x & 0xF, y, z & 0xF );
     }
 
@@ -270,7 +267,7 @@ public abstract class WorldAdapter implements World {
      * @param position Position of the block
      * @param blockId  The new block id
      */
-    public void setBlockId( BlockPosition position, int blockId ) {
+    public void setBlockId( BlockPosition position, byte blockId ) {
         final ChunkAdapter chunk = this.loadChunk(
             CoordinateUtils.fromBlockToChunk( position.getX() ),
             CoordinateUtils.fromBlockToChunk( position.getZ() ),

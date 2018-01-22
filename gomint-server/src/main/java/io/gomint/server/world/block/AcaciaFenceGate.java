@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class AcaciaFenceGate extends Block implements io.gomint.world.block.BlockAcaciaFenceGate {
 
     @Override
-    public int getBlockId() {
-        return 187;
+    public byte getBlockId() {
+        return (byte) 187;
     }
 
     @Override

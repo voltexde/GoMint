@@ -136,17 +136,20 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
     }
 
     void loadEntities( byte[] entityData ) {
-        /*ByteArrayInputStream bais = new ByteArrayInputStream( entityData );
-        while ( bais.available() > 0 ) {
+        ByteArrayInputStream bais = new ByteArrayInputStream( entityData );
+        NBTReader nbtReader = new NBTReader( bais, ByteOrder.LITTLE_ENDIAN );
+        while ( nbtReader.hasMoreToRead() ) {
             try {
-                NBTTagCompound nbtTagCompound = NBTTagCompound.readFrom( bais, false, ByteOrder.LITTLE_ENDIAN );
-                int entityId = nbtTagCompound.getInteger( "id", 0 ) & 0xFF;
-                System.out.println( entityId );
-                DumpUtil.dumpNBTCompund( nbtTagCompound );
+                NBTTagCompound compound = nbtReader.parse();
+                DumpUtil.dumpNBTCompund( compound );
+                Integer id = compound.getInteger( "id", 0 );
+                System.out.println( id & 0xFF );
+
             } catch ( IOException e ) {
                 e.printStackTrace();
+                break;
             }
-        }*/
+        }
     }
 
 }

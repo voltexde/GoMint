@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class PackedIce extends Block implements io.gomint.world.block.BlockPackedIce {
 
     @Override
-    public int getBlockId() {
-        return 174;
+    public byte getBlockId() {
+        return (byte) 174;
     }
 
     @Override

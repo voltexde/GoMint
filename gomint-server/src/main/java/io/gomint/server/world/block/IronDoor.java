@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class IronDoor extends Door implements io.gomint.world.block.BlockIronDoor {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 71;
     }
 

@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class HardenedClay extends Block implements io.gomint.world.block.BlockHardenedClay {
 
     @Override
-    public int getBlockId() {
-        return 172;
+    public byte getBlockId() {
+        return (byte) 172;
     }
 
     @Override

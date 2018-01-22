@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Sunflower extends Block implements io.gomint.world.block.BlockSunflower {
 
     @Override
-    public int getBlockId() {
-        return 175;
+    public byte getBlockId() {
+        return (byte) 175;
     }
 
     @Override

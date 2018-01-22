@@ -19,8 +19,8 @@ import java.util.List;
 public class Potato extends Growable implements BlockPotato {
 
     @Override
-    public int getBlockId() {
-        return 142;
+    public byte getBlockId() {
+        return (byte) 142;
     }
 
     @Override

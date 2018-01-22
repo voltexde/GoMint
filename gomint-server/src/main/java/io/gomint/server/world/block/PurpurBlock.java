@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class PurpurBlock extends Block implements io.gomint.world.block.BlockPurpurBlock {
 
     @Override
-    public int getBlockId() {
-        return 201;
+    public byte getBlockId() {
+        return (byte) 201;
     }
 
     @Override

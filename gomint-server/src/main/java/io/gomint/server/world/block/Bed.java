@@ -32,7 +32,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
     private static final byte HEAD = 0x08;
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 26;
     }
 

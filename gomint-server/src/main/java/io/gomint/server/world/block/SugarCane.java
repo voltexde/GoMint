@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class SugarCane extends Block implements io.gomint.world.block.BlockSugarCane {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 83;
     }
 

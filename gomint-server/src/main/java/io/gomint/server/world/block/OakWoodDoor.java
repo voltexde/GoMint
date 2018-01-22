@@ -14,7 +14,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class OakWoodDoor extends Door implements BlockOakWoodDoor {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 64;
     }
 

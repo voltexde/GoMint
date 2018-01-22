@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class CommandBlock extends Block implements io.gomint.world.block.BlockCommandBlock {
 
     @Override
-    public int getBlockId() {
-        return 137;
+    public byte getBlockId() {
+        return (byte) 137;
     }
 
     @Override

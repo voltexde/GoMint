@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class SandstoneStairs extends Stairs {
 
     @Override
-    public int getBlockId() {
-        return 128;
+    public byte getBlockId() {
+        return (byte) 128;
     }
 
     @Override

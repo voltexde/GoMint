@@ -16,7 +16,7 @@ import io.gomint.taglib.NBTTagCompound;
 public class Piston extends Block implements io.gomint.world.block.BlockPiston {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 33;
     }
 

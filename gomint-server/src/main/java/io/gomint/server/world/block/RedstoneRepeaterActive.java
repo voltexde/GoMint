@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class RedstoneRepeaterActive extends Block implements io.gomint.world.block.BlockRedstoneRepeaterActive {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 94;
     }
 

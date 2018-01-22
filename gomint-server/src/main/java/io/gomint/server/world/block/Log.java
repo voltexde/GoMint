@@ -13,7 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Log extends Block implements BlockLog {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 17;
     }
 

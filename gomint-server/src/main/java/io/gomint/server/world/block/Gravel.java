@@ -13,7 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Gravel extends Block implements io.gomint.world.block.BlockGravel {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 13;
     }
 

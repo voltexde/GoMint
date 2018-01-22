@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Beacon extends Block implements io.gomint.world.block.BlockBeacon {
 
     @Override
-    public int getBlockId() {
-        return 138;
+    public byte getBlockId() {
+        return (byte) 138;
     }
 
     @Override

@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Clay extends Block implements io.gomint.world.block.BlockClay {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 82;
     }
 

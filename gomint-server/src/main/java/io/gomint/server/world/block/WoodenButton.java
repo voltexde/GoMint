@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 public class WoodenButton extends Block implements io.gomint.world.block.BlockWoodenButton {
 
     @Override
-    public int getBlockId() {
-        return 143;
+    public byte getBlockId() {
+        return (byte) 143;
     }
 
     @Override

@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class BirchFenceGate extends Block implements io.gomint.world.block.BlockBirchFenceGate {
 
     @Override
-    public int getBlockId() {
-        return 184;
+    public byte getBlockId() {
+        return (byte) 184;
     }
 
     @Override

@@ -11,8 +11,8 @@ import io.gomint.world.block.BlockType;
 public class BlockOfQuartz extends Block implements io.gomint.world.block.BlockBlockOfQuartz {
 
     @Override
-    public int getBlockId() {
-        return 155;
+    public byte getBlockId() {
+        return (byte) 155;
     }
 
     @Override

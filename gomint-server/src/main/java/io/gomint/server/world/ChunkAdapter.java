@@ -313,9 +313,10 @@ public class ChunkAdapter implements Chunk {
      * @param z  The z-coordinate of the block
      * @param id The ID to set the block to
      */
-    public void setBlock( int x, int y, int z, int id ) {
-        ChunkSlice slice = ensureSlice( y >> 4 );
-        slice.setBlock( x, y - 16 * ( y >> 4 ), z, (byte) id );
+    public void setBlock( int x, int y, int z, byte id ) {
+        int ySection = y >> 4;
+        ChunkSlice slice = ensureSlice( ySection );
+        slice.setBlock( x, y - 16 * ySection, z, id );
         this.dirty = true;
     }
 

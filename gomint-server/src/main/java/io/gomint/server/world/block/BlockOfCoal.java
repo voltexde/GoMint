@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class BlockOfCoal extends Block implements io.gomint.world.block.BlockBlockOfCoal {
 
     @Override
-    public int getBlockId() {
-        return 173;
+    public byte getBlockId() {
+        return (byte) 173;
     }
 
     @Override

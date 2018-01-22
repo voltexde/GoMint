@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class BlockOfEmerald extends Block implements io.gomint.world.block.BlockBlockOfEmerald {
 
     @Override
-    public int getBlockId() {
-        return 133;
+    public byte getBlockId() {
+        return (byte) 133;
     }
 
     @Override

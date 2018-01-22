@@ -12,10 +12,9 @@ import io.gomint.server.registry.RegisterInfo;
 public class StandingBanner extends Banner {
 
     @Override
-    public int getBlockId() {
-        return 176;
+    public byte getBlockId() {
+        return (byte) 176;
     }
-
 
     @Override
     public BlockType getType() {

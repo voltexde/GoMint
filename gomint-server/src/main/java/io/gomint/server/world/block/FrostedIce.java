@@ -18,8 +18,8 @@ import io.gomint.world.block.BlockType;
 public class FrostedIce extends Block implements io.gomint.world.block.BlockFrostedIce {
 
     @Override
-    public int getBlockId() {
-        return 207;
+    public byte getBlockId() {
+        return (byte) 207;
     }
 
     @Override

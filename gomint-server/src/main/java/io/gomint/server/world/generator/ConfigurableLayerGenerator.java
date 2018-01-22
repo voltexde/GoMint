@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class ConfigurableLayerGenerator extends ChunkGenerator {
 
-    private List<Integer> layers = new ArrayList<>();
+    private List<Byte> layers = new ArrayList<>();
     private List<Byte> dataIds = new ArrayList<>();
 
     /**
@@ -31,7 +31,7 @@ public class ConfigurableLayerGenerator extends ChunkGenerator {
      * @param blockId to use in the new layer
      * @param blockData to user in the new layer
      */
-    public void addLayer( int blockId, byte blockData ) {
+    public void addLayer( byte blockId, byte blockData ) {
         this.layers.add( blockId );
         this.dataIds.add( blockData );
     }
@@ -42,7 +42,7 @@ public class ConfigurableLayerGenerator extends ChunkGenerator {
 
         // Layers are starting from the bottom
         int y = 0;
-        for ( Integer layer : this.layers ) {
+        for ( byte layer : this.layers ) {
             for ( int xBlock = 0; xBlock < 16; xBlock++ ) {
                 for ( int zBlock = 0; zBlock < 16; zBlock++ ) {
                     chunkAdapter.setBlock( xBlock, y, zBlock, layer );

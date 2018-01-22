@@ -19,8 +19,8 @@ import io.gomint.world.block.BlockType;
 public class Magma extends Block implements BlockMagma {
 
     @Override
-    public int getBlockId() {
-        return 213;
+    public byte getBlockId() {
+        return (byte) 213;
     }
 
     @Override

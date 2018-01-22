@@ -16,7 +16,7 @@ import java.util.List;
 public class Glass extends Block implements io.gomint.world.block.BlockGlass {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 20;
     }
 

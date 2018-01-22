@@ -17,7 +17,7 @@ import java.util.List;
 public class Cobweb extends Block implements BlockCobweb {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 30;
     }
 

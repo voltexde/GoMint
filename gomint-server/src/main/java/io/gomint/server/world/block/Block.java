@@ -69,7 +69,7 @@ public abstract class Block implements io.gomint.world.block.Block {
      *
      * @return id for networking and saving
      */
-    public abstract int getBlockId();
+    public abstract byte getBlockId();
 
     /**
      * Called when a normal block update should be done

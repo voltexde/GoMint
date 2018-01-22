@@ -13,7 +13,7 @@ import io.gomint.world.block.BlockLeaves;
 public class Leaves extends Block implements BlockLeaves {
 
     @Override
-    public int getBlockId() {
+    public byte getBlockId() {
         return 18;
     }
 

@@ -19,8 +19,8 @@ import io.gomint.world.block.BlockType;
 public class RepeatingCommandBlock extends Block implements BlockRepeatingCommandBlock {
 
     @Override
-    public int getBlockId() {
-        return 188;
+    public byte getBlockId() {
+        return (byte) 188;
     }
 
     @Override

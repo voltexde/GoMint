@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Carpet extends Block implements io.gomint.world.block.BlockCarpet {
 
     @Override
-    public int getBlockId() {
-        return 171;
+    public byte getBlockId() {
+        return (byte) 171;
     }
 
     @Override

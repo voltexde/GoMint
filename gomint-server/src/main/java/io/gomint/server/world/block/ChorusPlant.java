@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class ChorusPlant extends Block implements io.gomint.world.block.BlockChorusPlant {
 
     @Override
-    public int getBlockId() {
-        return 240;
+    public byte getBlockId() {
+        return (byte) 240;
     }
 
     @Override

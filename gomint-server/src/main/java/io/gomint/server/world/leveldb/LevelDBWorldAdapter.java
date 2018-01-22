@@ -223,16 +223,16 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
                                 byte blockData = ( (Long) layerConfig.get( "block_data" ) ).byteValue();
 
                                 for ( int i = 0; i < count; i++ ) {
-                                    chunkGenerator.addLayer( blockId, blockData );
+                                    chunkGenerator.addLayer( (byte) blockId, blockData );
                                 }
                             }
                         }
                     } catch ( ParseException e ) {
                         // Remember its from bottom to top
-                        chunkGenerator.addLayer( 7, (byte) 0 );
-                        chunkGenerator.addLayer( 3, (byte) 0 );
-                        chunkGenerator.addLayer( 3, (byte) 0 );
-                        chunkGenerator.addLayer( 2, (byte) 0 );
+                        chunkGenerator.addLayer( (byte) 7, (byte) 0 );
+                        chunkGenerator.addLayer( (byte) 3, (byte) 0 );
+                        chunkGenerator.addLayer( (byte) 3, (byte) 0 );
+                        chunkGenerator.addLayer( (byte) 2, (byte) 0 );
                     }
 
                     this.chunkGenerator = chunkGenerator;

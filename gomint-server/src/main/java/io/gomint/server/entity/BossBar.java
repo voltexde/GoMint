@@ -22,18 +22,24 @@ public class BossBar implements io.gomint.entity.BossBar {
 
     @Override
     public void addPlayer( EntityPlayer player ) {
-        PacketBossBar packet = new PacketBossBar();
-        packet.setEntityId( this.entity.getEntityId() );
-        packet.setType( PacketBossBar.Type.SHOW );
-        ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().addToSendQueue( packet );
+        io.gomint.server.entity.EntityPlayer p =  ( (io.gomint.server.entity.EntityPlayer) player );
+        if ( p.getEntityVisibilityManager().isVisible( this.entity ) ) {
+            PacketBossBar packet = new PacketBossBar();
+            packet.setEntityId( this.entity.getEntityId() );
+            packet.setType( PacketBossBar.Type.SHOW );
+            p.getConnection().addToSendQueue( packet );
+        }
     }
 
     @Override
     public void removePlayer( EntityPlayer player ) {
-        PacketBossBar packet = new PacketBossBar();
-        packet.setEntityId( this.entity.getEntityId() );
-        packet.setType( PacketBossBar.Type.HIDE );
-        ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().addToSendQueue( packet );
+        io.gomint.server.entity.EntityPlayer p =  ( (io.gomint.server.entity.EntityPlayer) player );
+        if ( p.getEntityVisibilityManager().isVisible( this.entity ) ) {
+            PacketBossBar packet = new PacketBossBar();
+            packet.setEntityId( this.entity.getEntityId() );
+            packet.setType( PacketBossBar.Type.HIDE );
+            p.getConnection().addToSendQueue( packet );
+        }
     }
 
     @Override
