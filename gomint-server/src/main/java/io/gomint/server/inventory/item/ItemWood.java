@@ -1,7 +1,6 @@
 package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemType;
-
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -10,7 +9,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 5 )
- public class ItemWood extends ItemStack implements io.gomint.inventory.item.ItemWood {
+public class ItemWood extends ItemStack implements io.gomint.inventory.item.ItemWood {
 
     // CHECKSTYLE:OFF
     public ItemWood( short data, int amount ) {
@@ -24,7 +23,7 @@ import io.gomint.taglib.NBTTagCompound;
 
     @Override
     public ItemType getType() {
-        return ItemType.WOOD_PLANKS;
+        return ItemType.WOOD;
     }
 
 }

@@ -539,7 +539,7 @@ public abstract class Block implements io.gomint.world.block.Block {
      */
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<ItemStack>() {{
-            add( Items.create( getBlockId(), getBlockData(), (byte) 1, null ) );
+            add( Items.create( getBlockId() & 0xFF, getBlockData(), (byte) 1, null ) );
         }};
     }
 

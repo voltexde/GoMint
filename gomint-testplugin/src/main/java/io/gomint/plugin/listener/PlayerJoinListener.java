@@ -1,6 +1,5 @@
 package io.gomint.plugin.listener;
 
-import io.gomint.enchant.EnchantmentKnockback;
 import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
@@ -43,6 +42,11 @@ public class PlayerJoinListener implements EventListener {
         dye.setDyeType( DyeType.LAPIS_LAZULI );
         event.getPlayer().getInventory().setItem( 8, dye );
 
+        ItemLog log = ItemLog.create( 5 );
+        log.setLogType( ItemLog.Type.SPRUCE );
+        log.setLogDirection( ItemLog.Direction.BARK );
+        event.getPlayer().getInventory().setItem( 5, log );
+
         event.getPlayer().setLevel( 67 );
 
         CustomForm settings = CustomForm.create( "GoMint" );
@@ -75,6 +79,8 @@ public class PlayerJoinListener implements EventListener {
         EntityItemDrop entityItemDrop = event.getPlayer().getWorld().createItemDrop( event.getPlayer().getLocation().add( 2, 0, 2 ),
             itemGoldIngot );
         entityItemDrop.setPickupDelay( 0, TimeUnit.SECONDS );
+
+
     }
 
 }

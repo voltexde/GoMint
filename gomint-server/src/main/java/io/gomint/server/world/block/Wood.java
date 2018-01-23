@@ -10,7 +10,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 5 )
-public class WoodPlanks extends Block implements io.gomint.world.block.BlockWoodPlanks {
+public class Wood extends Block implements io.gomint.world.block.BlockWood {
 
     @Override
     public byte getBlockId() {
@@ -40,7 +40,7 @@ public class WoodPlanks extends Block implements io.gomint.world.block.BlockWood
 
     @Override
     public BlockType getType() {
-        return BlockType.WOOD_PLANKS;
+        return BlockType.WOOD;
     }
 
     @Override

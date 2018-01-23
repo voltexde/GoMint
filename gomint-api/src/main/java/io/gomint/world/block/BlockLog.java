@@ -12,4 +12,47 @@ package io.gomint.world.block;
  * @version 1.0
  */
 public interface BlockLog extends Block {
+
+    /**
+     * Set the type of log
+     *
+     * @param type of log
+     */
+    void setLogType( Type type );
+
+    /**
+     * Get the type of this log
+     *
+     * @return type of log
+     */
+    Type getLogType();
+
+    /**
+     * Set the direction of the log
+     *
+     * @param direction of the log
+     */
+    void setLogDirection( Direction direction );
+
+    /**
+     * Get the direction of this log
+     *
+     * @return direction of the log
+     */
+    Direction getLogDirection();
+
+    enum Type {
+        OAK,
+        SPRUCE,
+        BIRCH,
+        JUNGLE
+    }
+
+    enum Direction {
+        UP_DOWN,
+        EAST_WEST,
+        NORTH_SOUTH,
+        BARK
+    }
+
 }
