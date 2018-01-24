@@ -3,16 +3,13 @@ package io.gomint.server.world.anvil;
 import io.gomint.server.util.Pair;
 import io.gomint.world.block.BlockFace;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author geNAZt
  * @version 1.0
  */
 class DataConverter {
 
-    private Pair<Byte, Converter>[] converter = new Pair[255];
+    private Pair<Byte, Converter>[] converter = new Pair[256];
     private Pair<Byte, Byte> convertedValue = new Pair<>( (byte) 0, (byte) 1 );
 
     public DataConverter() {
@@ -97,14 +94,15 @@ class DataConverter {
         addConverter( 209, 209, ( b, m ) -> m );
         addConverter( 212, 174, ( b, m ) -> m );
         addConverter( 218, 251, ( b, m ) -> m );
+        addConverter( 255, 252, ( blockId, metaData ) -> metaData );
     }
 
     private void addConverter( int sourceId, int destId, Converter converter ) {
         this.converter[sourceId] = new Pair<>( (byte) destId, converter );
     }
 
-    Pair<Byte, Byte> convert( int blockId, byte metaData ) {
-        Pair<Byte, Converter> converterPair = this.converter[blockId];
+    Pair<Byte, Byte> convert( byte blockId, byte metaData ) {
+        Pair<Byte, Converter> converterPair = this.converter[blockId & 0xFF];
         if ( converterPair == null ) {
             return null;
         } else {

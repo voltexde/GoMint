@@ -178,12 +178,18 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     AnvilChunkAdapter.this.tileEntityHolders = (List<NBTTagCompound>) object;
                     break;
                 case ".Level.HeightMap":
-                    LOGGER.debug( "" + object );
+                    // LOGGER.debug( "Height Map: {}", object );
+                    break;
+                case ".Level.V":
+                    if ( (byte) object != 1 ) {
+                        AnvilChunkAdapter.this.invalid = true;
+                        LOGGER.warn( "Chunk has an invalid version number" );
+                    }
+
                     break;
                 case ".Level.LastUpdate":
                 case ".Level.LightPopulated":
                 case ".Level.TerrainPopulated":
-                case ".Level.V":
                     break;
                 default:
                     if ( path.startsWith( ".Level.Sections" ) ) {
@@ -195,7 +201,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
                         AnvilChunkAdapter.this.sections.add( compound );
                     } else {
-                        LOGGER.debug( "New path: {}", path );
+                        //LOGGER.debug( "New path: {}", path );
                     }
             }
         } );
@@ -271,6 +277,12 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             }
 
             this.tileEntityHolders = null;
+        }
+
+        if ( this.entityHolders != null && !this.entityHolders.isEmpty() ) {
+            for ( NBTTagCompound holder : this.entityHolders ) {
+                LOGGER.debug( "Found entity: {}", holder );
+            }
         }
 
         this.calculateHeightmap( this.maxHeight );
