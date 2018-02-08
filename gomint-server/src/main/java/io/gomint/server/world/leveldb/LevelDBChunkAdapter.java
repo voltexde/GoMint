@@ -8,6 +8,8 @@
 package io.gomint.server.world.leveldb;
 
 import io.gomint.math.BlockPosition;
+import io.gomint.server.entity.tileentity.TileEntities;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
@@ -127,7 +129,11 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         while ( nbtReader.hasMoreToRead() ) {
             try {
                 NBTTagCompound compound = nbtReader.parse();
-                // this.addTileEntity( compound );
+
+                TileEntity tileEntity = TileEntities.construct( compound, this.world );
+                if ( tileEntity != null ) {
+                    this.addTileEntity( tileEntity );
+                }
             } catch ( IOException e ) {
                 e.printStackTrace();
                 break;
@@ -141,10 +147,9 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         while ( nbtReader.hasMoreToRead() ) {
             try {
                 NBTTagCompound compound = nbtReader.parse();
-                DumpUtil.dumpNBTCompund( compound );
+                /*DumpUtil.dumpNBTCompund( compound );
                 Integer id = compound.getInteger( "id", 0 );
-                System.out.println( id & 0xFF );
-
+                System.out.println( id & 0xFF );*/
             } catch ( IOException e ) {
                 e.printStackTrace();
                 break;

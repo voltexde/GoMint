@@ -57,11 +57,6 @@ public enum TileEntities {
     COMMAND_BLOCK( "CommandBlock", CommandBlockTileEntity.class ),
 
     /**
-     * Represents a command block. Contains data like command string, output etc.
-     */
-    COMMAND_BLOCK_ANVIL( "Control", CommandBlockTileEntity.class ),
-
-    /**
      * Represents a item frame. It holds a item and rotation states
      */
     ITEM_FRAME( "ItemFrame", ItemFrameTileEntity.class ),
@@ -94,7 +89,14 @@ public enum TileEntities {
     /**
      * Data for a bed
      */
-    BED( "Bed", BedTileEntity.class );
+    BED( "Bed", BedTileEntity.class ),
+
+    /**
+     * Data for a dispenser
+     */
+    DISPENSER( "Dispenser", DispenserTileEntity.class );
+
+    // DROPPER( "Dropper", )
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;

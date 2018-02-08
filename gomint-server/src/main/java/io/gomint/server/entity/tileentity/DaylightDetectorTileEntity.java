@@ -5,6 +5,7 @@ import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 public class DaylightDetectorTileEntity extends TileEntity {
 

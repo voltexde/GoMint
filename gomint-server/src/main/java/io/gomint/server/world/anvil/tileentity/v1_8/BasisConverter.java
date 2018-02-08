@@ -8,6 +8,9 @@
 package io.gomint.server.world.anvil.tileentity.v1_8;
 
 import io.gomint.math.Location;
+import io.gomint.server.inventory.MaterialMagicNumbers;
+import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.anvil.tileentity.TileEntityConverter;
 import io.gomint.taglib.NBTTagCompound;
@@ -41,6 +44,55 @@ public abstract class BasisConverter<T> extends TileEntityConverter<T> {
             compound.getInteger( "y", -1 ),
             compound.getInteger( "z", 0 )
         );
+    }
+
+    /**
+     * Write the location to a compound
+     *
+     * @param location which should be written
+     * @param compound which should be used to write to
+     */
+    protected void writePosition( Location location, NBTTagCompound compound ) {
+        compound.addValue( "x", (int) location.getX() );
+        compound.addValue( "y", (int) location.getY() );
+        compound.addValue( "z", (int) location.getZ() );
+    }
+
+    /**
+     * Get the item out of the compound
+     *
+     * @param compound which has serialized information about the item stack
+     * @return the item stack which has been stored in the compound
+     */
+    protected ItemStack getItemStack( NBTTagCompound compound ) {
+        // Check for correct ids
+        int material = MaterialMagicNumbers.valueOfWithId( compound.getString( "id", "minecraft:air" ) );
+
+        // Skip non existent items for PE
+        if ( material == 0 ) {
+            return Items.create( 0, (short) 0, (byte) 0, null );
+        }
+
+        short data = compound.getShort( "Damage", (short) 0 );
+        byte amount = compound.getByte( "Count", (byte) 1 );
+
+        return Items.create( material, data, amount, compound.getCompound( "tag", false ) );
+    }
+
+    /**
+     * Write the item stack to a compound
+     *
+     * @param itemStack which should be written
+     * @param compound to write to
+     */
+    protected void writeItemStack( ItemStack itemStack, NBTTagCompound compound ) {
+        compound.addValue( "id", MaterialMagicNumbers.newIdFromValue( itemStack.getMaterial() ) );
+        compound.addValue( "Count", itemStack.getAmount() );
+        compound.addValue( "Damage", itemStack.getData() );
+
+        if ( itemStack.getNbtData() != null ) {
+            compound.addValue( "tag", itemStack.getNbtData().deepClone( "tag" ) );
+        }
     }
 
 }

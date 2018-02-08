@@ -41,7 +41,13 @@ public class SkullConverter extends BasisConverter<SkullTileEntity> {
 
     @Override
     public void writeTo( SkullTileEntity entity, NBTTagCompound compound ) {
+        // Write basic stuff
+        compound.addValue( "id", "Skull" );
+        writePosition( entity.getLocation(), compound );
 
+        // Write skull type and rotation
+        compound.addValue( "Rot", entity.getRotation().getRotationValue() );
+        compound.addValue( "SkullType", entity.getSkullType() );
     }
 
 }

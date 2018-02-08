@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
  */
 public class BedTileEntity extends TileEntity {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( BedTileEntity.class );
     private BlockColor color;
 
     /**
@@ -24,12 +23,14 @@ public class BedTileEntity extends TileEntity {
     public BedTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
         super( tagCompound, world );
 
-        byte color = tagCompound.getByte( "color", (byte) 0 );
-        this.detectColor( color );
-
-        LOGGER.debug( "Found Bed @ {}", this.location );
+        this.detectColor( tagCompound.getByte( "color", (byte) 0 ) );
     }
 
+    /**
+     * Select the correct color based on the byte representation inside the compound
+     *
+     * @param color value which should be detected
+     */
     public void detectColor( byte color ) {
         switch ( color ) {
             case 0:

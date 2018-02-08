@@ -7,16 +7,14 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.entity.Entity;
-import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.math.Location;
-import io.gomint.math.Vector;
-import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.inventory.ChestInventory;
+import io.gomint.server.inventory.DispenserInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemAir;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,20 +25,21 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-public class ChestTileEntity extends ContainerTileEntity implements InventoryHolder {
+@Getter
+public class DispenserTileEntity extends TileEntity implements InventoryHolder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( ChestTileEntity.class );
-    private ChestInventory inventory;
+    private static final Logger LOGGER = LoggerFactory.getLogger( DispenserTileEntity.class );
+    private final DispenserInventory inventory;
 
     /**
-     * Construct new chest from given items and location
+     * Construct a new dispenser
      *
-     * @param items which should be inside the chest
-     * @param location of the chest
+     * @param items which are inside the dispenser
+     * @param location of the dispenser
      */
-    public ChestTileEntity( ItemStack[] items, Location location ) {
+    public DispenserTileEntity( ItemStack[] items, Location location ) {
         super( location );
-        this.inventory = new ChestInventory( this );
+        this.inventory = new DispenserInventory( this );
 
         for ( int i = 0; i < items.length; i++ ) {
             ItemStack itemStack = items[i];
@@ -51,17 +50,17 @@ public class ChestTileEntity extends ContainerTileEntity implements InventoryHol
     }
 
     /**
-     * Construct new TileEntity from TagCompound
+     * Create a new tile entity based on its stored compound
      *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
+     * @param compound which holds stored data
+     * @param worldAdapter which holds this tile entity
      */
-    public ChestTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
-        super( tagCompound, world );
-        this.inventory = new ChestInventory( this );
+    public DispenserTileEntity( NBTTagCompound compound, WorldAdapter worldAdapter ) {
+        super( compound, worldAdapter );
+        this.inventory = new DispenserInventory( this );
 
         // Read in items
-        List<Object> itemList = tagCompound.getList( "Items", false );
+        List<Object> itemList = compound.getList( "Items", false );
         if ( itemList == null ) return;
 
         for ( Object item : itemList ) {
@@ -88,17 +87,10 @@ public class ChestTileEntity extends ContainerTileEntity implements InventoryHol
     }
 
     @Override
-    public void interact( Entity entity, int face, Vector facePos, io.gomint.inventory.item.ItemStack item ) {
-        // Open the chest inventory for the entity
-        if ( entity instanceof EntityPlayer ) {
-            ( (EntityPlayer) entity ).openInventory( this.inventory );
-        }
-    }
-
-    @Override
     public void toCompound( NBTTagCompound compound ) {
         super.toCompound( compound );
-        compound.addValue( "id", "Chest" );
+
+        compound.addValue( "id", "Dispenser" );
 
         List<NBTTagCompound> nbtTagCompounds = new ArrayList<>();
         for ( int i = 0; i < this.inventory.size(); i++ ) {
@@ -112,15 +104,6 @@ public class ChestTileEntity extends ContainerTileEntity implements InventoryHol
         }
 
         compound.addValue( "Items", nbtTagCompounds );
-    }
-
-    /**
-     * Get this chests inventory
-     *
-     * @return inventory of this tile
-     */
-    public ChestInventory getInventory() {
-        return this.inventory;
     }
 
 }

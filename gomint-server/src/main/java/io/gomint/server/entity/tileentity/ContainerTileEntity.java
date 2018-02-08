@@ -1,14 +1,25 @@
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.math.Location;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 public class ContainerTileEntity extends TileEntity {
 
     private String customName = null;
+
+    /**
+     * Construct new tile entity
+     *
+     * @param location of the tile entity
+     */
+    ContainerTileEntity( Location location ) {
+        super( location );
+    }
 
     /**
      * Construct new TileEntity from TagCompound

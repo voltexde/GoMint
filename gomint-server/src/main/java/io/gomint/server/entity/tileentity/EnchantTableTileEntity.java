@@ -2,6 +2,7 @@ package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.EnchantmentTableInventory;
@@ -14,6 +15,15 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 public class EnchantTableTileEntity extends ContainerTileEntity implements InventoryHolder {
+
+    /**
+     * Create a new enchant table
+     *
+     * @param position of the enchant table
+     */
+    public EnchantTableTileEntity( Location position ) {
+        super( position );
+    }
 
     /**
      * Construct new TileEntity from TagCompound

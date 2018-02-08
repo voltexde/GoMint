@@ -8,6 +8,7 @@
 package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
+import io.gomint.math.Location;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.InventoryHolder;
@@ -15,6 +16,7 @@ import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +24,21 @@ import org.slf4j.LoggerFactory;
  * @author geNAZt
  * @version 1.0
  */
+@Getter
 public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
 
     private ItemStack holdingItem;
+
+    /**
+     * Create a new flower pot with the item given as content
+     *
+     * @param itemStack which should be inside the flower pot
+     * @param position of the flower pot
+     */
+    public FlowerPotTileEntity( ItemStack itemStack, Location position ) {
+        super( position );
+        this.holdingItem = itemStack;
+    }
 
     /**
      * Construct new TileEntity from TagCompound
@@ -35,17 +49,7 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
     public FlowerPotTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
         super( tagCompound, world );
 
-        // This is needed since minecraft changed from storing raw ids to string keys somewhere in 1.7 / 1.8
-        int material = 0;
-        if ( tagCompound.containsKey( "item" ) ) {
-             material = tagCompound.getShort( "item", (short) 0 );
-        } else {
-            try {
-                material = tagCompound.getInteger( "Item", 0 );
-            } catch ( ClassCastException e ) {
-                material = MaterialMagicNumbers.valueOfWithId( tagCompound.getString( "Item", "minecraft:air" ) );
-            }
-        }
+        int material = tagCompound.getShort( "item", (short) 0 );
 
         // Skip non existent items for PE
         if ( material == 0 ) {

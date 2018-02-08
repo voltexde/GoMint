@@ -1,5 +1,6 @@
 package io.gomint.server.inventory;
 
+import io.gomint.server.util.collection.NumericIDToStringMap;
 import io.gomint.server.util.collection.StringIDToNumericMap;
 
 /**
@@ -8,7 +9,8 @@ import io.gomint.server.util.collection.StringIDToNumericMap;
  */
 public class MaterialMagicNumbers {
 
-    private static final StringIDToNumericMap NEW_ID_MAPPING = StringIDToNumericMap.withExpectedSize(500);
+    private static final StringIDToNumericMap NEW_ID_MAPPING = StringIDToNumericMap.withExpectedSize( 500 );
+    private static final NumericIDToStringMap OLD_ID_MAPPING = NumericIDToStringMap.withExpectedSize( 500 );
 
     static {
         // CHECKSTYLE:OFF
@@ -386,10 +388,15 @@ public class MaterialMagicNumbers {
 
     public static void register( int id, String newId ) {
         NEW_ID_MAPPING.justPut( newId, id );
+        OLD_ID_MAPPING.justPut( id, newId );
     }
 
     public static int valueOfWithId( String newId ) {
         return NEW_ID_MAPPING.getOrDefault( newId, 0 );
+    }
+
+    public static String newIdFromValue( int id ) {
+        return OLD_ID_MAPPING.getOrDefault( id, "minecraft:air" );
     }
 
 }

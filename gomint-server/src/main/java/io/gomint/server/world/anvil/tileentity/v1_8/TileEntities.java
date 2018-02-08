@@ -7,7 +7,7 @@
 
 package io.gomint.server.world.anvil.tileentity.v1_8;
 
-import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.entity.tileentity.*;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.anvil.tileentity.TileEntityConverters;
 import io.gomint.taglib.NBTTagCompound;
@@ -25,6 +25,10 @@ public class TileEntities implements TileEntityConverters {
     // Individual converters for the tiles
     private SignConverter signConverter;
     private SkullConverter skullConverter;
+    private ChestConverter chestConverter;
+    private FlowerPotConverter flowerPotConverter;
+    private EnchantTableConverter enchantTableConverter;
+    private DispenserConverter dispenserConverter;
 
     /**
      * Construct 1.8 converter for the given world
@@ -34,24 +38,57 @@ public class TileEntities implements TileEntityConverters {
     public TileEntities( WorldAdapter worldAdapter ) {
         this.signConverter = new SignConverter( worldAdapter );
         this.skullConverter = new SkullConverter( worldAdapter );
+        this.chestConverter = new ChestConverter( worldAdapter );
+        this.flowerPotConverter = new FlowerPotConverter( worldAdapter );
+        this.enchantTableConverter = new EnchantTableConverter( worldAdapter );
+        this.dispenserConverter = new DispenserConverter( worldAdapter );
     }
 
     @Override
     public TileEntity read( NBTTagCompound compound ) {
         String id = compound.getString( "id", "" );
         switch ( id ) {
+            case "Trap":
+                return this.dispenserConverter.readFrom( compound );
+            case "EnchantTable":
+                return this.enchantTableConverter.readFrom( compound );
+            case "FlowerPot":
+                return this.flowerPotConverter.readFrom( compound );
+            case "Chest":
+                return this.chestConverter.readFrom( compound );
             case "Skull":
                 return this.skullConverter.readFrom( compound );
             case "Sign":
                 return this.signConverter.readFrom( compound );
+            default:
+                LOGGER.warn( "Unknown id {} -> {}", id, compound );
+                return null;
         }
-
-        LOGGER.warn( "Unknown id {}", id );
-        return null;
     }
 
     @Override
     public NBTTagCompound write( TileEntity tileEntity ) {
+        NBTTagCompound compound = new NBTTagCompound( "" );
+        if ( tileEntity instanceof FlowerPotTileEntity ) {
+            this.flowerPotConverter.writeTo( (FlowerPotTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof ChestTileEntity ) {
+            this.chestConverter.writeTo( (ChestTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof SkullTileEntity ) {
+            this.skullConverter.writeTo( (SkullTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof SignTileEntity ) {
+            this.signConverter.writeTo( (SignTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof EnchantTableTileEntity ) {
+            this.enchantTableConverter.writeTo( (EnchantTableTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof DispenserTileEntity ) {
+            this.dispenserConverter.writeTo( (DispenserTileEntity) tileEntity, compound );
+            return compound;
+        }
+
         return null;
     }
 

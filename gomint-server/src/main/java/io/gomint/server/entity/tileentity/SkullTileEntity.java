@@ -4,11 +4,13 @@ import io.gomint.math.Location;
 import io.gomint.math.MojangRotation;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.Getter;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@Getter
 public class SkullTileEntity extends TileEntity {
 
     private MojangRotation rotation;
