@@ -123,9 +123,10 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
         List<NBTTagCompound> tileEntityCompounds = new ArrayList<>();
         for ( TileEntity tileEntity : this.getTileEntities() ) {
-            NBTTagCompound compound = new NBTTagCompound( "" );
-            tileEntity.toCompound( compound );
-            tileEntityCompounds.add( compound );
+            NBTTagCompound compound = this.tileEntityConverters.write( tileEntity );
+            if ( compound != null ) {
+                tileEntityCompounds.add( compound );
+            }
         }
 
         level.addValue( "TileEntities", tileEntityCompounds );
