@@ -127,7 +127,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         while ( nbtReader.hasMoreToRead() ) {
             try {
                 NBTTagCompound compound = nbtReader.parse();
-                this.addTileEntity( compound );
+                // this.addTileEntity( compound );
             } catch ( IOException e ) {
                 e.printStackTrace();
                 break;

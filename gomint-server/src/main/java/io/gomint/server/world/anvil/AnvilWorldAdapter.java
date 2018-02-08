@@ -136,7 +136,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                             AnvilWorldAdapter.this.difficulty = Difficulty.valueOf( (byte) value );
                             break;
                         default:
-                            logger.debug( "Found level dat NBT Tag: {}", path );
+                            logger.debug( "Found level dat NBT Tag: {} -> {}", path, value );
                             break;
                     }
                 } );

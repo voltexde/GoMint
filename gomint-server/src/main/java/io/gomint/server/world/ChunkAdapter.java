@@ -8,11 +8,11 @@
 package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
@@ -293,16 +293,14 @@ public class ChunkAdapter implements Chunk {
      *
      * @param tileEntity The NBT tag of the tile entity which should be added
      */
-    protected void addTileEntity( NBTTagCompound tileEntity ) {
-        int x = tileEntity.getInteger( "x", 0 ) & 0xF;
-        int y = tileEntity.getInteger( "y", -1 );
-        int z = tileEntity.getInteger( "z", 0 ) & 0xF;
+    protected void addTileEntity( TileEntity tileEntity ) {
+        BlockPosition tileEntityLocation = tileEntity.getLocation().toBlockPosition();
+        int xPos = tileEntityLocation.getX() & 0xF;
+        int yPos = tileEntityLocation.getY();
+        int zPos = tileEntityLocation.getZ() & 0xF;
 
-        TileEntity tileEntity1 = TileEntities.construct( tileEntity, this.world );
-        if ( tileEntity1 != null ) {
-            ChunkSlice slice = ensureSlice( y >> 4 );
-            slice.addTileEntity( x, y - slice.getSectionY() * 16, z, tileEntity1 );
-        }
+        ChunkSlice slice = ensureSlice( yPos >> 4 );
+        slice.addTileEntity( xPos, yPos - slice.getSectionY() * 16, zPos, tileEntity );
     }
 
     /**

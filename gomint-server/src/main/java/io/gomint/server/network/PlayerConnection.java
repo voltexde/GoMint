@@ -24,6 +24,7 @@ import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.protocol.WrappedMCPEPacket;
 import io.gomint.server.player.DeviceInfo;
+import io.gomint.server.scheduler.AsyncScheduledTask;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.StringUtil;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.InflaterInputStream;
 
 import static io.gomint.server.network.Protocol.*;
@@ -653,41 +655,29 @@ public class PlayerConnection {
      * @param message The message with which the player is going to be kicked
      */
     public void disconnect( String message ) {
-        if ( this.connection != null ) {
-            if ( this.connection.isConnected() && !this.connection.isDisconnecting() ) {
-                this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );
+        this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );
 
-                if ( message != null && message.length() > 0 ) {
-                    PacketDisconnect packet = new PacketDisconnect();
-                    packet.setMessage( message );
-                    this.send( packet );
-                }
-
-                if ( this.entity != null ) {
-                    LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message );
-                } else {
-                    LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
-                }
-
-                this.connection.disconnect( message );
-            }
-        } else {
-            this.networkManager.getServer().getPluginManager().callEvent( new PlayerKickEvent( this.entity, message ) );
-
-            if ( message != null && message.length() > 0 ) {
-                PacketDisconnect packet = new PacketDisconnect();
-                packet.setMessage( message );
-                this.send( packet );
-            }
-
-            if ( this.entity != null ) {
-                LOGGER.info( "EntityPlayer " + this.entity.getName() + " left the game: " + message );
-            } else {
-                LOGGER.info( "EntityPlayer has been disconnected whilst logging in: " + message );
-            }
-
-            this.connectionHandler.disconnect();
+        if ( message != null && message.length() > 0 ) {
+            PacketDisconnect packet = new PacketDisconnect();
+            packet.setMessage( message );
+            this.send( packet );
         }
+
+        if ( this.entity != null ) {
+            LOGGER.info( "EntityPlayer {} left the game: {}", this.entity.getName(), message );
+        } else {
+            LOGGER.info( "EntityPlayer has been disconnected whilst logging in: {}", message );
+        }
+
+        this.server.getExecutorService().submit( new AsyncScheduledTask( () -> {
+            if ( PlayerConnection.this.connection != null ) {
+                if ( PlayerConnection.this.connection.isConnected() && !PlayerConnection.this.connection.isDisconnecting() ) {
+                    PlayerConnection.this.connection.disconnect( message );
+                }
+            } else {
+                PlayerConnection.this.connectionHandler.disconnect();
+            }
+        }, 1, -1, TimeUnit.SECONDS ) );
     }
 
     // ====================================== PACKET SENDERS ====================================== //

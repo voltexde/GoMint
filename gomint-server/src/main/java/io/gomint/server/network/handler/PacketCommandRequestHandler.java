@@ -35,7 +35,7 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
         StringBuilder commandName = new StringBuilder( commandParts[consumed++] );
 
         CommandHolder selected = null;
-        while ( selected == null && commandParts.length >= consumed ) {
+        while ( selected == null ) {
             for ( CommandHolder commandHolder : connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
                 if ( commandName.toString().equalsIgnoreCase( commandHolder.getName() ) ) {
                     selected = commandHolder;
@@ -44,7 +44,11 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
             }
 
             if ( selected == null ) {
-                commandName.append( " " ).append( commandParts[consumed++] );
+                if ( commandParts.length == consumed++ ) {
+                    break;
+                }
+
+                commandName.append( " " ).append( commandParts[consumed] );
             }
         }
 

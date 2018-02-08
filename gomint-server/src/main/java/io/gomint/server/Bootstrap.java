@@ -46,8 +46,6 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
-        System.out.println( ( 10 & 12 ) );
-
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
 
@@ -73,8 +71,7 @@ public class Bootstrap {
         }
 
         // Check the libs (versions and artifacts)
-        if ( !options.has( "slc" ) ) // -slc (skip lib checking)
-        {
+        if ( !options.has( "slc" ) ) { // -slc (skip lib checking)
             checkLibs( libsFolder );
         }
 
@@ -112,11 +109,6 @@ public class Bootstrap {
      * @param libsFolder in which the downloads should be stored
      */
     private static void checkLibs( File libsFolder ) {
-        // Check if we are able to skip this
-        if ( System.getProperty( "skip.libcheck", "false" ).equals( "true" ) ) {
-            return;
-        }
-
         // Load the dependency list
         try ( BufferedReader reader = new BufferedReader( new InputStreamReader( Bootstrap.class.getResourceAsStream( "/libs.dep" ) ) ) ) {
             String libURL;
@@ -129,6 +121,8 @@ public class Bootstrap {
                 // Head first to get informations about the file
                 URL url = new URL( libURL );
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setConnectTimeout( 1000 );
+                urlConnection.setReadTimeout( 1000 );
                 urlConnection.setRequestMethod( "HEAD" );
 
                 // Filter out non java archive content types

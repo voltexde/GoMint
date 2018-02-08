@@ -1,5 +1,6 @@
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.math.Location;
 import io.gomint.math.MojangRotation;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
@@ -12,6 +13,20 @@ public class SkullTileEntity extends TileEntity {
 
     private MojangRotation rotation;
     private byte skullType;
+
+    /**
+     * Construct a new skull tile based on given data
+     *
+     * @param rotation  of the skull
+     * @param skullType type of the skull
+     * @param location  of the skull in the given world
+     */
+    public SkullTileEntity( byte rotation, byte skullType, Location location ) {
+        super( location );
+
+        this.rotation = new MojangRotation( rotation );
+        this.skullType = skullType;
+    }
 
     /**
      * Construct new TileEntity from TagCompound

@@ -7,13 +7,12 @@
 
 package io.gomint.server.world.anvil;
 
-import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldLoadException;
-import io.gomint.server.world.postprocessor.PistonPostProcessor;
+import io.gomint.server.world.anvil.tileentity.TileEntityConverters;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.EqualsAndHashCode;
@@ -45,6 +44,12 @@ public class AnvilChunkAdapter extends ChunkAdapter {
     private List<NBTTagCompound> tileEntityHolders;
     private List<NBTTagCompound> entityHolders;
     private List<NBTTagCompound> sections;
+
+    // Version information of this chunk
+    private int version = -1;
+
+    // Converters
+    private TileEntityConverters tileEntityConverters;
 
     /**
      * Load a Chunk from a NBTTagCompound. This is used when loaded from a Regionfile.
@@ -191,6 +196,9 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                 case ".Level.LightPopulated":
                 case ".Level.TerrainPopulated":
                     break;
+                case ".DataVersion":
+                    AnvilChunkAdapter.this.version = (int) object;
+                    break;
                 default:
                     if ( path.startsWith( ".Level.Sections" ) ) {
                         // Sections are always read from bottom to top
@@ -201,7 +209,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
                         AnvilChunkAdapter.this.sections.add( compound );
                     } else {
-                        //LOGGER.debug( "New path: {}", path );
+                        LOGGER.debug( "Found new data path: {} -> {}", path, object );
                     }
             }
         } );
@@ -216,6 +224,9 @@ public class AnvilChunkAdapter extends ChunkAdapter {
         if ( this.invalid ) {
             throw new WorldLoadException( "Position stored in chunk does not match region file offset position" );
         }
+
+        // Check for converters
+        this.setupConverters();
 
         if ( this.sections != null ) {
             for ( NBTTagCompound section : this.sections ) {
@@ -234,15 +245,12 @@ public class AnvilChunkAdapter extends ChunkAdapter {
         // Load tile entities
         if ( this.tileEntityHolders != null && !this.tileEntityHolders.isEmpty() ) {
             for ( NBTTagCompound tileEntity : this.tileEntityHolders ) {
-                String id = tileEntity.getString( "id", "" );
-                switch ( id ) {
-                    case "Sign":
-                        TileEntityConverter.cleanSignText( tileEntity, "Text1" );
-                        TileEntityConverter.cleanSignText( tileEntity, "Text2" );
-                        TileEntityConverter.cleanSignText( tileEntity, "Text3" );
-                        TileEntityConverter.cleanSignText( tileEntity, "Text4" );
-                        break;
+                TileEntity tileEntity1 = this.tileEntityConverters.read( tileEntity );
+                if ( tileEntity1 != null ) {
+                    this.addTileEntity( tileEntity1 );
+                }
 
+                /*switch ( id ) {
                     case "Skull":
                         // Remove the owner or extra data
                         if ( tileEntity.containsKey( "Owner" ) ) {
@@ -273,7 +281,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
                 }
 
-                this.addTileEntity( tileEntity );
+                this.addTileEntity( tileEntity );*/
             }
 
             this.tileEntityHolders = null;
@@ -288,6 +296,18 @@ public class AnvilChunkAdapter extends ChunkAdapter {
         this.calculateHeightmap( this.maxHeight );
     }
     // CHECKSTYLE:ON
+
+    private void setupConverters() {
+        switch ( this.version ) {
+            case 1343:  // 1.12.2
+                this.tileEntityConverters = new io.gomint.server.world.anvil.tileentity.v1_12_2.TileEntities( this.world );
+                break;
+            case -1:
+            default:
+                // We assume that the chunk is 1.8
+                this.tileEntityConverters = new io.gomint.server.world.anvil.tileentity.v1_8.TileEntities( this.world );
+        }
+    }
 
     /**
      * Loads a chunk section from its raw NBT data.
@@ -343,7 +363,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                         this.setData( i, y, k, blockData );
                     }
 
-                    switch ( blockId ) {
+                    /*switch ( blockId ) { // TODO: Fix this without using post processors
                         case 29:
                         case 33: // Piston head
                             BlockPosition position = new BlockPosition( ( this.x << 4 ) + i, y, ( this.z << 4 ) + k );
@@ -352,7 +372,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
                         default:
                             break;
-                    }
+                    }*/
                 }
             }
         }

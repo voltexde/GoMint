@@ -9,6 +9,7 @@ package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.MaterialMagicNumbers;
@@ -27,6 +28,16 @@ public abstract class TileEntity {
     @Getter protected Location location;
     private byte moveable;
     // CHECKSTYLE:ON
+
+    /**
+     * Construct new tile entity from position and world data
+     *
+     * @param location where the new tile should be located
+     */
+    TileEntity( Location location ) {
+        this.location = location;
+        this.moveable = 1;
+    }
 
     /**
      * Construct new TileEntity from TagCompound
