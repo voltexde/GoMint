@@ -152,8 +152,18 @@ public interface World {
     /**
      * Unload this world. All remaining players in this world get called through the consumer
      *
-     * @param playerConsumer which gets alled for every player in this world
+     * @param playerConsumer which gets called for every player in this world
      */
     void unload( Consumer<EntityPlayer> playerConsumer );
+
+    /**
+     * Iterate over all loaded chunks and find the blocks specified for the blockClass.
+     * This method is very expensive since it fully blocks the server until the search operation has
+     * been completed.
+     *
+     * @param blockClass for which we search
+     * @param blockConsumer which gets called for every found block
+     */
+    <T extends Block> void iterateBlocks( Class<T> blockClass, Consumer<T> blockConsumer );
 
 }

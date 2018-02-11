@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * @author BlackyPaw
@@ -271,6 +272,18 @@ public class ChunkCache {
                 this.world.saveChunk( chunkAdapter );
                 chunkAdapter.setLastSavedTimestamp( this.world.getServer().getCurrentTickTime() );
             }
+        }
+    }
+
+    public void iterateAll( Consumer<ChunkAdapter> chunkConsumer ) {
+        for ( long l : this.cachedChunks.keys() ) {
+            if ( l != 0 ) {
+                chunkConsumer.accept( this.cachedChunks.getChunk( l ) );
+            }
+        }
+
+        for ( ChunkAdapter chunkAdapter : this.concurrentCachedChunks.values() ) {
+            chunkConsumer.accept( chunkAdapter );
         }
     }
 

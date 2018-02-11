@@ -1214,4 +1214,31 @@ public abstract class WorldAdapter implements World {
         this.server.getWorldManager().unloadWorld( this );
     }
 
+    @Override
+    public <T extends Block> void iterateBlocks( Class<T> blockClass, Consumer<T> blockConsumer ) {
+        // Get the id of the block which we search
+        int blockId = Blocks.getID( blockClass );
+
+        // Iterate over all chunks
+        this.chunkCache.iterateAll( new Consumer<ChunkAdapter>() {
+            @Override
+            public void accept( ChunkAdapter chunkAdapter ) {
+                int chunkZ = chunkAdapter.getZ();
+                int chunkX = chunkAdapter.getX();
+
+                for ( int x = 0; x < 16; x++ ) {
+                    for ( int y = 0; y < 256; y++ ) {
+                        for ( int z = 0; z < 16; z++ ) {
+                            int currentBlockId = chunkAdapter.getBlock( x, y, z );
+                            if ( currentBlockId == blockId ) {
+                                T block = getBlockAt( ( chunkX << 4 ) + x, y, ( chunkZ << 4 ) + z );
+                                blockConsumer.accept( block );
+                            }
+                        }
+                    }
+                }
+            }
+        } );
+    }
+
 }

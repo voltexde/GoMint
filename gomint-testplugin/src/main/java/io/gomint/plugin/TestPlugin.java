@@ -12,12 +12,15 @@ import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerMoveListener;
+import io.gomint.world.World;
+import io.gomint.world.block.BlockChest;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -37,6 +40,9 @@ public class TestPlugin extends Plugin {
 
     @Override
     public void onInstall() {
+        // Load world skywars
+        World skywars = GoMint.instance().getWorld( "Skywars" );
+
         // Generate boss bar orb
         this.bossBarOrb = EntityXPOrb.create();
         this.bossBarOrb.setPickupDelay( 3650, TimeUnit.DAYS );
@@ -44,13 +50,13 @@ public class TestPlugin extends Plugin {
         this.bossBarOrb.setNameTagAlwaysVisible( false );
         this.bossBarOrb.setNameTagVisible( true );
         this.bossBarOrb.setNameTag( "GoMint Bossbar Test" );
-        this.bossBarOrb.spawn( new Location( GoMint.instance().getWorld( "Skywars" ), 0, -10, 0 ) );
+        this.bossBarOrb.spawn( new Location( skywars, 0, -10, 0 ) );
 
         // Spawn NPC
         EntityHuman npc = EntityHuman.create();
         npc.setSkin( PlayerSkin.fromURL( "http://puu.sh/yHz9d/1dee829ba6.png" ) );
         npc.setDisplayName( "Test" );
-        npc.spawn( new Location( GoMint.instance().getWorld( "Skywars" ), 5, 65, 2 ) );
+        npc.spawn( new Location( skywars, 5, 65, 2 ) );
 
         // Switch item in hand every second
         this.getScheduler().schedule( new Runnable() {
@@ -73,15 +79,23 @@ public class TestPlugin extends Plugin {
         floatingText.setScale( 0f );
         floatingText.setTicking( false );
         floatingText.setNameTag( "Test floating text" );
-        floatingText.spawn( new Location( GoMint.instance().getWorld( "Skywars" ), 5, 71, 2 ) );
+        floatingText.spawn( new Location( skywars, 5, 71, 2 ) );
 
         // Spawn villager
         EntityVillager villager = EntityVillager.create();
-        villager.spawn( new Location( GoMint.instance().getWorld( "Skywars" ), 3, 67, 2 ) );
+        villager.spawn( new Location( skywars, 3, 67, 2 ) );
 
         // Register listener
         registerListener( new PlayerMoveListener() );
         registerListener( new PlayerJoinListener( this ) );
+
+        // Test iteration for world "Skywars"
+        skywars.iterateBlocks( BlockChest.class, new Consumer<BlockChest>() {
+            @Override
+            public void accept( BlockChest blockChest ) {
+                getLogger().info( "Found chest @ {}", blockChest.getLocation() );
+            }
+        } );
     }
 
     @Override
