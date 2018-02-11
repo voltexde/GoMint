@@ -99,6 +99,7 @@ public interface World {
      * @param sound    The sound which should be played
      * @param pitch    The pitch at which the sound should be played
      * @param data     additional data for the sound
+     * @throws IllegalArgumentException when the sound data given is incorrect for the sound wanted to play
      */
     void playSound( Vector location, Sound sound, byte pitch, SoundData data );
 
@@ -118,6 +119,16 @@ public interface World {
      * @param particle which should be send
      */
     void sendParticle( Vector location, Particle particle );
+
+    /**
+     * Send a particle to this world
+     *
+     * @param location of the particle in the client
+     * @param particle which should be send
+     * @param data     data with which this particle should be send
+     * @throws IllegalArgumentException when the particle data is incorrect for the particle which should be send
+     */
+    void sendParticle( Vector location, Particle particle, ParticleData data );
 
     /**
      * Get a list of bounding boxes which collide with the given box

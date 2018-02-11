@@ -11,17 +11,11 @@ import io.gomint.entity.passive.EntityHuman;
 import io.gomint.gui.Form;
 import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
-import io.gomint.inventory.PlayerInventory;
 import io.gomint.math.Vector;
 import io.gomint.permission.PermissionManager;
-import io.gomint.player.PlayerSkin;
-import io.gomint.world.Gamemode;
-import io.gomint.world.Particle;
-import io.gomint.world.Sound;
-import io.gomint.world.SoundData;
+import io.gomint.world.*;
 
 import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -238,6 +232,15 @@ public interface EntityPlayer extends EntityHuman {
      * @param particle which should be send
      */
     void sendParticle( Vector location, Particle particle );
+
+    /**
+     * Send a particle to this player
+     *
+     * @param location of the particle in the client
+     * @param particle which should be send
+     * @param data     which should be used to construct additional data needed to display the particle
+     */
+    void sendParticle( Vector location, Particle particle, ParticleData data );
 
     /**
      * Allow flying for the client

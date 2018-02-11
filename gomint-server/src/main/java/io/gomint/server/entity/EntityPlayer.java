@@ -39,10 +39,7 @@ import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
-import io.gomint.world.Gamemode;
-import io.gomint.world.Particle;
-import io.gomint.world.Sound;
-import io.gomint.world.SoundData;
+import io.gomint.world.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -74,7 +71,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
 
     // EntityPlayer Information
-    private Gamemode gamemode = Gamemode.SURVIVAL;
+    private Gamemode gamemode = Gamemode.CREATIVE;
     @Getter
     private AdventureSettings adventureSettings;
     @Getter
@@ -1221,6 +1218,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public void sendParticle( Vector location, Particle particle ) {
         this.world.sendParticle( this, location, particle, 0 );
+    }
+
+    @Override
+    public void sendParticle( Vector location, Particle particle, ParticleData data ) {
+        this.world.sendParticle( this, location, particle, data );
     }
 
     @Override

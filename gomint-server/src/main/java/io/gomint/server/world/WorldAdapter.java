@@ -147,6 +147,7 @@ public abstract class WorldAdapter implements World {
      * @param sound  The sound which should be played
      * @param pitch  The pitch at which the sound should be played
      * @param data   additional data for the sound
+     * @throws IllegalArgumentException when the sound data given is incorrect for the sound wanted to play
      */
     public void playSound( EntityPlayer player, Vector vector, Sound sound, byte pitch, SoundData data ) {
         int soundData = -1;
@@ -158,7 +159,7 @@ public abstract class WorldAdapter implements World {
             case HIT:
                 // Need a block
                 if ( data.getBlock() == null ) {
-                    throw new IllegalStateException( "Sound " + sound + " needs block sound data" );
+                    throw new IllegalArgumentException( "Sound " + sound + " needs block sound data" );
                 }
 
                 soundData = Blocks.getID( data.getBlock() );
@@ -168,7 +169,7 @@ public abstract class WorldAdapter implements World {
             case NOTE:
                 // Check if needed data is there
                 if ( data.getInstrument() == null ) {
-                    throw new IllegalStateException( "Sound NOTE needs instrument sound data" );
+                    throw new IllegalArgumentException( "Sound NOTE needs instrument sound data" );
                 }
 
                 switch ( data.getInstrument() ) {
@@ -1161,6 +1162,29 @@ public abstract class WorldAdapter implements World {
     public void sendParticle( EntityPlayer player, Vector location, Particle particle, int data ) {
         int eventId = LevelEvent.ADD_PARTICLE_MASK | EnumConnectors.PARTICLE_CONNECTOR.convert( particle ).getId();
         sendLevelEvent( player, location, eventId, data );
+    }
+
+    @Override
+    public void sendParticle( Vector location, Particle particle, ParticleData data ) {
+        this.sendParticle( null, location, particle, data );
+    }
+
+    public void sendParticle( EntityPlayer player, Vector location, Particle particle, ParticleData data ) {
+        int dataNumber = 0;
+
+        switch ( particle ) {
+            case FALLING_DUST:
+                if ( data.getRed() == -1 || data.getBlue() == -1 || data.getGreen() == -1 || data.getAlpha() == -1 ) {
+                    throw new IllegalArgumentException( "Particle data does not reflect color for particle " + particle );
+                }
+
+                dataNumber = ( ( data.getAlpha() & 0xff ) << 24 ) |
+                    ( ( data.getRed() & 0xff ) << 16 ) |
+                    ( ( data.getGreen() & 0xff ) << 8 ) |
+                    ( data.getBlue() & 0xff );
+        }
+
+        this.sendParticle( player, location, particle, dataNumber );
     }
 
     public void createExpOrb( Location location, int amount ) {
