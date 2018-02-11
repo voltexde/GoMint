@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.projectile;
 
+import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
@@ -15,16 +16,12 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.WorldAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public class EntityFishingHook extends EntityProjectile implements io.gomint.entity.projectile.EntityFishingHook {
-
-    private static final Vector WATER_FLOATING_MOTION = new Vector( 0, 0.1f, 0 );
+public class EntityEnderpearl extends EntityProjectile implements io.gomint.entity.projectile.EntityEnderpearl {
 
     private float lastUpdatedT;
 
@@ -34,8 +31,13 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
      * @param player which spawned this hook
      * @param world  The world in which this entity is in
      */
-    public EntityFishingHook( EntityPlayer player, WorldAdapter world ) {
-        super( player, EntityType.FISHING_HOOK, world );
+    public EntityEnderpearl( EntityPlayer player, WorldAdapter world ) {
+        super( player, EntityType.THROWN_ENDERPEARL, world );
+
+        // Gravity
+        GRAVITY = 0.03f;
+        DRAG = 0.01f;
+
         this.setSize( 0.25f, 0.25f );
 
         // Calculate starting position
@@ -54,18 +56,8 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
         motion.setZ( (float) ( ( ( motion.getZ() / distanceTravel ) + ( FastRandom.current().nextDouble() * 0.0075f ) ) * 1.5f ) );
         this.setVelocity( motion );
 
-        // Set owning entity (this draws the rod line)
+        // Set owning entity
         this.metadataContainer.putLong( 5, player.getEntityId() );
-    }
-
-    /**
-     * Retract the hook to the origin
-     *
-     * @return damage which should be dealt to the item stack
-     */
-    public int retract() {
-        this.despawn();
-        return 2;
     }
 
     @Override
@@ -82,22 +74,31 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
 
-        if ( this.shooter.isDead() ) {
+        // Ender pearls which hit are gone
+        if ( this.hitEntity != null ) {
+            // Teleport
+            this.teleportShooter();
             this.despawn();
         }
 
         this.lastUpdatedT += dT;
         if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
-            if ( this.isCollided && this.isInsideLiquid() ) {
-                if ( !this.getVelocity().equals( WATER_FLOATING_MOTION ) ) {
-                    this.setVelocity( WATER_FLOATING_MOTION );
-                }
-            } else if ( this.isCollided ) {
-                if ( !this.getVelocity().equals( Vector.ZERO ) ) {
-                    this.setVelocity( Vector.ZERO );
-                }
+            if ( this.isCollided ) {
+                // Teleport
+                this.teleportShooter();
+                this.despawn();
+            }
+
+            // Despawn after 1200 ticks ( 1 minute )
+            if ( this.age >= 1200 ) {
+                this.despawn();
             }
         }
+    }
+
+    private void teleportShooter() {
+        this.shooter.attack( 5.0f, EntityDamageEvent.DamageSource.FALL );
+        this.shooter.teleport( this.getLocation() );
     }
 
 }

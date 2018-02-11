@@ -211,6 +211,11 @@ public enum EntityType {
     THROWN_POTION( 0x000056 ),
 
     /**
+     * Entity type value for a thrown enderpearl
+     */
+    THROWN_ENDERPEARL( 87 ),
+
+    /**
      * Entity Type value for a rideable boat.
      */
     BOAT_RIDEABLE( 0x00005A ),
