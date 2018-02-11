@@ -94,9 +94,11 @@ public enum TileEntities {
     /**
      * Data for a dispenser
      */
-    DISPENSER( "Dispenser", DispenserTileEntity.class );
+    DISPENSER( "Dispenser", DispenserTileEntity.class ),
 
     // DROPPER( "Dropper", )
+
+    END_PORTAL( "EndPortal", EndPortalTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;
@@ -146,7 +148,7 @@ public enum TileEntities {
             }
         }
 
-        LOGGER.warn( "Unknown tile entity found: {}", id );
+        LOGGER.warn( "Unknown tile entity found: {} -> {}", id, compound );
         return null;
     }
 

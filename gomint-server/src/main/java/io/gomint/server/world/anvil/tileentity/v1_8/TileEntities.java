@@ -29,6 +29,7 @@ public class TileEntities implements TileEntityConverters {
     private FlowerPotConverter flowerPotConverter;
     private EnchantTableConverter enchantTableConverter;
     private DispenserConverter dispenserConverter;
+    private EndPortalConverter endPortalConverter;
 
     /**
      * Construct 1.8 converter for the given world
@@ -42,12 +43,15 @@ public class TileEntities implements TileEntityConverters {
         this.flowerPotConverter = new FlowerPotConverter( worldAdapter );
         this.enchantTableConverter = new EnchantTableConverter( worldAdapter );
         this.dispenserConverter = new DispenserConverter( worldAdapter );
+        this.endPortalConverter = new EndPortalConverter( worldAdapter );
     }
 
     @Override
     public TileEntity read( NBTTagCompound compound ) {
         String id = compound.getString( "id", "" );
         switch ( id ) {
+            case "AirPortal":
+                return this.endPortalConverter.readFrom( compound );
             case "Trap":
                 return this.dispenserConverter.readFrom( compound );
             case "EnchantTable":
@@ -86,6 +90,9 @@ public class TileEntities implements TileEntityConverters {
             return compound;
         } else if ( tileEntity instanceof DispenserTileEntity ) {
             this.dispenserConverter.writeTo( (DispenserTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof EndPortalTileEntity ) {
+            this.endPortalConverter.writeTo( (EndPortalTileEntity) tileEntity, compound );
             return compound;
         }
 

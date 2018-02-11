@@ -16,9 +16,9 @@ import io.gomint.server.world.anvil.tileentity.TileEntityConverter;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
+ * @param <T> type of tile entity which this converter should generate
  * @author geNAZt
  * @version 1.0
- * @param <T> type of tile entity which this converter should generate
  */
 public abstract class BasisConverter<T> extends TileEntityConverter<T> {
 
@@ -66,7 +66,12 @@ public abstract class BasisConverter<T> extends TileEntityConverter<T> {
      */
     protected ItemStack getItemStack( NBTTagCompound compound ) {
         // Check for correct ids
-        int material = MaterialMagicNumbers.valueOfWithId( compound.getString( "id", "minecraft:air" ) );
+        int material = 0;
+        try {
+            material = MaterialMagicNumbers.valueOfWithId( compound.getString( "id", "minecraft:air" ) );
+        } catch ( ClassCastException e ) {
+            material = compound.getShort( "id", (short) 0 );
+        }
 
         // Skip non existent items for PE
         if ( material == 0 ) {
@@ -83,7 +88,7 @@ public abstract class BasisConverter<T> extends TileEntityConverter<T> {
      * Write the item stack to a compound
      *
      * @param itemStack which should be written
-     * @param compound to write to
+     * @param compound  to write to
      */
     protected void writeItemStack( ItemStack itemStack, NBTTagCompound compound ) {
         compound.addValue( "id", MaterialMagicNumbers.newIdFromValue( itemStack.getMaterial() ) );
