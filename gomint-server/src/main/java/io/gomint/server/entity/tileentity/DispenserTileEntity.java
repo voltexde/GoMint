@@ -41,10 +41,12 @@ public class DispenserTileEntity extends TileEntity implements InventoryHolder {
         super( location );
         this.inventory = new DispenserInventory( this );
 
-        for ( int i = 0; i < items.length; i++ ) {
-            ItemStack itemStack = items[i];
-            if ( itemStack != null ) {
-                this.inventory.setItem( i, itemStack );
+        if ( items != null ) {
+            for ( int i = 0; i < items.length; i++ ) {
+                ItemStack itemStack = items[i];
+                if ( itemStack != null ) {
+                    this.inventory.setItem( i, itemStack );
+                }
             }
         }
     }

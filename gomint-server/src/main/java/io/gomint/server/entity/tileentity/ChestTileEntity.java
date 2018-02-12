@@ -42,10 +42,12 @@ public class ChestTileEntity extends ContainerTileEntity implements InventoryHol
         super( location );
         this.inventory = new ChestInventory( this );
 
-        for ( int i = 0; i < items.length; i++ ) {
-            ItemStack itemStack = items[i];
-            if ( itemStack != null ) {
-                this.inventory.setItem( i, itemStack );
+        if ( items != null ) {
+            for ( int i = 0; i < items.length; i++ ) {
+                ItemStack itemStack = items[i];
+                if ( itemStack != null ) {
+                    this.inventory.setItem( i, itemStack );
+                }
             }
         }
     }

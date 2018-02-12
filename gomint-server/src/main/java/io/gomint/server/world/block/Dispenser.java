@@ -1,5 +1,8 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.tileentity.DispenserTileEntity;
+import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.registry.RegisterInfo;
@@ -34,6 +37,16 @@ public class Dispenser extends Block implements io.gomint.world.block.BlockDispe
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public boolean needsTileEntity() {
+        return true;
+    }
+
+    @Override
+    TileEntity createTileEntity( NBTTagCompound compound ) {
+        return new DispenserTileEntity( null, this.location );
     }
 
 }

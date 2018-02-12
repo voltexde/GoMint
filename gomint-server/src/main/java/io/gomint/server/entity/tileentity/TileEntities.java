@@ -98,6 +98,14 @@ public enum TileEntities {
 
     // DROPPER( "Dropper", )
 
+    /**
+     * Data for beacon
+     */
+    BEACON( "Beacon", BeaconTileEntity.class ),
+
+    /**
+     * Data for end portals
+     */
     END_PORTAL( "EndPortal", EndPortalTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );

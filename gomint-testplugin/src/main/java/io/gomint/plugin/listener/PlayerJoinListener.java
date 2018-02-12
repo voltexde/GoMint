@@ -1,6 +1,7 @@
 package io.gomint.plugin.listener;
 
 import io.gomint.entity.passive.EntityItemDrop;
+import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
@@ -47,6 +48,10 @@ public class PlayerJoinListener implements EventListener {
         log.setLogDirection( ItemLog.Direction.BARK );
         event.getPlayer().getInventory().setItem( 5, log );
 
+        event.getPlayer().getInventory().setItem( 2, ItemBlockOfIron.create( 16 ) );
+        event.getPlayer().getInventory().setItem( 3, ItemBeacon.create( 1 ) );
+
+        event.getPlayer().addEffect( PotionEffect.MINING_FATIGUE, 1, 60, TimeUnit.MINUTES );
         event.getPlayer().setLevel( 67 );
 
         CustomForm settings = CustomForm.create( "GoMint" );

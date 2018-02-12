@@ -1,6 +1,7 @@
 package io.gomint.server.world.block;
 
 import io.gomint.enchant.EnchantmentAquaAffinity;
+import io.gomint.enchant.EnchantmentEfficiency;
 import io.gomint.entity.potion.PotionEffect;
 import io.gomint.inventory.item.ItemReduceBreaktime;
 import io.gomint.inventory.item.ItemStack;
@@ -446,41 +447,44 @@ public abstract class Block implements io.gomint.world.block.Block {
      */
     public long getFinalBreakTime( ItemStack item, EntityPlayer player ) {
         // Get basis break time ( breaking with right tool )
-        double base = getBreakTime();
+        float base = ( getBreakTime() / 1500F );
+        float toolStrength = 1.0F;
 
         // Instant break
-        if ( base == 0 ) {
+        if ( base <= 0 ) {
             return 0;
         }
 
+        // Check if we need a tool
         boolean foundInterface = false;
 
         Class<? extends ItemStack>[] interfacez = getToolInterfaces();
         if ( interfacez != null ) {
             for ( Class<? extends ItemStack> aClass : interfacez ) {
                 if ( aClass.isAssignableFrom( item.getClass() ) ) {
-                    double divisor = ( (ItemReduceBreaktime) item ).getDivisor();
-                    base = (long) ( base / divisor );
+                    toolStrength = ( (ItemReduceBreaktime) item ).getDivisor();
                     foundInterface = true;
                 }
             }
         }
 
-        if ( !foundInterface ) {
-            if ( !canBeBrokenWithHand() ) {
-                base *= 3.33;
-            }
+        // Sword special case
+        if ( item instanceof ItemSword ) {
+            toolStrength = 1.5F;
+        }
 
-            // Check if item is sword
-            if ( item instanceof ItemSword ) {
-                base *= 0.675;
+        // Check for efficiency
+        if ( toolStrength > 1.0F ) {
+            EnchantmentEfficiency enchantment = item.getEnchantment( EnchantmentEfficiency.class );
+            if ( enchantment != null && enchantment.getLevel() > 0 ) {
+                toolStrength += ( enchantment.getLevel() * enchantment.getLevel() + 1 );
             }
         }
 
         // Haste effect
         int hasteAmplifier = player.getEffectAmplifier( PotionEffect.HASTE );
         if ( hasteAmplifier != -1 ) {
-            base *= 1f + ( hasteAmplifier + 1 ) * 0.2f;
+            toolStrength *= 1F + ( hasteAmplifier + 1 ) * 0.2F;
         }
 
         // Mining fatigue effect
@@ -488,35 +492,44 @@ public abstract class Block implements io.gomint.world.block.Block {
         if ( miningFatigueAmplifier != -1 ) {
             switch ( miningFatigueAmplifier ) {
                 case 0:
-                    base *= 0.3f;
+                    toolStrength *= 0.3F;
                     break;
 
                 case 1:
-                    base *= 0.09f;
+                    toolStrength *= 0.09F;
                     break;
 
                 case 2:
-                    base *= 0.0027F;
+                    toolStrength *= 0.0027F;
                     break;
 
                 case 3:
                 default:
-                    base *= 8.1E-4F;
+                    toolStrength *= 8.1E-4F;
                     break;
             }
         }
 
         // When in water
         if ( player.isInsideLiquid() && player.getArmorInventory().getHelmet().getEnchantment( EnchantmentAquaAffinity.class ) == null ) {
-            base *= 5.0f;
+            toolStrength /= 5.0F;
         }
 
         // When not onground
         if ( !player.isOnGround() ) {
-            base *= 5.0f;
+            toolStrength /= 5.0F;
         }
 
-        return (long) base;
+        // Can't be broken
+        double result;
+        if ( !foundInterface && !canBeBrokenWithHand() ) {
+            result = toolStrength / base / 100F;
+        } else {
+            result = toolStrength / base / 30F;
+        }
+
+
+        return (long) ( ( 1 / result ) * 100 );
     }
 
     public Class<? extends ItemStack>[] getToolInterfaces() {

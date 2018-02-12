@@ -142,8 +142,8 @@ public class BedTileEntity extends TileEntity {
             case RED:
                 color = 14;
                 break;
-            default:
             case BLACK:
+            default:
                 color = 15;
         }
 

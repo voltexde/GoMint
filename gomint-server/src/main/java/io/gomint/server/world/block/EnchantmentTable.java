@@ -57,8 +57,7 @@ public class EnchantmentTable extends Block implements io.gomint.world.block.Blo
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        super.createTileEntity( compound );
-        return new EnchantTableTileEntity( compound, this.world );
+        return new EnchantTableTileEntity( this.location );
     }
 
     @Override
