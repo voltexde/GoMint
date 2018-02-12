@@ -740,7 +740,7 @@ public class PlayerConnection {
         packet.setGamemode( EnumConnectors.GAMEMODE_CONNECTOR.convert( this.entity.getGamemode() ).getMagicNumber() );
         packet.setSpawn( world.getSpawnLocation().add( 0, 1.62f, 0 ) );
         packet.setX( (int) world.getSpawnLocation().getX() );
-        packet.setY( (int) ( world.getSpawnLocation().getY() + 1.62 ) );
+        packet.setY( (int) ( world.getSpawnLocation().getY() + this.entity.getOffsetY() ) );
         packet.setZ( (int) world.getSpawnLocation().getZ() );
         packet.setWorldGamemode( 0 );
         packet.setDimension( 0 );

@@ -490,22 +490,23 @@ public abstract class Block implements io.gomint.world.block.Block {
         // Mining fatigue effect
         int miningFatigueAmplifier = player.getEffectAmplifier( PotionEffect.MINING_FATIGUE );
         if ( miningFatigueAmplifier != -1 ) {
+            // Note this is 50% slower as in the PC edition (after some testing)
             switch ( miningFatigueAmplifier ) {
                 case 0:
-                    toolStrength *= 0.3F;
+                    toolStrength *= 0.15f;
                     break;
 
                 case 1:
-                    toolStrength *= 0.09F;
+                    toolStrength *= 0.045f;
                     break;
 
                 case 2:
-                    toolStrength *= 0.0027F;
+                    toolStrength *= 0.000135f;
                     break;
 
                 case 3:
                 default:
-                    toolStrength *= 8.1E-4F;
+                    toolStrength *= 4.05E-4f;
                     break;
             }
         }
@@ -521,15 +522,14 @@ public abstract class Block implements io.gomint.world.block.Block {
         }
 
         // Can't be broken
-        double result;
+        float result;
         if ( !foundInterface && !canBeBrokenWithHand() ) {
             result = toolStrength / base / 100F;
         } else {
             result = toolStrength / base / 30F;
         }
 
-
-        return (long) ( ( 1 / result ) * 100 );
+        return (long) ( ( 1F / result ) * 50F );
     }
 
     public Class<? extends ItemStack>[] getToolInterfaces() {

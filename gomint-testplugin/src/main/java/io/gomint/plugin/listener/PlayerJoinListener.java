@@ -51,7 +51,7 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 2, ItemBlockOfIron.create( 16 ) );
         event.getPlayer().getInventory().setItem( 3, ItemBeacon.create( 1 ) );
 
-        event.getPlayer().addEffect( PotionEffect.MINING_FATIGUE, 1, 60, TimeUnit.MINUTES );
+        event.getPlayer().addEffect( PotionEffect.MINING_FATIGUE, 1, 60, TimeUnit.SECONDS );
         event.getPlayer().setLevel( 67 );
 
         CustomForm settings = CustomForm.create( "GoMint" );

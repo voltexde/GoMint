@@ -436,7 +436,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     protected abstract void fall();
 
-    void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
+    protected void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
         // Check if we collided with something
         this.isCollidedVertically = movY != dY;
         this.isCollidedHorizontally = ( movX != dX || movZ != dZ );

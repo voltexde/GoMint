@@ -7,10 +7,8 @@
 
 package io.gomint.server.entity;
 
-import com.koloboke.collect.IntCursor;
 import com.koloboke.collect.ObjCursor;
 import com.koloboke.collect.map.ByteObjCursor;
-import com.koloboke.collect.map.IntObjCursor;
 import io.gomint.enchant.EnchantmentKnockback;
 import io.gomint.enchant.EnchantmentSharpness;
 import io.gomint.entity.ChatType;
@@ -34,7 +32,10 @@ import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.util.EnumConnectors;
-import io.gomint.server.util.collection.*;
+import io.gomint.server.util.collection.ContainerIDMap;
+import io.gomint.server.util.collection.ContainerObjectMap;
+import io.gomint.server.util.collection.FormIDMap;
+import io.gomint.server.util.collection.FormListenerIDMap;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
@@ -104,11 +105,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Inventory craftingResultInventory;
 
     // Enchantment table
-    @Setter @Getter
+    @Setter
+    @Getter
     private EnchantmentTableInventory enchantmentInputInventory;
     @Getter
     private Inventory enchantmentOutputInventory;
-    @Setter @Getter
+    @Setter
+    @Getter
     private EnchantmentProcessor enchantmentProcessor;
 
     // Block break data
@@ -300,7 +303,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         EntityPlayer other = (EntityPlayer) player;
 
         if ( this.hiddenPlayers == null ) {
-            this.hiddenPlayers = new HashSet<>(  );
+            this.hiddenPlayers = new HashSet<>();
         }
 
         this.hiddenPlayers.add( other.getEntityId() );
@@ -839,7 +842,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    float applyArmorReduction( EntityDamageEvent damageEvent ) {
+    protected float applyArmorReduction( EntityDamageEvent damageEvent ) {
         if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FALL ||
             damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.VOID ||
             damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.DROWNING ) {
@@ -1003,7 +1006,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
+    protected void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
         // Check if we are not on ground or we moved on y axis
         if ( !this.onGround || movY != 0 ) {
             AxisAlignedBB bb = this.boundingBox.grow( 0, 0.2f, 0 );

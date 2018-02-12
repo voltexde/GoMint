@@ -410,7 +410,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         return true;
     }
 
-    float applyEffectReduction( EntityDamageEvent damageEvent, float damage ) {
+    protected float applyEffectReduction( EntityDamageEvent damageEvent, float damage ) {
         // Starve is absolute damage
         if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.STARVE ) {
             return damage;
@@ -446,7 +446,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
      * @param damageEvent which wants to deal damage
      * @return damage left over after removing armor reductions
      */
-    float applyArmorReduction( EntityDamageEvent damageEvent ) {
+    protected float applyArmorReduction( EntityDamageEvent damageEvent ) {
         return damageEvent.getDamage();
     }
 
