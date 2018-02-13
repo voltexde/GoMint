@@ -35,7 +35,12 @@ public class FlowerPotConverter extends BasisConverter<FlowerPotTileEntity> {
         Location position = getPosition( compound );
 
         // Read the item inside the pot
-        int material = MaterialMagicNumbers.valueOfWithId( compound.getString( "Item", "minecraft:air" ) );
+        int material;
+        try {
+            material = MaterialMagicNumbers.valueOfWithId( compound.getString( "Item", "minecraft:air" ) );
+        } catch ( ClassCastException e ) {
+            material = compound.getInteger( "Item", 0 );
+        }
 
         // Skip non existent items for PE
         if ( material == 0 ) {
