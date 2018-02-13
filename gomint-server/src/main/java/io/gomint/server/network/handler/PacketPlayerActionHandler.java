@@ -45,7 +45,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                             io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( packet.getPosition() );
 
                             long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand(), connection.getEntity() );
-                            LOGGER.debug( "Sending break time: " + breakTime );
+                            LOGGER.info( "Sending break time: {}", breakTime );
 
                             // Tell the client which break time we want
                             if ( breakTime > 0 ) {

@@ -11,6 +11,8 @@ import io.gomint.server.network.packet.PacketCommandOutput;
 import io.gomint.server.network.packet.PacketCommandRequest;
 import io.gomint.server.network.type.CommandOrigin;
 import io.gomint.server.network.type.OutputMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -32,7 +34,7 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
         String[] commandParts = removedFirstChar.split( " " );
         int consumed = 0;
 
-        StringBuilder commandName = new StringBuilder( commandParts[consumed++] );
+        StringBuilder commandName = new StringBuilder( commandParts[consumed] );
 
         CommandHolder selected = null;
         while ( selected == null ) {
@@ -43,8 +45,9 @@ public class PacketCommandRequestHandler implements PacketHandler<PacketCommandR
                 }
             }
 
+            consumed++;
             if ( selected == null ) {
-                if ( commandParts.length == consumed++ ) {
+                if ( commandParts.length == consumed ) {
                     break;
                 }
 

@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  */
 @RequiredArgsConstructor
-@EqualsAndHashCode( callSuper = false, of = { "x", "z" } )
+@EqualsAndHashCode( callSuper = false, of = { "world", "x", "z" } )
 public class ChunkAdapter implements Chunk {
 
     // CHECKSTYLE:OFF

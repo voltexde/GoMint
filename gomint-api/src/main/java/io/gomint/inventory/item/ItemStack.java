@@ -112,4 +112,11 @@ public interface ItemStack {
      */
     <T extends Enchantment> T getEnchantment( Class<? extends Enchantment> clazz );
 
+    /**
+     * Remove a enchantment from this item stack
+     *
+     * @param clazz of the enchantment
+     */
+    void removeEnchantment( Class<? extends Enchantment> clazz );
+
 }

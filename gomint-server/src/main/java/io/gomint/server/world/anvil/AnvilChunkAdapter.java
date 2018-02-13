@@ -15,7 +15,6 @@ import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.anvil.tileentity.TileEntityConverters;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTTagCompound;
-import lombok.EqualsAndHashCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,6 @@ import java.util.List;
  * @author BlackyPaw
  * @version 1.0
  */
-@EqualsAndHashCode( callSuper = true )
 public class AnvilChunkAdapter extends ChunkAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( AnvilChunkAdapter.class );
@@ -377,6 +375,16 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        return super.equals( o );
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
 }

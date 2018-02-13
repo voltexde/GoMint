@@ -41,7 +41,7 @@ public class TestPlugin extends Plugin {
     @Override
     public void onInstall() {
         // Load world skywars
-        World skywars = GoMint.instance().getWorld( "Skywars" );
+        /*World skywars = GoMint.instance().getWorld( "Skywars" );
 
         // Generate boss bar orb
         this.bossBarOrb = EntityXPOrb.create();
@@ -83,19 +83,19 @@ public class TestPlugin extends Plugin {
 
         // Spawn villager
         EntityVillager villager = EntityVillager.create();
-        villager.spawn( new Location( skywars, 3, 67, 2 ) );
+        villager.spawn( new Location( skywars, 3, 67, 2 ) );*/
 
         // Register listener
         registerListener( new PlayerMoveListener() );
         registerListener( new PlayerJoinListener( this ) );
 
         // Test iteration for world "Skywars"
-        skywars.iterateBlocks( BlockChest.class, new Consumer<BlockChest>() {
+        /*skywars.iterateBlocks( BlockChest.class, new Consumer<BlockChest>() {
             @Override
             public void accept( BlockChest blockChest ) {
                 getLogger().info( "Found chest @ {}", blockChest.getLocation() );
             }
-        } );
+        } );*/
     }
 
     @Override

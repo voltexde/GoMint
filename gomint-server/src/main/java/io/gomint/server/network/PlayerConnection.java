@@ -82,6 +82,7 @@ public class PlayerConnection {
         PACKET_HANDLERS[Protocol.PACKET_ENTITY_EVENT & 0xff] = new PacketEntityEventHandler();
         PACKET_HANDLERS[Protocol.PACKET_MODAL_RESPONSE & 0xFF] = new PacketModalResponseHandler();
         PACKET_HANDLERS[Protocol.PACKET_SERVER_SETTINGS_REQUEST & 0xFF] = new PacketServerSettingsRequestHandler();
+        PACKET_HANDLERS[Protocol.PACKET_ENTITY_FALL & 0xFF] = new PacketEntityFallHandler();
     }
 
     // Network manager that created this connection:
@@ -380,7 +381,10 @@ public class PlayerConnection {
             return;
         }
 
-        this.playerChunks.add( chunkHash );
+        if ( !this.playerChunks.add( chunkHash ) ) {
+            return;
+        }
+
         this.addToSendQueue( chunkData );
         this.entity.getEntityVisibilityManager().updateAddedChunk( chunkAdapter );
 

@@ -81,9 +81,7 @@ public class ChunkCache {
 
             for ( Map.Entry<Long, ChunkAdapter> entry : this.concurrentCachedChunks.entrySet() ) {
                 copied.add( entry.getKey() );
-                synchronized ( this ) {
-                    this.cachedChunks.storeChunk( entry.getKey(), entry.getValue() );
-                }
+                this.cachedChunks.storeChunk( entry.getKey(), entry.getValue() );
             }
 
             copied.cursor().forEachForward( this.concurrentCachedChunks::remove );
@@ -95,61 +93,59 @@ public class ChunkCache {
 
         int spawnAreaSize = this.world.getConfig().getAmountOfChunksForSpawnArea();
 
-        synchronized ( this ) {
-            // Copy over the current loaded chunk hashes
-            ChunkHashSet toRemoveHashes = null;
-            long[] keys = this.cachedChunks.keys();
+        // Copy over the current loaded chunk hashes
+        ChunkHashSet toRemoveHashes = null;
+        long[] keys = this.cachedChunks.keys();
 
-            for ( long chunkHash : keys ) {
-                ChunkAdapter chunk = this.cachedChunks.getChunk( chunkHash );
-                if ( chunk == null ) {
-                    continue;
-                }
-
-                // Check if we need to save
-                if ( this.isAutosaveEnabled() && this.autoSaveInterval > 0 && currentTimeMS - chunk.getLastSavedTimestamp() >= this.autoSaveInterval ) {
-                    chunk.setLastSavedTimestamp( currentTimeMS );
-                    this.world.saveChunkAsynchronously( chunk );
-                }
-
-                this.currentX = (int) ( chunkHash >> 32 );
-                this.currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
-
-                // Check if this is part of the spawn
-                if ( spawnAreaSize > 0 ) {
-                    if ( this.currentX >= spawnXChunk - spawnAreaSize && this.currentX <= spawnXChunk + spawnAreaSize &&
-                        this.currentZ >= spawnZChunk - spawnAreaSize && this.currentZ <= spawnZChunk + spawnAreaSize ) {
-                        continue;
-                    }
-                }
-
-                // Ask this chunk if he wants to be gced
-                if ( !chunk.canBeGCed( currentTimeMS ) ) {
-                    continue;
-                }
-
-                // Calculate the hashes which are used by players view distances
-                this.world.getPlayers0().forEach( this.viewDistanceConsumer );
-                if ( skip.get() ) {
-                    skip.set( false );
-                    continue;
-                }
-
-                LOGGER.debug( "Cleaning up chunk @ " + this.currentX + " " + this.currentZ );
-
-                // Ask this chunk if he wants to be gced
-                if ( toRemoveHashes == null ) {
-                    toRemoveHashes = ChunkHashSet.withExpectedSize( 10 );
-                }
-
-                toRemoveHashes.add( chunkHash );
+        for ( long chunkHash : keys ) {
+            ChunkAdapter chunk = this.cachedChunks.getChunk( chunkHash );
+            if ( chunk == null ) {
+                continue;
             }
 
-            if ( toRemoveHashes != null ) {
-                LongCursor toRemoveCursor = toRemoveHashes.cursor();
-                while ( toRemoveCursor.moveNext() ) {
-                    this.cachedChunks.removeChunk( toRemoveCursor.elem() );
+            // Check if we need to save
+            if ( this.isAutosaveEnabled() && this.autoSaveInterval > 0 && currentTimeMS - chunk.getLastSavedTimestamp() >= this.autoSaveInterval ) {
+                chunk.setLastSavedTimestamp( currentTimeMS );
+                this.world.saveChunkAsynchronously( chunk );
+            }
+
+            this.currentX = (int) ( chunkHash >> 32 );
+            this.currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
+
+            // Check if this is part of the spawn
+            if ( spawnAreaSize > 0 ) {
+                if ( this.currentX >= spawnXChunk - spawnAreaSize && this.currentX <= spawnXChunk + spawnAreaSize &&
+                    this.currentZ >= spawnZChunk - spawnAreaSize && this.currentZ <= spawnZChunk + spawnAreaSize ) {
+                    continue;
                 }
+            }
+
+            // Ask this chunk if he wants to be gced
+            if ( !chunk.canBeGCed( currentTimeMS ) ) {
+                continue;
+            }
+
+            // Calculate the hashes which are used by players view distances
+            this.world.getPlayers0().forEach( this.viewDistanceConsumer );
+            if ( skip.get() ) {
+                skip.set( false );
+                continue;
+            }
+
+            LOGGER.debug( "Cleaning up chunk @ " + this.currentX + " " + this.currentZ );
+
+            // Ask this chunk if he wants to be gced
+            if ( toRemoveHashes == null ) {
+                toRemoveHashes = ChunkHashSet.withExpectedSize( 10 );
+            }
+
+            toRemoveHashes.add( chunkHash );
+        }
+
+        if ( toRemoveHashes != null ) {
+            LongCursor toRemoveCursor = toRemoveHashes.cursor();
+            while ( toRemoveCursor.moveNext() ) {
+                this.cachedChunks.removeChunk( toRemoveCursor.elem() );
             }
         }
     }

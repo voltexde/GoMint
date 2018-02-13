@@ -597,11 +597,7 @@ public abstract class WorldAdapter implements World {
      * @param sync   Force sync chunk loading
      */
     public void sendChunk( int x, int z, io.gomint.server.entity.EntityPlayer player, boolean sync ) {
-        Delegate2<Long, ChunkAdapter> sendDelegate = ( chunkHash, chunk ) -> {
-            if ( !player.getChunkSendQueue().contains( chunk ) ) {
-                player.getChunkSendQueue().offer( chunk );
-            }
-        };
+        Delegate2<Long, ChunkAdapter> sendDelegate = ( chunkHash, chunk ) -> player.getChunkSendQueue().offer( chunk );
 
         if ( !sync ) {
             this.getOrLoadChunk( x, z, true, chunk -> chunk.packageChunk( sendDelegate ) );

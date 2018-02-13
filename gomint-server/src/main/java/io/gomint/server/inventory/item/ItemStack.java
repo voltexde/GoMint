@@ -16,10 +16,7 @@ import io.gomint.taglib.NBTTagCompound;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a stack of up to 255 items of the same type which may
@@ -312,6 +309,32 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         }
 
         return this.enchantments == null ? null : (T) this.enchantments.get( clazz );
+    }
+
+    @Override
+    public void removeEnchantment( Class<? extends Enchantment> clazz ) {
+        short id = Enchantments.getId( clazz );
+        if ( id == -1 ) {
+            return;
+        }
+
+        if ( this.nbt == null ) {
+            return;
+        }
+
+        List<Object> enchantmentList = this.nbt.getList( "ench", false );
+        if ( enchantmentList == null ) {
+            return;
+        }
+
+        for ( Object nbtObject : new ArrayList<>( enchantmentList ) ) {
+            NBTTagCompound enchCompound = (NBTTagCompound) nbtObject;
+            if ( enchCompound.getShort( "id", (short) -1 ) == id ) {
+                enchantmentList.remove( enchCompound );
+                this.dirtyEnchantments = true;
+                break;
+            }
+        }
     }
 
     @Override

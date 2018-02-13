@@ -32,15 +32,13 @@ import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.util.EnumConnectors;
-import io.gomint.server.util.collection.ContainerIDMap;
-import io.gomint.server.util.collection.ContainerObjectMap;
-import io.gomint.server.util.collection.FormIDMap;
-import io.gomint.server.util.collection.FormListenerIDMap;
+import io.gomint.server.util.collection.*;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.world.*;
+import io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueue;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -69,10 +67,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private int viewDistance = 4;
     @Getter
     private int neededChunksForSpawn;
-    private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
+    private Queue<ChunkAdapter> chunkSendQueue = new ConcurrentLinkedQueue<>();
 
     // EntityPlayer Information
-    private Gamemode gamemode = Gamemode.SURVIVAL;
+    private Gamemode gamemode = Gamemode.CREATIVE;
     @Getter
     private AdventureSettings adventureSettings;
     @Getter
@@ -1009,7 +1007,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     protected void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
         // Check if we are not on ground or we moved on y axis
         if ( !this.onGround || movY != 0 ) {
-            AxisAlignedBB bb = this.boundingBox.grow( 0, 0.2f, 0 );
+            AxisAlignedBB bb = new AxisAlignedBB( this.boundingBox.getMinX(), this.boundingBox.getMinY() - 0.2f, this.boundingBox.getMinZ(),
+                this.boundingBox.getMaxX(), this.boundingBox.getMaxY(), this.boundingBox.getMaxZ() );
 
             // Check if we collided with a block
             this.onGround = this.world.getCollisionCubes( this, bb, false ) != null;
@@ -1343,6 +1342,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
             this.getTransform().setMotion( dX, dY, dZ );
         }
+    }
+
+    public ChunkHashSet getSentChunks() {
+        return this.connection.getPlayerChunks();
     }
 
 }
