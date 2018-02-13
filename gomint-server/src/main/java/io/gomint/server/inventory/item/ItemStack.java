@@ -335,6 +335,10 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
                 break;
             }
         }
+
+        if ( enchantmentList.isEmpty() ) {
+            this.nbt.remove( "ench" );
+        }
     }
 
     @Override
