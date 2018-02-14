@@ -206,7 +206,6 @@ public class PlayerConnection {
         // Check if we need to send chunks
         if ( this.entity != null ) {
             if ( !this.entity.getChunkSendQueue().isEmpty() ) {
-                int maximumInTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 2 : 1;
                 int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 10 : 4;
                 int alreadySent = 0;
 
@@ -215,7 +214,7 @@ public class PlayerConnection {
 
                 // Check if we have a slot
                 Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
-                while ( !queue.isEmpty() && alreadySent < maximumInTick && this.sentInClientTick < maximumInClientTick ) {
+                while ( !queue.isEmpty() && this.sentInClientTick < maximumInClientTick ) {
                     ChunkAdapter chunk = queue.poll();
                     if ( chunk == null ||
                         Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
