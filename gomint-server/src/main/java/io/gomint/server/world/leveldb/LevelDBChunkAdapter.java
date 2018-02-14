@@ -17,6 +17,8 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,6 +31,7 @@ import java.nio.ByteOrder;
  */
 public class LevelDBChunkAdapter extends ChunkAdapter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( LevelDBChunkAdapter.class );
     private int chunkVersion;
 
     /**
@@ -135,7 +138,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                     this.addTileEntity( tileEntity );
                 }
             } catch ( IOException e ) {
-                e.printStackTrace();
+                LOGGER.error( "Error in loading tile entities", e );
                 break;
             }
         }
@@ -151,7 +154,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                 Integer id = compound.getInteger( "id", 0 );
                 System.out.println( id & 0xFF );*/
             } catch ( IOException e ) {
-                e.printStackTrace();
+                LOGGER.error( "Error in loading entities", e );
                 break;
             }
         }
