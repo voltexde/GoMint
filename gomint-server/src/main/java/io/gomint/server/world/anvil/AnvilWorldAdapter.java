@@ -49,7 +49,8 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         } );
 
     // Overrides
-    @Getter private boolean overrideConverter;
+    @Getter
+    private boolean overrideConverter;
 
     /**
      * Construct and init a new Anvil based World
@@ -155,7 +156,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     }
 
     @Override
-    protected synchronized ChunkAdapter loadChunk( int x, int z, boolean generate ) {
+    protected ChunkAdapter loadChunk( int x, int z, boolean generate ) {
         ChunkAdapter chunk = this.chunkCache.getChunk( x, z );
         if ( chunk == null ) {
             try {
@@ -192,7 +193,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     }
 
     @Override
-    protected synchronized void saveChunk( ChunkAdapter chunk ) {
+    protected void saveChunk( ChunkAdapter chunk ) {
         if ( chunk == null ) {
             return;
         }

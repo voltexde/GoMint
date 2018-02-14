@@ -207,7 +207,6 @@ public class PlayerConnection {
         if ( this.entity != null ) {
             if ( !this.entity.getChunkSendQueue().isEmpty() ) {
                 int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 10 : 4;
-                int alreadySent = 0;
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );
@@ -224,7 +223,6 @@ public class PlayerConnection {
                     }
 
                     if ( this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() ) ) {
-                        alreadySent++;
                         this.sentInClientTick++;
                     }
                 }
