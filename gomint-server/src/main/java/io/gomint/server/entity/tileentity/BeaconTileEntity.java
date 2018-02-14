@@ -10,11 +10,13 @@ package io.gomint.server.entity.tileentity;
 import io.gomint.math.Location;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.Getter;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@Getter
 public class BeaconTileEntity extends TileEntity {
 
     private int primary;

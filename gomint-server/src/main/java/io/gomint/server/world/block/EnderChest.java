@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.ItemStack;
@@ -54,6 +56,16 @@ public class EnderChest extends Block implements io.gomint.world.block.BlockEnde
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public boolean needsTileEntity() {
+        return true;
+    }
+
+    @Override
+    TileEntity createTileEntity( NBTTagCompound compound ) {
+        return new EnderChestTileEntity( this.location );
     }
 
 }

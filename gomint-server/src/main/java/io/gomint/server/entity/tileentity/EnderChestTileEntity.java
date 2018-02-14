@@ -9,6 +9,7 @@ package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.EnderChestInventory;
@@ -25,6 +26,16 @@ import org.slf4j.LoggerFactory;
 public class EnderChestTileEntity extends ContainerTileEntity implements InventoryHolder {
 
     private EnderChestInventory inventory;
+
+    /**
+     * Create new ender chest based on the position
+     *
+     * @param position where the ender chest should be placed
+     */
+    public EnderChestTileEntity( Location position ) {
+        super( position );
+        this.inventory = new EnderChestInventory( this );
+    }
 
     /**
      * Construct new TileEntity from TagCompound

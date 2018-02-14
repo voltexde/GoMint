@@ -1,5 +1,6 @@
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.math.Location;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -8,6 +9,15 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 public class DaylightDetectorTileEntity extends TileEntity {
+
+    /**
+     * Create a new daylight detector
+     *
+     * @param position where the new daylight detector should be
+     */
+    public DaylightDetectorTileEntity( Location position ) {
+        super( position );
+    }
 
     /**
      * Construct new TileEntity from TagCompound

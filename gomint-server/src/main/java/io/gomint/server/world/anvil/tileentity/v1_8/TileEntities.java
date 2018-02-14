@@ -30,6 +30,9 @@ public class TileEntities implements TileEntityConverters {
     private EnchantTableConverter enchantTableConverter;
     private DispenserConverter dispenserConverter;
     private EndPortalConverter endPortalConverter;
+    private BeaconConverter beaconConverter;
+    private EnderChestConverter enderChestConverter;
+    private DaylightDetectorConverter daylightDetectorConverter;
 
     /**
      * Construct 1.8 converter for the given world
@@ -44,12 +47,21 @@ public class TileEntities implements TileEntityConverters {
         this.enchantTableConverter = new EnchantTableConverter( worldAdapter );
         this.dispenserConverter = new DispenserConverter( worldAdapter );
         this.endPortalConverter = new EndPortalConverter( worldAdapter );
+        this.beaconConverter = new BeaconConverter( worldAdapter );
+        this.enderChestConverter = new EnderChestConverter( worldAdapter );
+        this.daylightDetectorConverter = new DaylightDetectorConverter( worldAdapter );
     }
 
     @Override
     public TileEntity read( NBTTagCompound compound ) {
         String id = compound.getString( "id", "" );
         switch ( id ) {
+            case "DLDetector":
+                return this.daylightDetectorConverter.readFrom( compound );
+            case "EnderChest":
+                return this.enderChestConverter.readFrom( compound );
+            case "Beacon":
+                return this.beaconConverter.readFrom( compound );
             case "AirPortal":
                 return this.endPortalConverter.readFrom( compound );
             case "Trap":
@@ -93,6 +105,15 @@ public class TileEntities implements TileEntityConverters {
             return compound;
         } else if ( tileEntity instanceof EndPortalTileEntity ) {
             this.endPortalConverter.writeTo( (EndPortalTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof BeaconTileEntity ) {
+            this.beaconConverter.writeTo( (BeaconTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof EnderChestTileEntity ) {
+            this.enderChestConverter.writeTo( (EnderChestTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof DaylightDetectorTileEntity ) {
+            this.daylightDetectorConverter.writeTo( (DaylightDetectorTileEntity) tileEntity, compound );
             return compound;
         }
 
