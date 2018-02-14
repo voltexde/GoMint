@@ -10,9 +10,10 @@ import io.gomint.server.world.LevelEvent;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Block;
 import io.gomint.server.world.block.Fire;
-import io.gomint.world.Gamemode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
 
 /**
  * @author geNAZt
@@ -59,7 +60,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                     io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( packet.getPosition() );
                     Block faced = (Block) block.getSide( packet.getFace() );
                     if ( faced instanceof Fire ) {
-                        BlockBreakEvent event1 = new BlockBreakEvent( connection.getEntity(), faced );
+                        BlockBreakEvent event1 = new BlockBreakEvent( connection.getEntity(), faced, new ArrayList<>() );
                         connection.getServer().getPluginManager().callEvent( event1 );
                         if ( !event1.isCancelled() ) {
                             faced.setType( Air.class );

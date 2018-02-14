@@ -1104,18 +1104,18 @@ public abstract class WorldAdapter implements World {
         chunk.setTileEntity( x & 0xF, y, z & 0xF, tileEntity );
     }
 
-    public boolean breakBlock( BlockPosition position, boolean drops, ItemStack itemInHand ) {
+    public boolean breakBlock( BlockPosition position, List<ItemStack> drops ) {
         io.gomint.server.world.block.Block block = getBlockAt( position );
         if ( block.onBreak() ) {
-            if ( drops ) {
-                for ( ItemStack itemStack : block.getDrops( itemInHand ) ) {
+            if ( !drops.isEmpty() ) {
+                for ( ItemStack itemStack : drops ) {
                     EntityItem item = this.createItemDrop( block.getLocation(), itemStack );
                     item.setVelocity( new Vector( 0.1f, 0.3f, 0.1f ) );
                 }
             }
 
             // Break animation (this also plays the break sound in the client)
-            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() | ( block.getBlockData() << 8 ) );
+            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) );
 
             block.setType( BlockAir.class );
 

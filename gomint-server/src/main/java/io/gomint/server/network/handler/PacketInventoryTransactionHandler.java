@@ -269,7 +269,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Transaction seems valid
                 io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getGamemode() == Gamemode.CREATIVE ? packet.getBlockPosition() : connection.getEntity().getBreakVector() );
                 if ( block != null ) {
-                    BlockBreakEvent blockBreakEvent = new BlockBreakEvent( connection.getEntity(), block );
+                    BlockBreakEvent blockBreakEvent = new BlockBreakEvent( connection.getEntity(), block, block.getDrops( itemInHand ) );
                     blockBreakEvent.setCancelled( connection.getEntity().getGamemode() == Gamemode.ADVENTURE ); // TODO: Better handling for canBreak rules for adventure gamemode
 
                     connection.getEntity().getWorld().getServer().getPluginManager().callEvent( blockBreakEvent );
@@ -281,7 +281,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                     // Check for special break rights (creative)
                     if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE ) {
-                        if ( connection.getEntity().getWorld().breakBlock( packet.getBlockPosition(), connection.getEntity().getGamemode() == Gamemode.SURVIVAL, itemInHand ) ) {
+                        if ( connection.getEntity().getWorld().breakBlock( packet.getBlockPosition(), blockBreakEvent.getDrops() ) ) {
                             block.setType( BlockAir.class );
                             connection.getEntity().setBreakVector( null );
                         } else {
@@ -301,7 +301,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                         reset( packet, connection );
                         connection.getEntity().setBreakVector( null );
                     } else {
-                        if ( connection.getEntity().getWorld().breakBlock( connection.getEntity().getBreakVector(), connection.getEntity().getGamemode() == Gamemode.SURVIVAL, itemInHand ) ) {
+                        if ( connection.getEntity().getWorld().breakBlock( connection.getEntity().getBreakVector(), blockBreakEvent.getDrops() ) ) {
                             // Add exhaustion
                             connection.getEntity().exhaust( 0.025f, PlayerExhaustEvent.Cause.MINING );
 

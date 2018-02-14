@@ -108,6 +108,11 @@ public enum TileEntities {
      */
     END_PORTAL( "EndPortal", EndPortalTileEntity.class );
 
+    /**
+     * Data for banner
+     */
+    //BANNER( "Banner", BannerTileEntity.class );
+
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;
     private MethodHandle tileEntityConstructor;

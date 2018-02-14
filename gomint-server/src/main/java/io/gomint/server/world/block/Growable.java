@@ -12,6 +12,8 @@ import io.gomint.world.block.BlockType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -45,7 +47,7 @@ public abstract class Growable extends Block {
         if ( updateReason == UpdateReason.NEIGHBOUR_UPDATE ) {
             // Check if farmland is still under us
             if ( !( this.world.getBlockAt( this.location.toBlockPosition().add( BlockPosition.DOWN ) ).getType() == BlockType.FARMLAND ) ) {
-                this.world.breakBlock( this.location.toBlockPosition(), false, ItemAir.create( 0 ) );
+                this.world.breakBlock( this.location.toBlockPosition(), new ArrayList<>() );
             }
         } else if ( updateReason == UpdateReason.RANDOM ) {
             // Check for growth state
