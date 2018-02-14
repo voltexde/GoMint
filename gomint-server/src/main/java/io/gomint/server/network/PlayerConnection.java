@@ -224,10 +224,10 @@ public class PlayerConnection {
                         continue;
                     }
 
-                    this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() );
-
-                    alreadySent++;
-                    this.sentInClientTick++;
+                    if ( this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() ) ) {
+                        alreadySent++;
+                        this.sentInClientTick++;
+                    }
                 }
             }
 
@@ -374,15 +374,16 @@ public class PlayerConnection {
      *
      * @param chunkHash The hash of the chunk to keep track of what the player has loaded
      * @param chunkData The chunk data packet to send to the player
+     * @return true when the chunk has been sent, false when not
      */
-    private void sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
+    private boolean sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
         ChunkAdapter chunkAdapter = null;
         if ( ( chunkAdapter = this.entity.getWorld().getChunk( chunkData.getX(), chunkData.getZ() ) ) == null ) {
-            return;
+            return false;
         }
 
         if ( !this.playerChunks.add( chunkHash ) ) {
-            return;
+            return false;
         }
 
         this.addToSendQueue( chunkData );
@@ -403,6 +404,8 @@ public class PlayerConnection {
                 this.checkForNewChunks( null );
             }
         }
+
+        return true;
     }
 
     // ========================================= PACKET HANDLERS ========================================= //
