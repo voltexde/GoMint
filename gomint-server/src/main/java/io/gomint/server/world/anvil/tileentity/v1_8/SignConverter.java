@@ -41,6 +41,12 @@ public class SignConverter extends BasisConverter<SignTileEntity> {
         // Read position first
         Location position = this.getPosition( compound );
 
+        // Fast out for nukkit / pmmp onverted worlds
+        if ( compound.containsKey( "Text" ) ) {
+            String[] lines = compound.getString( "Text", "" ).split( "\n" );
+            return new SignTileEntity( lines, position );
+        }
+
         // Clean sign text
         String[] lines = new String[4];
         lines[0] = this.cleanText( compound, "Text1" );
