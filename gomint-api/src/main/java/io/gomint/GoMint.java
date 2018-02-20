@@ -17,6 +17,9 @@ import io.gomint.permission.GroupManager;
 import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.PluginManager;
 import io.gomint.world.World;
+import io.gomint.world.block.Block;
+import io.gomint.world.block.BlockBedrock;
+import io.gomint.world.generator.CreateOptions;
 
 import java.io.InputStream;
 import java.util.Collection;
@@ -202,5 +205,24 @@ public interface GoMint {
      * @param world which should be used as default one
      */
     void setDefaultWorld( World world );
+
+    /**
+     * Create a empty block to be placed into the world with {@link Block#copyFromBlock(Block)} or
+     * {@link io.gomint.world.Chunk#setBlock(int, int, int, Block)}
+     *
+     * @param blockClass class of the block we want to create
+     * @param <T> type of block which the target object should have
+     * @return empty, not configured block
+     */
+    <T extends Block> T createBlock( Class<T> blockClass );
+
+    /**
+     * Create a new world with the given options
+     *
+     * @param name of the new world
+     * @param options which should be used to generate the world
+     * @return new world
+     */
+    World createWorld( String name, CreateOptions options );
 
 }

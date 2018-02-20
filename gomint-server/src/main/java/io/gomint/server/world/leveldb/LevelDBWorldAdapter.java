@@ -15,10 +15,13 @@ import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCache;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldLoadException;
-import io.gomint.server.world.generator.ConfigurableLayerGenerator;
-import io.gomint.server.world.generator.Generators;
+import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.Blocks;
 import io.gomint.taglib.NBTStream;
+import io.gomint.world.Chunk;
 import io.gomint.world.Difficulty;
+import io.gomint.world.generator.GeneratorContext;
+import io.gomint.world.generator.integrated.LayeredGenerator;
 import lombok.EqualsAndHashCode;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
@@ -28,14 +31,13 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -44,11 +46,15 @@ import java.nio.ByteOrder;
 @EqualsAndHashCode( callSuper = true )
 public final class LevelDBWorldAdapter extends WorldAdapter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( LevelDBWorldAdapter.class );
-
     private boolean needsSpawnAdjustment;
     private DB db;
     private int worldVersion;
+
+    // Generator things
+    private int generatorType;
+    private int generatorVersion;
+    private String generatorOptions;
+    private long generatorSeed;
 
     /**
      * Construct and init a new levedb based World
@@ -74,17 +80,59 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
             throw new WorldLoadException( "Could not open leveldb connection: " + e.getMessage() );
         }
 
+        this.prepareGenerator();
         this.prepareSpawnRegion();
 
         // Adjust spawn location if needed
         if ( this.needsSpawnAdjustment ) {
-            BlockPosition check = new BlockPosition( (int) this.spawn.getX(), 0, (int) this.spawn.getZ() );
-            for ( int i = 255; i > 0; i-- ) {
-                check.setY( i );
-                if ( this.getBlockId( check ) != 0 ) {
-                    this.spawn.setY( i );
+            this.adjustSpawn();
+        }
+    }
+
+    private void prepareGenerator() {
+        Generators generators = Generators.valueOf( this.generatorType );
+        if ( generators != null ) {
+            switch ( generators ) {
+                case FLAT:
+                    GeneratorContext context = new GeneratorContext();
+
+                    // Check for flat configuration
+                    JSONParser parser = new JSONParser();
+                    try {
+                        List<Block> blocks = new ArrayList<>();
+
+                        JSONObject jsonObject = (JSONObject) parser.parse( this.generatorOptions );
+                        if ( jsonObject.containsKey( "block_layers" ) ) {
+                            JSONArray blockLayers = (JSONArray) jsonObject.get( "block_layers" );
+                            for ( Object layer : blockLayers ) {
+                                JSONObject layerConfig = (JSONObject) layer;
+                                int count = 1;
+                                if ( layerConfig.containsKey( "count" ) ) {
+                                    count = ( (Long) layerConfig.get( "count" ) ).intValue();
+                                }
+
+                                int blockId = ( (Long) layerConfig.get( "block_id" ) ).intValue();
+                                byte blockData = ( (Long) layerConfig.get( "block_data" ) ).byteValue();
+
+                                Block block = Blocks.get( blockId, blockData, (byte) 0, (byte) 0, null, null );
+                                for ( int i = 0; i < count; i++ ) {
+                                    blocks.add( block );
+                                }
+                            }
+                        }
+
+                        context.put( "amountOfLayers", blocks.size() );
+                        int i = 0;
+                        for ( Block block : blocks ) {
+                            context.put( "layer." + ( i++ ), block );
+                        }
+                    } catch ( ParseException e ) {
+                        // Ignore this, if this happens the context is empty and the generator will fallback to default
+                        // behaviour
+                    }
+
+                    this.chunkGenerator = new LayeredGenerator( this, context );
                     break;
-                }
             }
         }
     }
@@ -143,10 +191,6 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
         this.spawn = new Location( this, 0, 0, 0 );
         this.worldVersion = 0;
 
-        // Temporary stuff needed for the generator
-        final String[] flatWorldSettings = { "" };
-        final int[] generator = { 0 };
-
         try ( FileInputStream stream = new FileInputStream( levelDat ) ) {
             // Skip some data. For example the amount of bytes of this NBT Tag
             stream.skip( 8 );
@@ -155,10 +199,10 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
             nbtStream.addListener( ( path, value ) -> {
                 switch ( path ) {
                     case ".FlatWorldLayers":
-                        flatWorldSettings[0] = (String) value;
+                        LevelDBWorldAdapter.this.generatorOptions = (String) value;
                         break;
                     case ".Generator":
-                        generator[0] = (int) value;
+                        LevelDBWorldAdapter.this.generatorType = (int) value;
                         break;
                     case ".LevelName":
                         LevelDBWorldAdapter.this.levelName = (String) value;
@@ -199,46 +243,6 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
         } catch ( IOException e ) {
             throw new WorldLoadException( "Failed to load leveldb world: " + e.getMessage() );
         }
-
-        Generators generators = Generators.valueOf( generator[0] );
-        if ( generators != null ) {
-            switch ( generators ) {
-                case FLAT:
-                    ConfigurableLayerGenerator chunkGenerator = new ConfigurableLayerGenerator( this );
-
-                    // Check for flat configuration
-                    JSONParser parser = new JSONParser();
-                    try {
-                        JSONObject jsonObject = (JSONObject) parser.parse( flatWorldSettings[0] );
-                        if ( jsonObject.containsKey( "block_layers" ) ) {
-                            JSONArray blockLayers = (JSONArray) jsonObject.get( "block_layers" );
-                            for ( Object layer : blockLayers ) {
-                                JSONObject layerConfig = (JSONObject) layer;
-                                int count = 1;
-                                if ( layerConfig.containsKey( "count" ) ) {
-                                    count = ( (Long) layerConfig.get( "count" ) ).intValue();
-                                }
-
-                                int blockId = ( (Long) layerConfig.get( "block_id" ) ).intValue();
-                                byte blockData = ( (Long) layerConfig.get( "block_data" ) ).byteValue();
-
-                                for ( int i = 0; i < count; i++ ) {
-                                    chunkGenerator.addLayer( (byte) blockId, blockData );
-                                }
-                            }
-                        }
-                    } catch ( ParseException e ) {
-                        // Remember its from bottom to top
-                        chunkGenerator.addLayer( (byte) 7, (byte) 0 );
-                        chunkGenerator.addLayer( (byte) 3, (byte) 0 );
-                        chunkGenerator.addLayer( (byte) 3, (byte) 0 );
-                        chunkGenerator.addLayer( (byte) 2, (byte) 0 );
-                    }
-
-                    this.chunkGenerator = chunkGenerator;
-                    break;
-            }
-        }
     }
 
     @Override
@@ -255,7 +259,7 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
                 }
             }
 
-            byte v =  version[0];
+            byte v = version[0];
             LevelDBChunkAdapter loadingChunk = new LevelDBChunkAdapter( this, x, z, v );
 
             for ( int sectionY = 0; sectionY < 16; sectionY++ ) {
@@ -326,6 +330,11 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
         WriteBatch writeBatch = this.db.createWriteBatch();
         writeBatch.put( this.getKey( chunkX, chunkZ, (byte) 0x30 ), ( (LevelDBChunkAdapter) chunk ).getSaveData() );
         this.db.write( writeBatch );*/
+    }
+
+    @Override
+    public Chunk generateEmptyChunk( int x, int z ) {
+        return new LevelDBChunkAdapter( this, x, z );
     }
 
 }

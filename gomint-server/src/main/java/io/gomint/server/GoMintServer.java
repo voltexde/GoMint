@@ -34,11 +34,15 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
-import io.gomint.server.util.ClassPath;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.WorldCreateException;
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.WorldManager;
+import io.gomint.server.world.anvil.AnvilWorldAdapter;
+import io.gomint.server.world.block.Blocks;
 import io.gomint.world.World;
+import io.gomint.world.block.Block;
+import io.gomint.world.generator.CreateOptions;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import org.jline.reader.*;
@@ -451,6 +455,33 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         this.defaultWorld = world.getWorldName();
+    }
+
+    @Override
+    public <T extends Block> T createBlock( Class<T> blockClass ) {
+        return (T) Blocks.get( blockClass );
+    }
+
+    @Override
+    public World createWorld( String name, CreateOptions options ) {
+        // Check which type of world we want to create
+        WorldAdapter world;
+        switch ( options.worldType() ) {
+            case ANVIL:
+                try {
+                    world = AnvilWorldAdapter.create( this, name, options.generator() );
+                } catch ( WorldCreateException e ) {
+                    LOGGER.error( "Could not create new world", e );
+                    return null;
+                }
+
+                break;
+
+            default:
+                return null;
+        }
+
+        return world;
     }
 
     public RecipeManager getRecipeManager() {

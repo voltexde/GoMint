@@ -29,12 +29,13 @@ import io.gomint.server.util.collection.PlayerMap;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
-import io.gomint.server.world.generator.ChunkGenerator;
-import io.gomint.server.world.generator.VoidGenerator;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.world.*;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockAir;
+import io.gomint.world.generator.ChunkGenerator;
+import io.gomint.world.generator.GeneratorContext;
+import io.gomint.world.generator.integrated.VoidGenerator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -99,7 +100,7 @@ public abstract class WorldAdapter implements World {
     private PlayerMap players;
 
     protected WorldAdapter( GoMintServer server, File worldDir ) {
-        this.chunkGenerator = new VoidGenerator( this );
+        this.chunkGenerator = new VoidGenerator( this, new GeneratorContext() );
         this.server = server;
         this.logger = LoggerFactory.getLogger( "io.gomint.World-" + worldDir.getName() );
         this.worldDir = worldDir;
@@ -1067,10 +1068,10 @@ public abstract class WorldAdapter implements World {
 
     public ChunkAdapter generate( int x, int z ) {
         if ( this.chunkGenerator != null ) {
-            ChunkAdapter chunkAdapter = this.chunkGenerator.generate( x, z );
-            if ( chunkAdapter != null ) {
-                this.chunkCache.putChunk( chunkAdapter );
-                return chunkAdapter;
+            ChunkAdapter chunk = (ChunkAdapter) this.chunkGenerator.generate( x, z );
+            if ( chunk != null ) {
+                this.chunkCache.putChunk( chunk );
+                return chunk;
             }
         }
 
@@ -1235,6 +1236,17 @@ public abstract class WorldAdapter implements World {
                 }
             }
         } );
+    }
+
+    public void adjustSpawn() {
+        BlockPosition check = new BlockPosition( (int) this.spawn.getX(), 0, (int) this.spawn.getZ() );
+        for ( int i = 255; i > 0; i-- ) {
+            check.setY( i );
+            if ( this.getBlockId( check ) != 0 ) {
+                this.spawn.setY( i );
+                break;
+            }
+        }
     }
 
 }

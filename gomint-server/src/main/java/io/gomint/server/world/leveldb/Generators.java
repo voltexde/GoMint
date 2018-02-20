@@ -1,4 +1,4 @@
-package io.gomint.server.world.generator;
+package io.gomint.server.world.leveldb;
 
 import lombok.Getter;
 

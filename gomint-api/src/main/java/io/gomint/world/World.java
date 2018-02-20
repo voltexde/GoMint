@@ -161,9 +161,18 @@ public interface World {
      * This method is very expensive since it fully blocks the server until the search operation has
      * been completed.
      *
-     * @param blockClass for which we search
+     * @param blockClass    for which we search
      * @param blockConsumer which gets called for every found block
      */
     <T extends Block> void iterateBlocks( Class<T> blockClass, Consumer<T> blockConsumer );
+
+    /**
+     * Generate a empty chunk
+     *
+     * @param x coordinate of the chunk
+     * @param z coordinate of the chunk
+     * @return chunk with only air in it
+     */
+    Chunk generateEmptyChunk( int x, int z );
 
 }

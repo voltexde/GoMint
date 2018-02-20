@@ -13,6 +13,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.PlayerConnection;
@@ -297,7 +298,18 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         // Check if new block needs tile entity
         if ( instance.getTileEntity() != null ) {
-            worldAdapter.storeTileEntity( pos, instance.getTileEntity() );
+            // We need to copy the tile entity and change its location
+            NBTTagCompound compound = new NBTTagCompound( "" );
+            instance.getTileEntity().toCompound( compound );
+
+            // Change the position
+            compound.addValue( "x", pos.getX() );
+            compound.addValue( "y", pos.getY() );
+            compound.addValue( "z", pos.getZ() );
+
+            // Construct new tile entity
+            TileEntity tileEntity = TileEntities.construct( compound, worldAdapter );
+            worldAdapter.storeTileEntity( pos, tileEntity );
         }
 
         worldAdapter.updateBlock( pos );

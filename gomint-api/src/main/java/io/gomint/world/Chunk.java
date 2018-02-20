@@ -51,4 +51,15 @@ public interface Chunk {
      */
     Collection<Entity> getEntities();
 
+    /**
+     * Set the block at the position to the one given in this method call. Please only use this in
+     * {@link io.gomint.world.generator.ChunkGenerator} instances.
+     *
+     * @param x coordinate in the chunk (0-15) of the block to replace
+     * @param y coordinate in the chunk (0-255) of the block to replace
+     * @param z coordinate in the chunk (0-15) of the block to replace
+     * @param block which should be used to replace selected block
+     */
+    void setBlock( int x, int y, int z, Block block );
+
 }

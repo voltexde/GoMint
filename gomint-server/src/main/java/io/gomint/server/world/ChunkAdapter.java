@@ -13,6 +13,7 @@ import io.gomint.math.Location;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
@@ -532,6 +533,37 @@ public class ChunkAdapter implements Chunk {
     @Override
     public Collection<io.gomint.entity.Entity> getEntities() {
         return this.entities.size() == 0 ? null : this.entities.values();
+    }
+
+    @Override
+    public void setBlock( int x, int y, int z, Block block ) {
+        io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
+
+        // Copy block id
+        this.setBlock( x, y, z, implBlock.getBlockId() );
+
+        // Copy metadata
+        this.setData( x, y, z, implBlock.getBlockData() );
+
+        // Copy NBT
+        if ( implBlock.getTileEntity() != null ) {
+            // Get compound
+            NBTTagCompound compound = new NBTTagCompound( "" );
+            implBlock.getTileEntity().toCompound( compound );
+
+            // Change position
+            int fullX = CoordinateUtils.getChunkMin( this.x ) + x;
+            int fullZ = CoordinateUtils.getChunkMin( this.z ) + z;
+
+            // Change the position
+            compound.addValue( "x", fullX );
+            compound.addValue( "y", y );
+            compound.addValue( "z", fullZ );
+
+            // Create new tile entity
+            TileEntity tileEntity = TileEntities.construct( compound, this.world );
+            this.setTileEntity( x, y, z, tileEntity );
+        }
     }
 
     public PacketWorldChunk getCachedPacket() {

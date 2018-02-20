@@ -6,6 +6,7 @@ import io.gomint.server.world.block.Block;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 public interface BlockGenerator {
 

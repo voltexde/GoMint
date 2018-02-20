@@ -16,7 +16,7 @@ public class MaterialMagicNumbers {
         // CHECKSTYLE:OFF
         register( 0, "minecraft:air" );
         register( 1, "minecraft:stone" );
-        register( 2, "minecraft:grass_block" );
+        register( 2, "minecraft:grass" );
         register( 3, "minecraft:dirt" );
         register( 4, "minecraft:cobblestone" );
         register( 5, "minecraft:wood_planks" );

@@ -10,17 +10,33 @@ package io.gomint.server.world.anvil;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.io.Files;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.*;
+import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.Blocks;
 import io.gomint.taglib.NBTStream;
+import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.Chunk;
 import io.gomint.world.Difficulty;
+import io.gomint.world.World;
+import io.gomint.world.block.BlockType;
+import io.gomint.world.generator.ChunkGenerator;
+import io.gomint.world.generator.GeneratorContext;
+import io.gomint.world.generator.integrated.LayeredGenerator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.json.simple.JSONObject;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
@@ -52,6 +68,43 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     @Getter
     private boolean overrideConverter;
 
+    // Generator things
+    private String generatorName;
+    private int generatorVersion;
+    private String generatorOptions;
+    private long generatorSeed;
+
+    private AnvilWorldAdapter( final GoMintServer server, final String name, final Class<? extends ChunkGenerator> generator ) throws WorldCreateException {
+        super( server, new File( name ) );
+
+        // Build up generator
+        GeneratorContext context = new GeneratorContext();
+
+        try {
+            this.chunkGenerator = generator.getConstructor( World.class, GeneratorContext.class ).newInstance( this, context );
+        } catch ( NoSuchMethodException e ) {
+            throw new WorldCreateException( "The given generator does not provide a (World, GeneratorContext) constructor" );
+        } catch ( IllegalAccessException e ) {
+            throw new WorldCreateException( "The given generator can't be constructed. Be sure the (World, GeneratorContext) constructor is public" );
+        } catch ( InstantiationException e ) {
+            throw new WorldCreateException( "The generator given is either an abstracted class or some kind of interface" );
+        } catch ( InvocationTargetException e ) {
+            throw new WorldCreateException( "The constructor of the generator has thrown this exception", e );
+        }
+
+        // Generate a spawnpoint
+        BlockPosition spawnPoint = this.chunkGenerator.getSpawnPoint();
+        this.spawn = new Location( this, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ() );
+
+        // We need a level.dat
+        try {
+            this.saveLevelDat();
+        } catch ( IOException e ) {
+            throw new WorldCreateException( "level.dat for world '" + name + "' could not be saved", e );
+        }
+
+    }
+
     /**
      * Construct and init a new Anvil based World
      *
@@ -72,8 +125,88 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         }
 
         this.loadLevelDat();
+        this.prepareChunkGenerator();
         this.prepareSpawnRegion();
         // CHECKSTYLE:ON
+
+        // Fix spawn point
+        if ( this.getBlockAt( this.spawn.toBlockPosition() ).getType() != BlockType.AIR ) {
+            this.adjustSpawn();
+        }
+    }
+
+    private void prepareChunkGenerator() {
+        switch ( this.generatorName ) {
+            case "flat":
+                // The first integer is a version number in options
+                int optionVersion = 0;
+                String[] optionSplit = this.generatorOptions.split( ";" );
+                if ( optionSplit.length > 1 ) {
+                    try {
+                        optionVersion = Integer.parseInt( optionSplit[0] );
+                    } catch ( NumberFormatException e ) {
+                        // Ignore (vanilla falls back to 0 but its already 0)
+                    }
+                }
+
+                // Check if version is valid (0-3)
+                if ( optionVersion >= 0 && optionVersion <= 3 ) {
+                    List<Block> layers = new ArrayList<>();
+
+                    int layerInfoIndex = optionSplit.length == 1 ? 0 : 1;
+                    String layerInfo = optionSplit[layerInfoIndex];
+                    for ( String layer : layerInfo.split( "," ) ) {
+                        String[] temp;
+                        if ( optionVersion >= 3 ) {
+                            // This format uses "*" as delimiter and uses new ids
+                            temp = layer.split( "\\*", 2 );
+
+                            int amountOfLayers = 1;
+                            int blockId;
+                            if ( temp.length == 1 ) {
+                                blockId = MaterialMagicNumbers.valueOfWithId( temp[0] );
+                            } else {
+                                amountOfLayers = Integer.parseInt( temp[0] );
+                                blockId = MaterialMagicNumbers.valueOfWithId( temp[1] );
+                            }
+
+                            Block block = Blocks.get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
+                            for ( int i = 0; i < amountOfLayers; i++ ) {
+                                layers.add( block );
+                            }
+                        } else {
+                            // This format uses "x" as delimiter and uses old ids
+                            temp = layer.split( "x", 2 );
+
+                            int amountOfLayers = 1;
+                            int blockId;
+                            if ( temp.length == 1 ) {
+                                blockId = Integer.parseInt( temp[0] );
+                            } else {
+                                amountOfLayers = Integer.parseInt( temp[0] );
+                                blockId = Integer.parseInt( temp[1] );
+                            }
+
+                            Block block = Blocks.get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
+                            for ( int i = 0; i < amountOfLayers; i++ ) {
+                                layers.add( block );
+                            }
+                        }
+
+                        GeneratorContext generatorContext = new GeneratorContext();
+                        generatorContext.put( "amountOfLayers", layers.size() );
+
+                        int i = 0;
+                        for ( Block block : layers ) {
+                            generatorContext.put( "layer." + ( i++ ), block );
+                        }
+
+                        this.chunkGenerator = new LayeredGenerator( this, generatorContext );
+                    }
+                } else {
+                    this.chunkGenerator = new LayeredGenerator( this, new GeneratorContext() );
+                }
+        }
     }
 
     /**
@@ -88,6 +221,106 @@ public final class AnvilWorldAdapter extends WorldAdapter {
      */
     public static AnvilWorldAdapter load( GoMintServer server, File pathToWorld ) throws WorldLoadException {
         return new AnvilWorldAdapter( server, pathToWorld );
+    }
+
+    /**
+     * Create a new anvil based world. This will not override old worlds. It will fail with a WorldCreateException when
+     * a folder has been found with the same name (regardless of the content of that folder)
+     *
+     * @param server    which wants to create this world
+     * @param name      of the new world
+     * @param generator which is used to generate this worlds chunks and spawn point
+     * @return new world
+     * @throws WorldCreateException when there already is a world or a error during creating occured
+     */
+    public static AnvilWorldAdapter create( GoMintServer server, String name, Class<? extends ChunkGenerator> generator ) throws WorldCreateException {
+        File worldFolder = new File( name );
+        if ( worldFolder.exists() ) {
+            throw new WorldCreateException( "Folder with name '" + name + "' already exists" );
+        }
+
+        if ( !worldFolder.mkdir() ) {
+            throw new WorldCreateException( "World '" + name + "' could not be created. Folder could not be created" );
+        }
+
+        return new AnvilWorldAdapter( server, name, generator );
+    }
+
+    private void saveLevelDat() throws IOException {
+        File levelDat = new File( this.worldDir, "level.dat" );
+        if ( levelDat.exists() ) {
+            // Backup old level.dat
+            Files.copy( levelDat, new File( this.worldDir, "level.dat.bak" ) );
+
+            // Delete the old one
+            levelDat.delete();
+        }
+
+        //
+        NBTTagCompound compound = new NBTTagCompound( "" );
+        NBTTagCompound dataCompound = new NBTTagCompound( "Data" );
+        compound.addValue( "Data", dataCompound );
+
+        // Add version number
+        dataCompound.addValue( "version", 19133 );
+
+        // Spawn
+        dataCompound.addValue( "SpawnX", (int) this.spawn.getX() );
+        dataCompound.addValue( "SpawnY", (int) this.spawn.getY() );
+        dataCompound.addValue( "SpawnZ", (int) this.spawn.getZ() );
+
+        // Save generator
+        this.saveGenerator( dataCompound );
+    }
+
+    private void saveGenerator( NBTTagCompound dataCompound ) {
+        // We have "normal" vanilla generators which need to be saved different
+        if ( this.chunkGenerator instanceof LayeredGenerator ) {
+            dataCompound.addValue( "generatorName", "flat" );
+
+            String currentBlock = "";
+            int currentAmount = 1;
+
+            StringBuilder optionBuilder = new StringBuilder( "3" );    // We build option version 3 only
+
+            LayeredGenerator layeredGenerator = (LayeredGenerator) this.chunkGenerator;
+            for ( io.gomint.world.block.Block block : layeredGenerator.getLayers() ) {
+                Block implBlock = (Block) block;
+                String id = MaterialMagicNumbers.newIdFromValue( implBlock.getBlockId() );
+                if ( id.equals( currentBlock ) ) {
+                    currentAmount++;
+                } else {
+                    // Check if we need to save the old block
+                    if ( !currentBlock.isEmpty() ) {
+                        if ( currentAmount == 1 ) {
+                            optionBuilder.append( ";" ).append( currentBlock );
+                        } else {
+                            optionBuilder.append( ";" ).append( currentAmount ).append( "*" ).append( currentBlock );
+                        }
+                    }
+
+                    currentBlock = id;
+                    currentAmount = 1;
+                }
+            }
+
+            // Check if we need to save the old block
+            if ( !currentBlock.isEmpty() ) {
+                if ( currentAmount == 1 ) {
+                    optionBuilder.append( ";" ).append( currentBlock );
+                } else {
+                    optionBuilder.append( ";" ).append( currentAmount ).append( "*" ).append( currentBlock );
+                }
+            }
+
+            dataCompound.addValue( "generatorOptions", optionBuilder.toString() );
+        } else {
+            dataCompound.addValue( "generatorName", this.chunkGenerator.getClass().getName() );
+
+            // Serialize context
+            String json = new JSONObject( this.chunkGenerator.getContext().asMap() ).toJSONString();
+            dataCompound.addValue( "generatorOptions", json );
+        }
     }
 
     /**
@@ -116,10 +349,23 @@ public final class AnvilWorldAdapter extends WorldAdapter {
 
                 nbtStream.addListener( ( path, value ) -> {
                     switch ( path ) {
+                        case ".Data.generatorName":
+                            AnvilWorldAdapter.this.generatorName = (String) value;
+                            break;
+                        case ".Data.generatorOptions":
+                            AnvilWorldAdapter.this.generatorOptions = (String) value;
+                            break;
+                        case ".Data.generatorVersion":
+                            AnvilWorldAdapter.this.generatorVersion = (int) value;
+                            break;
+                        case ".Data.RandomSeed":
+                            AnvilWorldAdapter.this.generatorSeed = (long) value;
+                            break;
                         case ".Data.version":
                             if ( (int) value != 19133 ) {
                                 throw new IOException( "unsupported world format" );
                             }
+
                             break;
                         case ".Data.LevelName":
                             AnvilWorldAdapter.this.levelName = (String) value;
@@ -209,6 +455,11 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         } catch ( IOException | ExecutionException e ) {
             this.logger.error( "Failed to save chunk to region file", e );
         }
+    }
+
+    @Override
+    public Chunk generateEmptyChunk( int x, int z ) {
+        return new AnvilChunkAdapter( this, x, z, System.currentTimeMillis() );
     }
 
 }

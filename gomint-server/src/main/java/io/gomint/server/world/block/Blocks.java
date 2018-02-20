@@ -10,6 +10,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.generator.ItemGenerator;
 import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.generator.BlockGenerator;
 import javassist.*;
@@ -45,6 +46,10 @@ public class Blocks {
                                            TileEntity tileEntity, Location location ) {
         BlockGenerator instance = GENERATORS.getGenerator( blockId );
         if ( instance != null ) {
+            if ( location == null ) {
+                return instance.generate();
+            }
+
             return instance.generate( blockData, skyLightLevel, blockLightLevel, tileEntity, location );
         }
 
