@@ -4,7 +4,6 @@ pipeline {
       image 'maven:3'
       args '-v /root/.m2:/root/.m2 -u root'
     }
-    
   }
   stages {
     stage('Depends') {
@@ -26,11 +25,14 @@ pipeline {
   }
   post {
     success {
-      discordSend description: 'GoMint Build has been succeeded: ${currentBuild.absoluteUrl}artifact/gomint-server/target/GoMint.jar', footer: 'Provided with <3', link: currentBuild.absoluteUrl, successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), title: JOB_NAME, webhookURL: 'https://discordapp.com/api/webhooks/384326195866763274/4oqtJEmf_UDcylRq7R1TUMGoSTO_U5lSwItCkssgrQBqHtNYySt-Wmxc9cme-JdOCwsB'
+      withCredentials([string(credentialsId: 'discord', variable: 'webhookUrl')]) {
+        discordSend title: "#${currentBuild.id} ${JOB_NAME}", link: currentBuild.absoluteUrl, footer: "Provided with <3", successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), webhookURL: "${webhookUrl}", description: "GoMint Build succeeded.\n${currentBuild.absoluteUrl}artifact/gomint-server/target/GoMint.jar"
+      }
     }
-
     failure {
-      discordSend description: 'GoMint Build failed', footer: 'Provided with <3', link: currentBuild.absoluteUrl, successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), title: JOB_NAME, webhookURL: 'https://discordapp.com/api/webhooks/384326195866763274/4oqtJEmf_UDcylRq7R1TUMGoSTO_U5lSwItCkssgrQBqHtNYySt-Wmxc9cme-JdOCwsB'
+      withCredentials([string(credentialsId: 'discord', variable: 'webhookUrl')]) {
+        discordSend title: "#${currentBuild.id} ${JOB_NAME}", link: currentBuild.absoluteUrl, footer: "Provided with <3", successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), webhookURL: "${webhookUrl}", description: "GoMint Build failed."
+      }
     }
   }
 }
