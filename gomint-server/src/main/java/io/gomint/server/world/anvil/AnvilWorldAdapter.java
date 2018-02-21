@@ -15,6 +15,7 @@ import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.inventory.MaterialMagicNumbers;
+import io.gomint.server.plugin.PluginClassloader;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.*;
 import io.gomint.server.world.block.Block;
@@ -23,7 +24,6 @@ import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Chunk;
 import io.gomint.world.Difficulty;
-import io.gomint.world.World;
 import io.gomint.world.block.BlockType;
 import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.GeneratorContext;
@@ -31,9 +31,10 @@ import io.gomint.world.generator.integrated.LayeredGenerator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,21 +77,11 @@ public final class AnvilWorldAdapter extends WorldAdapter {
 
     private AnvilWorldAdapter( final GoMintServer server, final String name, final Class<? extends ChunkGenerator> generator ) throws WorldCreateException {
         super( server, new File( name ) );
+        this.chunkCache = new ChunkCache( this );
 
         // Build up generator
         GeneratorContext context = new GeneratorContext();
-
-        try {
-            this.chunkGenerator = generator.getConstructor( World.class, GeneratorContext.class ).newInstance( this, context );
-        } catch ( NoSuchMethodException e ) {
-            throw new WorldCreateException( "The given generator does not provide a (World, GeneratorContext) constructor" );
-        } catch ( IllegalAccessException e ) {
-            throw new WorldCreateException( "The given generator can't be constructed. Be sure the (World, GeneratorContext) constructor is public" );
-        } catch ( InstantiationException e ) {
-            throw new WorldCreateException( "The generator given is either an abstracted class or some kind of interface" );
-        } catch ( InvocationTargetException e ) {
-            throw new WorldCreateException( "The constructor of the generator has thrown this exception", e );
-        }
+        this.constructGenerator( generator, context );
 
         // Generate a spawnpoint
         BlockPosition spawnPoint = this.chunkGenerator.getSpawnPoint();
@@ -103,6 +94,8 @@ public final class AnvilWorldAdapter extends WorldAdapter {
             throw new WorldCreateException( "level.dat for world '" + name + "' could not be saved", e );
         }
 
+        // Prepare spawn
+        this.prepareSpawnRegion();
     }
 
     /**
@@ -206,6 +199,28 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                 } else {
                     this.chunkGenerator = new LayeredGenerator( this, new GeneratorContext() );
                 }
+
+                break;
+
+            default:
+                JSONParser parser = new JSONParser();
+                GeneratorContext context = new GeneratorContext();
+
+                try {
+                    JSONObject object = (JSONObject) parser.parse( this.generatorOptions );
+                    object.forEach( ( o, o2 ) -> context.put( (String) o, o2 ) );
+                } catch ( ParseException e ) {
+                    // Ignore this
+                }
+
+                try {
+                    Class<? extends ChunkGenerator> chunkGeneratorClass = (Class<? extends ChunkGenerator>) PluginClassloader.find( this.generatorName );
+                    this.constructGenerator( chunkGeneratorClass, context );
+                } catch ( ClassNotFoundException e ) {
+                    e.printStackTrace();
+                } catch ( WorldCreateException e ) {
+                    e.printStackTrace();
+                }
         }
     }
 
@@ -243,6 +258,11 @@ public final class AnvilWorldAdapter extends WorldAdapter {
             throw new WorldCreateException( "World '" + name + "' could not be created. Folder could not be created" );
         }
 
+        File regionFolder = new File( worldFolder, "region" );
+        if ( !regionFolder.mkdir() ) {
+            throw new WorldCreateException( "World '" + name + "' could not be created. Folder could not be created" );
+        }
+
         return new AnvilWorldAdapter( server, name, generator );
     }
 
@@ -271,6 +291,9 @@ public final class AnvilWorldAdapter extends WorldAdapter {
 
         // Save generator
         this.saveGenerator( dataCompound );
+
+        // Save level.dat
+        compound.writeTo( levelDat, true, ByteOrder.BIG_ENDIAN );
     }
 
     private void saveGenerator( NBTTagCompound dataCompound ) {

@@ -73,10 +73,13 @@ public class ChunkAdapter implements Chunk {
     protected long lastSavedTimestamp;
 
     // Entities
-    protected EntityIDMap entities = EntityIDMap.withExpectedSize( 20 );
+    protected EntityIDMap entities = null;
 
     // Post loading processing
     protected Queue<PostProcessor> postProcessors = new LinkedList<>();
+
+    // Caching of hashes
+    private long chunkHash;
 
     // CHECKSTYLE:ON
 
@@ -162,6 +165,11 @@ public class ChunkAdapter implements Chunk {
      */
     void addPlayer( EntityPlayer player ) {
         this.players.add( player );
+
+        if ( this.entities == null ) {
+            this.entities = EntityIDMap.withExpectedSize( 20 );
+        }
+
         this.entities.justPut( player.getEntityId(), player );
     }
 
@@ -173,7 +181,15 @@ public class ChunkAdapter implements Chunk {
     void removePlayer( EntityPlayer player ) {
         this.players.remove( player );
         this.lastPlayerOnThisChunk = System.currentTimeMillis();
+
+        if ( this.entities == null ) {
+            return;
+        }
+
         this.entities.justRemove( player.getEntityId() );
+        if ( this.entities.size() == 0 ) {
+            this.entities = null;
+        }
     }
 
     /**
@@ -182,6 +198,10 @@ public class ChunkAdapter implements Chunk {
      * @param entity The entity which should be added
      */
     void addEntity( Entity entity ) {
+        if ( this.entities == null ) {
+            this.entities = EntityIDMap.withExpectedSize( 20 );
+        }
+
         this.entities.justPut( entity.getEntityId(), entity );
     }
 
@@ -191,7 +211,14 @@ public class ChunkAdapter implements Chunk {
      * @param entity The entity which should be removed
      */
     void removeEntity( Entity entity ) {
+        if ( this.entities == null ) {
+            return;
+        }
+
         this.entities.justRemove( entity.getEntityId() );
+        if ( this.entities.size() == 0 ) {
+            this.entities = null;
+        }
     }
 
     /**
@@ -527,12 +554,16 @@ public class ChunkAdapter implements Chunk {
      * @return true if the chunk contains that entity, false if not
      */
     public boolean knowsEntity( Entity entity ) {
+        if ( this.entities == null ) {
+            return false;
+        }
+
         return this.entities.containsKey( entity.getEntityId() );
     }
 
     @Override
     public Collection<io.gomint.entity.Entity> getEntities() {
-        return this.entities.size() == 0 ? null : this.entities.values();
+        return this.entities == null ? null : this.entities.size() == 0 ? null : this.entities.values();
     }
 
     @Override
@@ -586,6 +617,10 @@ public class ChunkAdapter implements Chunk {
         while ( !this.postProcessors.isEmpty() ) {
             this.postProcessors.poll().process();
         }
+    }
+
+    public long longHashCode() {
+        return CoordinateUtils.toLong( this.x, this.z );
     }
 
 }

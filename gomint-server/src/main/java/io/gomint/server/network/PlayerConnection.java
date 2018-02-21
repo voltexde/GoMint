@@ -107,6 +107,8 @@ public class PlayerConnection {
     // World data
     @Getter
     private final ChunkHashSet playerChunks;
+    @Getter
+    private final ChunkHashSet loadingChunks;
 
     // Connection State:
     @Getter
@@ -142,6 +144,7 @@ public class PlayerConnection {
         this.state = initialState;
         this.server = networkManager.getServer();
         this.playerChunks = ChunkHashSet.withExpectedSize( 100 );
+        this.loadingChunks = ChunkHashSet.withExpectedSize( 100 );
 
         // Attach data processor if needed
         if ( this.connection != null ) {
@@ -222,9 +225,8 @@ public class PlayerConnection {
                         continue;
                     }
 
-                    if ( this.sendWorldChunk( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk.getCachedPacket() ) ) {
-                        this.sentInClientTick++;
-                    }
+                    this.sendWorldChunk( chunk );
+                    this.sentInClientTick++;
                 }
             }
 
@@ -369,21 +371,13 @@ public class PlayerConnection {
      * Sends a world chunk to the player. This is used by world adapters in order to give the player connection
      * a chance to know once it is ready for spawning.
      *
-     * @param chunkHash The hash of the chunk to keep track of what the player has loaded
-     * @param chunkData The chunk data packet to send to the player
+     * @param chunkAdapter which should be sent to the client
      * @return true when the chunk has been sent, false when not
      */
-    private boolean sendWorldChunk( long chunkHash, PacketWorldChunk chunkData ) {
-        ChunkAdapter chunkAdapter = null;
-        if ( ( chunkAdapter = this.entity.getWorld().getChunk( chunkData.getX(), chunkData.getZ() ) ) == null ) {
-            return false;
-        }
-
-        if ( !this.playerChunks.add( chunkHash ) ) {
-            return false;
-        }
-
-        this.addToSendQueue( chunkData );
+    private boolean sendWorldChunk( ChunkAdapter chunkAdapter ) {
+        this.playerChunks.add( chunkAdapter.longHashCode() );
+        this.loadingChunks.removeLong( chunkAdapter.longHashCode() );
+        this.addToSendQueue( chunkAdapter.getCachedPacket() );
         this.entity.getEntityVisibilityManager().updateAddedChunk( chunkAdapter );
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
@@ -604,7 +598,8 @@ public class PlayerConnection {
         for ( Pair<Integer, Integer> chunk : toSendChunks ) {
             long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
 
-            if ( !this.playerChunks.contains( hash ) ) {
+            if ( !this.playerChunks.contains( hash ) && !this.loadingChunks.contains( hash ) ) {
+                this.loadingChunks.add( hash );
                 worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity, false );
             }
         }
@@ -624,12 +619,16 @@ public class PlayerConnection {
             int x = (int) ( longCursor.elem() >> 32 );
             int z = (int) ( longCursor.elem() ) + Integer.MIN_VALUE;
 
-            if ( x > currentXChunk + viewDistance ||
-                x < currentXChunk - viewDistance ||
-                z > currentZChunk + viewDistance ||
-                z < currentZChunk - viewDistance ) {
-                // TODO: Check for Packets to send to the client to unload the chunk?
-                this.entity.getEntityVisibilityManager().updateRemoveChunk( this.entity.getWorld().getChunk( x, z ) );
+            if ( Math.abs( x - currentXChunk ) > viewDistance ||
+                Math.abs( z - currentZChunk ) > viewDistance ) {
+                ChunkAdapter chunk =  this.entity.getWorld().getChunk( x, z );
+                if ( chunk == null ) {
+                    LOGGER.error( "Wanted to update state on already unloaded chunk {} {}", x, z );
+                } else {
+                    // TODO: Check for Packets to send to the client to unload the chunk?
+                    this.entity.getEntityVisibilityManager().updateRemoveChunk( chunk );
+                }
+
                 longCursor.remove();
             }
         }

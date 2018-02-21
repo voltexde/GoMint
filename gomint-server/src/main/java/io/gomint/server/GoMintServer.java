@@ -211,9 +211,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.encryptionKeyFactory = new EncryptionKeyFactory( this );
 
         // ------------------------------------ //
-        // Scheduler + PluginManager Initialization
+        // Scheduler + WorldManager + PluginManager Initialization
         // ------------------------------------ //
         this.syncTaskManager = new SyncTaskManager( this, skipNanos );
+        this.worldManager = new WorldManager( this );
 
         this.pluginManager = new SimplePluginManager( this );
         this.pluginManager.detectPlugins();
@@ -246,7 +247,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // World Initialization
         // ------------------------------------ //
-        this.worldManager = new WorldManager( this );
         // CHECKSTYLE:OFF
         try {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
@@ -464,24 +464,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     @Override
     public World createWorld( String name, CreateOptions options ) {
-        // Check which type of world we want to create
-        WorldAdapter world;
-        switch ( options.worldType() ) {
-            case ANVIL:
-                try {
-                    world = AnvilWorldAdapter.create( this, name, options.generator() );
-                } catch ( WorldCreateException e ) {
-                    LOGGER.error( "Could not create new world", e );
-                    return null;
-                }
-
-                break;
-
-            default:
-                return null;
-        }
-
-        return world;
+        return this.worldManager.createWorld( name, options );
     }
 
     public RecipeManager getRecipeManager() {

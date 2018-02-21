@@ -9,7 +9,6 @@ package io.gomint.server.world;
 
 import com.koloboke.collect.LongCursor;
 import io.gomint.math.MathUtils;
-import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.ChunkCacheMap;
 import io.gomint.server.util.collection.ChunkHashSet;
@@ -17,10 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -37,22 +32,6 @@ public class ChunkCache {
     private final ChunkCacheMap cachedChunks;
     private boolean enableAutoSave;
     private long autoSaveInterval;
-
-    // Internals for the GC
-    private final BiConsumer<EntityPlayer, ChunkAdapter> viewDistanceConsumer = new BiConsumer<EntityPlayer, ChunkAdapter>() {
-        @Override
-        public void accept( EntityPlayer entityPlayer, ChunkAdapter chunkAdapter ) {
-            int viewDistance = entityPlayer.getViewDistance();
-
-            if ( currentX >= chunkAdapter.getX() - viewDistance && currentX <= chunkAdapter.getX() + viewDistance &&
-                currentZ >= chunkAdapter.getZ() - viewDistance && currentZ <= chunkAdapter.getZ() + viewDistance ) {
-                skip.set( true );
-            }
-        }
-    };
-    private AtomicBoolean skip = new AtomicBoolean( false );
-    private int currentX;
-    private int currentZ;
 
     // Ticking helper
     private float lastFullTickDT = 0;
@@ -79,57 +58,65 @@ public class ChunkCache {
         int spawnAreaSize = this.world.getConfig().getAmountOfChunksForSpawnArea();
 
         // Copy over the current loaded chunk hashes
-        ChunkHashSet toRemoveHashes = null;
+        final ChunkHashSet[] tempHashes = { null, null }; // 0 => not to delete chunks, 1 => to delete chunks
         synchronized ( this ) {
-            long[] keys = this.cachedChunks.keys();
-
-            for ( long chunkHash : keys ) {
-                ChunkAdapter chunk = this.cachedChunks.getChunk( chunkHash );
-                if ( chunk == null ) {
-                    continue;
+            this.world.getPlayers0().forEach( ( player, chunkAdapter ) -> {
+                if ( tempHashes[0] == null ) {
+                    tempHashes[0] = ChunkHashSet.withExpectedSize( 100 );
                 }
 
+                LongCursor cursor = player.getConnection().getPlayerChunks().cursor();
+                while ( cursor.moveNext() ) {
+                    tempHashes[0].add( cursor.elem() );
+                }
+
+                cursor = player.getConnection().getLoadingChunks().cursor();
+                while ( cursor.moveNext() ) {
+                    tempHashes[0].add( cursor.elem() );
+                }
+            } );
+
+            this.cachedChunks.forEach( ( chunkHash, chunk ) -> {
                 // Check if we need to save
-                if ( this.isAutosaveEnabled() && this.autoSaveInterval > 0 && currentTimeMS - chunk.getLastSavedTimestamp() >= this.autoSaveInterval ) {
+                if ( ChunkCache.this.isAutosaveEnabled() &&
+                    ChunkCache.this.autoSaveInterval > 0 &&
+                    currentTimeMS - chunk.getLastSavedTimestamp() >= ChunkCache.this.autoSaveInterval ) {
                     chunk.setLastSavedTimestamp( currentTimeMS );
-                    this.world.saveChunkAsynchronously( chunk );
+                    ChunkCache.this.world.saveChunkAsynchronously( chunk );
                 }
 
-                this.currentX = (int) ( chunkHash >> 32 );
-                this.currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
+                int currentX = (int) ( chunkHash >> 32 );
+                int currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
 
                 // Check if this is part of the spawn
-                if ( spawnAreaSize > 0 ) {
-                    if ( this.currentX >= spawnXChunk - spawnAreaSize && this.currentX <= spawnXChunk + spawnAreaSize &&
-                        this.currentZ >= spawnZChunk - spawnAreaSize && this.currentZ <= spawnZChunk + spawnAreaSize ) {
-                        continue;
-                    }
+                if ( spawnAreaSize > 0 &&
+                    currentX >= spawnXChunk - spawnAreaSize && currentX <= spawnXChunk + spawnAreaSize &&
+                    currentZ >= spawnZChunk - spawnAreaSize && currentZ <= spawnZChunk + spawnAreaSize ) {
+                    return;
                 }
 
                 // Ask this chunk if he wants to be gced
                 if ( !chunk.canBeGCed( currentTimeMS ) ) {
-                    continue;
+                    return;
                 }
 
                 // Calculate the hashes which are used by players view distances
-                this.world.getPlayers0().forEach( this.viewDistanceConsumer );
-                if ( skip.get() ) {
-                    skip.set( false );
-                    continue;
+                if ( tempHashes[0] != null && tempHashes[0].contains( chunkHash ) ) {
+                    return;
                 }
 
-                LOGGER.debug( "Cleaning up chunk @ " + this.currentX + " " + this.currentZ );
+                LOGGER.info( "Cleaning up chunk @ {} {}", currentX, currentZ );
 
                 // Ask this chunk if he wants to be gced
-                if ( toRemoveHashes == null ) {
-                    toRemoveHashes = ChunkHashSet.withExpectedSize( 10 );
+                if ( tempHashes[1] == null ) {
+                    tempHashes[1] = ChunkHashSet.withExpectedSize( 10 );
                 }
 
-                toRemoveHashes.add( chunkHash );
-            }
+                tempHashes[1].add( chunkHash );
+            } );
 
-            if ( toRemoveHashes != null ) {
-                LongCursor toRemoveCursor = toRemoveHashes.cursor();
+            if ( tempHashes[1] != null ) {
+                LongCursor toRemoveCursor = tempHashes[1].cursor();
                 while ( toRemoveCursor.moveNext() ) {
                     this.cachedChunks.removeChunk( toRemoveCursor.elem() );
                 }

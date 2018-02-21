@@ -73,7 +73,6 @@ public class ItemBed extends ItemStack implements io.gomint.inventory.item.ItemB
                 return BlockColor.RED;
             default:
                 return BlockColor.BLACK;
-
         }
     }
 
@@ -125,8 +124,8 @@ public class ItemBed extends ItemStack implements io.gomint.inventory.item.ItemB
             case RED:
                 this.setData( (short) 14 );
                 break;
-            default:
             case BLACK:
+            default:
                 this.setData( (short) 15 );
         }
     }

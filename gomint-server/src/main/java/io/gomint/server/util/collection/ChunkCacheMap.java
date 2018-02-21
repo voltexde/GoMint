@@ -3,7 +3,11 @@ package io.gomint.server.util.collection;
 import com.koloboke.compile.ConcurrentModificationUnchecked;
 import com.koloboke.compile.KolobokeMap;
 import com.koloboke.compile.MethodForm;
+import com.koloboke.function.LongObjConsumer;
+import com.koloboke.function.LongObjPredicate;
 import io.gomint.server.world.ChunkAdapter;
+
+import java.util.function.BiConsumer;
 
 /**
  * @author geNAZt
@@ -37,5 +41,7 @@ public abstract class ChunkCacheMap {
 
     @MethodForm( "size" )
     public abstract int size();
+
+    public abstract void forEach( LongObjConsumer<? super ChunkAdapter> consumer );
 
 }

@@ -28,13 +28,6 @@ public interface Block {
     BlockType getType();
 
     /**
-     * Gets the block's data value (0 - 15)
-     *
-     * @return The block's data value
-     */
-    byte getBlockData();
-
-    /**
      * Get the level of skylight this block has
      *
      * @return The skylight data of this block

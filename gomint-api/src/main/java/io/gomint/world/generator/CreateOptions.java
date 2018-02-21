@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
 @Getter
 public class CreateOptions {
 
-    private WorldType worldType = WorldType.LEVELDB;
+    private WorldType worldType = WorldType.ANVIL;
     private Class<? extends ChunkGenerator> generator = LayeredGenerator.class;
 
 }

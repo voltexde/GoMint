@@ -24,9 +24,6 @@ public class PlayerMoveListener implements EventListener {
         event.getPlayer().sendMessage( ChatType.POPUP,
             "§fX: §a" + toBlock.getX() + " §e- §fY: §a" + toBlock.getY() + " §e- §fZ: §a" + toBlock.getZ() + " | " + event.getPlayer().getPing() + " ms",
             "§fWalking on block: §a" + block.getClass() );
-
-        EntityPlayer player = event.getPlayer();
-        player.playSound( player.getLocation(), Sound.NOTE, (byte) 1, SoundData.instrument( SoundData.Instrument.BASS ) );
     }
 
 }

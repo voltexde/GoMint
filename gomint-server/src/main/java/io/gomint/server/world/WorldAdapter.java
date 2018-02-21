@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1246,6 +1247,20 @@ public abstract class WorldAdapter implements World {
                 this.spawn.setY( i );
                 break;
             }
+        }
+    }
+
+    public void constructGenerator( Class<? extends ChunkGenerator> generator, GeneratorContext context ) throws WorldCreateException {
+        try {
+            this.chunkGenerator = generator.getConstructor( World.class, GeneratorContext.class ).newInstance( this, context );
+        } catch ( NoSuchMethodException e ) {
+            throw new WorldCreateException( "The given generator does not provide a (World, GeneratorContext) constructor" );
+        } catch ( IllegalAccessException e ) {
+            throw new WorldCreateException( "The given generator can't be constructed. Be sure the (World, GeneratorContext) constructor is public" );
+        } catch ( InstantiationException e ) {
+            throw new WorldCreateException( "The generator given is either an abstracted class or some kind of interface" );
+        } catch ( InvocationTargetException e ) {
+            throw new WorldCreateException( "The constructor of the generator has thrown this exception", e );
         }
     }
 

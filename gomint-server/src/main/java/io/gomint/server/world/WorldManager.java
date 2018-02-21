@@ -11,6 +11,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
 import io.gomint.world.World;
+import io.gomint.world.generator.CreateOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,6 +155,28 @@ public class WorldManager {
      */
     void unloadWorld( WorldAdapter worldAdapter ) {
         this.loadedWorlds.remove( worldAdapter );
+    }
+
+    public World createWorld( String name, CreateOptions options ) {
+        // Check which type of world we want to create
+        WorldAdapter world;
+        switch ( options.worldType() ) {
+            case ANVIL:
+                try {
+                    world = AnvilWorldAdapter.create( this.server, name, options.generator() );
+                } catch ( WorldCreateException e ) {
+                    LOGGER.error( "Could not create new world", e );
+                    return null;
+                }
+
+                break;
+
+            default:
+                return null;
+        }
+
+        this.loadedWorlds.add( world );
+        return world;
     }
 
 }

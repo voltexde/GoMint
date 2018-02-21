@@ -63,16 +63,10 @@ public class EntityVisibilityManager {
 
     public void updateRemoveChunk( ChunkAdapter chunk ) {
         // Check for removing entities
-        int currentX = CoordinateUtils.fromBlockToChunk( (int) this.player.getPositionX() );
-        int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.player.getPositionZ() );
-
-        if ( Math.abs( chunk.getX() - currentX ) > this.player.getViewDistance() ||
-            Math.abs( chunk.getZ() - currentZ ) > this.player.getViewDistance() ) {
-            Collection<Entity> collection = chunk.getEntities();
-            if ( collection != null ) {
-                for ( Entity entity : collection ) {
-                    removeEntity( entity );
-                }
+        Collection<Entity> collection = chunk.getEntities();
+        if ( collection != null ) {
+            for ( Entity entity : collection ) {
+                removeEntity( entity );
             }
         }
     }
