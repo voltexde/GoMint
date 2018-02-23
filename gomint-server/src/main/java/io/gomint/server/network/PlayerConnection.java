@@ -209,7 +209,8 @@ public class PlayerConnection {
         // Check if we need to send chunks
         if ( this.entity != null ) {
             if ( !this.entity.getChunkSendQueue().isEmpty() ) {
-                int maximumInClientTick = deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ? 10 : 4;
+                int maximumInClientTick = 4; // Everything oer this seems to cause issues in all clients like not displaying
+                                             // the chunks correctly or even crashing the client
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );
