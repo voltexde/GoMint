@@ -134,9 +134,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
         float damage = MathUtils.fastFloor( this.fallDistance - 3f - distanceReduce );
         if ( damage > 0 ) {
-            EntityDamageEvent damageEvent = new EntityDamageEvent( this,
-                EntityDamageEvent.DamageSource.FALL, damage );
-            this.damage( damageEvent );
+            this.attack( damage, EntityDamageEvent.DamageSource.FALL );
         }
     }
 

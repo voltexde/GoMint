@@ -27,6 +27,7 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -87,6 +88,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     protected boolean isCollidedVertically;
     protected boolean isCollidedHorizontally;
     protected boolean isCollided;
+    protected Set<Block> collidedWith;
     // CHECKSTYLE:ON
 
     /**
@@ -129,7 +131,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Hidden status
      */
-    private Set<Long> shownForPlayers;
     private boolean hideByDefault;
 
     /**
@@ -319,6 +320,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
             // Check if we would hit a y border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
+                if ( dY != movY ) {
+                    Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
+                    LOGGER.debug( "Entity {} collided with {}", this, block );
+
+                    if ( this.collidedWith == null ) {
+                        this.collidedWith = new HashSet<>();
+                    }
+
+                    this.collidedWith.add( block );
+                }
             }
 
             this.boundingBox.offset( 0, dY, 0 );
@@ -326,6 +337,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
             // Check if we would hit a x border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dX = axisAlignedBB.calculateXOffset( this.boundingBox, dX );
+                if ( dX != movX ) {
+                    Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
+                    LOGGER.debug( "Entity {} collided with {}", this, block );
+
+                    if ( this.collidedWith == null ) {
+                        this.collidedWith = new HashSet<>();
+                    }
+
+                    this.collidedWith.add( block );
+                }
             }
 
             this.boundingBox.offset( dX, 0, 0 );
@@ -333,6 +354,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
             // Check if we would hit a z border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dZ = axisAlignedBB.calculateZOffset( this.boundingBox, dZ );
+                if ( dZ != movZ ) {
+                    Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
+                    LOGGER.debug( "Entity {} collided with {}", this, block );
+
+                    if ( this.collidedWith == null ) {
+                        this.collidedWith = new HashSet<>();
+                    }
+
+                    this.collidedWith.add( block );
+                }
             }
 
             this.boundingBox.offset( 0, 0, dZ );
