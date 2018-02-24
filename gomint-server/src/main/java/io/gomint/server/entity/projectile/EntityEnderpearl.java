@@ -8,6 +8,8 @@
 package io.gomint.server.entity.projectile;
 
 import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.event.entity.EntityTeleportEvent;
+import io.gomint.event.entity.projectile.ProjectileHitBlocksEvent;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
@@ -16,6 +18,10 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.world.block.Block;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author geNAZt
@@ -84,9 +90,14 @@ public class EntityEnderpearl extends EntityProjectile implements io.gomint.enti
         this.lastUpdatedT += dT;
         if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
             if ( this.isCollided ) {
-                // Teleport
-                this.teleportShooter();
-                this.despawn();
+                Set<Block> blocks = new HashSet<>( this.collidedWith );
+                ProjectileHitBlocksEvent hitBlocksEvent = new ProjectileHitBlocksEvent( blocks, this );
+                this.world.getServer().getPluginManager().callEvent( hitBlocksEvent );
+                if ( !hitBlocksEvent.isCancelled() ) {
+                    // Teleport
+                    this.teleportShooter();
+                    this.despawn();
+                }
             }
 
             // Despawn after 1200 ticks ( 1 minute )
@@ -98,7 +109,7 @@ public class EntityEnderpearl extends EntityProjectile implements io.gomint.enti
 
     private void teleportShooter() {
         this.shooter.attack( 5.0f, EntityDamageEvent.DamageSource.FALL );
-        this.shooter.teleport( this.getLocation() );
+        this.shooter.teleport( this.getLocation(), EntityTeleportEvent.Cause.ENDERPEARL );
     }
 
 }

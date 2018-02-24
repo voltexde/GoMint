@@ -9,6 +9,7 @@ package io.gomint.server.entity;
 
 import io.gomint.entity.BossBar;
 import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.event.entity.EntityTeleportEvent;
 import io.gomint.math.*;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
@@ -1104,8 +1105,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.world.spawnEntityAt( this, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() );
     }
 
-    @Override
-    public void teleport( Location to ) {
+    public void teleport( Location to, EntityTeleportEvent.Cause cause ) {
+        EntityTeleportEvent entityTeleportEvent = new EntityTeleportEvent( this, this.getLocation(), to, cause );
+        this.world.getServer().getPluginManager().callEvent( entityTeleportEvent );
+        if ( entityTeleportEvent.isCancelled() ) {
+            return;
+        }
+
         WorldAdapter actualWorld = this.getWorld();
 
         this.setAndRecalcPosition( to );
@@ -1117,6 +1123,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         }
 
         this.fallDistance = 0;
+    }
+
+    @Override
+    public void teleport( Location to ) {
+        this.teleport( to, EntityTeleportEvent.Cause.CUSTOM );
     }
 
     @Override
