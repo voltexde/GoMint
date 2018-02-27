@@ -72,6 +72,21 @@ public class EntityManager {
                     despawnEntity( entity );
                 }
 
+                // Check if entity moved via external teleport
+                if ( entity.getTransform().isDirty() ) {
+                    ChunkAdapter current = (ChunkAdapter) entity.getChunk();
+
+                    if ( movedEntities == null ) {
+                        movedEntities = new HashSet<>();
+                    }
+
+                    if ( !( entity instanceof io.gomint.server.entity.EntityPlayer ) && current != null && !current.equals( entity.getChunk() ) ) {
+                        current.removeEntity( entity );
+                    }
+
+                    movedEntities.add( entity );
+                }
+
                 continue;
             }
 

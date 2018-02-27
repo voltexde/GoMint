@@ -9,6 +9,7 @@ package io.gomint.server.entity;
 
 import io.gomint.entity.BossBar;
 import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.event.entity.EntityTeleportEvent;
 import io.gomint.math.*;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
@@ -27,6 +28,7 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -87,6 +89,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     protected boolean isCollidedVertically;
     protected boolean isCollidedHorizontally;
     protected boolean isCollided;
+    protected Set<Block> collidedWith;
     // CHECKSTYLE:ON
 
     /**
@@ -129,7 +132,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Hidden status
      */
-    private Set<Long> shownForPlayers;
     private boolean hideByDefault;
 
     /**
@@ -319,6 +321,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
             // Check if we would hit a y border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
+                if ( dY != movY ) {
+                    Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
+                    LOGGER.debug( "Entity {} collided with {}", this, block );
+
+                    if ( this.collidedWith == null ) {
+                        this.collidedWith = new HashSet<>();
+                    }
+
+                    this.collidedWith.add( block );
+                }
             }
 
             this.boundingBox.offset( 0, dY, 0 );
@@ -326,6 +338,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
             // Check if we would hit a x border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dX = axisAlignedBB.calculateXOffset( this.boundingBox, dX );
+                if ( dX != movX ) {
+                    Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
+                    LOGGER.debug( "Entity {} collided with {}", this, block );
+
+                    if ( this.collidedWith == null ) {
+                        this.collidedWith = new HashSet<>();
+                    }
+
+                    this.collidedWith.add( block );
+                }
             }
 
             this.boundingBox.offset( dX, 0, 0 );
@@ -333,6 +355,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
             // Check if we would hit a z border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dZ = axisAlignedBB.calculateZOffset( this.boundingBox, dZ );
+                if ( dZ != movZ ) {
+                    Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
+                    LOGGER.debug( "Entity {} collided with {}", this, block );
+
+                    if ( this.collidedWith == null ) {
+                        this.collidedWith = new HashSet<>();
+                    }
+
+                    this.collidedWith.add( block );
+                }
             }
 
             this.boundingBox.offset( 0, 0, dZ );
@@ -1073,8 +1105,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.world.spawnEntityAt( this, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() );
     }
 
-    @Override
-    public void teleport( Location to ) {
+    public void teleport( Location to, EntityTeleportEvent.Cause cause ) {
+        EntityTeleportEvent entityTeleportEvent = new EntityTeleportEvent( this, this.getLocation(), to, cause );
+        this.world.getServer().getPluginManager().callEvent( entityTeleportEvent );
+        if ( entityTeleportEvent.isCancelled() ) {
+            return;
+        }
+
         WorldAdapter actualWorld = this.getWorld();
 
         this.setAndRecalcPosition( to );
@@ -1086,6 +1123,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         }
 
         this.fallDistance = 0;
+    }
+
+    @Override
+    public void teleport( Location to ) {
+        this.teleport( to, EntityTeleportEvent.Cause.CUSTOM );
     }
 
     @Override

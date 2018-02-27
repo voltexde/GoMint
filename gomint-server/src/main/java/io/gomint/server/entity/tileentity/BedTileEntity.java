@@ -1,10 +1,9 @@
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.math.Location;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.data.BlockColor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -13,6 +12,12 @@ import org.slf4j.LoggerFactory;
 public class BedTileEntity extends TileEntity {
 
     private BlockColor color;
+
+    public BedTileEntity( BlockColor color, Location location ) {
+        super( location );
+
+        this.color = color;
+    }
 
     /**
      * Construct new TileEntity from TagCompound

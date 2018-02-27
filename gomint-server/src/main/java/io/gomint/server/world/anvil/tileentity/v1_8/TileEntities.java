@@ -33,6 +33,7 @@ public class TileEntities implements TileEntityConverters {
     private BeaconConverter beaconConverter;
     private EnderChestConverter enderChestConverter;
     private DaylightDetectorConverter daylightDetectorConverter;
+    private BedConverter bedConverter;
 
     /**
      * Construct 1.8 converter for the given world
@@ -50,6 +51,7 @@ public class TileEntities implements TileEntityConverters {
         this.beaconConverter = new BeaconConverter( worldAdapter );
         this.enderChestConverter = new EnderChestConverter( worldAdapter );
         this.daylightDetectorConverter = new DaylightDetectorConverter( worldAdapter );
+        this.bedConverter = new BedConverter( worldAdapter );
     }
 
     @Override
@@ -76,6 +78,8 @@ public class TileEntities implements TileEntityConverters {
                 return this.skullConverter.readFrom( compound );
             case "Sign":
                 return this.signConverter.readFrom( compound );
+            case "Bed":
+                return this.bedConverter.readFrom( compound );
             default:
                 LOGGER.warn( "Unknown id {} -> {}", id, compound );
                 return null;
@@ -114,6 +118,9 @@ public class TileEntities implements TileEntityConverters {
             return compound;
         } else if ( tileEntity instanceof DaylightDetectorTileEntity ) {
             this.daylightDetectorConverter.writeTo( (DaylightDetectorTileEntity) tileEntity, compound );
+            return compound;
+        } else if ( tileEntity instanceof BedTileEntity ) {
+            this.bedConverter.writeTo( (BedTileEntity) tileEntity, compound );
             return compound;
         }
 

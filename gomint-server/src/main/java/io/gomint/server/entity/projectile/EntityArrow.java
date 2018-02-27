@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.projectile;
 
+import io.gomint.event.entity.projectile.ProjectileHitBlocksEvent;
 import io.gomint.inventory.item.ItemArrow;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
@@ -16,12 +17,18 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.world.block.Block;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 public class EntityArrow extends EntityProjectile implements io.gomint.entity.projectile.EntityArrow {
+
+    private boolean firedHitEvent = false;
 
     private boolean canBePickedup;
     private boolean critical;
@@ -92,9 +99,16 @@ public class EntityArrow extends EntityProjectile implements io.gomint.entity.pr
 
         this.lastUpdatedT += dT;
         if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
-            if ( this.isCollided ) {
-                // You may pick this up now
-                this.canBePickedup = true;
+            if ( this.isCollided && !this.canBePickedup ) { // this.canBePickedup indicates if a event got cancelled
+                if ( !this.firedHitEvent ) {
+                    // Remap
+                    Set<Block> blocks = new HashSet<>( this.collidedWith );
+                    ProjectileHitBlocksEvent hitBlockEvent = new ProjectileHitBlocksEvent( blocks, this );
+                    this.world.getServer().getPluginManager().callEvent( hitBlockEvent );
+                    if ( !hitBlockEvent.isCancelled() ) {
+                        this.canBePickedup = true;
+                    }
+                }
             }
 
             if ( this.canBePickedup ) {

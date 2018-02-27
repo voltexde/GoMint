@@ -30,8 +30,7 @@ public class Cactus extends Block implements io.gomint.world.block.BlockCactus {
 
     @Override
     public void onEntityCollision( EntityLiving entity ) {
-        EntityDamageEvent damageEvent = new EntityDamageEvent( entity, EntityDamageEvent.DamageSource.CACTUS, 1.0f );
-        entity.damage( damageEvent );
+        entity.attack( 1.0f, EntityDamageEvent.DamageSource.CACTUS );
     }
 
     @Override

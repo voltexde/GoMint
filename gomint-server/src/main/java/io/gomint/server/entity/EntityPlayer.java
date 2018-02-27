@@ -15,6 +15,7 @@ import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
+import io.gomint.event.entity.EntityTeleportEvent;
 import io.gomint.event.player.*;
 import io.gomint.gui.*;
 import io.gomint.math.*;
@@ -345,8 +346,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         return this.hiddenPlayers != null && this.hiddenPlayers.contains( player.getEntityId() );
     }
 
-    @Override
-    public void teleport( Location to ) {
+    public void teleport( Location to, EntityTeleportEvent.Cause cause ) {
+        EntityTeleportEvent entityTeleportEvent = new EntityTeleportEvent( this, this.getLocation(), to, cause );
+        this.world.getServer().getPluginManager().callEvent( entityTeleportEvent );
+        if ( entityTeleportEvent.isCancelled() ) {
+            return;
+        }
+
         Location from = getLocation();
 
         this.setAndRecalcPosition( to );

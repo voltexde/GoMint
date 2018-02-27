@@ -168,21 +168,23 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                                 layers.add( block );
                             }
                         } else {
-                            // This format uses "x" as delimiter and uses old ids
-                            temp = layer.split( "x", 2 );
+                            if ( layer.length() > 0 ) {
+                                // This format uses "x" as delimiter and uses old ids
+                                temp = layer.split( "x", 2 );
 
-                            int amountOfLayers = 1;
-                            int blockId;
-                            if ( temp.length == 1 ) {
-                                blockId = Integer.parseInt( temp[0] );
-                            } else {
-                                amountOfLayers = Integer.parseInt( temp[0] );
-                                blockId = Integer.parseInt( temp[1] );
-                            }
+                                int amountOfLayers = 1;
+                                int blockId;
+                                if ( temp.length == 1 ) {
+                                    blockId = Integer.parseInt( temp[0] );
+                                } else {
+                                    amountOfLayers = Integer.parseInt( temp[0] );
+                                    blockId = Integer.parseInt( temp[1] );
+                                }
 
-                            Block block = Blocks.get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
-                            for ( int i = 0; i < amountOfLayers; i++ ) {
-                                layers.add( block );
+                                Block block = Blocks.get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
+                                for ( int i = 0; i < amountOfLayers; i++ ) {
+                                    layers.add( block );
+                                }
                             }
                         }
 

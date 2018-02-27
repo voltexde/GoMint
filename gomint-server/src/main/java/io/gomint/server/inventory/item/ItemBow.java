@@ -5,6 +5,7 @@ import io.gomint.inventory.item.ItemType;
 import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
+import io.gomint.server.enchant.EnchantmentInfinity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.projectile.EntityArrow;
 import io.gomint.server.registry.RegisterInfo;
@@ -87,10 +88,13 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
                 ItemStack itemStack = (ItemStack) player.getInventory().getItem( i );
                 if ( itemStack instanceof ItemArrow ) {
                     foundArrow = true;
-                    if ( itemStack.afterPlacement() ) {
-                        player.getOffhandInventory().setItem( i, ItemAir.create( 0 ) );
-                    } else {
-                        player.getOffhandInventory().setItem( i, itemStack );
+
+                    if ( this.getEnchantment( EnchantmentInfinity.class ) == null ) {
+                        if ( itemStack.afterPlacement() ) {
+                            player.getOffhandInventory().setItem( i, ItemAir.create( 0 ) );
+                        } else {
+                            player.getOffhandInventory().setItem( i, itemStack );
+                        }
                     }
                 }
             }
