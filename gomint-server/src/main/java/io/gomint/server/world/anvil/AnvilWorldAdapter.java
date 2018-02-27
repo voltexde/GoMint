@@ -204,6 +204,14 @@ public final class AnvilWorldAdapter extends WorldAdapter {
 
                 break;
 
+            case "default": // Currently not implemented ones
+            case "largeBiomes":
+            case "amplified":
+            case "debug_all_block_states":
+            case "default_1_1":
+            case "customized":
+                break;
+
             default:
                 JSONParser parser = new JSONParser();
                 GeneratorContext context = new GeneratorContext();
