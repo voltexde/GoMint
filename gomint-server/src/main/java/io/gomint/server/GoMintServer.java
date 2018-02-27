@@ -34,6 +34,7 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
+import io.gomint.server.util.Watchdog;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldCreateException;
 import io.gomint.server.world.WorldLoadException;
@@ -111,6 +112,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
     // Additional informations for API usage
     private double tps;
 
+    // Watchdog
+    @Getter
+    private Watchdog watchdog;
+
     /**
      * Starts the GoMint server
      *
@@ -138,6 +143,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         this.executorService = new ThreadPoolExecutor( 0, 512, 60L,
             TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory );
+
+        this.watchdog = new Watchdog( this );
 
         // ------------------------------------ //
         // jLine setup
@@ -286,6 +293,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
         while ( this.running.get() ) {
             tickLock.lock();
             try {
+                this.watchdog.add( 30, TimeUnit.SECONDS );
+
                 start = System.nanoTime();
 
                 // Tick all major subsystems:
@@ -303,6 +312,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 this.syncTaskManager.update( this.currentTickTime, lastTickTime );
                 this.worldManager.update( this.currentTickTime, lastTickTime );
                 this.permissionGroupManager.update( this.currentTickTime, lastTickTime );
+
+                this.watchdog.done();
 
                 // Check if we got shutdown
                 if ( !this.running.get() ) {
@@ -667,6 +678,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         return new WorldConfig();
+    }
+
+    public boolean isRunning() {
+        return this.running.get();
     }
 
 }

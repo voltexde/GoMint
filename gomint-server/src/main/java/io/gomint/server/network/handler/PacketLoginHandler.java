@@ -211,6 +211,8 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                 } else {
                     // Generating EDCH secrets can take up huge amount of time
                     connection.getServer().getExecutorService().execute( () -> {
+                        connection.getServer().getWatchdog().add( 2, TimeUnit.SECONDS );
+
                         // Enable encryption
                         EncryptionHandler encryptionHandler = new EncryptionHandler( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory() );
                         encryptionHandler.supplyClientKey( chainValidator.getClientPublicKey() );
@@ -226,6 +228,8 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                             packetEncryptionRequest.setJwt( encryptionRequestJWT );
                             connection.send( packetEncryptionRequest );
                         }
+
+                        connection.getServer().getWatchdog().done();
                     } );
 
                 }

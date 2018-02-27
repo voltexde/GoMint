@@ -442,6 +442,8 @@ public class PlayerConnection {
             LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
         }
 
+        LOGGER.debug( "Got MCPE packet {}", Integer.toHexString( packetId & 0xFF ) );
+
         // TODO: Proper implement sending subclient and target subclient (two bytes)
         buffer.readShort();
 

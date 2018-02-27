@@ -81,6 +81,7 @@ public class EncryptionHandler {
     public boolean beginClientsideEncryption() {
         if ( this.clientEncryptor != null && this.clientDecryptor != null ) {
             // Already initialized:
+            LOGGER.debug( "Already initialized" );
             return true;
         }
 

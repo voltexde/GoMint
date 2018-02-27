@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
 
 /**
@@ -40,6 +41,8 @@ public class PostProcessWorker implements Runnable {
 
     @Override
     public void run() {
+        this.connection.getServer().getWatchdog().add( 1, TimeUnit.SECONDS );
+
         BatchStreamHolder holder = this.getHolder();
 
         // Batch them first
@@ -48,6 +51,8 @@ public class PostProcessWorker implements Runnable {
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
             packet.serialize( buffer );
+
+            LOGGER.debug( "Writing packet data to client {}", Integer.toHexString( packet.getId() & 0xFF ) );
 
             try {
                 writeVarInt( buffer.getPosition(), holder.getOutputStream() );
@@ -66,6 +71,8 @@ public class PostProcessWorker implements Runnable {
         }
 
         holder.reset();
+
+        this.connection.getServer().getWatchdog().done();
         this.connection.send( batch );
     }
 
