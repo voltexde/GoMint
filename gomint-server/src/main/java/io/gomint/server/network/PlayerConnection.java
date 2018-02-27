@@ -603,6 +603,7 @@ public class PlayerConnection {
 
             if ( !this.playerChunks.contains( hash ) && !this.loadingChunks.contains( hash ) ) {
                 this.loadingChunks.add( hash );
+                LOGGER.debug( "Requesting chunk {} {} for {}", chunk.getFirst(), chunk.getSecond(), this.entity );
                 worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity, false );
             }
         }
@@ -785,8 +786,8 @@ public class PlayerConnection {
      * Clear the chunks which we know the player has gotten
      */
     public void resetPlayerChunks() {
+        this.loadingChunks.clear();
         this.playerChunks.clear();
-        this.entity.getChunkSendQueue().clear();
     }
 
     /**
@@ -825,6 +826,10 @@ public class PlayerConnection {
         PacketSetCommandsEnabled setCommandsEnabled = new PacketSetCommandsEnabled();
         setCommandsEnabled.setEnabled( true );
         addToSendQueue( setCommandsEnabled );
+    }
+
+    public void resetQueuedChunks() {
+        this.entity.getChunkSendQueue().clear();
     }
 
 }

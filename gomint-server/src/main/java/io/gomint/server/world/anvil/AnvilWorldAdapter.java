@@ -11,6 +11,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
+import io.gomint.GoMint;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
@@ -37,9 +38,14 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -74,6 +80,11 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     private int generatorVersion;
     private String generatorOptions;
     private long generatorSeed;
+
+    //
+    private Lock currentlyLoadingLock = new ReentrantLock( true );
+    private Map<Long, Lock> currentlyLoading = new HashMap<>();
+    private Map<Long, Condition> currentlyLoadingConditions = new HashMap<>();
 
     private AnvilWorldAdapter( final GoMintServer server, final String name, final Class<? extends ChunkGenerator> generator ) throws WorldCreateException {
         super( server, new File( name ) );
@@ -438,6 +449,8 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     protected ChunkAdapter loadChunk( int x, int z, boolean generate ) {
         ChunkAdapter chunk = this.chunkCache.getChunk( x, z );
         if ( chunk == null ) {
+            this.logger.debug( "Starting to load chunk {} {}", x, z );
+
             try {
                 int regionX = CoordinateUtils.fromChunkToRegion( x );
                 int regionZ = CoordinateUtils.fromChunkToRegion( z );

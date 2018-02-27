@@ -355,7 +355,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         Location from = getLocation();
 
-        this.setAndRecalcPosition( to );
+        // Reset chunks and entities
+        this.entityVisibilityManager.clear();
+        this.connection.resetQueuedChunks();
 
         // Check if we need to change worlds
         if ( !to.getWorld().equals( from.getWorld() ) ) {
@@ -363,18 +365,21 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             getWorld().removePlayer( this );
             this.world = (WorldAdapter) to.getWorld();
             this.world.spawnEntityAt( this, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch() );
-            this.connection.resetPlayerChunks();
-            this.entityVisibilityManager.clear();
             this.connection.sendMovePlayer( new Location( to.getWorld(), getPositionX() + 1000000, 4000, getPositionZ() + 1000000 ) );
 
-            int chunkX = CoordinateUtils.fromBlockToChunk( (int) to.getX() );
-            int chunkZ = CoordinateUtils.fromBlockToChunk( (int) to.getZ() );
-            this.world.movePlayerToChunk( chunkX, chunkZ, this );
+            // Be sure to get rid of all loaded chunks
+            this.connection.resetPlayerChunks();
         }
 
+        // Set the new location
+        this.setAndRecalcPosition( to );
         this.connection.sendMovePlayer( to );
         this.fallDistance = 0;
+
+        // Force move the player to the new chunk
         this.connection.checkForNewChunks( from );
+
+        // Tell the movement handler to force this position to the client
         this.teleportPosition = to;
     }
 

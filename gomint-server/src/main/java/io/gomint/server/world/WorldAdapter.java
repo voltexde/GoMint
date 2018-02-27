@@ -563,21 +563,24 @@ public abstract class WorldAdapter implements World {
             if ( task instanceof AsyncChunkLoadTask ) {
                 AsyncChunkLoadTask loadTask = (AsyncChunkLoadTask) task;
                 if ( loadTask.getX() == x && loadTask.getZ() == z ) {
+                    this.logger.debug( "Found loader for chunk {} {}", x, z );
+
                     // Set generating if needed
                     if ( !loadTask.isGenerate() && generate ) {
                         loadTask.setGenerate( true );
                     }
 
                     // Check for multi callback
-                    MultiOutputDelegate multiOutputDelegate;
+                    MultiOutputDelegate<ChunkAdapter> multiOutputDelegate;
                     if ( loadTask.getCallback() instanceof MultiOutputDelegate ) {
-                        multiOutputDelegate = (MultiOutputDelegate) loadTask.getCallback();
+                        multiOutputDelegate = (MultiOutputDelegate<ChunkAdapter>) loadTask.getCallback();
                         multiOutputDelegate.getOutputs().offer( callback );
                     } else {
-                        Delegate delegate = loadTask.getCallback();
-                        multiOutputDelegate = new MultiOutputDelegate();
+                        Delegate<ChunkAdapter> delegate = loadTask.getCallback();
+                        multiOutputDelegate = new MultiOutputDelegate<>();
                         multiOutputDelegate.getOutputs().offer( delegate );
-                        loadTask.setCallback( delegate );
+                        multiOutputDelegate.getOutputs().offer( callback );
+                        loadTask.setCallback( multiOutputDelegate );
                     }
 
                     return;
@@ -766,6 +769,8 @@ public abstract class WorldAdapter implements World {
                     case LOAD:
                         AsyncChunkLoadTask load = (AsyncChunkLoadTask) task;
                         chunk = this.loadChunk( load.getX(), load.getZ(), load.isGenerate() );
+
+                        this.logger.info( "Invoking {} for chunk {} {}", load.getCallback(), load.getX(), load.getZ() );
                         load.getCallback().invoke( chunk );
                         break;
 
