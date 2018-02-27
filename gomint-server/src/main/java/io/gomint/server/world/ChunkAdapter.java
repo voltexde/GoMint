@@ -28,13 +28,17 @@ import io.gomint.world.block.Block;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.ByteOrder;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author BlackyPaw
@@ -43,6 +47,9 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @EqualsAndHashCode( callSuper = false, of = { "world", "x", "z" } )
 public class ChunkAdapter implements Chunk {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( ChunkAdapter.class );
+    private static final AtomicLong LAST_WARNING = new AtomicLong( System.currentTimeMillis() );
 
     // CHECKSTYLE:OFF
     // World
@@ -604,7 +611,25 @@ public class ChunkAdapter implements Chunk {
             this.dirty = false;
         }
 
-        return this.cachedPacket.get();
+        // Check if we have a object
+        PacketWorldChunk packetWorldChunk = this.cachedPacket.get();
+        if ( packetWorldChunk == null ) {
+            // The packet got cleared from the JVM due to memory limits
+            if ( this.world.getServer().getCurrentTickTime() - LAST_WARNING.get() >= 5000 ) {
+                NumberFormat numberFormat = NumberFormat.getNumberInstance();
+                numberFormat.setMaximumFractionDigits( 2 );
+
+                LOGGER.warn( "We need to create new chunk data for the network. This only happens when the JVM runs low on " +
+                        "memory. Please consider raising -Xmx in your start parameters. Current free: {} MB",
+                    numberFormat.format( ( Runtime.getRuntime().freeMemory() / (double) 1024 ) / (double) 1024 ) );
+
+                LAST_WARNING.set( this.world.getServer().getCurrentTickTime() );
+            }
+
+            return createPackagedData();
+        }
+
+        return packetWorldChunk;
     }
 
     public void setTileEntity( int x, int y, int z, TileEntity tileEntity ) {
