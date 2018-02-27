@@ -2,8 +2,9 @@ package io.gomint.world.block;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
-public interface BlockLiquid {
+public interface BlockLiquid extends Block {
 
     /**
      * Get the percentage of how high the fluid has been in this block
