@@ -1024,11 +1024,6 @@ public abstract class WorldAdapter implements World {
                     return false;
                 }
 
-                // Check if we want to replace the block we are in
-                if ( entity.getLocation().toBlockPosition().equals( replaceBlock.getLocation().toBlockPosition() ) ) {
-                    return false;
-                }
-
                 // We got the block we want to replace
                 // Let the item build up the block
                 boolean success = Blocks.replaceWithItem( entity, clickedBlock, replaceBlock, itemInHand, clickPosition );

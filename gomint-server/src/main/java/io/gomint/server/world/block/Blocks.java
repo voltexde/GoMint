@@ -2,24 +2,16 @@ package io.gomint.server.world.block;
 
 import io.gomint.event.world.BlockPlaceEvent;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
-import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.inventory.item.generator.ItemGenerator;
-import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
-import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.generator.BlockGenerator;
-import javassist.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 /**
  * @author geNAZt
@@ -76,6 +68,13 @@ public class Blocks {
         BlockGenerator blockGenerator = GENERATORS.getGenerator( id );
         Block newBlock = blockGenerator.generate();
         if ( !newBlock.beforePlacement( entity, item, block.location ) ) {
+            return false;
+        }
+
+        // Check if we want to replace the block we are in
+        AxisAlignedBB tempBoundingBox = new AxisAlignedBB( block.location.getX(), block.location.getY(), block.location.getZ(),
+            block.location.getX() + 1, block.location.getY() + 1, block.location.getZ() + 1 );
+        if ( entity.getBoundingBox().intersectsWith( tempBoundingBox ) ) {
             return false;
         }
 
