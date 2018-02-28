@@ -5,7 +5,6 @@ import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
-import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.component.AIBehaviourComponent;
@@ -327,15 +326,13 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         }
 
         // Armor calculations
-        float damage = applyArmorReduction( damageEvent );
+        float damage = applyArmorReduction( damageEvent, false );
         damage = applyEffectReduction( damageEvent, damage );
 
         // Absorption
         float absorptionHearts = this.getAbsorptionHearts();
         if ( absorptionHearts > 0 ) {
-            float oldDamage = damage;
             damage = Math.max( damage - absorptionHearts, 0f );
-            this.setAbsorptionHearts( absorptionHearts - ( oldDamage - damage ) );
         }
 
         // Check for attack timer
@@ -344,11 +341,28 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         }
 
         // Call event
+        damageEvent.setFinalDamage( damage );
         if ( !super.damage( damageEvent ) ) {
             return false;
         }
 
-        float health = MathUtils.fastCeil( this.getHealth() - damage );
+        // Did the final damage change?
+        float damageToBeDealt;
+        if ( damage != damageEvent.getFinalDamage() ) {
+            damageToBeDealt = damageEvent.getFinalDamage();
+        } else {
+            damageToBeDealt = applyArmorReduction( damageEvent, true );
+            damageToBeDealt = applyEffectReduction( damageEvent, damageToBeDealt );
+
+            absorptionHearts = this.getAbsorptionHearts();
+            if ( absorptionHearts > 0 ) {
+                float oldDamage = damageToBeDealt;
+                damageToBeDealt = Math.max( damage - absorptionHearts, 0f );
+                this.setAbsorptionHearts( absorptionHearts - ( oldDamage - damageToBeDealt ) );
+            }
+        }
+
+        float health = MathUtils.fastCeil( this.getHealth() - damageToBeDealt );
 
         // Set health
         this.setHealth( health <= 0 ? 0 : health );
@@ -416,7 +430,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
         int damageResistanceAmplifier = getEffectAmplifier( PotionEffect.DAMAGE_RESISTANCE );
         if ( damageResistanceAmplifier != -1 && damageEvent.getDamageSource() != EntityDamageEvent.DamageSource.VOID ) {
-            float maxReductionDiff = 25 - ( ( damageResistanceAmplifier + 1 ) * 5 );
+            float maxReductionDiff = 25f - ( ( damageResistanceAmplifier + 1 ) * 5 );
             float amplifiedDamage = damage * maxReductionDiff;
             damage = amplifiedDamage / 25.0F;
         }
@@ -442,9 +456,10 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
      * Apply reduction based on the armor value of a entity
      *
      * @param damageEvent which wants to deal damage
+     * @param damageArmor should we damage the armor?
      * @return damage left over after removing armor reductions
      */
-    protected float applyArmorReduction( EntityDamageEvent damageEvent ) {
+    protected float applyArmorReduction( EntityDamageEvent damageEvent, boolean damageArmor ) {
         return damageEvent.getDamage();
     }
 

@@ -856,7 +856,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    protected float applyArmorReduction( EntityDamageEvent damageEvent ) {
+    protected float applyArmorReduction( EntityDamageEvent damageEvent, boolean damageArmor ) {
         if ( damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FALL ||
             damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.VOID ||
             damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.DROWNING ) {
@@ -866,7 +866,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         float damage = damageEvent.getDamage();
         float maxReductionDiff = 25 - this.armorInventory.getTotalArmorValue();
         float amplifiedDamage = damage * maxReductionDiff;
-        this.armorInventory.damageEvenly( damage );
+        if ( damageArmor ) {
+            this.armorInventory.damageEvenly( damage );
+        }
+
         return amplifiedDamage / 25.0F;
     }
 
