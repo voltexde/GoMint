@@ -7,6 +7,7 @@
 
 package io.gomint.event.player;
 
+import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.inventory.item.ItemStack;
@@ -21,13 +22,13 @@ import lombok.ToString;
 @ToString( callSuper = true )
 public class PlayerPickupItemEvent extends CancellablePlayerEvent {
 
-    private final EntityItemDrop itemDrop;
+    private final Entity holdingEntity;
     private final ItemStack itemStack;
 
-    public PlayerPickupItemEvent( EntityPlayer player, EntityItemDrop itemDrop, ItemStack itemStack ) {
+    public PlayerPickupItemEvent( EntityPlayer player, Entity holdingEntity, ItemStack itemStack ) {
         super( player );
         this.itemStack = itemStack;
-        this.itemDrop = itemDrop;
+        this.holdingEntity = holdingEntity;
     }
 
     /**
@@ -44,8 +45,8 @@ public class PlayerPickupItemEvent extends CancellablePlayerEvent {
      *
      * @return the entity which currently holds the item
      */
-    public EntityItemDrop getItemDrop() {
-        return this.itemDrop;
+    public Entity getHoldingEntity() {
+        return this.holdingEntity;
     }
 
 }
