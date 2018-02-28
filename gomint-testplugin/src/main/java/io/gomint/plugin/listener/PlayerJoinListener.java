@@ -3,10 +3,7 @@ package io.gomint.plugin.listener;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
-import io.gomint.inventory.item.ItemArrow;
-import io.gomint.inventory.item.ItemBow;
-import io.gomint.inventory.item.ItemEnderPearl;
-import io.gomint.inventory.item.ItemGoldenApple;
+import io.gomint.inventory.item.*;
 import io.gomint.world.Gamemode;
 
 /**
@@ -24,6 +21,8 @@ public class PlayerJoinListener implements EventListener {
 
         event.getPlayer().getInventory().setItem( 2, ItemEnderPearl.create( 16 ) );
         event.getPlayer().getInventory().setItem( 3, ItemGoldenApple.create( 64 ) );
+
+        event.getPlayer().getInventory().setItem( 4, ItemStonePressurePlate.create( 12 ) );
     }
 
 }

@@ -1,15 +1,14 @@
 package io.gomint.server.world.block;
 
-import io.gomint.world.block.BlockType;
-
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.world.block.BlockType;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 70 )
-public class StonePressurePlate extends Block implements io.gomint.world.block.BlockStonePressurePlate {
+public class StonePressurePlate extends BasePressurePlate implements io.gomint.world.block.BlockStonePressurePlate {
 
     @Override
     public byte getBlockId() {
