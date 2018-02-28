@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.Entity;
 import io.gomint.world.block.BlockLiquid;
 
@@ -33,6 +34,11 @@ public abstract class Liquid extends Block implements BlockLiquid {
     public void stepOn( Entity entity ) {
         // Reset fall distance
         entity.resetFallDistance();
+    }
+
+    @Override
+    public boolean canBeReplaced( ItemStack item ) {
+        return true;
     }
 
 }
