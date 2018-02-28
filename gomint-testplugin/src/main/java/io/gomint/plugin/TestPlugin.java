@@ -56,7 +56,7 @@ public class TestPlugin extends Plugin {
 
     @Override
     public void onUninstall() {
-        // This is like Bukkits onDisable();
+
     }
 
 }

@@ -2,6 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.Entity;
+import io.gomint.server.world.UpdateReason;
 import io.gomint.world.block.BlockLiquid;
 
 /**
@@ -41,4 +42,12 @@ public abstract class Liquid extends Block implements BlockLiquid {
         return true;
     }
 
+    public abstract int getTickDiff();
+    public abstract boolean isFlowing();
+
+    @Override
+    public long update( UpdateReason updateReason, long currentTimeMS, float dT ) {
+
+        return currentTimeMS + getTickDiff(); // Water updates every 5 client ticks
+    }
 }

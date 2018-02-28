@@ -33,6 +33,7 @@ import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.world.*;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockAir;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.GeneratorContext;
 import io.gomint.world.generator.integrated.VoidGenerator;
@@ -1033,7 +1034,7 @@ public abstract class WorldAdapter implements World {
                     playSound( null, newBlock.getLocation(), Sound.PLACE, (byte) 1, newBlock.getBlockId() );
 
                     // Schedule neighbour updates
-
+                    scheduleNeighbourUpdates( newBlock );
                 }
 
                 return success;
@@ -1041,6 +1042,14 @@ public abstract class WorldAdapter implements World {
         }
 
         return false;
+    }
+
+    private void scheduleNeighbourUpdates( Block block ) {
+        for ( BlockFace blockFace : BlockFace.values() ) {
+            Block block1 = block.getSide( blockFace.getValue() );
+            (( io.gomint.server.world.block.Block) block1).update( UpdateReason.NEIGHBOUR_UPDATE,  )
+            scheduleBlockUpdate( .getLocation(), 0, TimeUnit.MILLISECONDS );
+        }
     }
 
     public EntityItem createItemDrop( Location location, ItemStack item ) {

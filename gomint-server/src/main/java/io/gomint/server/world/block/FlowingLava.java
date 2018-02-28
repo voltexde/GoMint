@@ -37,6 +37,16 @@ public class FlowingLava extends Liquid implements BlockFlowingLava {
     }
 
     @Override
+    public int getTickDiff() {
+        return 1500; // Depends on the world, in nether its 10 ticks / otherwise its 30
+    }
+
+    @Override
+    public boolean isFlowing() {
+        return true;
+    }
+
+    @Override
     public void onEntityStanding( EntityLiving entityLiving ) {
         EntityDamageEvent damageEvent = new EntityDamageEvent( entityLiving, EntityDamageEvent.DamageSource.LAVA, 4.0f );
         entityLiving.damage( damageEvent );

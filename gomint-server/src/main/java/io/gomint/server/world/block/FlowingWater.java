@@ -34,6 +34,11 @@ public class FlowingWater extends Liquid implements BlockFlowingWater {
     }
 
     @Override
+    public int getTickDiff() {
+        return 250;
+    }
+
+    @Override
     public void onEntityStanding( EntityLiving entityLiving ) {
         if ( entityLiving.isOnFire() ) {
             entityLiving.extinguish();
@@ -43,6 +48,11 @@ public class FlowingWater extends Liquid implements BlockFlowingWater {
     @Override
     public BlockType getType() {
         return BlockType.FLOWING_WATER;
+    }
+
+    @Override
+    public boolean isFlowing() {
+        return true;
     }
 
 }

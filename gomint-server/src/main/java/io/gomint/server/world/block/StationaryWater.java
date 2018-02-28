@@ -34,6 +34,16 @@ public class StationaryWater extends Liquid implements BlockStationaryWater {
     }
 
     @Override
+    public int getTickDiff() {
+        return 250;
+    }
+
+    @Override
+    public boolean isFlowing() {
+        return false;
+    }
+
+    @Override
     public float getBlastResistance() {
         return 500.0f;
     }

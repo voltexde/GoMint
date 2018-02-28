@@ -42,6 +42,16 @@ public class StationaryLava extends Liquid implements BlockStationaryLava {
     }
 
     @Override
+    public int getTickDiff() {
+        return 1500; // Depends on the world, in nether its 10 ticks / otherwise its 30
+    }
+
+    @Override
+    public boolean isFlowing() {
+        return false;
+    }
+
+    @Override
     public void onEntityStanding( EntityLiving entityLiving ) {
         entityLiving.attack( 4.0f, EntityDamageEvent.DamageSource.LAVA );
         entityLiving.setBurning( 15, TimeUnit.SECONDS );
