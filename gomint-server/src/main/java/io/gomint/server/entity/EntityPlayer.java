@@ -846,6 +846,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public boolean damage( EntityDamageEvent damageEvent ) {
+        // When allowFlight is on we don't need falling damage
+        if ( this.adventureSettings.isCanFly() && damageEvent.getDamageSource() == EntityDamageEvent.DamageSource.FALL ) {
+            return false;
+        }
+
         // Can't touch this!
         return this.gamemode != Gamemode.CREATIVE && this.gamemode != Gamemode.SPECTATOR && super.damage( damageEvent );
     }
