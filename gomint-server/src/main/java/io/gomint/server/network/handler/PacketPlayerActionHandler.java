@@ -38,21 +38,19 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                         .getPluginManager().callEvent( new PlayerInteractEvent( connection.getEntity(),
                             PlayerInteractEvent.ClickType.LEFT, connection.getEntity().getWorld().getBlockAt( packet.getPosition() ) ) );
 
-                    if ( !event.isCancelled() ) {
-                        if ( connection.getEntity().getStartBreak() == 0 ) {
-                            connection.getEntity().setBreakVector( packet.getPosition() );
-                            connection.getEntity().setStartBreak( currentTimeMillis );
+                    if ( !event.isCancelled() && connection.getEntity().getStartBreak() == 0 ) {
+                        connection.getEntity().setBreakVector( packet.getPosition() );
+                        connection.getEntity().setStartBreak( currentTimeMillis );
 
-                            io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( packet.getPosition() );
+                        io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( packet.getPosition() );
 
-                            long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand(), connection.getEntity() );
-                            LOGGER.debug( "Sending break time {} ms", breakTime );
+                        long breakTime = block.getFinalBreakTime( connection.getEntity().getInventory().getItemInHand(), connection.getEntity() );
+                        LOGGER.debug( "Sending break time {} ms", breakTime );
 
-                            // Tell the client which break time we want
-                            if ( breakTime > 0 ) {
-                                connection.getEntity().getWorld().sendLevelEvent( packet.getPosition().toVector(),
-                                    LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
-                            }
+                        // Tell the client which break time we want
+                        if ( breakTime > 0 ) {
+                            connection.getEntity().getWorld().sendLevelEvent( packet.getPosition().toVector(),
+                                LevelEvent.BLOCK_START_BREAK, (int) ( 65536 / ( breakTime / 50 ) ) );
                         }
                     }
 
@@ -115,7 +113,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                     connection.getEntity().getWorld().sendLevelEvent(
                         connection.getEntity().getBreakVector().toVector(),
                         LevelEvent.PARTICLE_PUNCH_BLOCK,
-                        block.getBlockId() | ( block.getBlockData() << 8 ) | ( packet.getFace() << 16 ) );
+                        block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) | ( packet.getFace() << 16 ) );
                 }
 
                 break;

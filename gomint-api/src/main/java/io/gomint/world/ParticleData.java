@@ -1,12 +1,19 @@
 package io.gomint.world;
 
 import com.google.common.base.Preconditions;
+import io.gomint.world.block.Block;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public class ParticleData {
+public final class ParticleData {
+
+    // Block particle
+    private Block block;
+
+    // Additional face data for punch block
+    private int face = -1;
 
     // Colored particle
     private int r = -1;
@@ -19,6 +26,33 @@ public class ParticleData {
         this.g = g;
         this.b = b;
         this.a = a;
+    }
+
+    private ParticleData( Block block ) {
+        this.block = block;
+    }
+
+    private ParticleData( Block block, int face ) {
+        this.block = block;
+        this.face = face;
+    }
+
+    /**
+     * Get the face value. This will be -1 when not given
+     *
+     * @return face value
+     */
+    public int getFace() {
+        return this.face;
+    }
+
+    /**
+     * Get the block value. This will be null when not given
+     *
+     * @return block value
+     */
+    public Block getBlock() {
+        return this.block;
     }
 
     /**
@@ -55,6 +89,31 @@ public class ParticleData {
      */
     public int getAlpha() {
         return this.a;
+    }
+
+    /**
+     * Create a new particle data based on the block given as argument
+     *
+     * @param block which should be used to provide data for particles
+     * @param face  which should be used in the particle
+     * @return particle data which can be used to send particles to the player
+     */
+    public static ParticleData blockWithFacing( Block block, int face ) {
+        Preconditions.checkNotNull( block, "Block can't be null" );
+
+        return new ParticleData( block, face );
+    }
+
+    /**
+     * Create a new particle data based on the block given as argument
+     *
+     * @param block which should be used to provide data for particles
+     * @return particle data which can be used to send particles to the player
+     */
+    public static ParticleData block( Block block ) {
+        Preconditions.checkNotNull( block, "Block can't be null" );
+
+        return new ParticleData( block );
     }
 
     /**

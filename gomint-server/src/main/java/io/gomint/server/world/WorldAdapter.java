@@ -1158,7 +1158,18 @@ public abstract class WorldAdapter implements World {
     }
 
     public void sendParticle( EntityPlayer player, Vector location, Particle particle, int data ) {
-        int eventId = LevelEvent.ADD_PARTICLE_MASK | EnumConnectors.PARTICLE_CONNECTOR.convert( particle ).getId();
+        int eventId;
+        switch ( particle ) {
+            case PUNCH_BLOCK:
+                eventId = LevelEvent.PARTICLE_PUNCH_BLOCK;
+                break;
+            case BREAK_BLOCK:
+                eventId = LevelEvent.PARTICLE_DESTROY;
+                break;
+            default:
+                eventId = LevelEvent.ADD_PARTICLE_MASK | EnumConnectors.PARTICLE_CONNECTOR.convert( particle ).getId();
+        }
+
         sendLevelEvent( player, location, eventId, data );
     }
 
@@ -1180,6 +1191,28 @@ public abstract class WorldAdapter implements World {
                     ( ( data.getRed() & 0xff ) << 16 ) |
                     ( ( data.getGreen() & 0xff ) << 8 ) |
                     ( data.getBlue() & 0xff );
+
+                break;
+
+            case PUNCH_BLOCK:
+                if ( data.getBlock() == null || data.getFace() == -1 ) {
+                    throw new IllegalArgumentException( "Particle data does not reflect block and face data for particle " + particle );
+                }
+
+                io.gomint.server.world.block.Block block = (io.gomint.server.world.block.Block) data.getBlock();
+                dataNumber = block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) | ( data.getFace() << 16 );
+
+                break;
+
+            case BREAK_BLOCK:
+                if ( data.getBlock() == null ) {
+                    throw new IllegalArgumentException( "Particle data does not reflect block data for particle " + particle );
+                }
+
+                block = (io.gomint.server.world.block.Block) data.getBlock();
+                dataNumber = block.getBlockId() & 0xFF | ( block.getBlockData() << 8 );
+
+                break;
         }
 
         this.sendParticle( player, location, particle, dataNumber );
