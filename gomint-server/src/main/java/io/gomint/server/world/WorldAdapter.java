@@ -90,7 +90,6 @@ public abstract class WorldAdapter implements World {
     // Block ticking
     int randomUpdateNumber = FastRandom.current().nextInt();
     TickList tickQueue = new TickList();
-    private final Set<Long> neighbourUpdates = new HashSet<>();
 
     // I/O
     private AtomicBoolean asyncWorkerRunning;
@@ -376,30 +375,6 @@ public abstract class WorldAdapter implements World {
                 }
                 // CHECKSTYLE:ON
             }
-        }
-
-        // Neighbour updates
-        if ( this.neighbourUpdates.size() > 0 ) {
-            for ( Long blockToUpdate : this.neighbourUpdates ) {
-                Block block = getBlockAt( CoordinateUtils.fromLong( blockToUpdate ) );
-                if ( block != null ) {
-                    // CHECKSTYLE:OFF
-                    try {
-                        io.gomint.server.world.block.Block block1 = (io.gomint.server.world.block.Block) block;
-                        long next = block1.update( UpdateReason.NEIGHBOUR_UPDATE, currentTimeMS, dT );
-
-                        // Reschedule if needed
-                        if ( next > currentTimeMS ) {
-                            this.tickQueue.add( next, blockToUpdate );
-                        }
-                    } catch ( Exception e ) {
-                        logger.error( "Error whilst ticking block @ " + blockToUpdate, e );
-                    }
-                    // CHECKSTYLE:ON
-                }
-            }
-
-            this.neighbourUpdates.clear();
         }
 
         // ---------------------------------------
@@ -804,15 +779,12 @@ public abstract class WorldAdapter implements World {
     public void updateBlock( BlockPosition pos ) {
         flagChunkDirty( pos );
 
-        sendToVisible( pos, null, new Predicate<Entity>() {
-            @Override
-            public boolean test( Entity entity ) {
-                if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
-                    ( (io.gomint.server.entity.EntityPlayer) entity ).getBlockUpdates().add( pos );
-                }
-
-                return false;
+        sendToVisible( pos, null, entity -> {
+            if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
+                ( (io.gomint.server.entity.EntityPlayer) entity ).getBlockUpdates().add( pos );
             }
+
+            return false;
         } );
     }
 
@@ -1045,10 +1017,14 @@ public abstract class WorldAdapter implements World {
     }
 
     private void scheduleNeighbourUpdates( Block block ) {
-        for ( BlockFace blockFace : BlockFace.values() ) {
-            Block block1 = block.getSide( blockFace.getValue() );
-            (( io.gomint.server.world.block.Block) block1).update( UpdateReason.NEIGHBOUR_UPDATE,  )
-            scheduleBlockUpdate( .getLocation(), 0, TimeUnit.MILLISECONDS );
+        io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
+        for ( BlockFace face : BlockFace.values() ) {
+            io.gomint.server.world.block.Block neighbourBlock = (io.gomint.server.world.block.Block) implBlock.getSide( face.getValue() );
+            try {
+                neighbourBlock.update( UpdateReason.NEIGHBOUR_UPDATE, this.server.getCurrentTickTime(), 0f );
+            } catch ( Exception e ) {
+                this.logger.error( "Exception while updating block @ {}", neighbourBlock.getLocation(), e );
+            }
         }
     }
 
@@ -1260,20 +1236,17 @@ public abstract class WorldAdapter implements World {
         int blockId = Blocks.getID( blockClass );
 
         // Iterate over all chunks
-        this.chunkCache.iterateAll( new Consumer<ChunkAdapter>() {
-            @Override
-            public void accept( ChunkAdapter chunkAdapter ) {
-                int chunkZ = chunkAdapter.getZ();
-                int chunkX = chunkAdapter.getX();
+        this.chunkCache.iterateAll( chunkAdapter -> {
+            int chunkZ = chunkAdapter.getZ();
+            int chunkX = chunkAdapter.getX();
 
-                for ( int x = 0; x < 16; x++ ) {
-                    for ( int y = 0; y < 256; y++ ) {
-                        for ( int z = 0; z < 16; z++ ) {
-                            int currentBlockId = chunkAdapter.getBlock( x, y, z );
-                            if ( currentBlockId == blockId ) {
-                                T block = getBlockAt( ( chunkX << 4 ) + x, y, ( chunkZ << 4 ) + z );
-                                blockConsumer.accept( block );
-                            }
+            for ( int x = 0; x < 16; x++ ) {
+                for ( int y = 0; y < 256; y++ ) {
+                    for ( int z = 0; z < 16; z++ ) {
+                        int currentBlockId = chunkAdapter.getBlock( x, y, z );
+                        if ( currentBlockId == blockId ) {
+                            T block = getBlockAt( ( chunkX << 4 ) + x, y, ( chunkZ << 4 ) + z );
+                            blockConsumer.accept( block );
                         }
                     }
                 }

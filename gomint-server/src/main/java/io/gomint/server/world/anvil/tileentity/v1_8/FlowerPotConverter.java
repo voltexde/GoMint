@@ -59,7 +59,7 @@ public class FlowerPotConverter extends BasisConverter<FlowerPotTileEntity> {
 
         // Store the item
         compound.addValue( "Item", MaterialMagicNumbers.newIdFromValue( entity.getHoldingItem().getMaterial() ) );
-        compound.addValue( "Data", entity.getHoldingItem().getData() );
+        compound.addValue( "Data", (int) entity.getHoldingItem().getData() );
     }
 
 }
