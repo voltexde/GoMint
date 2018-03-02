@@ -1,3 +1,5 @@
+def name = "GoMint";
+def changesString = "";
 pipeline {
   agent {
     docker {
@@ -10,6 +12,18 @@ pipeline {
       steps {
         sh 'apt-get update'
         sh 'apt-get install -y openjfx'
+        script {
+          def changeLogSets = currentBuild.changeSets
+          def changes = [];
+          for (int i = 0; i < changeLogSets.size(); i++) {
+              def entries = changeLogSets[i].items
+              for (int j = 0; j < entries.length; j++) {
+                  def entry = entries[j]
+                  changes.add("\"${entry.msg}\" by ${entry.author}")
+              }
+          }
+          changesString = changes.join("\n")
+        }
       }
     }
     stage('Build') {
@@ -26,12 +40,12 @@ pipeline {
   post {
     success {
       withCredentials([string(credentialsId: 'discord', variable: 'webhookUrl')]) {
-        discordSend title: "#${currentBuild.id} ${JOB_NAME}", link: currentBuild.absoluteUrl, footer: "Provided with <3", successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), webhookURL: "${webhookUrl}", description: "GoMint Build succeeded.\n${currentBuild.absoluteUrl}artifact/gomint-server/target/GoMint.jar"
+        discordSend title: "#${currentBuild.id} ${JOB_NAME}", link: currentBuild.absoluteUrl, footer: "Provided with <3", successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), webhookURL: "${webhookUrl}", description: "${name} Build succeeded.\n\nChange(s):\n${changesString}\n\n${currentBuild.absoluteUrl}artifact/gomint-server/target/${name}.jar"
       }
     }
     failure {
       withCredentials([string(credentialsId: 'discord', variable: 'webhookUrl')]) {
-        discordSend title: "#${currentBuild.id} ${JOB_NAME}", link: currentBuild.absoluteUrl, footer: "Provided with <3", successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), webhookURL: "${webhookUrl}", description: "GoMint Build failed."
+        discordSend title: "#${currentBuild.id} ${JOB_NAME}", link: currentBuild.absoluteUrl, footer: "Provided with <3", successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), webhookURL: "${webhookUrl}", description: "${name} Build failed.\n\nChange(s):\n${changesString}"
       }
     }
   }
