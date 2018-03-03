@@ -28,6 +28,8 @@ import io.gomint.world.block.data.Facing;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,8 @@ import java.util.function.Function;
  */
 @EqualsAndHashCode( of = { "location" } )
 public abstract class Block implements io.gomint.world.block.Block {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( Block.class );
 
     // CHECKSTYLE:OFF
     @Setter
@@ -343,6 +347,15 @@ public abstract class Block implements io.gomint.world.block.Block {
     public <T extends TileEntity> T getTileEntity() {
         if ( !isPlaced() ) {
             return null;
+        }
+
+        // Emergency checking
+        if ( this.tileEntity == null && needsTileEntity() ) {
+            LOGGER.warn( "Your world has been corruped. The block {} @ {} has no stored tile entity. Please fix the world {}. The block will be repaired now, don't expect it to work like it should!",
+                this.getClass().getSimpleName(), this.location, this.world.getWorldName() );
+
+            this.tileEntity = createTileEntity( null );
+            this.world.storeTileEntity( this.location.toBlockPosition(), this.tileEntity );
         }
 
         return (T) this.tileEntity;

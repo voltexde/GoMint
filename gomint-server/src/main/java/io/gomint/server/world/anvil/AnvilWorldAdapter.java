@@ -238,9 +238,9 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                     Class<? extends ChunkGenerator> chunkGeneratorClass = (Class<? extends ChunkGenerator>) PluginClassloader.find( this.generatorName );
                     this.constructGenerator( chunkGeneratorClass, context );
                 } catch ( ClassNotFoundException e ) {
-                    e.printStackTrace();
+                    this.logger.warn( "Could not find original chunk generator: {}", this.generatorName );
                 } catch ( WorldCreateException e ) {
-                    e.printStackTrace();
+                    this.logger.error( "Found chunk generator for {} but it did throw an error on instancing", this.generatorName, e );
                 }
         }
     }
