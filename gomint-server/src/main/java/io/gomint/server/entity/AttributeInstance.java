@@ -2,6 +2,8 @@ package io.gomint.server.entity;
 
 import lombok.Getter;
 import lombok.ToString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.EnumMap;
 
@@ -12,6 +14,8 @@ import java.util.EnumMap;
 @ToString
 @Getter
 public class AttributeInstance {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( AttributeInstance.class );
 
     private final String key;
     private final float minValue;
@@ -32,14 +36,19 @@ public class AttributeInstance {
     }
 
     public void setModifier( AttributeModifier modifier, float amount ) {
+        LOGGER.info( "Adding modifier {}, amount {}", modifier, amount );
+
         this.modifiers.put( modifier, amount );
         this.value += amount;
         this.dirty = true;
     }
 
     public void removeModifier( AttributeModifier modifier ) {
+        LOGGER.info( "Wanting to remove modifier {}", modifier );
+
         Float amount = this.modifiers.remove( modifier );
         if ( amount != null ) {
+            LOGGER.info( "Removed {} amount", amount );
             this.value -= amount;
             this.dirty = true;
         }
