@@ -744,8 +744,6 @@ public abstract class WorldAdapter implements World {
                     case LOAD:
                         AsyncChunkLoadTask load = (AsyncChunkLoadTask) task;
                         chunk = this.loadChunk( load.getX(), load.getZ(), load.isGenerate() );
-
-                        this.logger.info( "Invoking {} for chunk {} {}", load.getCallback(), load.getX(), load.getZ() );
                         load.getCallback().invoke( chunk );
                         break;
 
