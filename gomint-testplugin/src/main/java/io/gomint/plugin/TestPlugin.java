@@ -3,6 +3,7 @@ package io.gomint.plugin;
 import io.gomint.GoMint;
 import io.gomint.plugin.config.Config;
 import io.gomint.plugin.generator.PlotChunkGenerator;
+import io.gomint.plugin.listener.BlockBreakListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerMoveListener;
 import io.gomint.world.generator.CreateOptions;
@@ -52,6 +53,7 @@ public class TestPlugin extends Plugin {
         // Register listener
         registerListener( new PlayerMoveListener() );
         registerListener( new PlayerJoinListener() );
+        registerListener( new BlockBreakListener() );
     }
 
     @Override

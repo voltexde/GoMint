@@ -27,6 +27,8 @@ public class PlayerJoinListener implements EventListener {
         ItemBucket waterBucket = ItemBucket.create( 1 );
         waterBucket.setContent( ItemBucket.Content.WATER );
         event.getPlayer().getInventory().setItem( 5, waterBucket );
+
+        event.getPlayer().getInventory().setItem( 6, ItemBed.create( 1 ) );
     }
 
 }

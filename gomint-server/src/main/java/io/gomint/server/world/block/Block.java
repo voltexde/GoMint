@@ -73,6 +73,10 @@ public abstract class Block implements io.gomint.world.block.Block {
      */
     public abstract byte getBlockId();
 
+    public boolean isUpdateScheduled() {
+        return this.world.isUpdateScheduled( this.location.toBlockPosition() );
+    }
+
     /**
      * Called when a normal block update should be done
      *
@@ -228,6 +232,11 @@ public abstract class Block implements io.gomint.world.block.Block {
                     instance.setTileEntity( tileEntity );
                     worldAdapter.storeTileEntity( pos, tileEntity );
                 }
+            }
+
+            long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
+            if ( next > this.world.getServer().getCurrentTickTime() ) {
+                this.world.addTickingBlock( next, this.location.toBlockPosition() );
             }
 
             worldAdapter.updateBlock( pos );

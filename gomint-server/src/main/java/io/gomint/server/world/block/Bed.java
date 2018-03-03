@@ -2,6 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemBed;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.math.Vector2;
@@ -225,6 +226,18 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
         return new ArrayList<ItemStack>() {{
             add( bed );
         }};
+    }
+
+    @Override
+    public AxisAlignedBB getBoundingBox() {
+        return new AxisAlignedBB(
+            this.location.getX(),
+            this.location.getY(),
+            this.location.getZ(),
+            this.location.getX() + 1,
+            this.location.getY() + 0.5625f,
+            this.location.getZ() + 1
+        );
     }
 
 }

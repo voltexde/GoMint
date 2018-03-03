@@ -215,12 +215,7 @@ public class Explosion {
         explode.setSource( sourceLocation );
         explode.setRadius( this.size );
         explode.setAffectedBlocksRelative( send );
-        this.source.getWorld().sendToVisible( sourceLocation.toBlockPosition(), explode, new Predicate<io.gomint.entity.Entity>() {
-            @Override
-            public boolean test( io.gomint.entity.Entity entity ) {
-                return true;
-            }
-        } );
+        this.source.getWorld().sendToVisible( sourceLocation.toBlockPosition(), explode, entity -> true );
 
         this.source.getWorld().sendParticle( sourceLocation, Particle.HUGE_EXPLODE_SEED );
         this.source.getWorld().sendLevelEvent( sourceLocation, LevelEvent.CAULDRON_EXPLODE, 0 );

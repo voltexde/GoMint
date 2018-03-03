@@ -343,11 +343,7 @@ public abstract class WorldAdapter implements World {
 
         // Random blocks
         if ( !this.config.isDisableRandomTicking() ) {
-            long[] tickingHashes = this.chunkCache.getTickingChunks( dT );
-            for ( long chunkHash : tickingHashes ) {
-                ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
-                chunkAdapter.update( currentTimeMS, dT );
-            }
+            this.tickRandomBlocks( currentTimeMS, dT );
         }
 
         // Scheduled blocks
@@ -389,30 +385,24 @@ public abstract class WorldAdapter implements World {
             AsyncChunkPackageTask task = this.chunkPackageTasks.poll();
             ChunkAdapter chunk = this.getChunk( task.getX(), task.getZ() );
             if ( chunk == null ) {
-                final Object lock = new Object();
+                chunk = this.loadChunk( task.getX(), task.getZ(), false );
+            }
 
-                this.getOrLoadChunk( task.getX(), task.getZ(), false, arg -> {
-                    synchronized ( lock ) {
-                        packageChunk( arg, task.getCallback() );
-                        lock.notifyAll();
-                    }
-                } );
-
-                // Wait until the chunk is loaded
-                synchronized ( lock ) {
-                    try {
-                        lock.wait();
-                    } catch ( InterruptedException e ) {
-                        // Ignored .-.
-                    }
-                }
-            } else {
+            if ( chunk != null ) {
                 packageChunk( chunk, task.getCallback() );
             }
         }
 
         // ---------------------------------------
         // Perform regular updates:
+    }
+
+    private void tickRandomBlocks( long currentTimeMS, float dT ) {
+        long[] tickingHashes = this.chunkCache.getTickingChunks( dT );
+        for ( long chunkHash : tickingHashes ) {
+            ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
+            chunkAdapter.update( currentTimeMS, dT );
+        }
     }
 
     // ==================================== ENTITY MANAGEMENT ==================================== //
@@ -535,38 +525,47 @@ public abstract class WorldAdapter implements World {
         }
 
         // Check if we already have a task
-        for ( AsyncChunkTask task : this.asyncChunkTasks ) {
-            if ( task instanceof AsyncChunkLoadTask ) {
-                AsyncChunkLoadTask loadTask = (AsyncChunkLoadTask) task;
-                if ( loadTask.getX() == x && loadTask.getZ() == z ) {
-                    this.logger.debug( "Found loader for chunk {} {}", x, z );
+        AsyncChunkLoadTask oldTask = this.findAsyncChunkLoadTask( x, z );
+        if ( oldTask != null ) {
+            this.logger.debug( "Found loader for chunk {} {}", x, z );
 
-                    // Set generating if needed
-                    if ( !loadTask.isGenerate() && generate ) {
-                        loadTask.setGenerate( true );
-                    }
-
-                    // Check for multi callback
-                    MultiOutputDelegate<ChunkAdapter> multiOutputDelegate;
-                    if ( loadTask.getCallback() instanceof MultiOutputDelegate ) {
-                        multiOutputDelegate = (MultiOutputDelegate<ChunkAdapter>) loadTask.getCallback();
-                        multiOutputDelegate.getOutputs().offer( callback );
-                    } else {
-                        Delegate<ChunkAdapter> delegate = loadTask.getCallback();
-                        multiOutputDelegate = new MultiOutputDelegate<>();
-                        multiOutputDelegate.getOutputs().offer( delegate );
-                        multiOutputDelegate.getOutputs().offer( callback );
-                        loadTask.setCallback( multiOutputDelegate );
-                    }
-
-                    return;
-                }
+            // Set generating if needed
+            if ( !oldTask.isGenerate() && generate ) {
+                oldTask.setGenerate( true );
             }
+
+            // Check for multi callback
+            MultiOutputDelegate<ChunkAdapter> multiOutputDelegate;
+            if ( oldTask.getCallback() instanceof MultiOutputDelegate ) {
+                multiOutputDelegate = (MultiOutputDelegate<ChunkAdapter>) oldTask.getCallback();
+                multiOutputDelegate.getOutputs().offer( callback );
+            } else {
+                Delegate<ChunkAdapter> delegate = oldTask.getCallback();
+                multiOutputDelegate = new MultiOutputDelegate<>();
+                multiOutputDelegate.getOutputs().offer( delegate );
+                multiOutputDelegate.getOutputs().offer( callback );
+                oldTask.setCallback( multiOutputDelegate );
+            }
+
+            return;
         }
 
         // Schedule this chunk for asynchronous loading:
         AsyncChunkLoadTask task = new AsyncChunkLoadTask( x, z, generate, callback );
         this.asyncChunkTasks.offer( task );
+    }
+
+    private AsyncChunkLoadTask findAsyncChunkLoadTask( int x, int z ) {
+        for ( AsyncChunkTask task : this.asyncChunkTasks ) {
+            if ( task instanceof AsyncChunkLoadTask ) {
+                AsyncChunkLoadTask loadTask = (AsyncChunkLoadTask) task;
+                if ( loadTask.getX() == x && loadTask.getZ() == z ) {
+                    return loadTask;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -805,7 +804,7 @@ public abstract class WorldAdapter implements World {
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( pos );
         updateBlock.setBlockId( block.getBlockId() );
-        updateBlock.setPrioAndMetadata( ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() ) ) );
+        updateBlock.setPrioAndMetadata( ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() & 0xFF ) ) );
         connection.addToSendQueue( updateBlock );
 
         // Check for tile entity
@@ -871,6 +870,41 @@ public abstract class WorldAdapter implements World {
         return nearby;
     }
 
+    private <T> List<T> iterateBlocks( int minX, int maxX, int minY, int maxY, int minZ, int maxZ, AxisAlignedBB bb, boolean returnBoundingBoxes ) {
+        List values = null;
+
+        for ( int z = minZ; z < maxZ; ++z ) {
+            for ( int x = minX; x < maxX; ++x ) {
+                for ( int y = minY; y < maxY; ++y ) {
+                    Block block = this.getBlockAt( x, y, z );
+
+                    if ( !block.canPassThrough() ) {
+                        AxisAlignedBB blockBox = block.getBoundingBox();
+                        if ( blockBox.intersectsWith( bb ) ) {
+                            if ( values == null ) {
+                                values = new ArrayList<>();
+                            }
+
+                            if ( returnBoundingBoxes ) {
+                                values.add( blockBox );
+                            } else {
+                                values.add( block );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return values;
+    }
+
+    /**
+     * Get blocks which collide with the given entity.
+     *
+     * @param entity which is used to check for block collisions
+     * @return list of blocks with which the entity collides, or null when no block has been found
+     */
     public List<Block> getCollisionBlocks( io.gomint.entity.Entity entity ) {
         AxisAlignedBB bb = entity.getBoundingBox().grow( 0.1f, 0.01f, 0.1f );
 
@@ -881,27 +915,7 @@ public abstract class WorldAdapter implements World {
         int maxY = MathUtils.fastCeil( bb.getMaxY() );
         int maxZ = MathUtils.fastCeil( bb.getMaxZ() );
 
-        List<Block> blocks = null;
-        for ( int z = minZ; z < maxZ; ++z ) {
-            for ( int x = minX; x < maxX; ++x ) {
-                for ( int y = minY; y < maxY; ++y ) {
-                    Block block = this.getBlockAt( x, y, z );
-
-                    if ( !block.canPassThrough() ) {
-                        AxisAlignedBB blockBox = block.getBoundingBox();
-                        if ( blockBox.intersectsWith( bb ) ) {
-                            if ( blocks == null ) {
-                                blocks = new ArrayList<>();
-                            }
-
-                            blocks.add( block );
-                        }
-                    }
-                }
-            }
-        }
-
-        return blocks;
+        return iterateBlocks( minX, maxX, minY, maxY, minZ, maxZ, bb, false );
     }
 
     @Override
@@ -913,26 +927,7 @@ public abstract class WorldAdapter implements World {
         int maxY = MathUtils.fastCeil( bb.getMaxY() );
         int maxZ = MathUtils.fastCeil( bb.getMaxZ() );
 
-        List<AxisAlignedBB> collisions = null;
-
-        for ( int z = minZ; z < maxZ; ++z ) {
-            for ( int x = minX; x < maxX; ++x ) {
-                for ( int y = minY; y < maxY; ++y ) {
-                    Block block = this.getBlockAt( x, y, z );
-
-                    if ( !block.canPassThrough() ) {
-                        AxisAlignedBB blockBox = block.getBoundingBox();
-                        if ( blockBox.intersectsWith( bb ) ) {
-                            if ( collisions == null ) {
-                                collisions = new ArrayList<>();
-                            }
-
-                            collisions.add( blockBox );
-                        }
-                    }
-                }
-            }
-        }
+        List<AxisAlignedBB> collisions = iterateBlocks( minX, maxX, minY, maxY, minZ, maxZ, bb, true );
 
         if ( includeEntities ) {
             Collection<io.gomint.entity.Entity> entities = getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity );
@@ -1021,7 +1016,12 @@ public abstract class WorldAdapter implements World {
         for ( BlockFace face : BlockFace.values() ) {
             io.gomint.server.world.block.Block neighbourBlock = (io.gomint.server.world.block.Block) implBlock.getSide( face.getValue() );
             try {
-                neighbourBlock.update( UpdateReason.NEIGHBOUR_UPDATE, this.server.getCurrentTickTime(), 0f );
+                long next = neighbourBlock.update( UpdateReason.NEIGHBOUR_UPDATE, this.server.getCurrentTickTime(), 0f );
+                if ( next > this.server.getCurrentTickTime() ) {
+                    BlockPosition position = neighbourBlock.getLocation().toBlockPosition();
+                    long hash = CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() );
+                    this.tickQueue.add( next, hash );
+                }
             } catch ( Exception e ) {
                 this.logger.error( "Exception while updating block @ {}", neighbourBlock.getLocation(), e );
             }
@@ -1216,9 +1216,9 @@ public abstract class WorldAdapter implements World {
     @Override
     public void unload( Consumer<EntityPlayer> playerConsumer ) {
         // Unload all players via API
-        Set<EntityPlayer> players = new HashSet<>( this.players.size() );
-        this.players.forEach( ( player, chunkAdapter ) -> players.add( player ) );
-        players.forEach( playerConsumer );
+        Set<EntityPlayer> playerCopy = new HashSet<>( this.players.size() );
+        this.players.forEach( ( player, chunkAdapter ) -> playerCopy.add( player ) );
+        playerCopy.forEach( playerConsumer );
 
         // Stop this world
         this.close();
@@ -1277,6 +1277,16 @@ public abstract class WorldAdapter implements World {
         } catch ( InvocationTargetException e ) {
             throw new WorldCreateException( "The constructor of the generator has thrown this exception", e );
         }
+    }
+
+    public void addTickingBlock( long time, BlockPosition position ) {
+        long hash = CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() );
+        this.tickQueue.add( time, hash );
+    }
+
+    public boolean isUpdateScheduled( BlockPosition position ) {
+        long hash = CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() );
+        return this.tickQueue.contains( hash );
     }
 
 }

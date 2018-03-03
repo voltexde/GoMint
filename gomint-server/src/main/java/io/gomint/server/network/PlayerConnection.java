@@ -242,20 +242,10 @@ public class PlayerConnection {
             }
         }
 
-        if ( this.connection == null ) {
-            this.releaseSendQueue();
-        } else {
-            if ( this.deviceInfo != null && this.deviceInfo.getOs() == DeviceInfo.DeviceOS.WINDOWS ) {
-                this.releaseSendQueue();
-            }
-        }
-
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
-            if ( this.connection != null && ( this.deviceInfo == null || this.deviceInfo.getOs() != DeviceInfo.DeviceOS.WINDOWS ) ) {
-                this.releaseSendQueue();
-            }
+            this.releaseSendQueue();
 
             this.sentInClientTick = 0;
             this.lastUpdateDT = 0;

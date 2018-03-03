@@ -17,8 +17,6 @@ import org.slf4j.LoggerFactory;
 @RegisterInfo( id = 325 )
 public class ItemBucket extends ItemStack implements io.gomint.inventory.item.ItemBucket {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( ItemBucket.class );
-
     // CHECKSTYLE:OFF
     public ItemBucket( short data, int amount ) {
         super( 325, data, amount );

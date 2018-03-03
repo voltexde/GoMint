@@ -127,6 +127,21 @@ public class TickList {
         return 0;
     }
 
+    public boolean contains( long hash ) {
+        LongElement element = this.head;
+        if ( element == null ) {
+            return false;
+        }
+
+        do {
+            if ( element.getValues().contains( hash ) ) {
+                return true;
+            }
+        } while ( ( element = element.getNext() ) != null );
+
+        return false;
+    }
+
     @AllArgsConstructor
     @Data
     private final class LongElement {
