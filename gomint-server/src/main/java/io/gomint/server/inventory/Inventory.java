@@ -170,12 +170,13 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
 
     @Override
     public void clear() {
-        this.contents = new ItemStack[this.size];
-        Arrays.fill( this.contents, GoMint.instance().createItemStack( ItemAir.class, 0 ) );
-
-        // Inform all viewers
-        for ( PlayerConnection playerConnection : this.viewer ) {
-            sendContents( playerConnection );
+        if ( this.contents == null ) {
+            this.contents = new ItemStack[this.size];
+            Arrays.fill( this.contents, ItemAir.create( 0 ) );
+        } else {
+            for ( int i = 0; i < this.size; i++ ) {
+                setItem( 0, ItemAir.create( 1 ) );
+            }
         }
     }
 

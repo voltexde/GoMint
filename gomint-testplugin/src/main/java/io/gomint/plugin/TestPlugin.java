@@ -4,6 +4,7 @@ import io.gomint.GoMint;
 import io.gomint.plugin.config.Config;
 import io.gomint.plugin.generator.PlotChunkGenerator;
 import io.gomint.plugin.listener.BlockBreakListener;
+import io.gomint.plugin.listener.EntityTeleportListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerMoveListener;
 import io.gomint.world.generator.CreateOptions;
@@ -54,6 +55,7 @@ public class TestPlugin extends Plugin {
         registerListener( new PlayerMoveListener() );
         registerListener( new PlayerJoinListener() );
         registerListener( new BlockBreakListener() );
+        registerListener( new EntityTeleportListener() );
     }
 
     @Override

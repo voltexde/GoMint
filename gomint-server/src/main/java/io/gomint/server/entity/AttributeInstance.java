@@ -5,6 +5,7 @@ import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class AttributeInstance {
     private float value;
     private boolean dirty;
 
-    private Map<String, Float> modifiers = new HashMap<>();
+    private Map<AttributeModifier, Float> modifiers = new EnumMap<>( AttributeModifier.class );
 
     AttributeInstance( String key, float minValue, float maxValue, float value ) {
         this.key = key;
@@ -37,19 +38,14 @@ public class AttributeInstance {
     }
 
     public void setModifier( AttributeModifier modifier, float amount ) {
-        LOGGER.info( "Adding modifier {}, amount {}", modifier, amount );
-
-        this.modifiers.put( modifier.name(), amount );
+        this.modifiers.put( modifier, amount );
         this.value += amount;
         this.dirty = true;
     }
 
     public void removeModifier( AttributeModifier modifier ) {
-        LOGGER.info( "Wanting to remove modifier {}", modifier );
-
-        Float amount = this.modifiers.remove( modifier.name() );
+        Float amount = this.modifiers.remove( modifier );
         if ( amount != null ) {
-            LOGGER.info( "Removed {} amount", amount );
             this.value -= amount;
             this.dirty = true;
         }

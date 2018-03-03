@@ -38,9 +38,19 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
 
     @Override
     public void setItem( int index, ItemStack item ) {
+        ItemStack oldItem = getItem( index );
         super.setItem( index, item );
 
         if ( index == this.itemInHandSlot ) {
+            // Inform the old item it got deselected
+            io.gomint.server.inventory.item.ItemStack oldItemInHand = (io.gomint.server.inventory.item.ItemStack) oldItem;
+            oldItemInHand.removeFromHand( (EntityPlayer) this.owner );
+
+            // Inform the item it got selected
+            io.gomint.server.inventory.item.ItemStack newItemInHand = (io.gomint.server.inventory.item.ItemStack) item;
+            newItemInHand.gotInHand( (EntityPlayer) this.owner );
+
+            // Update the item for everyone else
             this.updateItemInHand();
         }
     }
@@ -68,7 +78,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
      * @param slot in the inventory to point on the item in hand
      */
     public void setItemInHand( byte slot ) {
-        this.itemInHandSlot = slot;
+        this.updateItemInHandWithItem( slot );
         this.updateItemInHand();
     }
 
@@ -122,6 +132,20 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
                 ( (EntityPlayer) entity ).getConnection().addToSendQueue( packetMobEquipment );
             }
         }
+    }
+
+    public void updateItemInHandWithItem( byte slot ) {
+        // Inform the old item it got deselected
+        io.gomint.server.inventory.item.ItemStack oldItemInHand = (io.gomint.server.inventory.item.ItemStack) this.getItemInHand();
+        oldItemInHand.removeFromHand( (EntityPlayer) this.owner );
+
+        // Set item in hand index
+        this.itemInHandSlot = slot;
+
+        // Inform the item it got selected
+        io.gomint.server.inventory.item.ItemStack newItemInHand =
+            (io.gomint.server.inventory.item.ItemStack) this.getItemInHand();
+        newItemInHand.gotInHand( (EntityPlayer) this.owner );
     }
 
 }

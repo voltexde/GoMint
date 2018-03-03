@@ -16,7 +16,7 @@ public class PlayerJoinListener implements EventListener {
     public void onPlayerJoin( PlayerJoinEvent event ) {
         // event.getPlayer().setGamemode( Gamemode.CREATIVE );
 
-        event.getPlayer().getInventory().setItem( 0, ItemBow.create( 1 ) );
+        event.getPlayer().getInventory().setItem( 0, ItemDiamondSword.create( 1 ) );
         event.getPlayer().getInventory().setItem( 1, ItemArrow.create( 64 ) );
 
         event.getPlayer().getInventory().setItem( 2, ItemEnderPearl.create( 16 ) );
