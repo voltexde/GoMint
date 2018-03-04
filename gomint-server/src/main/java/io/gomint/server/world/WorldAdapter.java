@@ -348,14 +348,13 @@ public abstract class WorldAdapter implements World {
 
         // Scheduled blocks
         while ( this.tickQueue.getNextTaskTime() < currentTimeMS ) {
-            long blockToUpdate = this.tickQueue.getNextElement();
-            if ( blockToUpdate == Long.MIN_VALUE ) {
+            BlockPosition blockToUpdate = this.tickQueue.getNextElement();
+            if ( blockToUpdate == null ) {
                 break;
             }
 
             // Get the block
-            BlockPosition blockPosition = CoordinateUtils.fromLong( blockToUpdate );
-            Block block = getBlockAt( blockPosition );
+            Block block = getBlockAt( blockToUpdate );
             if ( block != null ) {
                 // CHECKSTYLE:OFF
                 try {
@@ -744,6 +743,7 @@ public abstract class WorldAdapter implements World {
                     case LOAD:
                         AsyncChunkLoadTask load = (AsyncChunkLoadTask) task;
                         chunk = this.loadChunk( load.getX(), load.getZ(), load.isGenerate() );
+
                         load.getCallback().invoke( chunk );
                         break;
 
@@ -1017,8 +1017,7 @@ public abstract class WorldAdapter implements World {
                 long next = neighbourBlock.update( UpdateReason.NEIGHBOUR_UPDATE, this.server.getCurrentTickTime(), 0f );
                 if ( next > this.server.getCurrentTickTime() ) {
                     BlockPosition position = neighbourBlock.getLocation().toBlockPosition();
-                    long hash = CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() );
-                    this.tickQueue.add( next, hash );
+                    this.tickQueue.add( next, position );
                 }
             } catch ( Exception e ) {
                 this.logger.error( "Exception while updating block @ {}", neighbourBlock.getLocation(), e );
@@ -1123,8 +1122,7 @@ public abstract class WorldAdapter implements World {
     public void scheduleBlockUpdate( Location location, long delay, TimeUnit unit ) {
         BlockPosition position = location.toBlockPosition();
         long key = this.server.getCurrentTickTime() + unit.toMillis( delay );
-
-        this.tickQueue.add( key, CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() ) );
+        this.tickQueue.add( key, position );
     }
 
     public void dropItem( Location location, ItemStack drop ) {
@@ -1278,13 +1276,11 @@ public abstract class WorldAdapter implements World {
     }
 
     public void addTickingBlock( long time, BlockPosition position ) {
-        long hash = CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() );
-        this.tickQueue.add( time, hash );
+        this.tickQueue.add( time, position );
     }
 
     public boolean isUpdateScheduled( BlockPosition position ) {
-        long hash = CoordinateUtils.toLong( position.getX(), position.getY(), position.getZ() );
-        return this.tickQueue.contains( hash );
+        return this.tickQueue.contains( position );
     }
 
 }

@@ -10,7 +10,11 @@ package io.gomint.server.world.leveldb;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.util.DumpUtil;
+import io.gomint.server.util.Pair;
+import io.gomint.server.util.Palette;
+import io.gomint.server.util.collection.PaletteBlockMap;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
@@ -84,6 +88,49 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         // First byte is chunk section version
         byte subchunkVersion = buf.get();
         switch ( subchunkVersion ) {
+            case 1:
+                buf.order( ByteOrder.LITTLE_ENDIAN );
+
+                byte data = buf.get();
+                boolean isPersistent = ( ( data >> 8 ) & 1 ) != 1; // last bit is the isPresent state (shift and mask it to 1)
+                byte wordTemplate = (byte) ( data >>> 1 ); // Get rid of the last bit (which seems to be the isPresent state)
+
+                Palette palette = new Palette( buf, wordTemplate );
+                short[] indexes = palette.getIndexes();
+
+                // Read NBT data
+                PaletteBlockMap chunkPalette = PaletteBlockMap.withExpectedSize( buf.getInt() ); // Varint my ass
+
+                int index = 0;
+                NBTReader reader = new NBTReader( new ByteArrayInputStream( buf.array(), buf.position(), buf.capacity() ), ByteOrder.LITTLE_ENDIAN );
+                while ( reader.hasMoreToRead() ) {
+                    try {
+                        NBTTagCompound compound = reader.parse();
+                        byte blockId = (byte) MaterialMagicNumbers.valueOfWithId( compound.getString( "name", "minecraft:air" ) );
+                        byte blockData = compound.getShort( "val", (short) 0 ).byteValue();
+
+                        chunkPalette.justPut( index++, new Pair<>( blockId, blockData ) );
+                    } catch ( IOException e ) {
+                        LOGGER.error( "Error in loading tile entities", e );
+                        break;
+                    }
+                }
+
+                for ( int j = 0; j < 16; ++j ) {
+                    for ( int i = 0; i < 16; ++i ) {
+                        for ( int k = 0; k < 16; ++k ) {
+                            int y = ( sectionY << 4 ) + j;
+                            short blockIndex = (short) ( k << 8 | i << 4 | j ); // j k i - k j i - i k j -
+
+                            Pair<Byte, Byte> dataPair = chunkPalette.get( indexes[blockIndex] );
+                            this.setBlock( k, y, i, dataPair.getFirst() );
+                            this.setData( k, y, i, dataPair.getSecond() );
+                        }
+                    }
+                }
+
+                break;
+
             case 0:
                 // Next 4096 bytes are block data
                 byte[] blockData = new byte[4096];

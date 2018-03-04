@@ -1038,7 +1038,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public boolean isOnline() {
-        return this.connection.getServer().findPlayerByUUID( this.getUUID() ).equals( this );
+        return this.equals( this.connection.getServer().findPlayerByUUID( this.getUUID() ) );
     }
 
     @Override

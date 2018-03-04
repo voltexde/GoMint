@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
+import io.gomint.server.world.leveldb.ZippedLevelDBWorldAdapter;
 import io.gomint.world.World;
 import io.gomint.world.generator.CreateOptions;
 import org.slf4j.Logger;
@@ -102,27 +103,42 @@ public class WorldManager {
         LOGGER.info( "Attempting to load world '{}'", path );
 
         File file = new File( path );
-        if ( !file.exists() ) {
-            throw new WorldLoadException( "World does not exist" );
-        }
+        if ( file.exists() ) {
+            if ( file.isDirectory() ) {
+                // Anvil world:
+                File regionFolder = new File( file, "region" );
+                if ( regionFolder.exists() && regionFolder.isDirectory() ) {
+                    LOGGER.info( "Detected anvil world '{}'", path );
+                    return this.loadAnvilWorld( file );
+                }
 
-        if ( file.isDirectory() ) {
-            // Anvil world:
-            File regionFolder = new File( file, "region" );
-            if ( regionFolder.exists() && regionFolder.isDirectory() ) {
-                LOGGER.info( "Detected anvil world '{}'", path );
-                return this.loadAnvilWorld( file );
+                // LevelDB world:
+                File dbFolder = new File( file, "db" );
+                if ( dbFolder.exists() && dbFolder.isDirectory() ) {
+                    LOGGER.info( "Detected leveldb world '{}'", path );
+                    return this.loadLevelDBWorld( file );
+                }
+            } else {
+                throw new WorldLoadException( "World does not exist" );
             }
-
-            // LevelDB world:
-            File dbFolder = new File( file, "db" );
-            if ( dbFolder.exists() && dbFolder.isDirectory() ) {
-                LOGGER.info( "Detected leveldb world '{}'", path );
-                return this.loadLevelDBWorld( file );
+        } else {
+            File mcWorldFile = new File( file + ".mcworld" );
+            if ( mcWorldFile.exists() ) {
+                LOGGER.info( "Detected zipped leveldb world '{}'", path );
+                return this.loadZippedLevelDBWorld( mcWorldFile, path );
+            } else {
+                throw new WorldLoadException( "World does not exist" );
             }
         }
 
         throw new WorldLoadException( "Could not detect world format" );
+    }
+
+    private World loadZippedLevelDBWorld( File path, String name ) throws WorldLoadException {
+        LevelDBWorldAdapter world = ZippedLevelDBWorldAdapter.load( this.server, path, name );
+        this.addWorld( world );
+        LOGGER.info( "Successfully loaded world '" + name + "'" );
+        return world;
     }
 
     private World loadLevelDBWorld( File path ) throws WorldLoadException {

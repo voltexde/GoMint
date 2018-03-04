@@ -44,7 +44,7 @@ import java.util.List;
  * @version 1.0
  */
 @EqualsAndHashCode( callSuper = true )
-public final class LevelDBWorldAdapter extends WorldAdapter {
+public class LevelDBWorldAdapter extends WorldAdapter {
 
     private boolean needsSpawnAdjustment;
     private DB db;
@@ -63,7 +63,7 @@ public final class LevelDBWorldAdapter extends WorldAdapter {
      * @param worldDir the folder where the world should be in
      * @throws WorldLoadException Thrown in case the world could not be loaded successfully
      */
-    private LevelDBWorldAdapter( GoMintServer server, File worldDir ) throws WorldLoadException {
+    LevelDBWorldAdapter( GoMintServer server, File worldDir ) throws WorldLoadException {
         super( server, worldDir );
         this.chunkCache = new ChunkCache( this );
 

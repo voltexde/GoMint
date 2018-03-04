@@ -137,12 +137,7 @@ public class ChunkAdapter implements Chunk {
                                 .update( UpdateReason.RANDOM, currentTimeMS, dT );
 
                             if ( next > currentTimeMS ) {
-                                Location location = block.getLocation();
-                                this.world.tickQueue.add( next,
-                                    CoordinateUtils.toLong( (int) location.getX(),
-                                        (int) location.getY(),
-                                        (int) location.getZ() )
-                                );
+                                this.world.addTickingBlock( next, block.getLocation().toBlockPosition() );
                             }
                         }
 
@@ -511,7 +506,7 @@ public class ChunkAdapter implements Chunk {
 
         // Write tile entity data
         Collection<TileEntity> tileEntities = this.getTileEntities();
-        if ( tileEntities.size() > 0 ) {
+        if ( !tileEntities.isEmpty() ) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
             nbtWriter.setUseVarint( true );
