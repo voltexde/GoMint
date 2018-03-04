@@ -175,7 +175,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
             Arrays.fill( this.contents, ItemAir.create( 0 ) );
         } else {
             for ( int i = 0; i < this.size; i++ ) {
-                setItem( 0, ItemAir.create( 1 ) );
+                setItem( i, ItemAir.create( 1 ) );
             }
         }
     }
