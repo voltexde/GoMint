@@ -354,8 +354,10 @@ public abstract class Block implements io.gomint.world.block.Block {
             LOGGER.warn( "Your world has been corruped. The block {} @ {} has no stored tile entity. Please fix the world {}. The block will be repaired now, don't expect it to work like it should!",
                 this.getClass().getSimpleName(), this.location, this.world.getWorldName() );
 
-            this.tileEntity = createTileEntity( null );
-            this.world.storeTileEntity( this.location.toBlockPosition(), this.tileEntity );
+            this.tileEntity = createTileEntity( new NBTTagCompound( "" ) );
+            if ( this.tileEntity != null ) {
+                this.world.storeTileEntity( this.location.toBlockPosition(), this.tileEntity );
+            }
         }
 
         return (T) this.tileEntity;
