@@ -148,4 +148,13 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
         newItemInHand.gotInHand( (EntityPlayer) this.owner );
     }
 
+    @Override
+    protected void onRemove( int slot ) {
+        if ( slot == this.itemInHandSlot ) {
+            // Inform the old item it got deselected
+            io.gomint.server.inventory.item.ItemStack oldItemInHand = (io.gomint.server.inventory.item.ItemStack) this.getItem( slot );
+            oldItemInHand.removeFromHand( (EntityPlayer) this.owner );
+        }
+    }
+
 }
