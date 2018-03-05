@@ -163,8 +163,18 @@ public interface World {
      *
      * @param blockClass    for which we search
      * @param blockConsumer which gets called for every found block
+     * @param <T>           type of block
      */
     <T extends Block> void iterateBlocks( Class<T> blockClass, Consumer<T> blockConsumer );
+
+    /**
+     * Iterate over all loaded chunks and find the entities specified for the entityClass.
+     *
+     * @param entityClass    for which we search
+     * @param entityConsumer which gets called for every found entity
+     * @param <T>            type of entity
+     */
+    <T extends Entity> void iterateEntities( Class<T> entityClass, Consumer<T> entityConsumer );
 
     /**
      * Generate a empty chunk

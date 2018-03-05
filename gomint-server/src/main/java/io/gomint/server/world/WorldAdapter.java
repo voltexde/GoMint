@@ -1250,6 +1250,22 @@ public abstract class WorldAdapter implements World {
         } );
     }
 
+    @Override
+    public <T extends Entity> void iterateEntities( Class<T> entityClass, Consumer<T> entityConsumer ) {
+        // Iterate over all chunks
+        this.chunkCache.iterateAll( chunkAdapter -> {
+            Collection<Entity> chunkEntities = chunkAdapter.getEntities();
+            if ( chunkEntities != null ) {
+                List<Entity> entities = new ArrayList<>( chunkEntities );
+                for ( Entity entity : entities ) {
+                    if ( entityClass.isAssignableFrom( entity.getClass() ) ) {
+                        entityConsumer.accept( (T) entity );
+                    }
+                }
+            }
+        } );
+    }
+
     public void adjustSpawn() {
         BlockPosition check = new BlockPosition( (int) this.spawn.getX(), 0, (int) this.spawn.getZ() );
         for ( int i = 255; i > 0; i-- ) {
