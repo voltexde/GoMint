@@ -105,7 +105,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 }
                 break;
             case STOP_SNEAK:
-                if(!connection.getEntity().isSneaking()) {
+                if(connection.getEntity().isSneaking()) {
                     PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent( connection.getEntity(), false );
                     connection.getServer().getPluginManager().callEvent( playerToggleSneakEvent );
                     if( playerToggleSneakEvent.isCancelled() ) {
