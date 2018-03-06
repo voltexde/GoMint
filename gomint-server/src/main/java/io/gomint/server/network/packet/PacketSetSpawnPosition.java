@@ -31,14 +31,14 @@ public class PacketSetSpawnPosition extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeSignedVarInt( this.spawnType );
         writeBlockPosition( this.position, buffer );
         buffer.writeBoolean( this.force );
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
 
     }
 

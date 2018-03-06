@@ -253,6 +253,19 @@ public abstract class WorldAdapter implements World {
         return this.getBlockAt( pos.getX(), pos.getY(), pos.getZ() );
     }
 
+    private Block getOptionalBlockAt( BlockPosition position ) {
+        if ( position.getY() < 0 || position.getY() > 255 ) {
+            return null;
+        }
+
+        ChunkAdapter chunkAdapter = this.getChunk( position.getX() >> 4, position.getZ() >> 4 );
+        if ( chunkAdapter != null ) {
+            return chunkAdapter.getBlockAt( position.getX() & 0xF, position.getY(), position.getX() & 0xF );
+        }
+
+        return null;
+    }
+
     @Override
     public <T extends Block> T getBlockAt( int x, int y, int z ) {
         // Secure location
@@ -354,7 +367,7 @@ public abstract class WorldAdapter implements World {
             }
 
             // Get the block
-            Block block = getBlockAt( blockToUpdate );
+            Block block = getOptionalBlockAt( blockToUpdate );
             if ( block != null ) {
                 // CHECKSTYLE:OFF
                 try {
@@ -395,6 +408,7 @@ public abstract class WorldAdapter implements World {
         // ---------------------------------------
         // Perform regular updates:
     }
+
 
     private void tickRandomBlocks( long currentTimeMS, float dT ) {
         long[] tickingHashes = this.chunkCache.getTickingChunks( dT );
@@ -801,8 +815,15 @@ public abstract class WorldAdapter implements World {
         // Update the block
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( pos );
-        updateBlock.setBlockId( block.getBlockId() );
-        updateBlock.setPrioAndMetadata( ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() & 0xFF ) ) );
+
+        if ( connection.getProtocolID() == 220 ) {
+            updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() ) );
+            updateBlock.setPrioAndMetadata( (byte) PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 );
+        } else {
+            updateBlock.setBlockId( block.getBlockId() );
+            updateBlock.setPrioAndMetadata( ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() & 0xFF ) ) );
+        }
+
         connection.addToSendQueue( updateBlock );
 
         // Check for tile entity

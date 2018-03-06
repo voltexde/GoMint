@@ -66,6 +66,9 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             return;
         }
 
+        // Set the protocol id into the connection
+        connection.setProtocolID( packet.getProtocol() );
+
         // Async login sequence
         connection.getServer().getExecutorService().execute( () -> {
             // More data please

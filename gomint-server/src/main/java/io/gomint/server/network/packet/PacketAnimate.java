@@ -19,13 +19,13 @@ public class PacketAnimate extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeSignedVarInt( this.actionId );
         buffer.writeUnsignedVarLong( this.entityId );
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.actionId = buffer.readSignedVarInt();
         this.entityId = buffer.readUnsignedVarLong();
     }

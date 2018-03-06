@@ -21,7 +21,7 @@ public class PacketSetTitle extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeSignedVarInt( type );
         buffer.writeString( text );
         buffer.writeSignedVarInt( fadeInTime );
@@ -30,7 +30,7 @@ public class PacketSetTitle extends Packet {
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.type = buffer.readSignedVarInt();
         this.text = buffer.readString();
         this.fadeInTime = buffer.readSignedVarInt();

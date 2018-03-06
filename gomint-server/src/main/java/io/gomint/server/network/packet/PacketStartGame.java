@@ -49,6 +49,9 @@ public class PacketStartGame extends Packet {
     private boolean hasTrustPlayersEnabled;
     private int defaultPlayerPermission = PlayerPermission.MEMBER.getId();
     private int xboxLiveBroadcastMode = 0;
+    private boolean hasPlatformBroadcast = false;
+    private int platformBroadcastMode = 0;
+    private boolean xboxLiveBroadcastIntent = false;
 
     // World data
     private String levelId;
@@ -63,7 +66,7 @@ public class PacketStartGame extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.runtimeEntityId );
         buffer.writeSignedVarInt( this.gamemode );
@@ -97,6 +100,12 @@ public class PacketStartGame extends Packet {
         buffer.writeSignedVarInt( this.defaultPlayerPermission );
         buffer.writeSignedVarInt( this.xboxLiveBroadcastMode );
 
+        if ( protocolID == 220 ) {
+            buffer.writeBoolean( this.hasPlatformBroadcast );
+            buffer.writeUnsignedVarInt( this.platformBroadcastMode );
+            buffer.writeBoolean( this.xboxLiveBroadcastIntent );
+        }
+
         buffer.writeString( this.levelId );
         buffer.writeString( this.worldName );
         buffer.writeString( this.templateName );
@@ -106,7 +115,7 @@ public class PacketStartGame extends Packet {
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
 
     }
 }

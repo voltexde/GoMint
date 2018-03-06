@@ -8,11 +8,11 @@
 package io.gomint.server.world;
 
 import com.koloboke.collect.map.LongObjCursor;
-import com.koloboke.function.LongObjConsumer;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
-import io.gomint.server.entity.passive.EntityHuman;
-import io.gomint.server.network.packet.*;
+import io.gomint.server.network.packet.PacketEntityMetadata;
+import io.gomint.server.network.packet.PacketEntityMovement;
+import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.server.util.collection.EntityIDMap;
 import io.gomint.world.Chunk;
 import org.slf4j.Logger;
@@ -340,7 +340,7 @@ public class EntityManager {
                         playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
                             add( new PacketPlayerlist.Entry( entityPlayer.getUUID(),
                                 entityPlayer.getEntityId(),
-                                entityPlayer.getDisplayName(),
+                                entityPlayer.getDisplayName(), "", 0,
                                 entityPlayer.getXboxID(),
                                 entityPlayer.getSkin() ) );
                         }} );
@@ -355,7 +355,7 @@ public class EntityManager {
                     }
 
                     listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(),
-                        player.getDisplayName(), player.getXboxID(), player.getSkin() ) );
+                        player.getDisplayName(), "", 0, player.getXboxID(), player.getSkin() ) );
                 }
             }
 

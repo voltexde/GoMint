@@ -35,10 +35,7 @@ import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.util.Watchdog;
-import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.WorldCreateException;
-import io.gomint.server.world.WorldLoadException;
-import io.gomint.server.world.WorldManager;
+import io.gomint.server.world.*;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.world.World;
@@ -122,6 +119,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
      * @param args which should have been given over from the static Bootstrap
      */
     public GoMintServer( OptionSet args ) {
+        BlockRuntimeIDs.fromLegacy( (byte) 0, (byte) 0 );
+
         long start = System.currentTimeMillis();
 
         GoMintServer.mainThread = Thread.currentThread().getId();

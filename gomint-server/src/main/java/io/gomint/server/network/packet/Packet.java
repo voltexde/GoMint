@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 /**
  * @author BlackyPaw
@@ -59,16 +58,18 @@ public abstract class Packet {
     /**
      * Serializes this packet into the given buffer.
      *
-     * @param buffer The buffer to serialize this packet into
+     * @param buffer     The buffer to serialize this packet into
+     * @param protocolID Protocol for which we request the serialization
      */
-    public abstract void serialize( PacketBuffer buffer );
+    public abstract void serialize( PacketBuffer buffer, int protocolID );
 
     /**
      * Deserializes this packet from the given buffer.
      *
-     * @param buffer The buffer to deserialize this packet from
+     * @param buffer     The buffer to deserialize this packet from
+     * @param protocolID Protocol for which we request deserialization
      */
-    public abstract void deserialize( PacketBuffer buffer );
+    public abstract void deserialize( PacketBuffer buffer, int protocolID );
 
     /**
      * Returns the ordering channel to send the packet on.
@@ -149,7 +150,6 @@ public abstract class Packet {
                 buffer.writeLShort( (short) byteArrayOutputStream.size() );
                 buffer.writeBytes( byteArrayOutputStream.toByteArray() );
             } catch ( IOException e ) {
-                e.printStackTrace();
                 buffer.writeLShort( (short) 0 );
             }
         }
@@ -221,21 +221,18 @@ public abstract class Packet {
         }
 
         buffer.writeUnsignedVarInt( gamerules.size() );
-        gamerules.forEach( new BiConsumer<Gamerule, Object>() {
-            @Override
-            public void accept( Gamerule gamerule, Object value ) {
-                buffer.writeString( gamerule.getNbtName().toLowerCase() );
+        gamerules.forEach( ( gamerule, value ) -> {
+            buffer.writeString( gamerule.getNbtName().toLowerCase() );
 
-                if ( gamerule.getValueType() == Boolean.class ) {
-                    buffer.writeByte( (byte) 1 );
-                    buffer.writeBoolean( (Boolean) value );
-                } else if ( gamerule.getValueType() == Integer.class ) {
-                    buffer.writeByte( (byte) 2 );
-                    buffer.writeUnsignedVarInt( (Integer) value );
-                } else if ( gamerule.getValueType() == Float.class ) {
-                    buffer.writeByte( (byte) 3 );
-                    buffer.writeLFloat( (Float) value );
-                }
+            if ( gamerule.getValueType() == Boolean.class ) {
+                buffer.writeByte( (byte) 1 );
+                buffer.writeBoolean( (Boolean) value );
+            } else if ( gamerule.getValueType() == Integer.class ) {
+                buffer.writeByte( (byte) 2 );
+                buffer.writeUnsignedVarInt( (Integer) value );
+            } else if ( gamerule.getValueType() == Float.class ) {
+                buffer.writeByte( (byte) 3 );
+                buffer.writeLFloat( (Float) value );
             }
         } );
     }

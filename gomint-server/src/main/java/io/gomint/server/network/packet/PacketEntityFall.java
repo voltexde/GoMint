@@ -30,12 +30,12 @@ public class PacketEntityFall extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
 
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.entityId = buffer.readUnsignedVarLong();
         this.fallDistance = buffer.readLFloat();
         this.unknown = buffer.readBoolean();

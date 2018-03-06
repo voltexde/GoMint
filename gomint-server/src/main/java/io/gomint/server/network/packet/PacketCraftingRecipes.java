@@ -40,7 +40,7 @@ public class PacketCraftingRecipes extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeUnsignedVarInt( this.recipes.size() );
 
         for ( Recipe recipe : this.recipes ) {
@@ -51,7 +51,7 @@ public class PacketCraftingRecipes extends Packet {
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.recipes = new ArrayList<>();
 
         int count = buffer.readUnsignedVarInt();

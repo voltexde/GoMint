@@ -74,12 +74,16 @@ public class EntityVisibilityManager {
     public void removeEntity( Entity entity ) {
         if ( this.visible.remove( entity ) && !this.player.equals( entity ) ) {
             io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) entity;
-            implEntity.detach( this.player );
-
-            PacketDespawnEntity despawnEntity = new PacketDespawnEntity();
-            despawnEntity.setEntityId( entity.getEntityId() );
-            this.player.getConnection().addToSendQueue( despawnEntity );
+            this.despawnEntity( implEntity );
         }
+    }
+
+    private void despawnEntity( io.gomint.server.entity.Entity entity ) {
+        entity.detach( this.player );
+
+        PacketDespawnEntity despawnEntity = new PacketDespawnEntity();
+        despawnEntity.setEntityId( entity.getEntityId() );
+        this.player.getConnection().addToSendQueue( despawnEntity );
     }
 
     public void addEntity( Entity entity ) {
@@ -101,7 +105,7 @@ public class EntityVisibilityManager {
         while ( cursor.moveNext() ) {
             Entity curr = cursor.elem();
             if ( curr instanceof io.gomint.server.entity.Entity ) {
-                ( (io.gomint.server.entity.Entity) curr ).detach( this.player );
+                this.despawnEntity( ( io.gomint.server.entity.Entity ) curr);
             }
         }
 

@@ -24,7 +24,7 @@ public class PacketPlayerlist extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeByte( this.mode );
         buffer.writeUnsignedVarInt( this.entries.size() );
 
@@ -34,7 +34,16 @@ public class PacketPlayerlist extends Packet {
                 buffer.writeSignedVarLong( entry.getEntityId() );
                 buffer.writeString( entry.getName() );
 
+                if ( protocolID == 220 ) {
+                    buffer.writeString( entry.getThirdPartyName() );
+                    buffer.writeSignedVarInt( entry.getPlatformID() );
+                }
+
                 buffer.writeString( entry.getSkin().getName() );
+
+                if ( protocolID == 220 ) {
+                    buffer.writeLInt( 1 );
+                }
 
                 // Raw skin data
                 buffer.writeUnsignedVarInt( entry.getSkin().getRawData().length );
@@ -42,10 +51,18 @@ public class PacketPlayerlist extends Packet {
 
                 // Cape data
                 if ( entry.skin.getCapeData() != null ) {
+                    if ( protocolID == 220 ) {
+                        buffer.writeLInt( 1 );
+                    }
+
                     buffer.writeUnsignedVarInt( entry.skin.getCapeData().length );
                     buffer.writeBytes( entry.skin.getCapeData() );
                 } else {
-                    buffer.writeUnsignedVarInt( 0 );
+                    if ( protocolID == 220 ) {
+                        buffer.writeLInt( 0 );
+                    } else {
+                        buffer.writeUnsignedVarInt( 0 );
+                    }
                 }
 
                 // Geometry name
@@ -57,6 +74,11 @@ public class PacketPlayerlist extends Packet {
 
                 // xbox user id
                 buffer.writeString( entry.xboxId );
+
+                // TODO: Is this the same as the unknown one in SpawnPlayer?
+                if ( protocolID == 220 ) {
+                    buffer.writeString( "" );
+                }
             }
         } else {
             for ( Entry entry : this.entries ) {
@@ -66,7 +88,7 @@ public class PacketPlayerlist extends Packet {
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
 
     }
 
@@ -76,6 +98,8 @@ public class PacketPlayerlist extends Packet {
         private final UUID uuid;
         private long entityId = 0;
         private String name = "";
+        private String thirdPartyName = "";
+        private int platformID;
         private String xboxId = "";
         private PlayerSkin skin;
     }

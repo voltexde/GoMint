@@ -26,6 +26,9 @@ public class PacketText extends Packet {
     private String[] arguments = new String[0];
     private String xuid = "";
 
+    private String sourceThirdPartyName = "";
+    private int sourcePlatform = 0;
+
     public PacketText() {
         super( Protocol.PACKET_TEXT );
     }
@@ -39,42 +42,56 @@ public class PacketText extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeByte( this.type.getId() );
         buffer.writeBoolean( false );
 
-        switch ( this.type ) {
-            case POPUP_NOTICE:
-                buffer.writeString( this.message );
-                buffer.writeString( this.sender );
-                break;
+        // Workaround for the popup notice
+        if ( protocolID == 201 && this.type == Type.POPUP_NOTICE ) {
+            buffer.writeString( this.message );
+            buffer.writeString( this.sender );
+        } else {
+            if ( this.type == Type.POPUP_NOTICE ) {
+                this.message += "\n" + this.sender;
+            }
 
-            case PLAYER_CHAT:
-            case WHISPER:
-            case ANNOUNCEMENT:
-                buffer.writeString( this.sender );
-            case CLIENT_MESSAGE:
-            case TIP_MESSAGE:
-            case SYSTEM_MESSAGE:
-                buffer.writeString( this.message );
-                break;
+            switch ( this.type ) {
+                case PLAYER_CHAT:
+                case WHISPER:
+                case ANNOUNCEMENT:
+                    buffer.writeString( this.sender );
+                    if ( protocolID == 220 ) {
+                        buffer.writeString( this.sourceThirdPartyName );
+                        buffer.writeSignedVarInt( this.sourcePlatform );
+                    }
+                case CLIENT_MESSAGE:
+                case TIP_MESSAGE:
+                case SYSTEM_MESSAGE:
+                    buffer.writeString( this.message );
+                    break;
 
-            case JUKEBOX_POPUP:
-            case LOCALIZABLE_MESSAGE:
-                buffer.writeString( this.message );
-                buffer.writeByte( (byte) this.arguments.length );
-                for ( String argument : this.arguments ) {
-                    buffer.writeString( argument );
-                }
+                case POPUP_NOTICE:
+                case JUKEBOX_POPUP:
+                case LOCALIZABLE_MESSAGE:
+                    buffer.writeString( this.message );
+                    buffer.writeByte( (byte) this.arguments.length );
+                    for ( String argument : this.arguments ) {
+                        buffer.writeString( argument );
+                    }
 
-                break;
+                    break;
+            }
         }
 
         buffer.writeString( this.xuid );
+
+        if ( protocolID == 220 ) {
+            buffer.writeString( "" );
+        }
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.type = Type.getById( buffer.readByte() );
         buffer.readBoolean();
         switch ( this.type ) {
@@ -87,6 +104,11 @@ public class PacketText extends Packet {
             case WHISPER:
             case ANNOUNCEMENT:
                 this.sender = buffer.readString();
+
+                if ( protocolID == 220 ) {
+                    this.sourceThirdPartyName = buffer.readString();
+                    this.sourcePlatform = buffer.readSignedVarInt();
+                }
             case CLIENT_MESSAGE:
             case TIP_MESSAGE:
             case SYSTEM_MESSAGE:
@@ -108,6 +130,9 @@ public class PacketText extends Packet {
         }
 
         this.xuid = buffer.readString();
+        if ( protocolID == 220 ) {
+            buffer.readString();
+        }
     }
 
     public enum Type {

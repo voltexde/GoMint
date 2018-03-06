@@ -93,6 +93,8 @@ public class PlayerConnection {
     private EncryptionHandler encryptionHandler;
     @Getter
     private GoMintServer server;
+    @Setter @Getter
+    private int protocolID;
 
     // Actual connection for wire transfer:
     @Getter
@@ -265,7 +267,7 @@ public class PlayerConnection {
                     PacketBuffer buffer = new PacketBuffer( 64 );
                     buffer.writeByte( packet.getId() );
                     buffer.writeShort( (short) 0 );
-                    packet.serialize( buffer );
+                    packet.serialize( buffer, this.protocolID );
 
                     WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
                     mcpePacket.setBuffer( buffer );
@@ -282,20 +284,24 @@ public class PlayerConnection {
         if ( this.connection != null ) {
             EncapsulatedPacket packetData;
             while ( ( packetData = this.connection.receive() ) != null ) {
+                // CHECKSTYLE:OFF
                 try {
                     this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ) );
                 } catch ( Exception e ) {
                     LOGGER.error( "Error whilst processing packet: ", e );
                 }
+                // CHECKSTYLE:ON
             }
         } else {
             while ( !this.connectionHandler.getData().isEmpty() ) {
                 PacketBuffer buffer = this.connectionHandler.getData().poll();
+                // CHECKSTYLE:OFF
                 try {
                     this.handleSocketData( currentMillis, buffer );
                 } catch ( Exception e ) {
                     LOGGER.error( "Error whilst processing packet: ", e );
                 }
+                // CHECKSTYLE:ON
             }
         }
     }
@@ -312,7 +318,7 @@ public class PlayerConnection {
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
                 buffer.writeByte( packet.getId() );
-                packet.serialize( buffer );
+                packet.serialize( buffer, this.protocolID );
 
                 this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
             }
@@ -320,7 +326,7 @@ public class PlayerConnection {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
-            packet.serialize( buffer );
+            packet.serialize( buffer, this.protocolID );
 
             WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
             mcpePacket.setBuffer( buffer );
@@ -342,7 +348,7 @@ public class PlayerConnection {
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
                 buffer.writeByte( packet.getId() );
-                packet.serialize( buffer );
+                packet.serialize( buffer, this.protocolID );
 
                 this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
             }
@@ -350,7 +356,7 @@ public class PlayerConnection {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
-            packet.serialize( buffer );
+            packet.serialize( buffer, this.protocolID );
 
             WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
             mcpePacket.setBuffer( buffer );
@@ -442,7 +448,7 @@ public class PlayerConnection {
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
             if ( packetId == PACKET_LOGIN ) {
                 PacketLogin packet = new PacketLogin();
-                packet.deserialize( buffer );
+                packet.deserialize( buffer, this.protocolID );
                 this.handlePacket( currentTimeMillis, packet );
             } else {
                 LOGGER.error( "Received odd packet" );
@@ -468,7 +474,7 @@ public class PlayerConnection {
         if ( this.state == PlayerConnectionState.RESOURCE_PACK ) {
             if ( packetId == PACKET_RESOURCEPACK_RESPONSE ) {
                 PacketResourcePackResponse packet = new PacketResourcePackResponse();
-                packet.deserialize( buffer );
+                packet.deserialize( buffer, this.protocolID );
                 this.handlePacket( currentTimeMillis, packet );
             } else {
                 LOGGER.error( "Received odd packet" );
@@ -488,7 +494,7 @@ public class PlayerConnection {
             return;
         }
 
-        packet.deserialize( buffer );
+        packet.deserialize( buffer, this.protocolID );
         this.handlePacket( currentTimeMillis, packet );
     }
 

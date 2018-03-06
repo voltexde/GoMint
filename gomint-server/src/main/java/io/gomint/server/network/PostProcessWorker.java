@@ -50,7 +50,7 @@ public class PostProcessWorker implements Runnable {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
-            packet.serialize( buffer );
+            packet.serialize( buffer, this.connection.getProtocolID() );
 
             LOGGER.debug( "Writing packet data to client {}", Integer.toHexString( packet.getId() & 0xFF ) );
 

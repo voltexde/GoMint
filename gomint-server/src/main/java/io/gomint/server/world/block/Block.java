@@ -19,6 +19,7 @@ import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketTileEntityData;
 import io.gomint.server.network.packet.PacketUpdateBlock;
+import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
@@ -448,8 +449,15 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( position );
-        updateBlock.setBlockId( this.getBlockId() );
-        updateBlock.setPrioAndMetadata( (byte) ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( this.getBlockData() ) ) );
+
+        if ( connection.getProtocolID() == 220 ) {
+            updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( this.getBlockId(), this.getBlockData() ) );
+            updateBlock.setPrioAndMetadata( (byte) PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 );
+        } else {
+            updateBlock.setBlockId( this.getBlockId() );
+            updateBlock.setPrioAndMetadata( (byte) ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( this.getBlockData() ) ) );
+        }
+
         connection.addToSendQueue( updateBlock );
 
         // Also reset tile entity when needed

@@ -36,7 +36,7 @@ public class PacketBossBar extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarInt( this.type.getId() );
         switch ( this.type ) {
@@ -59,7 +59,7 @@ public class PacketBossBar extends Packet {
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
 
     }
 
