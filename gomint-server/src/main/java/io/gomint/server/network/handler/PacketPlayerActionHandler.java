@@ -2,6 +2,8 @@ package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerInteractEvent;
 import io.gomint.event.player.PlayerToggleGlideEvent;
+import io.gomint.event.player.PlayerToggleSneakEvent;
+import io.gomint.event.player.PlayerToggleSprintEvent;
 import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.network.PlayerConnection;
@@ -92,18 +94,49 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
                 break;
             case START_SNEAK:
-                connection.getEntity().setSneaking( true );
+                if(!connection.getEntity().isSneaking()){
+                    PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent( connection.getEntity(), true );
+                    connection.getServer().getPluginManager().callEvent( playerToggleSneakEvent );
+                    if( playerToggleSneakEvent.isCancelled() ){
+                        connection.getEntity().sendData( connection.getEntity() );
+                    }else{
+                        connection.getEntity().setSneaking( true );
+                    }
+                }
                 break;
             case STOP_SNEAK:
-                connection.getEntity().setSneaking( false );
+                if(connection.getEntity().isSneaking()) {
+                    PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent( connection.getEntity(), false );
+                    connection.getServer().getPluginManager().callEvent( playerToggleSneakEvent );
+                    if( playerToggleSneakEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    }else{
+                        connection.getEntity().setSneaking( false );
+                    }
+                }
                 break;
-
             case START_SPRINT:
-                connection.getEntity().setSprinting( true );
+                if(!connection.getEntity().isSprinting()) {
+                    PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent( connection.getEntity(), true );
+                    connection.getServer().getPluginManager().callEvent( playerToggleSprintEvent );
+                    if( playerToggleSprintEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    }else{
+                        connection.getEntity().setSprinting( true );
+                    }
+                }
                 break;
 
             case STOP_SPRINT:
-                connection.getEntity().setSprinting( false );
+                if(connection.getEntity().isSprinting()) {
+                    PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent( connection.getEntity(), false );
+                    connection.getServer().getPluginManager().callEvent( playerToggleSprintEvent );
+                    if( playerToggleSprintEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    }else{
+                        connection.getEntity().setSprinting( false );
+                    }
+                }
                 break;
 
             case CONTINUE_BREAK:
