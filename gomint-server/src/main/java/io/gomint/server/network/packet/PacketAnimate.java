@@ -47,7 +47,7 @@ public class PacketAnimate extends Packet {
 
         public static PlayerAnimation getById( int id ) {
             switch ( id ) {
-                case 0:
+                case 1:
                     return SWING;
                 default:
                     return null;
