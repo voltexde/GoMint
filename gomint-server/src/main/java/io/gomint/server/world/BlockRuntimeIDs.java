@@ -27,7 +27,7 @@ public class BlockRuntimeIDs {
 
     static {
         // Get the correct resource
-        InputStream inputStream = BlockRuntimeIDs.class.getResourceAsStream( "temp_runtimeids.json" );
+        InputStream inputStream = BlockRuntimeIDs.class.getResourceAsStream( "/temp_runtimeids.json" );
         if ( inputStream == null ) {
             try {
                 inputStream = new FileInputStream( "gomint-server/src/main/resources/temp_runtimeids.json" );
