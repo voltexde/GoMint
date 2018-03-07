@@ -37,7 +37,7 @@ public class GeometryCache {
     }
 
     private String loadGeometry( String geometry ) {
-        try ( InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream( "/" + geometry + ".json" ) ) {
+        try ( InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream( geometry + ".json" ) ) {
             StringBuilderWriter stringBuilderWriter = new StringBuilderWriter();
             IOUtils.copy( inputStream, stringBuilderWriter, StandardCharsets.UTF_8 );
             return stringBuilderWriter.toString();
