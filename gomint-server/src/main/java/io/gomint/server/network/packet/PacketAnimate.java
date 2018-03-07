@@ -22,16 +22,16 @@ public class PacketAnimate extends Packet {
 
     @Override
     public void serialize(PacketBuffer buffer, int protocolID) {
-        buffer.writeSignedVarInt(this.playerAnimation.getId());
+        buffer.writeSignedVarInt(this.actionId);
         buffer.writeUnsignedVarLong(this.entityId);
     }
 
     @Override
     public void deserialize(PacketBuffer buffer, int protocolID) {
-        this.playerAnimation = PlayerAnimation.getById( buffer.readSignedVarInt() );
+        this.actionId = buffer.readSignedVarInt();
+        this.playerAnimation = PlayerAnimation.getById( actionId );
         switch ( playerAnimation ){
             case SWING:
-                this.actionId = buffer.readSignedVarInt();
                 this.entityId = buffer.readUnsignedVarLong();
                 break;
         }
