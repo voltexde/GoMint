@@ -133,6 +133,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Hidden status
      */
     private boolean hideByDefault;
+    private Set<EntityPlayer> shownFor;
 
     /**
      * Construct a new Entity
@@ -487,10 +488,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
         if ( ( block = this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ ) ).isSolid() &&
             block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
             // We need to check for "smooth" movement when its a player (it climbs .5 steps in .3 -> .420 -> .468 .487 .495 .498 .499 steps
-            if ( this instanceof EntityPlayer ) {
-                if ( this.stuckInBlockTicks++ <= 20 ) { // Yes we can "smooth" for up to 20 ticks, thanks mojang :D
-                    return;
-                }
+            if ( this instanceof EntityPlayer && this.stuckInBlockTicks++ <= 20 ) { // Yes we can "smooth" for up to 20 ticks, thanks mojang :D
+                return;
             }
 
             LOGGER.debug( "Entity " + this.getClass().getSimpleName() + "(" + getEntityId() + ") [" + this.stuckInBlockTicks + "] @" + getLocation().toVector() + " is stuck in a block " + block.getClass().getSimpleName() + "@" + block.getLocation().toVector() + " -> " + block.getBoundingBox() );
@@ -1182,17 +1181,26 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
         }
 
+        this.shownFor = new HashSet<>();
         this.hideByDefault = value;
     }
 
     @Override
     public void showFor( io.gomint.entity.EntityPlayer player ) {
         ( (EntityPlayer) player ).getEntityVisibilityManager().addEntity( this );
+
+        if ( this.shownFor != null ) {
+            this.shownFor.add( (EntityPlayer) player );
+        }
     }
 
     @Override
     public void hideFor( io.gomint.entity.EntityPlayer player ) {
         ( (EntityPlayer) player ).getEntityVisibilityManager().removeEntity( this );
+
+        if ( this.shownFor != null ) {
+            this.shownFor.remove( player );
+        }
     }
 
     /**
@@ -1203,6 +1211,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     public boolean canSee( EntityPlayer player ) {
         return !this.hideByDefault || player.getEntityVisibilityManager().isVisible( this );
+    }
+
+    /**
+     * Check if a player should be able to see this entity
+     *
+     * @param player for which we check
+     * @return true when it should be visible, false when not
+     */
+    public boolean shouldBeSeen( EntityPlayer player ) {
+        return !this.hideByDefault || this.shownFor.contains( player );
     }
 
 }

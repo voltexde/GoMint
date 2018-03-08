@@ -38,7 +38,7 @@ public class EntityVisibilityManager {
         Collection<Entity> collection = chunk.getEntities();
         if ( collection != null ) {
             for ( Entity entity : collection ) {
-                if ( ( (io.gomint.server.entity.Entity) entity ).canSee( this.player ) ) {
+                if ( ( (io.gomint.server.entity.Entity) entity ).shouldBeSeen( this.player ) ) {
                     addEntity( entity );
                 }
             }
@@ -46,7 +46,7 @@ public class EntityVisibilityManager {
     }
 
     public void updateEntity( Entity entity, Chunk chunk ) {
-        if ( !( (io.gomint.server.entity.Entity) entity ).canSee( this.player ) ) {
+        if ( !( (io.gomint.server.entity.Entity) entity ).shouldBeSeen( this.player ) ) {
             return;
         }
 

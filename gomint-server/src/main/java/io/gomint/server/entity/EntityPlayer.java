@@ -49,6 +49,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -624,24 +625,30 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Cleanup the visibility manager
         this.entityVisibilityManager.clear();
 
-        // Check all other players
-        for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
-            EntityPlayer entityPlayer = (EntityPlayer) player;
-            if ( !entityPlayer.equals( this ) ) {
-                entityPlayer.getConnection().addToSendQueue( packetPlayerlist );
-            }
+        // Check all entities
+        for ( WorldAdapter worldAdapter : this.connection.getServer().getWorldManager().getWorlds() ) {
+            worldAdapter.iterateEntities( Entity.class, entity -> {
+                if ( entity instanceof EntityPlayer ) {
+                    EntityPlayer entityPlayer = (EntityPlayer) entity;
+                    if ( !entityPlayer.equals( EntityPlayer.this ) ) {
+                        entityPlayer.getConnection().addToSendQueue( packetPlayerlist );
+                    }
 
-            // Check if player did hide this one
-            if ( entityPlayer.hiddenPlayers != null && entityPlayer.hiddenPlayers.contains( getEntityId() ) ) {
-                entityPlayer.hiddenPlayers.remove( getEntityId() );
-            }
+                    // Check if player did hide this one
+                    if ( entityPlayer.hiddenPlayers != null && entityPlayer.hiddenPlayers.contains( getEntityId() ) ) {
+                        entityPlayer.hiddenPlayers.remove( getEntityId() );
+                    }
 
-            // Check if mouseover is the entity
-            if ( entityPlayer.hoverEntity != null && entityPlayer.hoverEntity.equals( this ) ) {
-                entityPlayer.hoverEntity = null;
-            }
+                    // Check if mouseover is the entity
+                    if ( entityPlayer.hoverEntity != null && entityPlayer.hoverEntity.equals( EntityPlayer.this ) ) {
+                        entityPlayer.hoverEntity = null;
+                    }
 
-            entityPlayer.entityVisibilityManager.removeEntity( this );
+                    entityPlayer.entityVisibilityManager.removeEntity( EntityPlayer.this );
+                } else {
+                    entity.hideFor( EntityPlayer.this );
+                }
+            } );
         }
     }
 

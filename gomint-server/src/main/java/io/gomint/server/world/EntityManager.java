@@ -137,7 +137,7 @@ public class EntityManager {
     }
 
     private void sendMovementChanges( Set<io.gomint.server.entity.Entity> movedEntities ) {
-        if ( movedEntities != null && movedEntities.size() > 0 ) {
+        if ( movedEntities != null && !movedEntities.isEmpty() ) {
             for ( io.gomint.server.entity.Entity movedEntity : movedEntities ) {
                 // Check if we need to move chunks
                 Chunk chunk = movedEntity.getChunk();
