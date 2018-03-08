@@ -1,13 +1,8 @@
 package io.gomint.server.network.handler;
 
-import com.koloboke.collect.ObjCursor;
-import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketMobEquipment;
-
-import java.util.function.Predicate;
 
 /**
  * @author geNAZt

@@ -41,7 +41,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
         ItemStack oldItem = getItem( index );
         super.setItem( index, item );
 
-        if ( index == this.itemInHandSlot ) {
+        if ( index == this.itemInHandSlot && this.owner instanceof EntityPlayer ) {
             // Inform the old item it got deselected
             io.gomint.server.inventory.item.ItemStack oldItemInHand = (io.gomint.server.inventory.item.ItemStack) oldItem;
             oldItemInHand.removeFromHand( (EntityPlayer) this.owner );
@@ -78,7 +78,10 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
      * @param slot in the inventory to point on the item in hand
      */
     public void setItemInHand( byte slot ) {
-        this.updateItemInHandWithItem( slot );
+        if ( this.owner instanceof EntityPlayer ) {
+            this.updateItemInHandWithItem( slot );
+        }
+
         this.updateItemInHand();
     }
 
@@ -150,7 +153,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
 
     @Override
     protected void onRemove( int slot ) {
-        if ( slot == this.itemInHandSlot ) {
+        if ( slot == this.itemInHandSlot && this.owner instanceof EntityPlayer ) {
             // Inform the old item it got deselected
             io.gomint.server.inventory.item.ItemStack oldItemInHand = (io.gomint.server.inventory.item.ItemStack) this.getItem( slot );
             oldItemInHand.removeFromHand( (EntityPlayer) this.owner );
