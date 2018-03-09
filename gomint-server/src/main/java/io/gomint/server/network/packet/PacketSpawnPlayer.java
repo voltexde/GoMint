@@ -21,7 +21,7 @@ public class PacketSpawnPlayer extends Packet {
 
     private UUID uuid;
     private String name;
-    private String thirdPartyName;  // TODO: Find out if this is some sort of nickname function
+    private String thirdPartyName = "";  // TODO: Find out if this is some sort of nickname function
     private int platformID;         // TODO: The heck is this? (I guess the servers platform?)
     private long entityId;
     private long runtimeEntityId;

@@ -1,6 +1,9 @@
 package io.gomint.plugin;
 
 import io.gomint.GoMint;
+import io.gomint.entity.passive.EntityHuman;
+import io.gomint.math.Location;
+import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.config.Config;
 import io.gomint.plugin.generator.PlotChunkGenerator;
 import io.gomint.plugin.listener.BlockBreakListener;
@@ -51,6 +54,13 @@ public class TestPlugin extends Plugin {
 
     @Override
     public void onInstall() {
+        EntityHuman floatingText = EntityHuman.create();
+        floatingText.setSkin( PlayerSkin.empty() );
+        floatingText.setScale( 0f );
+        floatingText.setTicking( false );
+        floatingText.setNameTag( "Test123" );
+        floatingText.spawn( new Location( GoMint.instance().getWorld( "test_plot" ), 12, 83, 12 ) );
+
         // Register listener
         registerListener( new PlayerMoveListener() );
         registerListener( new PlayerJoinListener() );

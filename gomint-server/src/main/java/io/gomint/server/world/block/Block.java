@@ -46,22 +46,17 @@ public abstract class Block implements io.gomint.world.block.Block {
     private static final Logger LOGGER = LoggerFactory.getLogger( Block.class );
 
     // CHECKSTYLE:OFF
-    @Setter
-    protected WorldAdapter world;
-    @Setter
-    @Getter
-    protected Location location;
-    @Getter
-    private byte blockData = -1;
-    @Setter
-    private TileEntity tileEntity;
-    @Getter
-    private byte skyLightLevel;
-    @Getter
-    private byte blockLightLevel;
+    @Getter private byte blockId;
+    @Setter protected WorldAdapter world;
+    @Setter @Getter protected Location location;
+    @Getter private byte blockData = -1;
+    @Setter private TileEntity tileEntity;
+    @Getter private byte skyLightLevel;
+    @Getter private byte blockLightLevel;
 
     // Set all needed data
-    public void setData( byte blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, byte skyLightLevel, byte blockLightLevel ) {
+    public void setData( byte blockId, byte blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, byte skyLightLevel, byte blockLightLevel ) {
+        this.blockId = blockId;
         this.blockData = blockData;
         this.tileEntity = tileEntity;
         this.world = worldAdapter;
@@ -72,12 +67,10 @@ public abstract class Block implements io.gomint.world.block.Block {
     // CHECKSTYLE:ON
 
     /**
-     * Get the internal ID of this block
+     * Check if a block update is scheduled for this block
      *
-     * @return id for networking and saving
+     * @return true when there is, false when not
      */
-    public abstract byte getBlockId();
-
     public boolean isUpdateScheduled() {
         return this.world.isUpdateScheduled( this.location.toBlockPosition() );
     }
@@ -626,7 +619,6 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     }
 
-
     boolean isCorrectTool( ItemStack itemInHand ) {
         for ( Class<? extends ItemStack> aClass : getToolInterfaces() ) {
             if ( aClass.isAssignableFrom( itemInHand.getClass() ) ) {
@@ -638,5 +630,12 @@ public abstract class Block implements io.gomint.world.block.Block {
     }
 
     public abstract float getBlastResistance();
+
+    public void setBlockId( byte blockId ) {
+        if ( isPlaced() ) {
+            this.blockId = blockId;
+            this.world.setBlockId( this.location.toBlockPosition(), blockId );
+        }
+    }
 
 }
