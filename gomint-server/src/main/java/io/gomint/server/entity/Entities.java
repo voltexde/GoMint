@@ -24,7 +24,7 @@ public class Entities {
         private CtClass inter;
 
         @Override
-        public EntityGenerator generate( int id, Class<?> clazz ) {
+        public EntityGenerator generate( Class<?> clazz ) {
             if ( this.inter == null ) {
                 try {
                     this.inter = pool.get( "io.gomint.server.entity.generator.EntityGenerator" );

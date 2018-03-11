@@ -1,6 +1,5 @@
 package io.gomint.server.registry;
 
-import io.gomint.server.GoMintServer;
 import io.gomint.server.util.ClassPath;
 import io.gomint.server.util.collection.GeneratorAPIClassMap;
 import io.gomint.server.util.collection.GeneratorMap;
@@ -45,27 +44,47 @@ public class Registry<R> {
 
     private void register( Class<?> clazz ) {
         // We need register info
-        if ( !clazz.isAnnotationPresent( RegisterInfo.class ) ) {
+        if ( !clazz.isAnnotationPresent( RegisterInfo.class ) && !clazz.isAnnotationPresent( RegisterInfos.class ) ) {
             LOGGER.debug( "No register info annotation present" );
             return;
         }
 
-        int id = clazz.getAnnotation( RegisterInfo.class ).id();
-        R generator = this.generatorCallback.generate( id, clazz );
-        if ( generator != null ) {
-            R oldGen = this.generators.put( id, generator );
-            if ( oldGen != null ) {
-                LOGGER.debug( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
+        if ( clazz.isAnnotationPresent( RegisterInfo.class ) ) {
+            int id = clazz.getAnnotation( RegisterInfo.class ).id();
+            R generator = this.generatorCallback.generate( clazz );
+            if ( generator != null ) {
+                R oldGen = this.generators.put( id, generator );
+                if ( oldGen != null ) {
+                    LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
+                }
+
+                // Check for API interfaces
+                for ( Class<?> apiInter : clazz.getInterfaces() ) {
+                    this.apiReferences.put( apiInter, id );
+                }
+
+                this.apiReferences.put( clazz, id );
             }
+        } else {
+            R generator = this.generatorCallback.generate( clazz );
+            if ( generator != null ) {
+                RegisterInfo[] infos = clazz.getAnnotation( RegisterInfos.class ).value();
+                for ( RegisterInfo info : infos ) {
+                    int id = info.id();
 
-            // Check for API interfaces
-            for ( Class<?> apiInter : clazz.getInterfaces() ) {
-                this.apiReferences.put( apiInter, id );
+                    R oldGen = this.generators.put( id, generator );
+                    if ( oldGen != null ) {
+                        LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
+                    }
+
+                    // Check for API interfaces
+                    for ( Class<?> apiInter : clazz.getInterfaces() ) {
+                        this.apiReferences.put( apiInter, id );
+                    }
+
+                    this.apiReferences.put( clazz, id );
+                }
             }
-
-            this.apiReferences.put( clazz, id );
-
-            // LOGGER.debug( "Registered {} for id {}", clazz, id );
         }
     }
 

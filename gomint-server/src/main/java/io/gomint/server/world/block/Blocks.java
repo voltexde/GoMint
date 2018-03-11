@@ -10,6 +10,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.Registry;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.generator.BlockGenerator;
+import javassist.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,11 +21,36 @@ import org.slf4j.LoggerFactory;
 public class Blocks {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Blocks.class );
-    private static final Registry<BlockGenerator> GENERATORS = new Registry<>( ( id, clazz ) -> {
+    private static final Registry<BlockGenerator> GENERATORS = new Registry<>( clazz -> {
+        // Create generated Generator for this block
+        ClassPool pool = ClassPool.getDefault();
+        CtClass generatorCT = pool.makeClass( "io.gomint.server.world.block.generator." + clazz.getSimpleName() );
+
         try {
-            return (BlockGenerator) Class.forName( "io.gomint.server.world.block.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
-        } catch ( ClassNotFoundException | IllegalAccessException | InstantiationException e1 ) {
-            LOGGER.error( "Could not use pre generated generator: ", e1 );
+            generatorCT.setInterfaces( new CtClass[]{ pool.get( "io.gomint.server.world.block.generator.BlockGenerator" ) } );
+        } catch ( NotFoundException e ) {
+            e.printStackTrace();
+            return null;
+        }
+
+        try {
+            generatorCT.addMethod( CtNewMethod.make( "public io.gomint.server.world.block.Block generate( byte blockId, byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {" +
+                "io.gomint.server.world.block.Block block = new " + clazz.getName() + "();" +
+                "block.setData( blockId, blockData, tileEntity, (io.gomint.server.world.WorldAdapter) location.getWorld(), location, skyLightLevel, blockLightLevel );\n" +
+                "return block;" +
+                "}", generatorCT ) );
+
+            generatorCT.addMethod( CtNewMethod.make( "public io.gomint.server.world.block.Block generate() { return new " + clazz.getName() + "(); }", generatorCT ) );
+        } catch ( CannotCompileException e ) {
+            e.printStackTrace();
+            return null;
+        }
+
+        try {
+            // Use the same code source as the Gomint JAR
+            return (BlockGenerator) generatorCT.toClass( ClassLoader.getSystemClassLoader(), null ).newInstance();
+        } catch ( InstantiationException | IllegalAccessException | CannotCompileException e ) {
+            e.printStackTrace();
         }
 
         return null;
@@ -42,7 +68,17 @@ public class Blocks {
                 return instance.generate();
             }
 
-            return instance.generate( blockData, skyLightLevel, blockLightLevel, tileEntity, location );
+            return instance.generate( (byte) blockId, blockData, skyLightLevel, blockLightLevel, tileEntity, location );
+        }
+
+        LOGGER.warn( "Unknown block {}", blockId );
+        return null;
+    }
+
+    public static Block get( byte blockId ) {
+        BlockGenerator instance = GENERATORS.getGenerator( blockId & 0xFF );
+        if ( instance != null ) {
+            return instance.generate();
         }
 
         LOGGER.warn( "Unknown block {}", blockId );
@@ -87,8 +123,8 @@ public class Blocks {
         }
 
         PlacementData data = newBlock.calculatePlacementData( entity, item, clickVector );
-        block = block.setType( newBlock.getClass(), data );
-        block.afterPlacement();
+        block = block.setBlockFromPlacementData( data );
+        block.afterPlacement( data );
         return true;
     }
 

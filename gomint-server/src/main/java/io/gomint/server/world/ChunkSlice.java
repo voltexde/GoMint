@@ -48,8 +48,8 @@ class ChunkSlice {
      * @param z coordinate in this slice (capped to 16)
      * @return id of the block
      */
-    int getBlock( int x, int y, int z ) {
-        return this.getBlockInternal( getIndex( x, y, z ) ) & 0xFF;
+    byte getBlock( int x, int y, int z ) {
+        return this.getBlockInternal( getIndex( x, y, z ) );
     }
 
     /**
@@ -102,11 +102,9 @@ class ChunkSlice {
     void setBlock( int x, int y, int z, byte blockId ) {
         short index = getIndex( x, y, z );
 
-        if ( blockId != 0 ) {
-            if ( this.blocks == null ) {
-                this.blocks = new byte[4096];
-                this.isAllAir = false;
-            }
+        if ( blockId != 0 && this.blocks == null ) {
+            this.blocks = new byte[4096];
+            this.isAllAir = false;
         }
 
         if ( this.blocks != null ) {

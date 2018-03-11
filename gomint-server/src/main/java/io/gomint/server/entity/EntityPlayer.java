@@ -127,7 +127,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     // Update data
     @Getter
-    private Queue<BlockPosition> blockUpdates = new ConcurrentLinkedQueue<>();
+    private Set<BlockPosition> blockUpdates = new HashSet<>();
     @Getter
     @Setter
     private Location teleportPosition = null;

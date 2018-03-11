@@ -21,7 +21,7 @@ public class Effects {
 
     private static final Registry<EffectGenerator> GENERATORS = new Registry<>( new GeneratorCallback<EffectGenerator>() {
         @Override
-        public EffectGenerator generate( int id, Class<?> clazz ) {
+        public EffectGenerator generate( Class<?> clazz ) {
             // Create generated Generator for this block
             ClassPool pool = ClassPool.getDefault();
             CtClass generatorCT = pool.makeClass( "io.gomint.server.entity.potion.generator." + clazz.getSimpleName() );

@@ -189,27 +189,30 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
 
         if ( zAbs > xAbs ) {
             if ( directionPlane.getZ() > 0 ) {
-                return new PlacementData( (byte) 0, compound );
+                return new PlacementData( (byte) 26, (byte) 0, compound );
             } else {
-                return new PlacementData( (byte) 2, compound );
+                return new PlacementData( (byte) 26, (byte) 2, compound );
             }
         } else {
             if ( directionPlane.getX() > 0 ) {
-                return new PlacementData( (byte) 3, compound );
+                return new PlacementData( (byte) 26, (byte) 3, compound );
             } else {
-                return new PlacementData( (byte) 1, compound );
+                return new PlacementData( (byte) 26, (byte) 1, compound );
             }
         }
     }
 
     @Override
-    public void afterPlacement() {
+    public void afterPlacement( PlacementData data ) {
         Block otherBlock = (Block) this.getOtherBlock();
 
         NBTTagCompound compound = new NBTTagCompound( "" );
         this.getTileEntity().toCompound( compound );
 
-        otherBlock.setType( Bed.class, new PlacementData( (byte) ( this.getBlockData() | Bed.HEAD ), compound ) );
+        data.setMetaData( (byte) ( this.getBlockData() | Bed.HEAD ) );
+        data.setCompound( compound );
+
+        otherBlock.setBlockFromPlacementData( data );
     }
 
     @Override

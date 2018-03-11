@@ -25,11 +25,6 @@ import java.util.List;
 public class Skull extends Block implements io.gomint.world.block.BlockSkull {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 144;
-    }
-
-    @Override
     public long getBreakTime() {
         return 1500;
     }
@@ -63,9 +58,11 @@ public class Skull extends Block implements io.gomint.world.block.BlockSkull {
 
     @Override
     public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
+        PlacementData data = super.calculatePlacementData( entity, item, clickVector );
+
         NBTTagCompound compound = new NBTTagCompound( "" );
         compound.addValue( "Rot", MojangRotation.fromEntityForBlock( entity ).getRotationValue() );
-        return new PlacementData( (byte) item.getData(), compound );
+        return data.setCompound( compound );
     }
 
     @Override

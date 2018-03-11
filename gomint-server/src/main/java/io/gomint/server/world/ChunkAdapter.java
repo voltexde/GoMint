@@ -356,7 +356,7 @@ public class ChunkAdapter implements Chunk {
      * @param z The z-coordinate of the block
      * @return The ID of the block
      */
-    public int getBlock( int x, int y, int z ) {
+    public byte getBlock( int x, int y, int z ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         return slice.getBlock( x, y - 16 * ( y >> 4 ), z );
     }
@@ -455,6 +455,8 @@ public class ChunkAdapter implements Chunk {
 
     /**
      * Recalculates the height map of the chunk.
+     *
+     * @param maxHeight max height of this chunk. Used to reduce load on the CPU
      */
     public void calculateHeightmap( int maxHeight ) {
         if ( maxHeight == 0 ) {

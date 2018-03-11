@@ -93,7 +93,8 @@ public class PlayerConnection {
     private EncryptionHandler encryptionHandler;
     @Getter
     private GoMintServer server;
-    @Setter @Getter
+    @Setter
+    @Getter
     private int protocolID;
 
     // Actual connection for wire transfer:
@@ -212,7 +213,7 @@ public class PlayerConnection {
         if ( this.entity != null ) {
             if ( !this.entity.getChunkSendQueue().isEmpty() ) {
                 int maximumInClientTick = 4; // Everything oer this seems to cause issues in all clients like not displaying
-                                             // the chunks correctly or even crashing the client
+                // the chunks correctly or even crashing the client
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );
@@ -233,14 +234,17 @@ public class PlayerConnection {
                 }
             }
 
-            while ( !this.entity.getBlockUpdates().isEmpty() ) {
-                BlockPosition position = this.entity.getBlockUpdates().poll();
-                int chunkX = CoordinateUtils.fromBlockToChunk( position.getX() );
-                int chunkZ = CoordinateUtils.fromBlockToChunk( position.getZ() );
-                long chunkHash = CoordinateUtils.toLong( chunkX, chunkZ );
-                if ( this.playerChunks.contains( chunkHash ) ) {
-                    this.entity.getWorld().appendUpdatePackets( this, position );
+            if ( !this.entity.getBlockUpdates().isEmpty() ) {
+                for ( BlockPosition position : this.entity.getBlockUpdates() ) {
+                    int chunkX = CoordinateUtils.fromBlockToChunk( position.getX() );
+                    int chunkZ = CoordinateUtils.fromBlockToChunk( position.getZ() );
+                    long chunkHash = CoordinateUtils.toLong( chunkX, chunkZ );
+                    if ( this.playerChunks.contains( chunkHash ) ) {
+                        this.entity.getWorld().appendUpdatePackets( this, position );
+                    }
                 }
+
+                this.entity.getBlockUpdates().clear();
             }
         }
 
@@ -621,7 +625,7 @@ public class PlayerConnection {
 
             if ( Math.abs( x - currentXChunk ) > viewDistance ||
                 Math.abs( z - currentZChunk ) > viewDistance ) {
-                ChunkAdapter chunk =  this.entity.getWorld().getChunk( x, z );
+                ChunkAdapter chunk = this.entity.getWorld().getChunk( x, z );
                 if ( chunk == null ) {
                     LOGGER.error( "Wanted to update state on already unloaded chunk {} {}", x, z );
                 } else {

@@ -7,9 +7,18 @@
 
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.*;
+import io.gomint.math.BlockPosition;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.Entity;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.PlacementData;
 import io.gomint.world.block.BlockType;
 import io.gomint.world.block.BlockWoodenDoor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -22,6 +31,17 @@ import io.gomint.world.block.BlockWoodenDoor;
 @RegisterInfo( id = 196, itemId = 430 )
 @RegisterInfo( id = 197, itemId = 431 )
 public class WoodenDoor extends Door implements BlockWoodenDoor {
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return new Class[]{
+            ItemWoodenAxe.class,
+            ItemIronAxe.class,
+            ItemDiamondAxe.class,
+            ItemGoldenAxe.class,
+            ItemStoneAxe.class
+        };
+    }
 
     @Override
     public float getBlastResistance() {
@@ -58,9 +78,53 @@ public class WoodenDoor extends Door implements BlockWoodenDoor {
             case DARK_OAK:
                 this.setBlockId( (byte) 197 );
                 break;
+            case ACACIA:
+                this.setBlockId( (byte) 196 );
+                break;
+            case JUNGLE:
+                this.setBlockId( (byte) 195 );
+                break;
+            case BIRCH:
+                this.setBlockId( (byte) 194 );
+                break;
+            case SPRUCE:
+                this.setBlockId( (byte) 193 );
+                break;
+            case OAK:
+            default:
+                this.setBlockId( (byte) 64 );
         }
 
         this.updateBlock();
+    }
+
+    @Override
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        int itemId;
+        switch ( this.getBlockId() ) {
+            case (byte) 197:
+                itemId = 431;
+                break;
+            case (byte) 196:
+                itemId = 430;
+                break;
+            case (byte) 195:
+                itemId = 429;
+                break;
+            case (byte) 194:
+                itemId = 428;
+                break;
+            case (byte) 193:
+                itemId = 427;
+                break;
+            case 64:
+            default:
+                itemId = 324;
+        }
+
+        return new ArrayList<ItemStack>() {{
+            add( Items.create( itemId, (short) 0, (byte) 1, null ) );
+        }};
     }
 
 }

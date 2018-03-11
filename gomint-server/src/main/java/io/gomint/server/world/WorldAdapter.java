@@ -298,7 +298,7 @@ public abstract class WorldAdapter implements World {
      * @param position where we want to search
      * @return id of the block
      */
-    public int getBlockId( BlockPosition position ) {
+    public byte getBlockId( BlockPosition position ) {
         final ChunkAdapter chunk = this.loadChunk(
             CoordinateUtils.fromBlockToChunk( position.getX() ),
             CoordinateUtils.fromBlockToChunk( position.getZ() ),
@@ -1260,7 +1260,7 @@ public abstract class WorldAdapter implements World {
             for ( int x = 0; x < 16; x++ ) {
                 for ( int y = 0; y < 256; y++ ) {
                     for ( int z = 0; z < 16; z++ ) {
-                        int currentBlockId = chunkAdapter.getBlock( x, y, z );
+                        int currentBlockId = chunkAdapter.getBlock( x, y, z ) & 0xFF;
                         if ( currentBlockId == blockId ) {
                             T block = getBlockAt( ( chunkX << 4 ) + x, y, ( chunkZ << 4 ) + z );
                             blockConsumer.accept( block );

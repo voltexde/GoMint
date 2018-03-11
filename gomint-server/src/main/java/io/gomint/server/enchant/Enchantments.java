@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 public class Enchantments {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Items.class );
-    private static final Registry<EnchantmentGenerator> GENERATORS = new Registry<>( ( id, clazz ) -> {
+    private static final Registry<EnchantmentGenerator> GENERATORS = new Registry<>( clazz -> {
         try {
             return (EnchantmentGenerator) Class.forName( "io.gomint.server.enchant.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
         } catch ( ClassNotFoundException | IllegalAccessException | InstantiationException e1 ) {

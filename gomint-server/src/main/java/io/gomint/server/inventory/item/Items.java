@@ -16,7 +16,7 @@ import java.util.Collection;
 public class Items {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Items.class );
-    private static final Registry<ItemGenerator> GENERATORS = new Registry<>( ( id, clazz ) -> {
+    private static final Registry<ItemGenerator> GENERATORS = new Registry<>( clazz -> {
         try {
             return (ItemGenerator) Class.forName( "io.gomint.server.inventory.item.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
         } catch ( ClassNotFoundException | IllegalAccessException | InstantiationException e1 ) {

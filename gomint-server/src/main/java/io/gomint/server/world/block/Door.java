@@ -59,21 +59,23 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
 
     @Override
     public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
+        PlacementData data = super.calculatePlacementData( entity, item, clickVector );
+
         Vector2 directionPlane = entity.getDirectionVector();
         double xAbs = Math.abs( directionPlane.getX() );
         double zAbs = Math.abs( directionPlane.getZ() );
 
         if ( zAbs > xAbs ) {
             if ( directionPlane.getZ() > 0 ) {
-                return new PlacementData( (byte) 1, null );
+                return data.setMetaData( (byte) 3 );
             } else {
-                return new PlacementData( (byte) 3, null );
+                return data.setMetaData( (byte) 2 );
             }
         } else {
             if ( directionPlane.getX() > 0 ) {
-                return new PlacementData( (byte) 4, null );
+                return data.setMetaData( (byte) 0 );
             } else {
-                return new PlacementData( (byte) 2, null );
+                return data.setMetaData( (byte) 1 );
             }
         }
     }
@@ -111,4 +113,11 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
         return true;
     }
 
+    @Override
+    public void afterPlacement( PlacementData data ) {
+        data.setMetaData( (byte) 0x08 );
+
+        Block above = this.location.getWorld().getBlockAt( this.location.toBlockPosition().add( BlockPosition.UP ) );
+        above.setBlockFromPlacementData( data );
+    }
 }

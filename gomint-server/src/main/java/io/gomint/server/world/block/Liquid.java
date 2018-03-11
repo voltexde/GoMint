@@ -109,7 +109,7 @@ public abstract class Liquid extends Block implements BlockLiquid {
         for ( Facing facing : Facing.values() ) {
             Block other = (Block) this.getSide( facing );
             if ( other.getType() == BlockType.AIR ) {
-                other.setType( this.getClass(), new PlacementData( (byte) data, null ) );
+                other.setBlockFromPlacementData( new PlacementData( getBlockId(), (byte) data, null ) );
             }
         }
     }

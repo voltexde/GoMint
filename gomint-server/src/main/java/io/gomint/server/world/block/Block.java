@@ -46,13 +46,21 @@ public abstract class Block implements io.gomint.world.block.Block {
     private static final Logger LOGGER = LoggerFactory.getLogger( Block.class );
 
     // CHECKSTYLE:OFF
-    @Getter private byte blockId;
-    @Setter protected WorldAdapter world;
-    @Setter @Getter protected Location location;
-    @Getter private byte blockData = -1;
-    @Setter private TileEntity tileEntity;
-    @Getter private byte skyLightLevel;
-    @Getter private byte blockLightLevel;
+    @Getter
+    private byte blockId;
+    @Setter
+    protected WorldAdapter world;
+    @Setter
+    @Getter
+    protected Location location;
+    @Getter
+    private byte blockData = -1;
+    @Setter
+    private TileEntity tileEntity;
+    @Getter
+    private byte skyLightLevel;
+    @Getter
+    private byte blockLightLevel;
 
     // Set all needed data
     public void setData( byte blockId, byte blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, byte skyLightLevel, byte blockLightLevel ) {
@@ -207,16 +215,16 @@ public abstract class Block implements io.gomint.world.block.Block {
      * Internal overload for NBT compound calculations
      *
      * @param <T>       block generic type
-     * @param blockType the new material of this block
      * @param data      optional data for the block
      * @return the new placed block
      */
-    public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType, PlacementData data ) {
+    public <T extends io.gomint.world.block.Block> T setBlockFromPlacementData( PlacementData data ) {
         BlockPosition pos = this.location.toBlockPosition();
-        Block instance = Blocks.get( blockType );
+        Block instance = Blocks.get( data.getBlockId() );
+
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
-            worldAdapter.setBlockId( pos, instance.getBlockId() );
+            worldAdapter.setBlockId( pos, data.getBlockId() );
             worldAdapter.setBlockData( pos, data.getMetaData() );
             worldAdapter.resetTemporaryStorage( pos );
 
@@ -345,7 +353,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         // Emergency checking
         if ( this.tileEntity == null && needsTileEntity() ) {
-            LOGGER.warn( "Your world has been corruped. The block {} @ {} has no stored tile entity. Please fix the world {}. The block will be repaired now, don't expect it to work like it should!",
+            LOGGER.warn( "Your world has been corrupted. The block {} @ {} has no stored tile entity. Please fix the world {}. The block will be repaired now, don't expect it to work like it should!",
                 this.getClass().getSimpleName(), this.location, this.world.getWorldName() );
 
             this.tileEntity = createTileEntity( new NBTTagCompound( "" ) );
@@ -466,12 +474,13 @@ public abstract class Block implements io.gomint.world.block.Block {
         return true;
     }
 
-    public void afterPlacement() {
+    public void afterPlacement( PlacementData data ) {
 
     }
 
     public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
-        return new PlacementData( (byte) item.getData(), null );
+        io.gomint.server.inventory.item.ItemStack implStack = (io.gomint.server.inventory.item.ItemStack) item;
+        return new PlacementData( (byte) implStack.getBlockId(), (byte) item.getData(), null );
     }
 
     /**
@@ -599,12 +608,8 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @param blockData which should be set
      */
     public void setBlockData( byte blockData ) {
-        if ( !isPlaced() ) {
-            return;
-        }
-
         // Only update when there has been a value already loaded
-        if ( this.blockData > -1 ) {
+        if ( this.blockData > -1 && isPlaced() ) {
             this.world.setBlockData( this.location.toBlockPosition(), blockData );
         }
 
