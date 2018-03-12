@@ -35,14 +35,7 @@ public class EntityVisibilityManager {
     public void updateAddedChunk( ChunkAdapter chunk ) {
         LOGGER.debug( "Checking chunk {}, {}", chunk.getX(), chunk.getZ() );
 
-        Collection<Entity> collection = chunk.getEntities();
-        if ( collection != null ) {
-            for ( Entity entity : collection ) {
-                if ( ( (io.gomint.server.entity.Entity) entity ).shouldBeSeen( this.player ) ) {
-                    addEntity( entity );
-                }
-            }
-        }
+        chunk.iterateEntities( Entity.class, this::addEntity );
     }
 
     public void updateEntity( Entity entity, Chunk chunk ) {
@@ -63,12 +56,7 @@ public class EntityVisibilityManager {
 
     public void updateRemoveChunk( ChunkAdapter chunk ) {
         // Check for removing entities
-        Collection<Entity> collection = chunk.getEntities();
-        if ( collection != null ) {
-            for ( Entity entity : collection ) {
-                removeEntity( entity );
-            }
-        }
+        chunk.iterateEntities( Entity.class, this::removeEntity );
     }
 
     public void removeEntity( Entity entity ) {

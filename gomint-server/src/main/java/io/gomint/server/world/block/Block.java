@@ -643,4 +643,8 @@ public abstract class Block implements io.gomint.world.block.Block {
         }
     }
 
+    public void afterBreak() {
+
+    }
+
 }

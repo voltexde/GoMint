@@ -4,6 +4,7 @@ import com.koloboke.collect.ObjCollection;
 import com.koloboke.collect.map.LongObjCursor;
 import com.koloboke.compile.ConcurrentModificationUnchecked;
 import com.koloboke.compile.KolobokeMap;
+import com.koloboke.function.LongObjConsumer;
 import io.gomint.entity.Entity;
 
 /**
@@ -25,13 +26,22 @@ public abstract class EntityIDMap {
     }
 
     // CHECKSTYLE:OFF
-    public abstract Entity get(long key);
+    public abstract Entity get( long key );
+
     public abstract ObjCollection<Entity> values();
-    public abstract boolean containsKey(long key);
-    public abstract void justPut(long key, Entity entity);
-    public abstract boolean justRemove(long key);
+
+    public abstract boolean containsKey( long key );
+
+    public abstract void justPut( long key, Entity entity );
+
+    public abstract boolean justRemove( long key );
+
     public abstract int size();
+
+    public abstract void forEach( LongObjConsumer<? super Entity> consumer );
+
     public abstract LongObjCursor<Entity> cursor();
+
     public abstract void clear();
     // CHECKSTYLE:ON
 

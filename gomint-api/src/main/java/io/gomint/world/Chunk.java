@@ -12,6 +12,7 @@ import io.gomint.world.block.Block;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -45,11 +46,13 @@ public interface Chunk {
     <T extends Block> T getBlockAt( int x, int y, int z );
 
     /**
-     * Get a list of all entities which are located in this chunk
+     * Iterate over all entities in this chunk and run entityConsumer on every correct one.
      *
-     * @return either null if there are not entities in this chunk or a list of entities
+     * @param entityClass    for which we search
+     * @param entityConsumer which gets called for every found entity
+     * @param <T>            type of entity
      */
-    Collection<Entity> getEntities();
+    <T extends Entity> void iterateEntities( Class<T> entityClass, Consumer<T> entityConsumer );
 
     /**
      * Set the block at the position to the one given in this method call. Please only use this in

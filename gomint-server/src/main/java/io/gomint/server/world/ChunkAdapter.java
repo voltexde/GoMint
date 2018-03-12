@@ -7,9 +7,9 @@
 
 package io.gomint.server.world;
 
+import com.koloboke.function.LongObjConsumer;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
-import io.gomint.math.Location;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
@@ -39,6 +39,7 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * @author BlackyPaw
@@ -566,8 +567,18 @@ public class ChunkAdapter implements Chunk {
     }
 
     @Override
-    public Collection<io.gomint.entity.Entity> getEntities() {
-        return this.entities == null ? null : this.entities.size() == 0 ? null : this.entities.values();
+    public <T extends io.gomint.entity.Entity> void iterateEntities( Class<T> entityClass, Consumer<T> entityConsumer ) {
+        // Iterate over all chunks
+        if ( this.entities != null ) {
+            this.entities.forEach( new LongObjConsumer<io.gomint.entity.Entity>() {
+                @Override
+                public void accept( long l, io.gomint.entity.Entity entity ) {
+                    if ( entityClass.isAssignableFrom( entity.getClass() ) ) {
+                        entityConsumer.accept( (T) entity );
+                    }
+                }
+            } );
+        }
     }
 
     @Override

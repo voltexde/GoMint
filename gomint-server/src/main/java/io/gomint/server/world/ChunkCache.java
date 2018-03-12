@@ -8,7 +8,9 @@
 package io.gomint.server.world;
 
 import com.koloboke.collect.LongCursor;
+import com.koloboke.function.LongObjConsumer;
 import io.gomint.math.MathUtils;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.collection.ChunkCacheMap;
 import io.gomint.server.util.collection.ChunkHashSet;
@@ -16,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -60,59 +63,65 @@ public class ChunkCache {
         // Copy over the current loaded chunk hashes
         final ChunkHashSet[] tempHashes = { null, null }; // 0 => not to delete chunks, 1 => to delete chunks
         synchronized ( this ) {
-            this.world.getPlayers0().forEach( ( player, chunkAdapter ) -> {
-                if ( tempHashes[0] == null ) {
-                    tempHashes[0] = ChunkHashSet.withExpectedSize( 100 );
-                }
+            this.world.getPlayers0().forEach( new BiConsumer<EntityPlayer, ChunkAdapter>() {
+                @Override
+                public void accept( EntityPlayer player, ChunkAdapter chunkAdapter ) {
+                    if ( tempHashes[0] == null ) {
+                        tempHashes[0] = ChunkHashSet.withExpectedSize( 100 );
+                    }
 
-                LongCursor cursor = player.getConnection().getPlayerChunks().cursor();
-                while ( cursor.moveNext() ) {
-                    tempHashes[0].add( cursor.elem() );
-                }
+                    LongCursor cursor = player.getConnection().getPlayerChunks().cursor();
+                    while ( cursor.moveNext() ) {
+                        tempHashes[0].add( cursor.elem() );
+                    }
 
-                cursor = player.getConnection().getLoadingChunks().cursor();
-                while ( cursor.moveNext() ) {
-                    tempHashes[0].add( cursor.elem() );
+                    cursor = player.getConnection().getLoadingChunks().cursor();
+                    while ( cursor.moveNext() ) {
+                        tempHashes[0].add( cursor.elem() );
+                    }
                 }
             } );
 
-            this.cachedChunks.forEach( ( chunkHash, chunk ) -> {
-                // Check if we need to save
-                if ( ChunkCache.this.isAutosaveEnabled() &&
-                    ChunkCache.this.autoSaveInterval > 0 &&
-                    currentTimeMS - chunk.getLastSavedTimestamp() >= ChunkCache.this.autoSaveInterval ) {
-                    chunk.setLastSavedTimestamp( currentTimeMS );
-                    ChunkCache.this.world.saveChunkAsynchronously( chunk );
+            this.cachedChunks.forEach( new LongObjConsumer<ChunkAdapter>() {
+                @Override
+                public void accept( long chunkHash, ChunkAdapter chunk ) {
+                    // Check if we need to save
+                    if ( ChunkCache.this.isAutosaveEnabled() &&
+                        ChunkCache.this.autoSaveInterval > 0 &&
+                        currentTimeMS - chunk.getLastSavedTimestamp() >= ChunkCache.this.autoSaveInterval ) {
+                        chunk.setLastSavedTimestamp( currentTimeMS );
+                        ChunkCache.this.world.saveChunkAsynchronously( chunk );
+                    }
+
+                    int currentX = (int) ( chunkHash >> 32 );
+                    int currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
+
+                    // Check if this is part of the spawn
+                    if ( spawnAreaSize > 0 &&
+                        currentX >= spawnXChunk - spawnAreaSize && currentX <= spawnXChunk + spawnAreaSize &&
+                        currentZ >= spawnZChunk - spawnAreaSize && currentZ <= spawnZChunk + spawnAreaSize ) {
+                        return;
+                    }
+
+                    // Ask this chunk if he wants to be gced
+                    if ( !chunk.canBeGCed( currentTimeMS ) ) {
+                        return;
+                    }
+
+                    // Calculate the hashes which are used by players view distances
+                    if ( tempHashes[0] != null && tempHashes[0].contains( chunkHash ) ) {
+                        return;
+                    }
+
+                    LOGGER.info( "Cleaning up chunk @ {} {}", currentX, currentZ );
+
+                    // Ask this chunk if he wants to be gced
+                    if ( tempHashes[1] == null ) {
+                        tempHashes[1] = ChunkHashSet.withExpectedSize( 10 );
+                    }
+
+                    tempHashes[1].add( chunkHash );
                 }
-
-                int currentX = (int) ( chunkHash >> 32 );
-                int currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
-
-                // Check if this is part of the spawn
-                if ( spawnAreaSize > 0 &&
-                    currentX >= spawnXChunk - spawnAreaSize && currentX <= spawnXChunk + spawnAreaSize &&
-                    currentZ >= spawnZChunk - spawnAreaSize && currentZ <= spawnZChunk + spawnAreaSize ) {
-                    return;
-                }
-
-                // Ask this chunk if he wants to be gced
-                if ( !chunk.canBeGCed( currentTimeMS ) ) {
-                    return;
-                }
-
-                // Calculate the hashes which are used by players view distances
-                if ( tempHashes[0] != null && tempHashes[0].contains( chunkHash ) ) {
-                    return;
-                }
-
-                LOGGER.info( "Cleaning up chunk @ {} {}", currentX, currentZ );
-
-                // Ask this chunk if he wants to be gced
-                if ( tempHashes[1] == null ) {
-                    tempHashes[1] = ChunkHashSet.withExpectedSize( 10 );
-                }
-
-                tempHashes[1].add( chunkHash );
             } );
 
             if ( tempHashes[1] != null ) {

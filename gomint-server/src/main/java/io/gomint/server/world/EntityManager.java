@@ -63,47 +63,20 @@ public class EntityManager {
         Set<io.gomint.server.entity.Entity> metadataChangedEntities = null;
         this.currentlyTicking = true;
 
-        LongObjCursor<Entity> cursor = this.entitiesById.cursor();
-        while ( cursor.moveNext() ) {
-            io.gomint.server.entity.Entity entity = (io.gomint.server.entity.Entity) cursor.value();
-            if ( !entity.isTicking() ) {
-                if ( entity.isDead() ) {
-                    cursor.remove();
-                    despawnEntity( entity );
-                }
-
-                // Check if entity moved via external teleport
-                if ( entity.getTransform().isDirty() ) {
-                    ChunkAdapter current = (ChunkAdapter) entity.getChunk();
-
-                    if ( movedEntities == null ) {
-                        movedEntities = new HashSet<>();
+        if ( this.entitiesById.size() > 0 ) {
+            LongObjCursor<Entity> cursor = this.entitiesById.cursor();
+            while ( cursor.moveNext() ) {
+                io.gomint.server.entity.Entity entity = (io.gomint.server.entity.Entity) cursor.value();
+                if ( !entity.isTicking() ) {
+                    if ( entity.isDead() ) {
+                        cursor.remove();
+                        despawnEntity( entity );
                     }
 
-                    if ( !( entity instanceof io.gomint.server.entity.EntityPlayer ) && current != null && !current.equals( entity.getChunk() ) ) {
-                        current.removeEntity( entity );
-                    }
-
-                    movedEntities.add( entity );
-                }
-
-                continue;
-            }
-
-            if ( !entity.isDead() ) {
-                ChunkAdapter current = (ChunkAdapter) entity.getChunk();
-                entity.update( currentTimeMS, dT );
-
-                if ( !entity.isDead() ) {
-                    if ( entity.getMetadata().isDirty() ) {
-                        if ( metadataChangedEntities == null ) {
-                            metadataChangedEntities = new HashSet<>();
-                        }
-
-                        metadataChangedEntities.add( entity );
-                    }
-
+                    // Check if entity moved via external teleport
                     if ( entity.getTransform().isDirty() ) {
+                        ChunkAdapter current = (ChunkAdapter) entity.getChunk();
+
                         if ( movedEntities == null ) {
                             movedEntities = new HashSet<>();
                         }
@@ -114,10 +87,39 @@ public class EntityManager {
 
                         movedEntities.add( entity );
                     }
+
+                    continue;
                 }
-            } else {
-                cursor.remove();
-                despawnEntity( entity );
+
+                if ( !entity.isDead() ) {
+                    ChunkAdapter current = (ChunkAdapter) entity.getChunk();
+                    entity.update( currentTimeMS, dT );
+
+                    if ( !entity.isDead() ) {
+                        if ( entity.getMetadata().isDirty() ) {
+                            if ( metadataChangedEntities == null ) {
+                                metadataChangedEntities = new HashSet<>();
+                            }
+
+                            metadataChangedEntities.add( entity );
+                        }
+
+                        if ( entity.getTransform().isDirty() ) {
+                            if ( movedEntities == null ) {
+                                movedEntities = new HashSet<>();
+                            }
+
+                            if ( !( entity instanceof io.gomint.server.entity.EntityPlayer ) && current != null && !current.equals( entity.getChunk() ) ) {
+                                current.removeEntity( entity );
+                            }
+
+                            movedEntities.add( entity );
+                        }
+                    }
+                } else {
+                    cursor.remove();
+                    despawnEntity( entity );
+                }
             }
         }
 
@@ -200,11 +202,15 @@ public class EntityManager {
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
 
                 // Check which player we need to inform about this movement
-                for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-                    if ( movedEntity instanceof io.gomint.server.entity.EntityPlayer ) {
-                        if ( entityPlayer.isHidden( (EntityPlayer) movedEntity ) || entityPlayer.equals( movedEntity ) ) {
-                            continue;
-                        }
+                for ( Object o : this.world.getPlayers0().table() ) {
+                    if ( o == null || ( !( o instanceof io.gomint.server.entity.EntityPlayer ) ) ) {
+                        continue;
+                    }
+
+                    io.gomint.server.entity.EntityPlayer entityPlayer = (io.gomint.server.entity.EntityPlayer) o;
+                    if ( movedEntity instanceof io.gomint.server.entity.EntityPlayer &&
+                        ( entityPlayer.isHidden( (EntityPlayer) movedEntity ) || o.equals( movedEntity ) ) ) {
+                        continue;
                     }
 
                     entityPlayer.getEntityVisibilityManager().updateEntity( movedEntity, chunk );
@@ -217,7 +223,7 @@ public class EntityManager {
     }
 
     private void sendMetaChanges( Set<io.gomint.server.entity.Entity> metadataChangedEntities ) {
-        if ( metadataChangedEntities != null && metadataChangedEntities.size() > 0 ) {
+        if ( metadataChangedEntities != null && !metadataChangedEntities.isEmpty() ) {
             for ( io.gomint.server.entity.Entity entity : metadataChangedEntities ) {
                 int chunkX = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionX() );
                 int chunkZ = CoordinateUtils.fromBlockToChunk( (int) entity.getPositionZ() );
@@ -228,11 +234,14 @@ public class EntityManager {
                 packetEntityMetadata.setMetadata( entity.getMetadata() );
 
                 // Send to all players
-                for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-                    if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
-                        if ( entityPlayer.isHidden( (EntityPlayer) entity ) ) {
-                            continue;
-                        }
+                for ( Object o : this.world.getPlayers0().table() ) {
+                    if ( o == null || ( !( o instanceof io.gomint.server.entity.EntityPlayer ) ) ) {
+                        continue;
+                    }
+
+                    io.gomint.server.entity.EntityPlayer entityPlayer = (io.gomint.server.entity.EntityPlayer) o;
+                    if ( entity instanceof io.gomint.server.entity.EntityPlayer && entityPlayer.isHidden( (EntityPlayer) entity ) ) {
+                        continue;
                     }
 
                     Chunk playerChunk = entityPlayer.getChunk();
@@ -246,8 +255,10 @@ public class EntityManager {
     }
 
     private void mergeSpawnedEntities() {
-        this.spawnedInThisTick.cursor().forEachForward( ( l, entity ) -> entitiesById.justPut( l, entity ) );
-        this.spawnedInThisTick.clear();
+        if ( this.spawnedInThisTick.size() > 0 ) {
+            this.spawnedInThisTick.forEach( ( l, entity ) -> entitiesById.justPut( l, entity ) );
+            this.spawnedInThisTick.clear();
+        }
     }
 
     /**
@@ -369,11 +380,14 @@ public class EntityManager {
         }
 
         // Check which player we need to inform about this movement
-        for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-            if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
-                if ( entityPlayer.isHidden( (EntityPlayer) entity ) || entityPlayer.equals( entity ) ) {
-                    continue;
-                }
+        for ( Object o : this.world.getPlayers0().table() ) {
+            if ( o == null || ( !( o instanceof io.gomint.server.entity.EntityPlayer ) ) ) {
+                continue;
+            }
+
+            io.gomint.server.entity.EntityPlayer entityPlayer = (io.gomint.server.entity.EntityPlayer) o;
+            if ( entity instanceof io.gomint.server.entity.EntityPlayer && ( entityPlayer.isHidden( (EntityPlayer) entity ) || entityPlayer.equals( entity ) ) ) {
+                continue;
             }
 
             Chunk playerChunk = entityPlayer.getChunk();

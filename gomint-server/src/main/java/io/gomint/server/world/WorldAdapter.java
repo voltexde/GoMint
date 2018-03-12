@@ -132,7 +132,13 @@ public abstract class WorldAdapter implements World {
      */
     public Collection<EntityPlayer> getPlayers() {
         Collection<EntityPlayer> playerReturn = new HashSet<>();
-        playerReturn.addAll( this.players.keySet() );
+
+        for ( Object o : this.players.table() ) {
+            if ( o != null && o instanceof io.gomint.server.entity.EntityPlayer ) {
+                playerReturn.add( (EntityPlayer) o );
+            }
+        }
+
         return playerReturn;
     }
 
@@ -824,6 +830,7 @@ public abstract class WorldAdapter implements World {
             updateBlock.setPrioAndMetadata( ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() & 0xFF ) ) );
         }
 
+        this.logger.info( "Sending block update for {} -> {}:{}", pos, block.getBlockId() & 0xFF, block.getBlockData() );
         connection.addToSendQueue( updateBlock );
 
         // Check for tile entity
@@ -852,7 +859,8 @@ public abstract class WorldAdapter implements World {
      * @return either null if there are no entities or a collection of entities
      */
     public Collection<Entity> getNearbyEntities( AxisAlignedBB bb, Entity exception ) {
-        Set<Entity> nearby = null;
+        final Set[] nearby = new HashSet[1];
+
         int lastChunkX = Integer.MAX_VALUE;
         int lastChunkZ = Integer.MIN_VALUE;
 
@@ -869,24 +877,24 @@ public abstract class WorldAdapter implements World {
                 if ( chunkX != lastChunkX || chunkZ != lastChunkZ ) {
                     Chunk chunk = this.getChunk( chunkX, chunkZ );
                     if ( chunk != null ) {
-                        Collection<io.gomint.entity.Entity> entities = chunk.getEntities();
-                        if ( entities != null ) {
-                            for ( io.gomint.entity.Entity entity : entities ) {
+                        chunk.iterateEntities( Entity.class, new Consumer<Entity>() {
+                            @Override
+                            public void accept( Entity entity ) {
                                 if ( !entity.equals( exception ) && entity.getBoundingBox().intersectsWith( bb ) ) {
-                                    if ( nearby == null ) {
-                                        nearby = new HashSet<>();
+                                    if ( nearby[0] == null ) {
+                                        nearby[0] = new HashSet<>();
                                     }
 
-                                    nearby.add( entity );
+                                    nearby[0].add( entity );
                                 }
                             }
-                        }
+                        } );
                     }
                 }
             }
         }
 
-        return nearby;
+        return nearby[0];
     }
 
     private <T> List<T> iterateBlocks( int minX, int maxX, int minY, int maxY, int minZ, int maxZ, AxisAlignedBB bb, boolean returnBoundingBoxes ) {
@@ -1120,7 +1128,7 @@ public abstract class WorldAdapter implements World {
             }
 
             // Break animation (this also plays the break sound in the client)
-            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) );
+            // sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) );
 
             block.setType( BlockAir.class );
 
@@ -1234,7 +1242,12 @@ public abstract class WorldAdapter implements World {
     public void unload( Consumer<EntityPlayer> playerConsumer ) {
         // Unload all players via API
         Set<EntityPlayer> playerCopy = new HashSet<>( this.players.size() );
-        this.players.forEach( ( player, chunkAdapter ) -> playerCopy.add( player ) );
+        for ( Object o : this.players.table() ) {
+            if ( o != null ) {
+                playerCopy.add( (EntityPlayer) o );
+            }
+        }
+
         playerCopy.forEach( playerConsumer );
 
         // Stop this world
@@ -1274,20 +1287,13 @@ public abstract class WorldAdapter implements World {
     @Override
     public <T extends Entity> void iterateEntities( Class<T> entityClass, Consumer<T> entityConsumer ) {
         // Iterate over all chunks
-        this.chunkCache.iterateAll( chunkAdapter -> {
-            Collection<Entity> chunkEntities = chunkAdapter.getEntities();
-            if ( chunkEntities != null ) {
-                List<Entity> entities = new ArrayList<>( chunkEntities );
-                for ( Entity entity : entities ) {
-                    if ( entityClass.isAssignableFrom( entity.getClass() ) ) {
-                        entityConsumer.accept( (T) entity );
-                    }
-                }
-            }
-        } );
+        this.chunkCache.iterateAll( chunkAdapter -> chunkAdapter.iterateEntities( entityClass, entityConsumer ) );
     }
 
-    public void adjustSpawn() {
+    /**
+     * Adjust the spawn level to the first in air block
+     */
+    protected void adjustSpawn() {
         BlockPosition check = new BlockPosition( (int) this.spawn.getX(), 0, (int) this.spawn.getZ() );
         for ( int i = 255; i > 0; i-- ) {
             check.setY( i );

@@ -5,7 +5,6 @@ import com.koloboke.compile.KolobokeMap;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.world.ChunkAdapter;
 
-import java.util.Collection;
 import java.util.function.BiConsumer;
 
 /**
@@ -26,11 +25,16 @@ public abstract class PlayerMap {
         return new KolobokePlayerMap( expectedSize );
     }
 
-    public abstract Collection<EntityPlayer> keySet();
-    public abstract ChunkAdapter remove(EntityPlayer player);
-    public abstract ChunkAdapter get(EntityPlayer player);
-    public abstract void justPut(EntityPlayer player, ChunkAdapter adapter);
+    public abstract ChunkAdapter remove( EntityPlayer player );
+
+    public abstract ChunkAdapter get( EntityPlayer player );
+
+    public abstract void justPut( EntityPlayer player, ChunkAdapter adapter );
+
     public abstract int size();
-    public abstract void forEach(BiConsumer<? super EntityPlayer, ? super ChunkAdapter> action);
+
+    public abstract Object[] table();
+
+    public abstract void forEach( BiConsumer<? super EntityPlayer, ? super ChunkAdapter> action );
 
 }
