@@ -241,4 +241,10 @@ public interface Entity {
      */
     float getEyeHeight();
 
+    /**
+     * Reset the fall distance of this entity. This will prevent a entity getting damaged when it hits the ground when
+     * it was high enough before (it needs to fall at least 3 blocks to get any damage from falling)
+     */
+    void resetFallDistance();
+
 }
