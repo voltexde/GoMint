@@ -33,13 +33,14 @@ import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.util.EnumConnectors;
-import io.gomint.server.util.collection.*;
+import io.gomint.server.util.collection.ContainerIDMap;
+import io.gomint.server.util.collection.ContainerObjectMap;
+import io.gomint.server.util.collection.FormIDMap;
+import io.gomint.server.util.collection.FormListenerIDMap;
 import io.gomint.server.world.ChunkAdapter;
-import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.world.*;
-import io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueue;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -47,9 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they

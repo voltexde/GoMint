@@ -213,7 +213,7 @@ public class PlayerConnection {
         if ( this.entity != null ) {
             if ( !this.entity.getChunkSendQueue().isEmpty() ) {
                 int maximumInClientTick = 4; // Everything oer this seems to cause issues in all clients like not displaying
-                // the chunks correctly or even crashing the client
+                                             // the chunks correctly or even crashing the client
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );
@@ -226,6 +226,7 @@ public class PlayerConnection {
                         Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
                         Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ||
                         !chunk.getWorld().equals( this.entity.getWorld() ) ) {
+                        LOGGER.info( "Did not send chunk {} {} due to view distance", chunk.getX(), chunk.getZ() );
                         continue;
                     }
 
@@ -571,6 +572,7 @@ public class PlayerConnection {
         int viewDistance = this.entity.getViewDistance();
 
         List<Pair<Integer, Integer>> toSendChunks = new ArrayList<>();
+
         for ( int sendXChunk = currentXChunk - viewDistance; sendXChunk < currentXChunk + viewDistance; sendXChunk++ ) {
             for ( int sendZChunk = currentZChunk - viewDistance; sendZChunk < currentZChunk + viewDistance; sendZChunk++ ) {
                 toSendChunks.add( new Pair<>( sendXChunk, sendZChunk ) );
@@ -829,6 +831,13 @@ public class PlayerConnection {
     }
 
     public void resetQueuedChunks() {
+        if ( !this.entity.getChunkSendQueue().isEmpty() ) {
+            for ( ChunkAdapter adapter : this.entity.getChunkSendQueue() ) {
+                long hash = CoordinateUtils.toLong( adapter.getX(), adapter.getZ() );
+                this.loadingChunks.removeLong( hash );
+            }
+        }
+
         this.entity.getChunkSendQueue().clear();
     }
 

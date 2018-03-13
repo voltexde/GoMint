@@ -596,7 +596,9 @@ public abstract class WorldAdapter implements World {
      * @param sync   Force sync chunk loading
      */
     public void sendChunk( int x, int z, io.gomint.server.entity.EntityPlayer player, boolean sync ) {
-        Delegate2<Long, ChunkAdapter> sendDelegate = ( chunkHash, chunk ) -> player.getChunkSendQueue().offer( chunk );
+        Delegate2<Long, ChunkAdapter> sendDelegate = ( chunkHash, chunk ) -> {
+            player.getChunkSendQueue().offer( chunk );
+        };
 
         if ( !sync ) {
             this.getOrLoadChunk( x, z, true, chunk -> chunk.packageChunk( sendDelegate ) );
@@ -830,7 +832,6 @@ public abstract class WorldAdapter implements World {
             updateBlock.setPrioAndMetadata( ( ( PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 ) | ( block.getBlockData() & 0xFF ) ) );
         }
 
-        this.logger.info( "Sending block update for {} -> {}:{}", pos, block.getBlockId() & 0xFF, block.getBlockData() );
         connection.addToSendQueue( updateBlock );
 
         // Check for tile entity

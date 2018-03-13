@@ -28,6 +28,7 @@ import io.gomint.world.block.Block;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ import java.util.function.Consumer;
  * @author BlackyPaw
  * @version 1.0
  */
+@ToString( of = { "world", "x", "z" } )
 @RequiredArgsConstructor
 @EqualsAndHashCode( callSuper = false, of = { "world", "x", "z" } )
 public class ChunkAdapter implements Chunk {
