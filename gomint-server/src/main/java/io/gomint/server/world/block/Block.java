@@ -536,23 +536,22 @@ public abstract class Block implements io.gomint.world.block.Block {
         // Mining fatigue effect
         int miningFatigueAmplifier = player.getEffectAmplifier( PotionEffect.MINING_FATIGUE );
         if ( miningFatigueAmplifier != -1 ) {
-            // Note this is 50% slower as in the PC edition (after some testing)
             switch ( miningFatigueAmplifier ) {
                 case 0:
-                    toolStrength *= 0.15f;
+                    toolStrength *= 0.3f;
                     break;
 
                 case 1:
-                    toolStrength *= 0.045f;
+                    toolStrength *= 0.09f;
                     break;
 
                 case 2:
-                    toolStrength *= 0.000135f;
+                    toolStrength *= 0.00027f;
                     break;
 
                 case 3:
                 default:
-                    toolStrength *= 4.05E-4f;
+                    toolStrength *= 8.1E-4F;
                     break;
             }
         }

@@ -1,11 +1,13 @@
 package io.gomint.plugin.listener;
 
 import io.gomint.GoMint;
+import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.*;
-import io.gomint.world.Gamemode;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
@@ -18,8 +20,8 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().teleport( GoMint.instance().getDefaultWorld().getSpawnLocation().clone().add( 0, 1, 0 ) );
         // event.getPlayer().setGamemode( Gamemode.CREATIVE );
 
-        event.getPlayer().getInventory().setItem( 0, ItemDiamondSword.create( 1 ) );
-        event.getPlayer().getInventory().setItem( 1, ItemArrow.create( 64 ) );
+        event.getPlayer().getInventory().setItem( 0, ItemBeacon.create( 1 ) );
+        event.getPlayer().getInventory().setItem( 1, ItemIronPickaxe.create( 1 ) );
 
         event.getPlayer().getInventory().setItem( 2, ItemEnderPearl.create( 16 ) );
         event.getPlayer().getInventory().setItem( 3, ItemGoldenApple.create( 64 ) );
@@ -32,6 +34,8 @@ public class PlayerJoinListener implements EventListener {
 
         event.getPlayer().getInventory().setItem( 6, ItemBed.create( 1 ) );
         event.getPlayer().getInventory().setItem( 7, ItemAcaciaWoodDoor.create( 1 ) );
+
+        event.getPlayer().addEffect( PotionEffect.MINING_FATIGUE, 0, 30, TimeUnit.MINUTES );
     }
 
 }
