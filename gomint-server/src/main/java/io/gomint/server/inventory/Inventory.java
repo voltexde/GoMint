@@ -1,11 +1,13 @@
 package io.gomint.server.inventory;
 
+import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -191,6 +193,17 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
     public void resizeAndClear( int newSize ) {
         this.size = newSize;
         this.clear();
+    }
+
+    @Override
+    public Collection<Entity> getViewers() {
+        Set<Entity> viewers = new HashSet<>();
+
+        for ( PlayerConnection playerConnection : this.viewer ) {
+            viewers.add( playerConnection.getEntity() );
+        }
+
+        return viewers;
     }
 
 }
