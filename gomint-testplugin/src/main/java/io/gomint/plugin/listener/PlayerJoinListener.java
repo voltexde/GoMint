@@ -1,5 +1,6 @@
 package io.gomint.plugin.listener;
 
+import io.gomint.GoMint;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
@@ -14,6 +15,7 @@ public class PlayerJoinListener implements EventListener {
 
     @EventHandler
     public void onPlayerJoin( PlayerJoinEvent event ) {
+        event.getPlayer().teleport( GoMint.instance().getDefaultWorld().getSpawnLocation().clone().add( 0, 1, 0 ) );
         // event.getPlayer().setGamemode( Gamemode.CREATIVE );
 
         event.getPlayer().getInventory().setItem( 0, ItemDiamondSword.create( 1 ) );

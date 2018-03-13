@@ -1298,7 +1298,7 @@ public abstract class WorldAdapter implements World {
         for ( int i = 255; i > 0; i-- ) {
             check.setY( i );
             if ( this.getBlockId( check ) != 0 ) {
-                this.spawn.setY( i );
+                this.spawn.setY( i + 1 );
                 break;
             }
         }
