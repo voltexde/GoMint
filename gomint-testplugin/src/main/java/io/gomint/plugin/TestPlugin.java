@@ -63,7 +63,7 @@ public class TestPlugin extends Plugin {
 
         // Register listener
         registerListener( new PlayerMoveListener() );
-        registerListener( new PlayerJoinListener() );
+        registerListener( new PlayerJoinListener( this ) );
         registerListener( new BlockBreakListener() );
         registerListener( new EntityTeleportListener() );
     }

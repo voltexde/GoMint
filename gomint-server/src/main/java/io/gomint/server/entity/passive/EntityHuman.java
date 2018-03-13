@@ -323,8 +323,12 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         // Alter movement speed if needed
         if ( value != isSprinting() ) {
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SPRINTING, value );
-            float attr = this.getAttribute( Attribute.MOVEMENT_SPEED );
-            this.setAttribute( Attribute.MOVEMENT_SPEED, (float) ( ( value ) ? attr * 1.3 : attr / 1.3 ) );
+            AttributeInstance movementSpeed = this.getAttributeInstance( Attribute.MOVEMENT_SPEED );
+            if ( value ) {
+                movementSpeed.setMultiplyModifier( AttributeModifier.SPRINT_MULTIPLY, 1.3f );
+            } else {
+                movementSpeed.removeMultiplyModifier( AttributeModifier.SPRINT_MULTIPLY );
+            }
         }
     }
 

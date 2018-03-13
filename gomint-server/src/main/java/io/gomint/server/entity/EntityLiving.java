@@ -41,8 +41,6 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class EntityLiving extends Entity implements InventoryHolder, io.gomint.entity.EntityLiving {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( EntityLiving.class );
-
     // AI of the entity:
     protected AIBehaviourComponent behaviour;
     // Pathfinding engine of the entity:
