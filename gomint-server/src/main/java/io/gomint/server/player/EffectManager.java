@@ -37,24 +37,26 @@ public class EffectManager {
      * @param dT                difference time for a full second
      */
     public void update( long currentTimeMillis, float dT ) {
-        Set<Byte> removeEffects = null;
+        if ( !this.effects.isEmpty() ) {
+            Set<Byte> removeEffects = null;
 
-        ByteObjCursor<Effect> cursor = this.effects.cursor();
-        while ( cursor.moveNext() ) {
-            if ( currentTimeMillis >= cursor.value().getRunoutTimer() ) {
-                if ( removeEffects == null ) {
-                    removeEffects = new HashSet<>();
+            ByteObjCursor<Effect> cursor = this.effects.cursor();
+            while ( cursor.moveNext() ) {
+                if ( currentTimeMillis >= cursor.value().getRunoutTimer() ) {
+                    if ( removeEffects == null ) {
+                        removeEffects = new HashSet<>();
+                    }
+
+                    removeEffects.add( cursor.key() );
+                } else {
+                    cursor.value().update( currentTimeMillis, dT );
                 }
-
-                removeEffects.add( cursor.key() );
-            } else {
-                cursor.value().update( currentTimeMillis, dT );
             }
-        }
 
-        if ( removeEffects != null ) {
-            for ( Byte removeEffect : removeEffects ) {
-                removeEffect( removeEffect );
+            if ( removeEffects != null ) {
+                for ( Byte removeEffect : removeEffects ) {
+                    removeEffect( removeEffect );
+                }
             }
         }
     }

@@ -226,7 +226,6 @@ public class PlayerConnection {
                         Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
                         Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ||
                         !chunk.getWorld().equals( this.entity.getWorld() ) ) {
-                        LOGGER.info( "Did not send chunk {} {} due to view distance", chunk.getX(), chunk.getZ() );
                         continue;
                     }
 

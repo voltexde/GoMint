@@ -1,6 +1,7 @@
 package io.gomint.server.registry;
 
 import io.gomint.server.util.ClassPath;
+import io.gomint.server.util.collection.FixedIndexResizableArray;
 import io.gomint.server.util.collection.GeneratorAPIClassMap;
 import io.gomint.server.util.collection.GeneratorMap;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ public class Registry<R> {
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
     private final GeneratorCallback<R> generatorCallback;
-    private final GeneratorMap<R> generators = GeneratorMap.withExpectedSize( 250 );
+    private final FixedIndexResizableArray<R> generators = new FixedIndexResizableArray<>();
     private final GeneratorAPIClassMap<Class<?>> apiReferences = GeneratorAPIClassMap.withExpectedSize( 250 );
 
     /**
@@ -53,7 +54,7 @@ public class Registry<R> {
             int id = clazz.getAnnotation( RegisterInfo.class ).id();
             R generator = this.generatorCallback.generate( clazz );
             if ( generator != null ) {
-                R oldGen = this.generators.put( id, generator );
+                R oldGen = this.generators.set( id, generator );
                 if ( oldGen != null ) {
                     LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
                 }
@@ -72,7 +73,7 @@ public class Registry<R> {
                 for ( RegisterInfo info : infos ) {
                     int id = info.id();
 
-                    R oldGen = this.generators.put( id, generator );
+                    R oldGen = this.generators.set( id, generator );
                     if ( oldGen != null ) {
                         LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
                     }
@@ -100,10 +101,6 @@ public class Registry<R> {
 
     public R getGenerator( int id ) {
         return generators.get( id );
-    }
-
-    public Collection<Integer> getAll() {
-        return generators.keySet();
     }
 
     public int getId( Class<?> clazz ) {

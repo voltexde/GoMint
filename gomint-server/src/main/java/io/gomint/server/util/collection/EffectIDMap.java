@@ -33,6 +33,7 @@ public abstract class EffectIDMap {
     public abstract Effect remove(byte key);
     public abstract Effect get(byte key);
     public abstract ByteObjCursor<Effect> cursor();
+    public abstract boolean isEmpty();
     // CHECKSTYLE:ON
 
 }

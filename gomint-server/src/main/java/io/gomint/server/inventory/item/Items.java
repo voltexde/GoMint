@@ -72,13 +72,4 @@ public class Items {
         return itemGenerator.generate( (short) 0, amount );
     }
 
-    /**
-     * Get all known items
-     *
-     * @return
-     */
-    public static Collection<Integer> getAll() {
-        return GENERATORS.getAll();
-    }
-
 }
