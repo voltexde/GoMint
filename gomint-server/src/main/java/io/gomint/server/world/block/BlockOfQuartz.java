@@ -1,7 +1,12 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.*;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -69,7 +74,25 @@ public class BlockOfQuartz extends Block implements io.gomint.world.block.BlockB
     }
 
     @Override
-    public boolean canBeBrokenWithHand() {
-        return true;
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return new Class[]{
+            ItemWoodenPickaxe.class,
+            ItemStonePickaxe.class,
+            ItemGoldenPickaxe.class,
+            ItemIronPickaxe.class,
+            ItemDiamondPickaxe.class,
+        };
     }
+
+    @Override
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        if ( isCorrectTool( itemInHand ) ) {
+            return new ArrayList<ItemStack>() {{
+                add( Items.create( getBlockId() & 0xFF, getBlockData(), (byte) 1, null ) );
+            }};
+        }
+
+        return new ArrayList<>();
+    }
+
 }

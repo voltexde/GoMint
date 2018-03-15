@@ -1,8 +1,14 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemBlockOfGold;
+import io.gomint.inventory.item.ItemDiamondPickaxe;
+import io.gomint.inventory.item.ItemIronPickaxe;
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockType;
 
-import io.gomint.server.registry.RegisterInfo;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -32,10 +38,23 @@ public class BlockOfGold extends Block implements io.gomint.world.block.BlockBlo
     }
 
     @Override
-    public boolean canBeBrokenWithHand() {
-        return true;
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        // Only iron and up
+        return new Class[]{
+            ItemIronPickaxe.class,
+            ItemDiamondPickaxe.class,
+        };
     }
 
+    @Override
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        if ( isCorrectTool( itemInHand ) ) {
+            return new ArrayList<ItemStack>() {{
+                add( ItemBlockOfGold.create( 1 ) );
+            }};
+        }
 
+        return new ArrayList<>();
+    }
 
 }

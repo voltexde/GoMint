@@ -7,8 +7,12 @@
 
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -38,8 +42,25 @@ public class BlockOfBones extends Block implements io.gomint.world.block.BlockOf
     }
 
     @Override
-    public boolean canBeBrokenWithHand() {
-        return true;
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return new Class[]{
+            ItemWoodenPickaxe.class,
+            ItemStonePickaxe.class,
+            ItemGoldenPickaxe.class,
+            ItemIronPickaxe.class,
+            ItemDiamondPickaxe.class,
+        };
+    }
+
+    @Override
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        if ( isCorrectTool( itemInHand ) ) {
+            return new ArrayList<ItemStack>() {{
+                add( ItemBlockOfBones.create( 1 ) );
+            }};
+        }
+
+        return new ArrayList<>();
     }
 
 }
