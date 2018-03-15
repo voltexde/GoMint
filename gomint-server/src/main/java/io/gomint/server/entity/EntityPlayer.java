@@ -355,12 +355,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         Location from = getLocation();
 
-        // Reset chunks and entities
-        this.entityVisibilityManager.clear();
+        // Reset chunks
         this.connection.resetQueuedChunks();
 
         // Check if we need to change worlds
         if ( !to.getWorld().equals( from.getWorld() ) ) {
+            // Despawn entities first
+            this.entityVisibilityManager.clear();
+
             // Change worlds first
             getWorld().removePlayer( this );
             this.world = (WorldAdapter) to.getWorld();
