@@ -1,6 +1,7 @@
 package io.gomint.plugin;
 
 import io.gomint.GoMint;
+import io.gomint.config.InvalidConfigurationException;
 import io.gomint.entity.passive.EntityHuman;
 import io.gomint.math.Location;
 import io.gomint.player.PlayerSkin;
@@ -41,8 +42,8 @@ public class TestPlugin extends Plugin {
         // Load config
         this.config = new Config();
         try {
-            this.config.initialize( new File( pluginDirectory, "config.cfg" ) );
-        } catch ( IOException e ) {
+            this.config.init( new File( pluginDirectory, "config.yml" ) );
+        } catch ( InvalidConfigurationException e ) {
             throw new PluginLoadException( "Could not init config", e );
         }
 

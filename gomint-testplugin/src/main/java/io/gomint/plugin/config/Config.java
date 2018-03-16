@@ -7,8 +7,8 @@
 
 package io.gomint.plugin.config;
 
-import com.blackypaw.simpleconfig.SimpleConfig;
-import com.blackypaw.simpleconfig.annotation.Comment;
+import io.gomint.config.Comment;
+import io.gomint.config.YamlConfig;
 import lombok.Getter;
 
 /**
@@ -16,9 +16,9 @@ import lombok.Getter;
  * @version 1.0
  */
 @Getter
-public class Config extends SimpleConfig {
+public class Config extends YamlConfig {
 
-    @Comment("Enable the testing of the chunk generator?")
+    @Comment( "Enable the testing of the chunk generator?" )
     private boolean enableChunkGeneration = true;
 
 }

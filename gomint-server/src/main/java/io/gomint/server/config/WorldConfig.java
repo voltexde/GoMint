@@ -1,7 +1,7 @@
 package io.gomint.server.config;
 
-import com.blackypaw.simpleconfig.SimpleConfig;
-import com.blackypaw.simpleconfig.annotation.Comment;
+import io.gomint.config.Comment;
+import io.gomint.config.YamlConfig;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @Getter
-public class WorldConfig extends SimpleConfig {
+public class WorldConfig extends YamlConfig {
 
     @Comment( "Name of the world this affects" )
     private String name = "world";

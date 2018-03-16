@@ -9,6 +9,7 @@ package io.gomint.server;
 
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
+import io.gomint.config.InvalidConfigurationException;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.gui.ButtonList;
@@ -485,16 +486,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.serverConfig = new ServerConfig();
 
         try {
-            this.serverConfig.initialize( new File( "server.cfg" ) );
-        } catch ( IOException e ) {
+            this.serverConfig.init( new File( "server.yml" ) );
+        } catch ( InvalidConfigurationException e ) {
             LOGGER.error( "server.cfg is corrupted: ", e );
             System.exit( -1 );
-        }
-
-        try ( FileWriter fileWriter = new FileWriter( new File( "server.cfg" ) ) ) {
-            this.serverConfig.write( fileWriter );
-        } catch ( IOException e ) {
-            LOGGER.warn( "Could not save server.cfg: ", e );
         }
     }
 
