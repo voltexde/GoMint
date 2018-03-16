@@ -17,13 +17,13 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
+import io.gomint.player.DeviceInfo;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.protocol.WrappedMCPEPacket;
-import io.gomint.player.DeviceInfo;
 import io.gomint.server.scheduler.AsyncScheduledTask;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
@@ -669,6 +669,12 @@ public class PlayerConnection {
             PacketDisconnect packet = new PacketDisconnect();
             packet.setMessage( message );
             this.send( packet );
+
+            this.server.getExecutorService().submit( new AsyncScheduledTask( () -> {
+                PlayerConnection.this.internalClose( message );
+            }, 3, -1, TimeUnit.SECONDS ) );
+        } else {
+            this.internalClose( message );
         }
 
         if ( this.entity != null ) {
@@ -676,16 +682,17 @@ public class PlayerConnection {
         } else {
             LOGGER.info( "EntityPlayer has been disconnected whilst logging in: {}", message );
         }
+    }
 
-        this.server.getExecutorService().submit( new AsyncScheduledTask( () -> {
-            if ( PlayerConnection.this.connection != null ) {
-                if ( PlayerConnection.this.connection.isConnected() && !PlayerConnection.this.connection.isDisconnecting() ) {
-                    PlayerConnection.this.connection.disconnect( message );
-                }
-            } else {
-                PlayerConnection.this.connectionHandler.disconnect();
+    private void internalClose( String message ) {
+        if ( this.connection != null ) {
+            if ( this.connection.isConnected() && !this.connection.isDisconnecting() ) {
+                this.connection.disconnect( message );
             }
-        }, 3, -1, TimeUnit.SECONDS ) );
+        } else {
+            this.connectionHandler.disconnect();
+        }
+
     }
 
     // ====================================== PACKET SENDERS ====================================== //
