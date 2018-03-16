@@ -685,7 +685,7 @@ public class PlayerConnection {
             } else {
                 PlayerConnection.this.connectionHandler.disconnect();
             }
-        }, 1, -1, TimeUnit.SECONDS ) );
+        }, 3, -1, TimeUnit.SECONDS ) );
     }
 
     // ====================================== PACKET SENDERS ====================================== //
