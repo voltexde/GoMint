@@ -31,7 +31,7 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 2, ItemEnderPearl.create( 16 ) );
         event.getPlayer().getInventory().setItem( 3, ItemGoldenApple.create( 64 ) );
 
-        event.getPlayer().getInventory().setItem( 4, ItemStone.create( 12 ) );
+        event.getPlayer().getInventory().setItem( 4, ItemBlockOfIron.create( 12 ) );
 
         ItemBucket waterBucket = ItemBucket.create( 1 );
         waterBucket.setContent( ItemBucket.Content.WATER );

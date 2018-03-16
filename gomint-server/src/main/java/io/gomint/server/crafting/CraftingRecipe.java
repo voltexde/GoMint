@@ -56,7 +56,7 @@ public abstract class CraftingRecipe extends Recipe {
         int inputMaterial = iI.getMaterial();
 
         return recipeMaterial == inputMaterial &&
-            ( recipeItem.getData() == -1 || recipeItem.getData() == invItem.getData() );
+            ( recipeItem.getData() == 32767|| recipeItem.getData() == invItem.getData() );
     }
 
 }
