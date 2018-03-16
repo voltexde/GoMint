@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.Inventory;
@@ -15,14 +16,14 @@ import io.gomint.world.block.BlockChest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 54 )
-public class Chest extends Block implements BlockChest {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger( Chest.class );
+public class Chest extends ContainerBlock implements BlockChest {
 
     @Override
     public byte getBlockId() {
@@ -43,12 +44,6 @@ public class Chest extends Block implements BlockChest {
     public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
         ChestTileEntity tileEntity = this.getTileEntity();
         if ( tileEntity != null ) {
-            tileEntity.interact( entity, face, facePos, item );
-        } else {
-            LOGGER.warn( "Chest @ {} has no tile entity. Generating new tile entity", this.location );
-            tileEntity = (ChestTileEntity) this.createTileEntity( new NBTTagCompound( "" ) );
-            this.setTileEntity( tileEntity );
-            this.world.storeTileEntity( this.location.toBlockPosition(), tileEntity );
             tileEntity.interact( entity, face, facePos, item );
         }
 
@@ -88,6 +83,26 @@ public class Chest extends Block implements BlockChest {
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.AXE;
+    }
+
+    @Override
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        List<ItemStack> items = super.getDrops( itemInHand );
+
+        // We also drop the inventory
+        ChestTileEntity chestTileEntity = this.getTileEntity();
+        for ( ItemStack itemStack : chestTileEntity.getInventory().getContents() ) {
+            if ( itemStack != null ) {
+                items.add( itemStack );
+            }
+        }
+
+        return items;
     }
 
 }

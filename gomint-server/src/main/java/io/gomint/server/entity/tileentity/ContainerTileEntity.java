@@ -3,6 +3,8 @@ package io.gomint.server.entity.tileentity;
 import io.gomint.math.Location;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author geNAZt
@@ -10,6 +12,7 @@ import io.gomint.taglib.NBTTagCompound;
  */
 public class ContainerTileEntity extends TileEntity {
 
+    @Getter @Setter
     private String customName = null;
 
     /**
@@ -31,15 +34,6 @@ public class ContainerTileEntity extends TileEntity {
         super( tagCompound, world );
 
         this.customName = tagCompound.getString( "CustomName", null );
-    }
-
-    /**
-     * Return the custom name of this container
-     *
-     * @return custom name or null when none is set
-     */
-    public String getCustomName() {
-        return this.customName;
     }
 
     @Override

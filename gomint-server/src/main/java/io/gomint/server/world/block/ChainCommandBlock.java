@@ -7,7 +7,10 @@
 
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.tileentity.CommandBlockTileEntity;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockChainCommandBlock;
 import io.gomint.world.block.BlockType;
 
@@ -16,7 +19,7 @@ import io.gomint.world.block.BlockType;
  * @version 1.0
  */
 @RegisterInfo( id = 189 )
-public class ChainCommandBlock extends Block implements BlockChainCommandBlock {
+public class ChainCommandBlock extends ContainerBlock implements BlockChainCommandBlock {
 
     @Override
     public byte getBlockId() {
@@ -36,6 +39,17 @@ public class ChainCommandBlock extends Block implements BlockChainCommandBlock {
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public boolean needsTileEntity() {
+        return true;
+    }
+
+    @Override
+    TileEntity createTileEntity( NBTTagCompound compound ) {
+        super.createTileEntity( compound );
+        return new CommandBlockTileEntity( compound, this.world );
     }
 
 }

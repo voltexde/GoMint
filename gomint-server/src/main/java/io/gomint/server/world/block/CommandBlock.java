@@ -1,5 +1,8 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.tileentity.CommandBlockTileEntity;
+import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.registry.RegisterInfo;
@@ -9,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 137 )
-public class CommandBlock extends Block implements io.gomint.world.block.BlockCommandBlock {
+public class CommandBlock extends ContainerBlock implements io.gomint.world.block.BlockCommandBlock {
 
     @Override
     public byte getBlockId() {
@@ -29,6 +32,17 @@ public class CommandBlock extends Block implements io.gomint.world.block.BlockCo
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public boolean needsTileEntity() {
+        return true;
+    }
+
+    @Override
+    TileEntity createTileEntity( NBTTagCompound compound ) {
+        super.createTileEntity( compound );
+        return new CommandBlockTileEntity( compound, this.world );
     }
 
 }
