@@ -361,7 +361,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         ItemStack otherItemStack = (ItemStack) other;
         return this.getMaterial() == otherItemStack.getMaterial() &&
                 this.getData() == otherItemStack.getData() &&
-                ( this.nbt == otherItemStack.nbt || this.nbt.equals( otherItemStack.nbt ) );
+                Objects.equals( this.nbt, otherItemStack.nbt );
     }
 
     /**
