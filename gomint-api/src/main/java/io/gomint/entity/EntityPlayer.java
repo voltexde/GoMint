@@ -13,6 +13,7 @@ import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
 import io.gomint.math.Vector;
 import io.gomint.permission.PermissionManager;
+import io.gomint.player.DeviceInfo;
 import io.gomint.world.*;
 
 import java.util.Locale;
@@ -312,5 +313,12 @@ public interface EntityPlayer extends EntityHuman {
      * @return true when gliding, false when not
      */
     boolean isGliding();
+
+    /**
+     * Get information about the device the player is using
+     *
+     * @return device information from this player
+     */
+    DeviceInfo getDeviceInfo();
 
 }

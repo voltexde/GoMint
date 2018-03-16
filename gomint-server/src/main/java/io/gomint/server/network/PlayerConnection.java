@@ -23,7 +23,7 @@ import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.protocol.WrappedMCPEPacket;
-import io.gomint.server.player.DeviceInfo;
+import io.gomint.player.DeviceInfo;
 import io.gomint.server.scheduler.AsyncScheduledTask;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
@@ -213,7 +213,7 @@ public class PlayerConnection {
         if ( this.entity != null ) {
             if ( !this.entity.getChunkSendQueue().isEmpty() ) {
                 int maximumInClientTick = 4; // Everything oer this seems to cause issues in all clients like not displaying
-                                             // the chunks correctly or even crashing the client
+                // the chunks correctly or even crashing the client
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );

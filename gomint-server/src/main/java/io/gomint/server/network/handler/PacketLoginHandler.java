@@ -8,6 +8,7 @@
 package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerLoginEvent;
+import io.gomint.player.DeviceInfo;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.jwt.*;
 import io.gomint.server.network.EncryptionHandler;
@@ -17,7 +18,6 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.PacketEncryptionRequest;
 import io.gomint.server.network.packet.PacketLogin;
 import io.gomint.server.network.packet.PacketPlayState;
-import io.gomint.server.player.DeviceInfo;
 import io.gomint.server.player.PlayerSkin;
 import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.world.WorldAdapter;
@@ -30,12 +30,12 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.Key;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static io.gomint.player.DeviceInfo.DeviceOS.*;
 
 /**
  * @author geNAZt
@@ -167,7 +167,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
                 // Create needed device info
                 DeviceInfo deviceInfo = new DeviceInfo(
-                    Math.toIntExact( skinToken.getClaim( "DeviceOS" ) ),
+                    getDeviceOSFrom( Math.toIntExact( skinToken.getClaim( "DeviceOS" ) ) ),
                     skinToken.getClaim( "DeviceModel" ) );
                 connection.setDeviceInfo( deviceInfo );
 
@@ -175,7 +175,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                 String languageCode = skinToken.getClaim( "LanguageCode" );
                 Locale locale;
                 if ( languageCode != null ) {
-                    locale = Locale.forLanguageTag( languageCode.replace( "_", "-") );
+                    locale = Locale.forLanguageTag( languageCode.replace( "_", "-" ) );
                 } else {
                     locale = Locale.US;
                 }
@@ -253,6 +253,21 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             return (JSONObject) jsonParsed;
         } else {
             throw new ParseException( ParseException.ERROR_UNEXPECTED_TOKEN );
+        }
+    }
+
+
+    private DeviceInfo.DeviceOS getDeviceOSFrom( int value ) {
+        switch ( value ) {
+            case 1:
+                return ANDROID;
+            case 2:
+                return IOS;
+            case 7:
+                return WINDOWS;
+            default:
+                LOGGER.warn( "Unknown device OS ID: " + value );
+                return null;
         }
     }
 

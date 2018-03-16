@@ -20,6 +20,7 @@ import io.gomint.event.player.*;
 import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
+import io.gomint.player.DeviceInfo;
 import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityHuman;
@@ -1347,6 +1348,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public boolean isGliding() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.GLIDING );
+    }
+
+    @Override
+    public DeviceInfo getDeviceInfo() {
+        return this.connection.getDeviceInfo();
     }
 
     @Override

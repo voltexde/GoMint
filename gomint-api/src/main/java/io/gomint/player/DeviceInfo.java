@@ -1,4 +1,4 @@
-package io.gomint.server.player;
+package io.gomint.player;
 
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 @Getter
 public class DeviceInfo {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( DeviceInfo.class );
-
     private final String deviceName;
     private final DeviceOS os;
 
@@ -22,8 +20,8 @@ public class DeviceInfo {
      * @param deviceOS which the player is using
      * @param deviceName which the player is using
      */
-    public DeviceInfo( int deviceOS, String deviceName ) {
-        this.os = DeviceOS.fromValue( deviceOS );
+    public DeviceInfo( DeviceOS deviceOS, String deviceName ) {
+        this.os = deviceOS;
         this.deviceName = deviceName;
     }
 
@@ -41,21 +39,7 @@ public class DeviceInfo {
         /**
          * Windows. What else?
          */
-        WINDOWS;
-
-        private static DeviceOS fromValue( int value ) {
-            switch ( value ) {
-                case 1:
-                    return ANDROID;
-                case 2:
-                    return IOS;
-                case 7:
-                    return WINDOWS;
-                default:
-                    LOGGER.warn( "Unknown device OS ID: " + value );
-                    return null;
-            }
-        }
+        WINDOWS
     }
 
 }
