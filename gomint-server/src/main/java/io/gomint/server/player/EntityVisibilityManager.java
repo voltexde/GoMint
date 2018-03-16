@@ -19,8 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-
 /**
  * @author geNAZt
  * @version 1.0
@@ -35,7 +33,12 @@ public class EntityVisibilityManager {
     public void updateAddedChunk( ChunkAdapter chunk ) {
         LOGGER.debug( "Checking chunk {}, {}", chunk.getX(), chunk.getZ() );
 
-        chunk.iterateEntities( Entity.class, this::addEntity );
+        // Check if we should be able to see this entity
+        chunk.iterateEntities( Entity.class, entity -> {
+            if ( ( (io.gomint.server.entity.Entity) entity ).shouldBeSeen( this.player ) ) {
+                this.addEntity( entity );
+            }
+        } );
     }
 
     public void updateEntity( Entity entity, Chunk chunk ) {
@@ -93,7 +96,7 @@ public class EntityVisibilityManager {
         while ( cursor.moveNext() ) {
             Entity curr = cursor.elem();
             if ( curr instanceof io.gomint.server.entity.Entity ) {
-                this.despawnEntity( ( io.gomint.server.entity.Entity ) curr);
+                this.despawnEntity( (io.gomint.server.entity.Entity) curr );
             }
         }
 
