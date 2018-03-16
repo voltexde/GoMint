@@ -26,6 +26,8 @@ import io.gomint.world.block.BlockFace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -269,7 +271,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Transaction seems valid
                 io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getGamemode() == Gamemode.CREATIVE ? packet.getBlockPosition() : connection.getEntity().getBreakVector() );
                 if ( block != null ) {
-                    BlockBreakEvent blockBreakEvent = new BlockBreakEvent( connection.getEntity(), block, block.getDrops( itemInHand ) );
+                    BlockBreakEvent blockBreakEvent = new BlockBreakEvent( connection.getEntity(), block, connection.getEntity().getGamemode() == Gamemode.CREATIVE ? new ArrayList() : block.getDrops( itemInHand ) );
                     blockBreakEvent.setCancelled( connection.getEntity().getGamemode() == Gamemode.ADVENTURE ); // TODO: Better handling for canBreak rules for adventure gamemode
 
                     connection.getEntity().getWorld().getServer().getPluginManager().callEvent( blockBreakEvent );
