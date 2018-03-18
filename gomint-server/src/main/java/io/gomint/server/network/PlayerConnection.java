@@ -327,6 +327,8 @@ public class PlayerConnection {
                 this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
             }
         } else {
+            LOGGER.debug( "Writing packet {} to client", Integer.toHexString( packet.getId() & 0xFF ) );
+
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
@@ -434,7 +436,6 @@ public class PlayerConnection {
     }
 
     private void handleBufferData( long currentTimeMillis, PacketBuffer buffer ) {
-
         // Grab the packet ID from the packet's data
         byte packetId = buffer.readByte();
 

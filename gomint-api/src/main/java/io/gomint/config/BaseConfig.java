@@ -1,6 +1,7 @@
 package io.gomint.config;
 
 import java.io.File;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -8,7 +9,7 @@ import java.lang.reflect.Modifier;
  * @author geNAZt
  * @version 1.0
  */
-public class BaseConfig {
+public class BaseConfig implements Serializable {
 
     protected transient File CONFIG_FILE = null;
     protected transient String[] CONFIG_HEADER = null;
@@ -35,10 +36,16 @@ public class BaseConfig {
      * @throws InvalidConverterException If the converter has any errors this Exception tells you what
      */
     public void addConverter( Class addConverter ) throws InvalidConverterException {
-        converter.addCustomConverter( addConverter );
+        this.converter.addCustomConverter( addConverter );
     }
 
-    protected boolean doSkip( Field field ) {
+    /**
+     * Check if we need to skip the given field
+     *
+     * @param field which may be skipped
+     * @return true when it should be skipped, false when not
+     */
+    boolean doSkip( Field field ) {
         if ( Modifier.isTransient( field.getModifiers() ) || Modifier.isFinal( field.getModifiers() ) ) {
             return true;
         }
@@ -63,7 +70,7 @@ public class BaseConfig {
         SerializeOptions options = getClass().getAnnotation( SerializeOptions.class );
         CONFIG_HEADER = options.configHeader();
         CONFIG_MODE = options.configMode();
-        skipFailedObjects = options.skipFailedObjects();
+        this.skipFailedObjects = options.skipFailedObjects();
     }
 
 }

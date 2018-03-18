@@ -567,17 +567,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Send crafting recipes
         this.connection.addToSendQueue( this.world.getServer().getRecipeManager().getCraftingRecipesBatch() );
 
-        // Send chunk radius
-        PacketConfirmChunkRadius chunkRadius = new PacketConfirmChunkRadius();
-        chunkRadius.setChunkRadius( this.viewDistance );
-        this.connection.addToSendQueue( chunkRadius );
-
         // Send entity metadata
         this.sendData( this );
-
-        // Start sending chunks
-        this.neededChunksForSpawn = this.getWorld().addPlayer( this );
-        LOGGER.debug( "We need to send {} chunks to the player for first spawn", this.neededChunksForSpawn );
     }
 
     @Override

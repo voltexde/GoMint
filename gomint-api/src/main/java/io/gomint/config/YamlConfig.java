@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
+/**
+ * @author geNAZt
+ * @version 1.0
+ */
 public class YamlConfig extends ConfigMapper implements IConfig {
 
     public YamlConfig() {

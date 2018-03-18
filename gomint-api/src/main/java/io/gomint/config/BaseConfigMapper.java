@@ -126,7 +126,7 @@ public class BaseConfigMapper extends BaseConfig {
                         }
                     }
 
-                    if ( keyChain.size() > 0 && keyChain.get( keyChain.size() - 1 ).equals( "-" ) && line.trim().startsWith( "-" ) ) {
+                    if ( !keyChain.isEmpty() && keyChain.get( keyChain.size() - 1 ).equals( "-" ) && line.trim().startsWith( "-" ) ) {
                         keyChain.add( line.split( ":" )[0].trim().substring( 1 ).trim() );
                     } else {
                         keyChain.add( line.split( ":" )[0].trim() );
@@ -134,8 +134,8 @@ public class BaseConfigMapper extends BaseConfig {
                 }
 
                 String search;
-                if ( keyChain.size() > 0 ) {
-                    search = join( keyChain, "." );
+                if ( !keyChain.isEmpty() ) {
+                    search = String.join( ".", keyChain );
                 } else {
                     search = "";
                 }
@@ -163,21 +163,6 @@ public class BaseConfigMapper extends BaseConfig {
         } catch ( IOException e ) {
             throw new InvalidConfigurationException( "Could not save YML", e );
         }
-    }
-
-    private static String join( List<String> list, String conjunction ) {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for ( String item : list ) {
-            if ( first ) {
-                first = false;
-            } else {
-                sb.append( conjunction );
-            }
-            sb.append( item );
-        }
-
-        return sb.toString();
     }
 
     public void addComment( String key, String value ) {
