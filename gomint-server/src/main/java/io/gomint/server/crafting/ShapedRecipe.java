@@ -171,13 +171,13 @@ public class ShapedRecipe extends CraftingRecipe {
             for ( int j = 0; j < this.width; j++ ) {
                 int itemSlot = ( ( i + xSpace ) * x ) + ( j + zSpace );
                 ItemStack invItem = inputInventory.getItem( itemSlot );
-                ItemStack recipeItem = this.arrangement[i + ( x * j )];
+                ItemStack recipeItem = this.arrangement[j + ( this.width * i )];
 
                 if ( !canBeUsedForCrafting( recipeItem, invItem ) ) {
                     return null;
                 }
 
-                consumeItems[i + ( this.height * j )] = itemSlot;
+                consumeItems[j + ( this.width * i )] = itemSlot;
             }
         }
 

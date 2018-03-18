@@ -70,7 +70,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
             return;
         }
 
-        // TODO: Let the recipe check this
+        // Let the recipe check if it can complete
         int[] consumeSlots = recipe.isCraftable( connection.getEntity().getCraftingInputInventory() );
         boolean craftable = consumeSlots != null;
         if ( !craftable ) {

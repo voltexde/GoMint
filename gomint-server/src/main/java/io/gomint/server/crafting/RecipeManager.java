@@ -11,6 +11,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketCraftingRecipes;
+import lombok.AllArgsConstructor;
 
 import java.util.*;
 
@@ -22,26 +23,22 @@ import java.util.*;
  */
 public class RecipeManager {
 
-    private final GoMintServer server;
     private Set<Recipe> recipes;
 
     // Lookup stuff
     private Map<UUID, Recipe> lookup;
-    private Map<List<ItemStack>, Recipe> outputLookup;
+    private Set<RecipeReverseLookup> outputLookup;
 
     private PacketCraftingRecipes batchPacket;
     private boolean dirty;
 
     /**
      * Constructs a new recipe manager.
-     *
-     * @param server The GoMint server instance the recipe manager belongs to
      */
-    public RecipeManager( GoMintServer server ) {
-        this.server = server;
+    public RecipeManager() {
         this.recipes = new HashSet<>();
         this.lookup = new HashMap<>();
-        this.outputLookup = new HashMap<>();
+        this.outputLookup = new HashSet<>();
         this.dirty = true;
     }
 
@@ -79,7 +76,7 @@ public class RecipeManager {
         // TODO: Due to a MC:PE Bug there is chance the wrong recipe UUID has been sent. To get rid of it we need to do a expensive output search
         List<ItemStack> sortedOutput = new ArrayList<>( recipe.createResult() );
         sortOutput( sortedOutput );
-        this.outputLookup.put( sortedOutput, recipe );
+        this.outputLookup.add( new RecipeReverseLookup( recipe, sortedOutput ) );
 
         this.dirty = true;
     }
@@ -119,7 +116,31 @@ public class RecipeManager {
     public Recipe getRecipe( Collection<ItemStack> output ) {
         List<ItemStack> sortedOutput = new ArrayList<>( output );
         sortOutput( sortedOutput );
-        return this.outputLookup.get( sortedOutput );
+
+        recipeLoop: for ( RecipeReverseLookup lookup : this.outputLookup ) {
+            // Fast forward non matching in size
+            if ( lookup.output.size() != sortedOutput.size() ) {
+                continue;
+            }
+
+            // Check each item going forward
+            for ( int i = 0; i < lookup.output.size(); i++ ) {
+                ItemStack itemStack = lookup.output.get( i );
+                if ( !Objects.equals( itemStack, sortedOutput.get( i ) ) ) {
+                    continue recipeLoop;
+                }
+            }
+
+            return lookup.recipe;
+        }
+
+        return null;
+    }
+
+    @AllArgsConstructor
+    private class RecipeReverseLookup {
+        private Recipe recipe;
+        private List<ItemStack> output;
     }
 
 }

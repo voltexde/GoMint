@@ -36,8 +36,10 @@ import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.util.Watchdog;
-import io.gomint.server.world.*;
-import io.gomint.server.world.anvil.AnvilWorldAdapter;
+import io.gomint.server.world.BlockRuntimeIDs;
+import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.WorldLoadException;
+import io.gomint.server.world.WorldManager;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.world.World;
 import io.gomint.world.block.Block;
@@ -50,7 +52,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketException;
@@ -241,7 +242,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         LOGGER.info( "Initializing recipes..." );
-        this.recipeManager = new RecipeManager( this );
+        this.recipeManager = new RecipeManager();
 
         // Add all recipes from asset library:
         for ( Recipe recipe : assetsLibrary.getRecipes() ) {

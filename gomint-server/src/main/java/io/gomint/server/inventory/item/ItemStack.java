@@ -378,7 +378,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
      */
     public boolean afterPlacement() {
         // In a normal case the amount decreases
-        return --this.amount == 0;
+        return this.amount > 0 && --this.amount == 0;
     }
 
     public boolean useDamageAsData() {
