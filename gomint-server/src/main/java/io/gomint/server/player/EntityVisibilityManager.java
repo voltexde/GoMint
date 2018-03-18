@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -104,7 +106,7 @@ public class EntityVisibilityManager {
     }
 
     public boolean isVisible( Entity entity ) {
-        return this.visible.contains( entity );
+        return Objects.equals( entity, this.player ) || this.visible.contains( entity );
     }
 
 }
