@@ -616,7 +616,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.world.sendToVisible( this.transform.getPosition().toBlockPosition(), motion, new Predicate<io.gomint.entity.Entity>() {
             @Override
             public boolean test( io.gomint.entity.Entity entity ) {
-                return true;
+                return entity instanceof EntityPlayer && ( (EntityPlayer) entity ).getEntityVisibilityManager().isVisible( Entity.this );
             }
         } );
     }
