@@ -23,6 +23,7 @@ import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.passive.EntityXPOrb;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.collection.PlayerMap;
@@ -824,7 +825,7 @@ public abstract class WorldAdapter implements World {
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( pos );
 
-        if ( connection.getProtocolID() == 220 ) {
+        if ( connection.getProtocolID() == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() ) );
             updateBlock.setPrioAndMetadata( (byte) PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 );
         } else {

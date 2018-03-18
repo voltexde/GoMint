@@ -60,7 +60,7 @@ public class PacketText extends Packet {
                 case WHISPER:
                 case ANNOUNCEMENT:
                     buffer.writeString( this.sender );
-                    if ( protocolID == 220 ) {
+                    if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
                         buffer.writeString( this.sourceThirdPartyName );
                         buffer.writeSignedVarInt( this.sourcePlatform );
                     }
@@ -85,7 +85,7 @@ public class PacketText extends Packet {
 
         buffer.writeString( this.xuid );
 
-        if ( protocolID == 220 ) {
+        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             buffer.writeString( "" );
         }
     }
@@ -105,7 +105,7 @@ public class PacketText extends Packet {
             case ANNOUNCEMENT:
                 this.sender = buffer.readString();
 
-                if ( protocolID == 220 ) {
+                if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
                     this.sourceThirdPartyName = buffer.readString();
                     this.sourcePlatform = buffer.readSignedVarInt();
                 }
@@ -130,7 +130,7 @@ public class PacketText extends Packet {
         }
 
         this.xuid = buffer.readString();
-        if ( protocolID == 220 ) {
+        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             buffer.readString();
         }
     }

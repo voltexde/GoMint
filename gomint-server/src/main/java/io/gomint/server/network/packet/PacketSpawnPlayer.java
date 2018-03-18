@@ -64,7 +64,7 @@ public class PacketSpawnPlayer extends Packet {
         buffer.writeUUID( this.uuid );
         buffer.writeString( this.name );
 
-        if ( protocolID == 220 ) {
+        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             buffer.writeString( this.thirdPartyName );
             buffer.writeSignedVarInt( this.platformID );
         }
@@ -72,7 +72,7 @@ public class PacketSpawnPlayer extends Packet {
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.runtimeEntityId );
 
-        if ( protocolID == 220 ) {
+        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             buffer.writeString( this.unknown );
         }
 

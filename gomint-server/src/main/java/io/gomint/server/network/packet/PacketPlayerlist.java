@@ -34,16 +34,12 @@ public class PacketPlayerlist extends Packet {
                 buffer.writeSignedVarLong( entry.getEntityId() );
                 buffer.writeString( entry.getName() );
 
-                if ( protocolID == 220 ) {
+                if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
                     buffer.writeString( entry.getThirdPartyName() );
                     buffer.writeSignedVarInt( entry.getPlatformID() );
                 }
 
                 buffer.writeString( entry.getSkin().getName() );
-
-                if ( protocolID == 220 ) {
-                    buffer.writeLInt( 1 );
-                }
 
                 // Raw skin data
                 buffer.writeUnsignedVarInt( entry.getSkin().getRawData().length );
@@ -51,18 +47,10 @@ public class PacketPlayerlist extends Packet {
 
                 // Cape data
                 if ( entry.skin.getCapeData() != null ) {
-                    if ( protocolID == 220 ) {
-                        buffer.writeLInt( 1 );
-                    }
-
                     buffer.writeUnsignedVarInt( entry.skin.getCapeData().length );
                     buffer.writeBytes( entry.skin.getCapeData() );
                 } else {
-                    if ( protocolID == 220 ) {
-                        buffer.writeLInt( 0 );
-                    } else {
-                        buffer.writeUnsignedVarInt( 0 );
-                    }
+                    buffer.writeUnsignedVarInt( 0 );
                 }
 
                 // Geometry name
@@ -76,7 +64,7 @@ public class PacketPlayerlist extends Packet {
                 buffer.writeString( entry.xboxId );
 
                 // TODO: Is this the same as the unknown one in SpawnPlayer?
-                if ( protocolID == 220 ) {
+                if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
                     buffer.writeString( "" );
                 }
             }

@@ -12,6 +12,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Map;
@@ -23,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BlockRuntimeIDs {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( BlockRuntimeIDs.class );
     private static final Map<Pair<Byte, Byte>, Integer> RUNTIME_IDS = new ConcurrentHashMap<>();
 
     static {
@@ -50,7 +53,12 @@ public class BlockRuntimeIDs {
     }
 
     public static Integer fromLegacy( byte blockId, byte dataValue ) {
-        return RUNTIME_IDS.get( new Pair<>( blockId, dataValue ) );
+        Integer runtimeId = RUNTIME_IDS.get( new Pair<>( blockId, dataValue ) );
+        if ( runtimeId == null ) {
+            LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}", blockId, dataValue, new Exception() );
+        }
+
+        return runtimeId;
     }
 
 }

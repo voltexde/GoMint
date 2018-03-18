@@ -61,19 +61,22 @@ public class PacketStartGame extends Packet {
     private long currentTick;
     private int enchantmentSeed;
 
+    /**
+     * Create a new start game packet
+     */
     public PacketStartGame() {
         super( Protocol.PACKET_START_GAME );
     }
 
     @Override
     public void serialize( PacketBuffer buffer, int protocolID ) {
-        buffer.writeSignedVarLong( this.entityId );
-        buffer.writeUnsignedVarLong( this.runtimeEntityId );
-        buffer.writeSignedVarInt( this.gamemode );
-        buffer.writeLFloat( this.spawn.getX() );
+        buffer.writeSignedVarLong( this.entityId ); // EntityUnique
+        buffer.writeUnsignedVarLong( this.runtimeEntityId ); // EntityRuntime
+        buffer.writeSignedVarInt( this.gamemode ); // VarInt
+        buffer.writeLFloat( this.spawn.getX() ); // Vec3
         buffer.writeLFloat( this.spawn.getY() );
         buffer.writeLFloat( this.spawn.getZ() );
-        buffer.writeLFloat( this.spawn.getYaw() );
+        buffer.writeLFloat( this.spawn.getYaw() ); // Vec2
         buffer.writeLFloat( this.spawn.getPitch() );
         buffer.writeSignedVarInt( this.seed );
         buffer.writeSignedVarInt( this.dimension );
@@ -100,7 +103,7 @@ public class PacketStartGame extends Packet {
         buffer.writeSignedVarInt( this.defaultPlayerPermission );
         buffer.writeSignedVarInt( this.xboxLiveBroadcastMode );
 
-        if ( protocolID == 220 ) {
+        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             buffer.writeBoolean( this.hasPlatformBroadcast );
             buffer.writeUnsignedVarInt( this.platformBroadcastMode );
             buffer.writeBoolean( this.xboxLiveBroadcastIntent );

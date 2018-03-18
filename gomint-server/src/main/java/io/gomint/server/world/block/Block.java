@@ -17,6 +17,7 @@ import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.PacketTileEntityData;
 import io.gomint.server.network.packet.PacketUpdateBlock;
 import io.gomint.server.world.BlockRuntimeIDs;
@@ -54,7 +55,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     @Getter
     protected Location location;
     @Getter
-    private byte blockData = -1;
+    private byte blockData;
     @Setter
     private TileEntity tileEntity;
     @Getter
@@ -451,7 +452,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( position );
 
-        if ( connection.getProtocolID() == 220 ) {
+        if ( connection.getProtocolID() == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( this.getBlockId(), this.getBlockData() ) );
             updateBlock.setPrioAndMetadata( (byte) PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 );
         } else {
