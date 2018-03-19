@@ -1258,9 +1258,14 @@ public abstract class WorldAdapter implements World {
         // Save this world
         this.chunkCache.saveAll();
 
+        // Drop all FDs
+        this.closeFDs();
+
         // Remove world from manager
         this.server.getWorldManager().unloadWorld( this );
     }
+
+    protected abstract void closeFDs();
 
     @Override
     public <T extends Block> void iterateBlocks( Class<T> blockClass, Consumer<T> blockConsumer ) {

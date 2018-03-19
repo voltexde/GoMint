@@ -9,13 +9,12 @@ package io.gomint.server.world.anvil;
 
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.taglib.NBTStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteOrder;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -32,6 +31,7 @@ class RegionFile {
     private final File regionFile;
     private final AnvilWorldAdapter world;
     private final ThreadLocal<RandomAccessFile> file;
+    private final List<RandomAccessFile> openFDs = Collections.synchronizedList( new ArrayList<>() );
     private final int[][] lookupCache = new int[4096][];
     private final int[] lastSaveTimes = new int[4096];
 
@@ -82,6 +82,7 @@ class RegionFile {
         }
 
         this.file.set( new RandomAccessFile( this.regionFile, "rw" ) );
+        this.openFDs.add( this.file.get() );
         return this.file.get();
     }
 
@@ -181,7 +182,7 @@ class RegionFile {
      * @param chunk The chunk which should be written to the region file
      * @throws IOException A exception which get thrown when a I/O error occurred
      */
-     void saveChunk( AnvilChunkAdapter chunk ) throws IOException {
+    void saveChunk( AnvilChunkAdapter chunk ) throws IOException {
         this.lock.writeLock().lock();
         try {
             int x = chunk.getX();
@@ -255,6 +256,10 @@ class RegionFile {
         } finally {
             this.lock.writeLock().unlock();
         }
+    }
+
+    public void closeFDs() {
+
     }
 
 }

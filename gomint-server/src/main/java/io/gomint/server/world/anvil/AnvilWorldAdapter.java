@@ -7,9 +7,7 @@
 
 package io.gomint.server.world.anvil;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.cache.*;
 import com.google.common.io.Files;
 import io.gomint.GoMint;
 import io.gomint.math.BlockPosition;
@@ -62,6 +60,14 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     // Cache
     private LoadingCache<Pair<Integer, Integer>, RegionFile> openFileCache = CacheBuilder.newBuilder()
         .expireAfterAccess( 10, TimeUnit.MINUTES )
+        .removalListener( new RemovalListener<Pair<Integer, Integer>, RegionFile>() {
+            @Override
+            public void onRemoval( RemovalNotification<Pair<Integer, Integer>, RegionFile> removalNotification ) {
+                if ( removalNotification.wasEvicted() ) {
+                    removalNotification.getValue().closeFDs();
+                }
+            }
+        } )
         .build( new CacheLoader<Pair<Integer, Integer>, RegionFile>() {
             @Override
             public RegionFile load( Pair<Integer, Integer> pair ) throws Exception {
@@ -501,6 +507,11 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         } catch ( IOException | ExecutionException e ) {
             this.logger.error( "Failed to save chunk to region file", e );
         }
+    }
+
+    @Override
+    protected void closeFDs() {
+        this.openFileCache.invalidateAll();
     }
 
     @Override

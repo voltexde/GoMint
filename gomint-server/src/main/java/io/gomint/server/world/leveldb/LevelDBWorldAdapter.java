@@ -333,6 +333,15 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     }
 
     @Override
+    protected void closeFDs() {
+        try {
+            this.db.close();
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public Chunk generateEmptyChunk( int x, int z ) {
         return new LevelDBChunkAdapter( this, x, z );
     }
