@@ -14,6 +14,7 @@ import io.gomint.server.world.PlacementData;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockBed;
 import io.gomint.world.block.BlockType;
+import io.gomint.world.block.data.BlockColor;
 import io.gomint.world.block.data.Facing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +100,20 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
         }
 
         return otherHalf;
+    }
+
+    @Override
+    public BlockColor getColor() {
+        BedTileEntity tileEntity = this.getTileEntity();
+        return tileEntity.getColor();
+    }
+
+    @Override
+    public void setColor( BlockColor color ) {
+        BedTileEntity tileEntity = this.getTileEntity();
+        tileEntity.setColor( color );
+
+        this.updateBlock();
     }
 
     @Override

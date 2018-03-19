@@ -7,11 +7,27 @@
 
 package io.gomint.world.block;
 
+import io.gomint.world.block.data.BlockColor;
+
 /**
  * @author geNAZt
  * @version 1.0
  */
 public interface BlockBed extends Block {
+
+    /**
+     * Get the color of this bed
+     *
+     * @return color of this bed
+     */
+    BlockColor getColor();
+
+    /**
+     * Set the color of this bed
+     *
+     * @param color which should be used from now on
+     */
+    void setColor( BlockColor color );
 
     /**
      * Get the other half of this multi block structure,
