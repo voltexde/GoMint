@@ -1245,7 +1245,7 @@ public abstract class WorldAdapter implements World {
         // Unload all players via API
         Set<EntityPlayer> playerCopy = new HashSet<>( this.players.size() );
         for ( Object o : this.players.table() ) {
-            if ( o != null ) {
+            if ( o instanceof EntityPlayer ) {
                 playerCopy.add( (EntityPlayer) o );
             }
         }
