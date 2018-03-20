@@ -247,4 +247,46 @@ public interface Entity {
      */
     void resetFallDistance();
 
+    /**
+     * Set the entity invisible for others
+     *
+     * @param value true when this entity should be invisible, false when not
+     */
+    void setInvisible( boolean value );
+
+    /**
+     * Is the entity invisible?
+     *
+     * @return true if invisible, false if not
+     */
+    boolean isInvisible();
+
+    /**
+     * Set this entity immobile
+     *
+     * @param value true if immobile, false if not
+     */
+    void setImmobile( boolean value );
+
+    /**
+     * Is the entity immobile?
+     *
+     * @return true if immobile, false if not
+     */
+    boolean isImmobile();
+
+    /**
+     * Set this entity on fire (it does not get damage, only visual)
+     *
+     * @param value true for on fire, false for not
+     */
+    void setOnFire( boolean value );
+
+    /**
+     * Check if entity is on fire
+     *
+     * @return true when on fire, false when not
+     */
+    boolean isOnFire();
+
 }

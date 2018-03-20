@@ -48,13 +48,6 @@ public interface EntityLiving extends Entity {
     float getMaxHealth();
 
     /**
-     * Set this entity immobile
-     *
-     * @param value true if immobile, false if not
-     */
-    void setImmobile( boolean value );
-
-    /**
      * Get the entities last damage source
      *
      * @return damage soruce or null when not damaged

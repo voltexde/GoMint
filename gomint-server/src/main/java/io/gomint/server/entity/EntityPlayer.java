@@ -13,6 +13,7 @@ import io.gomint.enchant.EnchantmentKnockback;
 import io.gomint.enchant.EnchantmentSharpness;
 import io.gomint.entity.ChatType;
 import io.gomint.entity.Entity;
+import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityTeleportEvent;
@@ -253,15 +254,18 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Set fly
         if ( this.gamemode == Gamemode.SPECTATOR || this.gamemode == Gamemode.CREATIVE ) {
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_FLY, true );
-        } else { // TODO: Check for API set fly flag
+        } else {
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_FLY, false );
         }
 
         // Set invis
         if ( this.gamemode == Gamemode.SPECTATOR ) {
-            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE, true );
-        } else { // TODO: Check for invis effect
-            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE, false );
+            this.setInvisible( true );
+        } else {
+            // Check for invis potion effect
+            if ( !this.hasEffect( PotionEffect.INVISIBILITY ) ) {
+                this.setInvisible( false );
+            }
         }
     }
 
@@ -1248,6 +1252,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void setAllowFlight( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_FLY, value );
         this.adventureSettings.setCanFly( value );
         this.adventureSettings.update();
     }

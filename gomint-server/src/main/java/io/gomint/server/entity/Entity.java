@@ -895,10 +895,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.HAS_COLLISION );
     }
 
+    @Override
     public void setImmobile( boolean value ) {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.IMMOBILE, value );
     }
 
+
+    @Override
     public boolean isImmobile() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.IMMOBILE );
     }
@@ -941,12 +944,24 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_SHOW_NAMETAG );
     }
 
+    @Override
     public void setOnFire( boolean value ) {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ONFIRE, value );
     }
 
+    @Override
     public boolean isOnFire() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ONFIRE );
+    }
+
+    @Override
+    public void setInvisible( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE, value );
+    }
+
+    @Override
+    public boolean isInvisible() {
+        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE );
     }
 
     /**
