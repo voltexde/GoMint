@@ -45,7 +45,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PacketLoginHandler.class );
     private static final EncryptionRequestForger FORGER = new EncryptionRequestForger();
-    private static final Pattern NAME_PATTERN = Pattern.compile( "[a-zA-z0-9_\\.]{1,16}" );
+    private static final Pattern NAME_PATTERN = Pattern.compile( "[a-zA-z0-9_\\. ]{1,16}" );
 
     @Override
     public void handle( PacketLogin packet, long currentTimeMillis, PlayerConnection connection ) {
