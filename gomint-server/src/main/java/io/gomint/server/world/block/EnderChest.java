@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.Inventory;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockType;
@@ -15,7 +16,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 130 )
-public class EnderChest extends Block implements io.gomint.world.block.BlockEnderChest {
+public class EnderChest extends ContainerBlock implements io.gomint.world.block.BlockEnderChest {
 
     @Override
     public byte getBlockId() {
@@ -66,6 +67,12 @@ public class EnderChest extends Block implements io.gomint.world.block.BlockEnde
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         return new EnderChestTileEntity( this.location );
+    }
+
+    @Override
+    public Inventory getInventory() {
+        EnderChestTileEntity chestTileEntity = this.getTileEntity();
+        return chestTileEntity.getInventory();
     }
 
 }

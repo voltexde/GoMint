@@ -66,4 +66,14 @@ public class EnderChestTileEntity extends ContainerTileEntity implements Invento
         super.toCompound( compound );
         compound.addValue( "id", "EnderChest" );
     }
+
+    /**
+     * Get the inventory of this ender chest
+     *
+     * @return
+     */
+    public EnderChestInventory getInventory() {
+        return this.inventory;
+    }
+
 }

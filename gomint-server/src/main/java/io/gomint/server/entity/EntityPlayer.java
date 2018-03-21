@@ -17,6 +17,8 @@ import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityTeleportEvent;
+import io.gomint.event.inventory.InventoryCloseEvent;
+import io.gomint.event.inventory.InventoryOpenEvent;
 import io.gomint.event.player.*;
 import io.gomint.gui.*;
 import io.gomint.math.*;
@@ -447,6 +449,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public void openInventory( io.gomint.inventory.Inventory inventory ) {
         if ( inventory instanceof ContainerInventory ) {
+            InventoryOpenEvent event = new InventoryOpenEvent( this, inventory );
+            this.getWorld().getServer().getPluginManager().callEvent( event );
+
+            if ( event.isCancelled() ) {
+                return;
+            }
+
             // We need to generate a window id for the client
             byte foundId = -1;
             for ( byte i = WindowMagicNumbers.FIRST.getId(); i < WindowMagicNumbers.LAST.getId(); i++ ) {
@@ -458,13 +467,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
             // No id found?
             if ( foundId == -1 ) {
-                LOGGER.warn( "No free window id: " );
-
-                ByteObjCursor<ContainerInventory> cursor = this.windowIds.cursor();
-                while ( cursor.moveNext() ) {
-                    LOGGER.warn( "ID {} -> {}", cursor.key(), cursor.value().getClass().getName() );
-                }
-
                 return;
             }
 
@@ -473,6 +475,21 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             this.windowIds.justPut( foundId, containerInventory );
             this.containerIds.justPut( containerInventory, foundId );
             containerInventory.addViewer( this, foundId );
+        }
+    }
+
+    @Override
+    public void closeInventory( io.gomint.inventory.Inventory inventory ) {
+        if ( inventory instanceof ContainerInventory ) {
+            byte windowId = this.getWindowId( (ContainerInventory) inventory );
+            if ( windowId != 0 ) {
+                this.closeInventory( windowId );
+
+                // Tell the client to close it
+                PacketContainerClose packetContainerClose = new PacketContainerClose();
+                packetContainerClose.setWindowId( windowId );
+                this.connection.send( packetContainerClose );
+            }
         }
     }
 
@@ -669,6 +686,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         if ( containerInventory != null ) {
             containerInventory.removeViewer( this );
             this.containerIds.justRemove( containerInventory );
+
+            InventoryCloseEvent inventoryCloseEvent = new InventoryCloseEvent( this, containerInventory );
+            this.getWorld().getServer().getPluginManager().callEvent( inventoryCloseEvent );
         }
     }
 

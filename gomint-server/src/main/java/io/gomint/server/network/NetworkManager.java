@@ -133,11 +133,7 @@ public class NetworkManager {
                 throw new IllegalStateException( "Cannot re-initialize network manager" );
             }
 
-            System.setProperty( "java.net.preferIPv4Stack", "true" );               // We currently don't use ipv6
-            System.setProperty( "io.netty.selectorAutoRebuildThreshold", "0" );     // Never rebuild selectors
-            ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.DISABLED );   // Eats performance
-
-            this.socket = new ServerSocket( maxConnections );
+            this.socket = new ServerSocket( LOGGER, maxConnections );
             this.socket.setMojangModificationEnabled( true );
             this.socket.setEventHandler( ( socket, socketEvent ) -> NetworkManager.this.handleSocketEvent( socketEvent ) );
             this.socket.bind( host, port );

@@ -6,7 +6,12 @@ import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.*;
+import io.gomint.math.BlockPosition;
 import io.gomint.plugin.TestPlugin;
+import io.gomint.world.block.Block;
+import io.gomint.world.block.BlockStone;
+import io.gomint.world.block.BlockType;
+import io.gomint.world.block.BlockWood;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.TimeUnit;
@@ -45,6 +50,14 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().addEffect( PotionEffect.SPEED, 0, 30, TimeUnit.MINUTES );
 
         this.plugin.getScheduler().schedule( () -> event.getPlayer().removeAllEffects(), 15, TimeUnit.SECONDS );
+        this.plugin.getScheduler().schedule( () -> {
+            Block block = event.getPlayer().getWorld().getBlockAt( event.getPlayer().getLocation().toBlockPosition().add( BlockPosition.DOWN ) );
+            if ( block.getType() == BlockType.WOOD ) {
+                block.setType( BlockStone.class );
+            } else {
+                block.setType( BlockWood.class );
+            }
+        }, 50, 50, TimeUnit.MILLISECONDS );
     }
 
 }

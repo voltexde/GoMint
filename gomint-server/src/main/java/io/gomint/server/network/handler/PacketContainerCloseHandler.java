@@ -15,12 +15,11 @@ public class PacketContainerCloseHandler implements PacketHandler<PacketContaine
         if ( packet.getWindowId() == -1 ) {
             InventoryCloseEvent inventoryCloseEvent = new InventoryCloseEvent( connection.getEntity(), connection.getEntity().getInventory() );
             connection.getServer().getPluginManager().callEvent( inventoryCloseEvent );
+
             // Client closed its crafting view
             connection.getEntity().getCraftingInventory().resizeAndClear( 4 );
             connection.getEntity().getCraftingResultInventory().resizeAndClear( 4 );
         } else {
-            InventoryCloseEvent inventoryCloseEvent = new InventoryCloseEvent( connection.getEntity(), connection.getEntity().getContainerId( packet.getWindowId() ) );
-            connection.getServer().getPluginManager().callEvent( inventoryCloseEvent );
             connection.getEntity().closeInventory( packet.getWindowId() );
         }
     }
