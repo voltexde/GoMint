@@ -23,8 +23,6 @@ import io.gomint.server.util.collection.EntityHashSet;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.block.Block;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -145,14 +143,12 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         }
 
         // Check if last hit entity is still alive
-        if ( this.lastDamageEntity != null ) {
-            if ( this.lastDamageEntity.isDead() ) {
-                this.lastDamageEntity = null;
-            }
+        if ( this.lastDamageEntity != null && this.lastDamageEntity.isDead() ) {
+            this.lastDamageEntity = null;
         }
 
         // Only update when alive
-        if ( this.getHealth() >= 0 && !this.isDead() ) {
+        if ( !( this.isDead() || this.getHealth() <= 0 ) ) {
             // Update effects
             this.effectManager.update( currentTimeMS, dT );
         }

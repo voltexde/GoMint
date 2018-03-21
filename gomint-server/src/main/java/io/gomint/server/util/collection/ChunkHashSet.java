@@ -27,5 +27,6 @@ public abstract class ChunkHashSet {
     public abstract boolean add(long hash);
     public abstract boolean removeLong(long hash);
     public abstract boolean contains(long hash);
+    public abstract int size();
 
 }

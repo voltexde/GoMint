@@ -862,6 +862,18 @@ public abstract class WorldAdapter implements World {
      */
     public Collection<Entity> getNearbyEntities( AxisAlignedBB bb, Entity exception ) {
         final Set[] nearby = new HashSet[1];
+        final Consumer<Entity> consumer = new Consumer<Entity>() {
+            @Override
+            public void accept( Entity entity ) {
+                if ( !entity.equals( exception ) && entity.getBoundingBox().intersectsWith( bb ) ) {
+                    if ( nearby[0] == null ) {
+                        nearby[0] = new HashSet<>();
+                    }
+
+                    nearby[0].add( entity );
+                }
+            }
+        };
 
         int lastChunkX = Integer.MAX_VALUE;
         int lastChunkZ = Integer.MIN_VALUE;
@@ -879,18 +891,7 @@ public abstract class WorldAdapter implements World {
                 if ( chunkX != lastChunkX || chunkZ != lastChunkZ ) {
                     Chunk chunk = this.getChunk( chunkX, chunkZ );
                     if ( chunk != null ) {
-                        chunk.iterateEntities( Entity.class, new Consumer<Entity>() {
-                            @Override
-                            public void accept( Entity entity ) {
-                                if ( !entity.equals( exception ) && entity.getBoundingBox().intersectsWith( bb ) ) {
-                                    if ( nearby[0] == null ) {
-                                        nearby[0] = new HashSet<>();
-                                    }
-
-                                    nearby[0].add( entity );
-                                }
-                            }
-                        } );
+                        chunk.iterateEntities( Entity.class, consumer );
                     }
                 }
             }
