@@ -748,19 +748,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.transform.setPitch( pitch );
     }
 
-    /**
-     * Gets the direction the entity's body is facing as a normalized vector.
-     * Note, though, that pitch rotation is considered to be part of the entity's
-     * head and is thus not included inside the vector returned by this function.
-     *
-     * @return The direction vector the entity's body is facing
-     */
+    @Override
     public Vector getDirection() {
         return this.transform.getDirection();
     }
 
     @Override
-    public Vector2 getDirectionVector() {
+    public Vector2 getDirectionPlane() {
         return ( new Vector2( (float) -Math.cos( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ),
             (float) -Math.sin( Math.toRadians( this.transform.getYaw() ) - ( Math.PI / 2 ) ) ) ).normalize();
     }

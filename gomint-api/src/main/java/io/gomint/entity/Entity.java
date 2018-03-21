@@ -154,11 +154,20 @@ public interface Entity {
     void despawn();
 
     /**
+     * Gets the direction the entity's body is facing as a normalized vector.
+     * Note, though, that pitch rotation is considered to be part of the entity's
+     * head and is thus not included inside the vector returned by this function.
+     *
+     * @return The direction vector the entity's body is facing
+     */
+    Vector getDirection();
+
+    /**
      * Get a vector in which direction the entity is looking
      *
      * @return vector which shows in which direction the entity is looking
      */
-    Vector2 getDirectionVector();
+    Vector2 getDirectionPlane();
 
     /**
      * Set the age of this entity. This can be used to control automatic despawning.

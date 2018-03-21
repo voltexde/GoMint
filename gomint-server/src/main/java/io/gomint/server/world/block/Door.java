@@ -61,7 +61,7 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
     public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
         PlacementData data = super.calculatePlacementData( entity, item, clickVector );
 
-        Vector2 directionPlane = entity.getDirectionVector();
+        Vector2 directionPlane = entity.getDirectionPlane();
         double xAbs = Math.abs( directionPlane.getX() );
         double zAbs = Math.abs( directionPlane.getZ() );
 

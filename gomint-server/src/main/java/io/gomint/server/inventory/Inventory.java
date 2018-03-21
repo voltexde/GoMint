@@ -46,6 +46,11 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
 
     @Override
     public void setItem( int index, ItemStack item ) {
+        // Prevent invalid null items
+        if ( item == null ) {
+            item = ItemAir.create( 0 );
+        }
+
         this.contents[index] = item;
 
         for ( PlayerConnection playerConnection : this.viewer ) {

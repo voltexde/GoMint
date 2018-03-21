@@ -613,7 +613,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // Direction
         Vector playerPosition = this.getPosition();
-        Vector2 directionPlane = this.getDirectionVector();
+        Vector2 directionPlane = this.getDirectionPlane();
         float dot = directionPlane.dot( new Vector2( eyePosition.getX(), eyePosition.getZ() ) );
         float dot1 = directionPlane.dot( new Vector2( playerPosition.getX(), playerPosition.getZ() ) );
         return ( dot1 - dot ) >= -0.5f;

@@ -147,7 +147,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
         Block block = (Block) location.getWorld().getBlockAt( location.toBlockPosition() ).getSide( 0 );
         if ( block.isSolid() ) {
             // Check for other block
-            Vector2 directionPlane = entity.getDirectionVector();
+            Vector2 directionPlane = entity.getDirectionPlane();
             double xAbs = Math.abs( directionPlane.getX() );
             double zAbs = Math.abs( directionPlane.getZ() );
 
@@ -198,7 +198,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
         NBTTagCompound compound = new NBTTagCompound( "" );
         compound.addValue( "color", (byte) item.getData() );
 
-        Vector2 directionPlane = entity.getDirectionVector();
+        Vector2 directionPlane = entity.getDirectionPlane();
         double xAbs = Math.abs( directionPlane.getX() );
         double zAbs = Math.abs( directionPlane.getZ() );
 
