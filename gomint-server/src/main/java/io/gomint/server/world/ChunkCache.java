@@ -86,7 +86,10 @@ public class ChunkCache {
             boolean checkChunkSave = this.isAutosaveEnabled() &&
                 this.autoSaveInterval > 0 &&
                 currentTimeMS - this.lastSaveCheck > 500;
-            this.lastSaveCheck = currentTimeMS;
+
+            if ( checkChunkSave ) {
+                this.lastSaveCheck = currentTimeMS;
+            }
 
             for ( long l : this.cachedChunks.keys() ) {
                 if ( l != 0 ) {
