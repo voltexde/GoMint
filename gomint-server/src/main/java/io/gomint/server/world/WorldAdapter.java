@@ -1334,4 +1334,9 @@ public abstract class WorldAdapter implements World {
         return this.tickQueue.contains( position );
     }
 
+    @Override
+    public void save() {
+        this.chunkCache.saveAll();
+    }
+
 }

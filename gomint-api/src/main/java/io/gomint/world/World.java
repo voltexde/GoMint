@@ -185,4 +185,9 @@ public interface World {
      */
     Chunk generateEmptyChunk( int x, int z );
 
+    /**
+     * Save all data to disk
+     */
+    void save();
+
 }

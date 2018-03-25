@@ -299,6 +299,13 @@ public class AnvilChunkAdapter extends ChunkAdapter {
     // CHECKSTYLE:ON
 
     private void setupConverters() {
+        // Check for gomint shortcut
+        if ( this.converted ) {
+            this.tileEntityConverters = new io.gomint.server.world.anvil.tileentity.mcpe.TileEntities( this.world );
+            return;
+        }
+
+        // Check for different PC version chunks
         switch ( this.version ) {
             case 1343:  // 1.12.2
                 this.tileEntityConverters = new io.gomint.server.world.anvil.tileentity.v1_12_2.TileEntities( this.world );

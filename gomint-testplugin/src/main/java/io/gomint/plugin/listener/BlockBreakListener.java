@@ -20,9 +20,9 @@ public class BlockBreakListener implements EventListener {
 
     @EventHandler
     public void onBlockBreak( BlockBreakEvent event ) {
-        if ( event.getBreakBlock().getType() == BlockType.BED ) {
+        /*if ( event.getBreakBlock().getType() == BlockType.BED ) {
             event.setCancelled( true );
-        }
+        }*/
     }
 
 }
