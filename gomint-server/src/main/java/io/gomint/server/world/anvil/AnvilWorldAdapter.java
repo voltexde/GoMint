@@ -452,7 +452,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     }
 
     @Override
-    protected ChunkAdapter loadChunk( int x, int z, boolean generate ) {
+    public ChunkAdapter loadChunk( int x, int z, boolean generate ) {
         ChunkAdapter chunk = this.chunkCache.getChunk( x, z );
         if ( chunk == null ) {
             this.logger.debug( "Starting to load chunk {} {}", x, z );

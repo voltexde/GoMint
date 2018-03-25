@@ -664,7 +664,7 @@ public abstract class WorldAdapter implements World {
      * @param generate A boolean which decides whether or not the chunk should be generated when not found
      * @return The loaded or generated Chunk
      */
-    protected abstract ChunkAdapter loadChunk( int x, int z, boolean generate );
+    public abstract ChunkAdapter loadChunk( int x, int z, boolean generate );
 
     /**
      * Saves the given chunk to its respective region file. The respective region file

@@ -846,7 +846,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         int chunkX = CoordinateUtils.fromBlockToChunk( (int) this.getPositionX() );
         int chunkZ = CoordinateUtils.fromBlockToChunk( (int) this.getPositionZ() );
 
-        return this.world.getChunk( chunkX, chunkZ );
+        return this.world.loadChunk( chunkX, chunkZ, true );
     }
 
     /**

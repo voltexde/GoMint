@@ -112,6 +112,7 @@ public class PlayerConnection {
     private final ChunkHashSet playerChunks;
     @Getter
     private final ChunkHashSet loadingChunks;
+    private int neededChunksForSpawn;
 
     // Connection State:
     @Getter
@@ -385,7 +386,7 @@ public class PlayerConnection {
 
         if ( this.state == PlayerConnectionState.LOGIN ) {
             this.sentChunks++;
-            if ( this.sentChunks >= this.entity.getNeededChunksForSpawn() ) {
+            if ( this.sentChunks >= this.neededChunksForSpawn ) {
                 int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
                 int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getZ() );
 
@@ -599,6 +600,10 @@ public class PlayerConnection {
 
             return 0;
         } );
+
+        if ( this.neededChunksForSpawn == 0 ) {
+            this.neededChunksForSpawn = toSendChunks.size();
+        }
 
         for ( Pair<Integer, Integer> chunk : toSendChunks ) {
             long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );

@@ -8,7 +8,6 @@
 package io.gomint.server.entity;
 
 import com.koloboke.collect.ObjCursor;
-import com.koloboke.collect.map.ByteObjCursor;
 import io.gomint.enchant.EnchantmentKnockback;
 import io.gomint.enchant.EnchantmentSharpness;
 import io.gomint.entity.ChatType;
@@ -70,8 +69,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     private final PlayerConnection connection;
     private int viewDistance = 4;
-    @Getter
-    private int neededChunksForSpawn;
     private Queue<ChunkAdapter> chunkSendQueue = new ConcurrentLinkedQueue<>();
 
     // EntityPlayer Information
@@ -382,11 +379,16 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // Set the new location
         this.setAndRecalcPosition( to );
-        this.connection.sendMovePlayer( to );
-        this.fallDistance = 0;
 
-        // Force move the player to the new chunk
+        // Force load the new spawn chunk
+        this.getChunk(); // This getChunk uses loadChunk so it will generate or load from disc if needed
+
+        // Move the client
+        this.connection.sendMovePlayer( to );
+
+        // Send chunks to the client
         this.connection.checkForNewChunks( from );
+        this.fallDistance = 0;
 
         // Tell the movement handler to force this position to the client
         this.teleportPosition = to;
