@@ -234,6 +234,11 @@ public abstract class Block implements io.gomint.world.block.Block {
 
             // Check if new block needs tile entity
             if ( instance.needsTileEntity() ) {
+                // Create new tile entity compound if null
+                if ( data.getCompound() == null ) {
+                    data.setCompound( new NBTTagCompound( "" ) );
+                }
+
                 TileEntity tileEntity = instance.createTileEntity( data.getCompound() );
                 if ( tileEntity != null ) {
                     instance.setTileEntity( tileEntity );
