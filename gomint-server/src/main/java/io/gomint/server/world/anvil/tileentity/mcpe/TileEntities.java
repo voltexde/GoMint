@@ -11,8 +11,6 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.anvil.tileentity.TileEntityConverters;
 import io.gomint.taglib.NBTTagCompound;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -20,7 +18,6 @@ import org.slf4j.LoggerFactory;
  */
 public class TileEntities implements TileEntityConverters {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final WorldAdapter world;
 
     /**
@@ -35,13 +32,6 @@ public class TileEntities implements TileEntityConverters {
     @Override
     public TileEntity read( NBTTagCompound compound ) {
         return io.gomint.server.entity.tileentity.TileEntities.construct( compound, this.world );
-    }
-
-    @Override
-    public NBTTagCompound write( TileEntity tileEntity ) {
-        NBTTagCompound compound = new NBTTagCompound( "" );
-        tileEntity.toCompound( compound );
-        return compound;
     }
 
 }

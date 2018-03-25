@@ -86,45 +86,4 @@ public class TileEntities implements TileEntityConverters {
         }
     }
 
-    @Override
-    public NBTTagCompound write( TileEntity tileEntity ) {
-        NBTTagCompound compound = new NBTTagCompound( "" );
-        if ( tileEntity instanceof FlowerPotTileEntity ) {
-            this.flowerPotConverter.writeTo( (FlowerPotTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof ChestTileEntity ) {
-            this.chestConverter.writeTo( (ChestTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof SkullTileEntity ) {
-            this.skullConverter.writeTo( (SkullTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof SignTileEntity ) {
-            this.signConverter.writeTo( (SignTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof EnchantTableTileEntity ) {
-            this.enchantTableConverter.writeTo( (EnchantTableTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof DispenserTileEntity ) {
-            this.dispenserConverter.writeTo( (DispenserTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof EndPortalTileEntity ) {
-            this.endPortalConverter.writeTo( (EndPortalTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof BeaconTileEntity ) {
-            this.beaconConverter.writeTo( (BeaconTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof EnderChestTileEntity ) {
-            this.enderChestConverter.writeTo( (EnderChestTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof DaylightDetectorTileEntity ) {
-            this.daylightDetectorConverter.writeTo( (DaylightDetectorTileEntity) tileEntity, compound );
-            return compound;
-        } else if ( tileEntity instanceof BedTileEntity ) {
-            this.bedConverter.writeTo( (BedTileEntity) tileEntity, compound );
-            return compound;
-        }
-
-        return null;
-    }
-
 }

@@ -56,9 +56,4 @@ public class TileEntities implements TileEntityConverters {
         return null;
     }
 
-    @Override
-    public NBTTagCompound write( TileEntity tileEntity ) {
-        return null;
-    }
-
 }

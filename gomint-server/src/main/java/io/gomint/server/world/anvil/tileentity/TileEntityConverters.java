@@ -24,12 +24,4 @@ public interface TileEntityConverters {
      */
     TileEntity read( NBTTagCompound compound );
 
-    /**
-     * Write a tile entity to a new compound
-     *
-     * @param tileEntity which should be written
-     * @return compound which holds the state
-     */
-    NBTTagCompound write( TileEntity tileEntity );
-
 }
