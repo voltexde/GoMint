@@ -7,6 +7,7 @@
 
 package io.gomint.entity;
 
+import io.gomint.command.CommandOutput;
 import io.gomint.entity.passive.EntityHuman;
 import io.gomint.gui.Form;
 import io.gomint.gui.FormListener;
@@ -327,5 +328,13 @@ public interface EntityPlayer extends EntityHuman {
      * @return device information from this player
      */
     DeviceInfo getDeviceInfo();
+
+    /**
+     * Disptach a command for this player
+     *
+     * @param command which should be dispatched
+     * @return the output of this command
+     */
+    CommandOutput dispatchCommand( String command );
 
 }
