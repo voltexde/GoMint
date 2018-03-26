@@ -1245,6 +1245,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.setLevel( level );
     }
 
+    protected boolean shouldTickHunger() {
+        return this.gamemode == Gamemode.SURVIVAL;
+    }
+
     @Override
     public int getLevel() {
         return (int) this.getAttribute( Attribute.EXPERIENCE_LEVEL );
