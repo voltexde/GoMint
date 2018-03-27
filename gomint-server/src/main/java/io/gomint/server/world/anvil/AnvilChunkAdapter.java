@@ -249,39 +249,6 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                 if ( tileEntity1 != null ) {
                     this.addTileEntity( tileEntity1 );
                 }
-
-                /*switch ( id ) {
-                    case "Skull":
-                        // Remove the owner or extra data
-                        if ( tileEntity.containsKey( "Owner" ) ) {
-                            tileEntity.remove( "Owner" );
-                        }
-                        break;
-
-                    case "RecordPlayer":
-                        tileEntity.addValue( "id", "Music" );
-                        tileEntity.addValue( "note", (byte) 0 );
-
-                        if ( tileEntity.containsKey( "Record" ) ) {
-                            tileEntity.remove( "Record" );
-                        }
-
-                        if ( tileEntity.containsKey( "RecordItem" ) ) {
-                            tileEntity.remove( "RecordItem" );
-                        }
-
-                        break;
-
-                    case "Banner":
-                    case "Airportal":
-                        continue;
-
-                    default:
-                        break;
-
-                }
-
-                this.addTileEntity( tileEntity );*/
             }
 
             this.tileEntityHolders = null;
