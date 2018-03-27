@@ -1,6 +1,5 @@
 package io.gomint.server.entity;
 
-import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageByEntityEvent;
 import io.gomint.event.entity.EntityDamageEvent;
@@ -19,9 +18,10 @@ import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.player.EffectManager;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Values;
-import io.gomint.server.util.collection.EntityHashSet;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.block.Block;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -48,7 +48,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     private float lastUpdateDT = 0;
     @Getter
-    private EntityHashSet attachedEntities = EntityHashSet.withExpectedSize( 10 );
+    private ObjectSet<io.gomint.entity.Entity> attachedEntities = new ObjectOpenHashSet<>();
 
     private byte attackCoolDown = 0;
 
@@ -366,9 +366,8 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         entityEvent.setEntityId( this.id );
         entityEvent.setEventId( ( health <= 0 ) ? EntityEvent.DEATH.getId() : EntityEvent.HURT.getId() );
 
-        ObjCursor<io.gomint.entity.Entity> attachedEntitiesCursor = this.attachedEntities.cursor();
-        while ( attachedEntitiesCursor.moveNext() ) {
-            EntityPlayer entityPlayer = (EntityPlayer) attachedEntitiesCursor.elem();
+        for ( io.gomint.entity.Entity attachedEntity : this.attachedEntities ) {
+            EntityPlayer entityPlayer = (EntityPlayer) attachedEntity;
             entityPlayer.getConnection().addToSendQueue( entityEvent );
         }
 

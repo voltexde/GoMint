@@ -21,7 +21,8 @@ public class InternalConverter {
 
     private Set<Converter> converters = new LinkedHashSet<>();
     private List<Class> customConverters = new ArrayList<>();
-    @Getter private final BaseConfig config;
+    @Getter
+    private final BaseConfig config;
 
     public InternalConverter( BaseConfig config ) {
         this.config = config;

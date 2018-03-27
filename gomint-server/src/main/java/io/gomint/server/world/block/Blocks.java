@@ -10,7 +10,6 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.Registry;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.generator.BlockGenerator;
-import javassist.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,35 +21,11 @@ public class Blocks {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Blocks.class );
     private static final Registry<BlockGenerator> GENERATORS = new Registry<>( clazz -> {
-        // Create generated Generator for this block
-        ClassPool pool = ClassPool.getDefault();
-        CtClass generatorCT = pool.makeClass( "io.gomint.server.world.block.generator." + clazz.getSimpleName() );
-
-        try {
-            generatorCT.setInterfaces( new CtClass[]{ pool.get( "io.gomint.server.world.block.generator.BlockGenerator" ) } );
-        } catch ( NotFoundException e ) {
-            e.printStackTrace();
-            return null;
-        }
-
-        try {
-            generatorCT.addMethod( CtNewMethod.make( "public io.gomint.server.world.block.Block generate( byte blockId, byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {" +
-                "io.gomint.server.world.block.Block block = new " + clazz.getName() + "();" +
-                "block.setData( blockId, blockData, tileEntity, (io.gomint.server.world.WorldAdapter) location.getWorld(), location, skyLightLevel, blockLightLevel );\n" +
-                "return block;" +
-                "}", generatorCT ) );
-
-            generatorCT.addMethod( CtNewMethod.make( "public io.gomint.server.world.block.Block generate() { return new " + clazz.getName() + "(); }", generatorCT ) );
-        } catch ( CannotCompileException e ) {
-            e.printStackTrace();
-            return null;
-        }
-
         try {
             // Use the same code source as the Gomint JAR
-            return (BlockGenerator) generatorCT.toClass( ClassLoader.getSystemClassLoader(), null ).newInstance();
-        } catch ( InstantiationException | IllegalAccessException | CannotCompileException e ) {
-            e.printStackTrace();
+            return (BlockGenerator) Blocks.class.getClassLoader().loadClass( "io.gomint.server.world.block.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+        } catch ( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
+            LOGGER.error( "Could not load block generator", e );
         }
 
         return null;

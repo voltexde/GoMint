@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
@@ -48,12 +49,6 @@ public class Bootstrap {
     public static void main( String[] args ) {
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
-
-        // Check if classloader has been changed (it should be a URLClassLoader)
-        if ( !( ClassLoader.getSystemClassLoader() instanceof URLClassLoader ) ) {
-            LOGGER.error( "System Classloader is no URLClassloader" );
-            System.exit( -1 );
-        }
 
         // Parse options first
         OptionParser parser = new OptionParser();
@@ -161,18 +156,35 @@ public class Bootstrap {
      */
     private static void addJARToClasspath( File moduleFile ) throws IOException {
         URL moduleURL = moduleFile.toURI().toURL();
-        Class[] parameters = new Class[]{ URL.class };
 
-        ClassLoader sysloader = ClassLoader.getSystemClassLoader();
-        Class sysclass = URLClassLoader.class;
+        // Check if classloader has been changed (it should be a URLClassLoader)
+        if ( !( ClassLoader.getSystemClassLoader() instanceof URLClassLoader ) ) {
+            // This is invalid for Java 9/10, they use a UCP inside a wrapper loader
+            try {
+                Field ucpField = ClassLoader.getSystemClassLoader().getClass().getDeclaredField( "ucp" );
+                ucpField.setAccessible( true );
 
-        try {
-            Method method = sysclass.getDeclaredMethod( "addURL", parameters );
-            method.setAccessible( true );
-            method.invoke( sysloader, new Object[]{ moduleURL } );
-        } catch ( NoSuchMethodException | InvocationTargetException | IllegalAccessException e ) {
-            e.printStackTrace();
-            throw new IOException( "Error, could not add URL to system classloader" );
+                Object ucp = ucpField.get( ClassLoader.getSystemClassLoader() );
+                Method addURLucp = ucp.getClass().getDeclaredMethod( "addURL", URL.class );
+                addURLucp.invoke( ucp, moduleURL );
+            } catch ( NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
+                e.printStackTrace();
+            }
+        } else {
+            Class[] parameters = new Class[]{ URL.class };
+
+            ClassLoader sysloader = ClassLoader.getSystemClassLoader();
+            Class sysclass = URLClassLoader.class;
+
+            try {
+                Method method = sysclass.getDeclaredMethod( "addURL", parameters );
+                method.setAccessible( true );
+                method.invoke( sysloader, new Object[]{ moduleURL } );
+            } catch ( NoSuchMethodException | InvocationTargetException | IllegalAccessException e ) {
+                e.printStackTrace();
+                throw new IOException( "Error, could not add URL to system classloader" );
+            }
         }
     }
+
 }

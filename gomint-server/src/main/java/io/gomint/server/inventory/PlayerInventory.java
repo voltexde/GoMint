@@ -1,6 +1,5 @@
 package io.gomint.server.inventory;
 
-import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
@@ -94,9 +93,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
         packet.setSlot( this.itemInHandSlot );
 
         // Relay packet
-        ObjCursor<Entity> entityObjCursor = player.getAttachedEntities().cursor();
-        while ( entityObjCursor.moveNext() ) {
-            Entity entity = entityObjCursor.elem();
+        for ( Entity entity : player.getAttachedEntities() ) {
             if ( entity instanceof EntityPlayer ) {
                 ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
             }
@@ -128,9 +125,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
         packetMobEquipment.setStack( this.getItemInHand() );
 
         // Relay packet
-        ObjCursor<io.gomint.entity.Entity> entityObjCursor = ( (EntityPlayer) this.owner ).getAttachedEntities().cursor();
-        while ( entityObjCursor.moveNext() ) {
-            io.gomint.entity.Entity entity = entityObjCursor.elem();
+        for ( Entity entity : ( (EntityPlayer) this.owner ).getAttachedEntities() ) {
             if ( entity instanceof EntityPlayer ) {
                 ( (EntityPlayer) entity ).getConnection().addToSendQueue( packetMobEquipment );
             }

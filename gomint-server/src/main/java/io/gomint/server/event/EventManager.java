@@ -10,7 +10,8 @@ package io.gomint.server.event;
 import io.gomint.event.Event;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
-import io.gomint.server.util.collection.EventHandlerMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -23,7 +24,7 @@ import java.lang.reflect.Modifier;
 public class EventManager {
 
     // All event handlers that have been registered
-    private final EventHandlerMap eventHandlers = EventHandlerMap.withExpectedSize( 10 );
+    private final Int2ObjectMap<EventHandlerList> eventHandlers = new Int2ObjectOpenHashMap<>();
 
     /**
      * Triggers the event. It will be dispatched to all interested listeners immediately.
@@ -33,7 +34,7 @@ public class EventManager {
     public void triggerEvent( Event event ) {
         // Assume we already acquired a readLock:
         int eventHash = event.getClass().getName().hashCode();
-        EventHandlerList eventHandlerList = this.eventHandlers.getEventHandler( eventHash );
+        EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
         if ( eventHandlerList == null ) {
             return;
         }
@@ -85,10 +86,10 @@ public class EventManager {
     private <T extends EventListener> void registerListener0( T listener, Method listenerMethod ) {
         int eventHash = listenerMethod.getParameterTypes()[0].getName().hashCode();
         EventHandler annotation = listenerMethod.getAnnotation( EventHandler.class );
-        EventHandlerList eventHandlerList = this.eventHandlers.getEventHandler( eventHash );
+        EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
         if ( eventHandlerList == null ) {
             eventHandlerList = new EventHandlerList();
-            this.eventHandlers.storeEventHandler( eventHash, eventHandlerList );
+            this.eventHandlers.put( eventHash, eventHandlerList );
         }
 
         eventHandlerList.addHandler( listener.getClass().getName() + "#" + listenerMethod.getName() + "_" + eventHash,
@@ -97,7 +98,7 @@ public class EventManager {
 
     private <T extends EventListener> void unregisterListener0( T listener, Method listenerMethod ) {
         int eventHash = listenerMethod.getParameterTypes()[0].getName().hashCode();
-        EventHandlerList eventHandlerList = this.eventHandlers.getEventHandler( eventHash );
+        EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
         if ( eventHandlerList == null ) {
             return;
         }

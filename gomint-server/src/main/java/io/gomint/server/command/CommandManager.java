@@ -1,17 +1,17 @@
 package io.gomint.server.command;
 
+import com.google.common.reflect.ClassPath;
 import io.gomint.command.Command;
 import io.gomint.command.SystemCommand;
 import io.gomint.command.annotation.Name;
 import io.gomint.plugin.Plugin;
-import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.CommandPermission;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketAvailableCommands;
-import io.gomint.server.util.ClassPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
@@ -35,7 +35,7 @@ public class CommandManager {
     public CommandManager() {
         // Register all internal commands
         try {
-            for ( ClassPath.ClassInfo classInfo : ClassPath.getTopLevelClasses( "io.gomint.server.command.internal" ) ) {
+            for ( ClassPath.ClassInfo classInfo : ClassPath.from( CommandManager.class.getClassLoader() ).getTopLevelClasses( "io.gomint.server.command.internal" ) ) {
                 // Check for system only commands
                 Class<?> cmdClass = classInfo.load();
                 Object commandObject = null;
@@ -62,7 +62,7 @@ public class CommandManager {
                     registerSystem( (SystemCommand) commandObject );
                 }
             }
-        } catch ( InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
+        } catch ( InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException | IOException e ) {
             e.printStackTrace();
         }
     }

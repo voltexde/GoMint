@@ -7,19 +7,20 @@
 
 package io.gomint.server.player;
 
-import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketDespawnEntity;
-import io.gomint.server.util.collection.EntityHashSet;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.world.Chunk;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -30,15 +31,18 @@ public class EntityVisibilityManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityVisibilityManager.class );
     private final EntityPlayer player;
-    private EntityHashSet visible = EntityHashSet.withExpectedSize( 10 );
+    private ObjectSet<Entity> visible = new ObjectOpenHashSet<>();
 
     public void updateAddedChunk( ChunkAdapter chunk ) {
         LOGGER.debug( "Checking chunk {}, {}", chunk.getX(), chunk.getZ() );
 
         // Check if we should be able to see this entity
-        chunk.iterateEntities( Entity.class, entity -> {
-            if ( ( (io.gomint.server.entity.Entity) entity ).shouldBeSeen( this.player ) ) {
-                this.addEntity( entity );
+        chunk.iterateEntities( Entity.class, new Consumer<Entity>() {
+            @Override
+            public void accept( Entity entity ) {
+                if ( ( (io.gomint.server.entity.Entity) entity ).shouldBeSeen( EntityVisibilityManager.this.player ) ) {
+                    EntityVisibilityManager.this.addEntity( entity );
+                }
             }
         } );
     }
@@ -61,7 +65,12 @@ public class EntityVisibilityManager {
 
     public void updateRemoveChunk( ChunkAdapter chunk ) {
         // Check for removing entities
-        chunk.iterateEntities( Entity.class, this::removeEntity );
+        chunk.iterateEntities( Entity.class, new Consumer<Entity>() {
+            @Override
+            public void accept( Entity entity ) {
+                EntityVisibilityManager.this.removeEntity( entity );
+            }
+        } );
     }
 
     public void removeEntity( Entity entity ) {
@@ -94,9 +103,7 @@ public class EntityVisibilityManager {
     }
 
     public void clear() {
-        ObjCursor<Entity> cursor = this.visible.cursor();
-        while ( cursor.moveNext() ) {
-            Entity curr = cursor.elem();
+        for ( Entity curr : this.visible ) {
             if ( curr instanceof io.gomint.server.entity.Entity ) {
                 this.despawnEntity( (io.gomint.server.entity.Entity) curr );
             }

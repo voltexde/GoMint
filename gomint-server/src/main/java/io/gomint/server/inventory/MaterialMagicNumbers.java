@@ -1,7 +1,9 @@
 package io.gomint.server.inventory;
 
-import io.gomint.server.util.collection.NumericIDToStringMap;
-import io.gomint.server.util.collection.StringIDToNumericMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 /**
  * @author geNAZt
@@ -9,8 +11,8 @@ import io.gomint.server.util.collection.StringIDToNumericMap;
  */
 public class MaterialMagicNumbers {
 
-    private static final StringIDToNumericMap NEW_ID_MAPPING = StringIDToNumericMap.withExpectedSize( 500 );
-    private static final NumericIDToStringMap OLD_ID_MAPPING = NumericIDToStringMap.withExpectedSize( 500 );
+    private static final Object2IntMap<String> NEW_ID_MAPPING = new Object2IntOpenHashMap<>();
+    private static final Int2ObjectMap<String> OLD_ID_MAPPING = new Int2ObjectOpenHashMap<>();
 
     static {
         // CHECKSTYLE:OFF
@@ -387,8 +389,8 @@ public class MaterialMagicNumbers {
     }
 
     public static void register( int id, String newId ) {
-        NEW_ID_MAPPING.justPut( newId, id );
-        OLD_ID_MAPPING.justPut( id, newId );
+        NEW_ID_MAPPING.put( newId, id );
+        OLD_ID_MAPPING.put( id, newId );
     }
 
     public static int valueOfWithId( String newId ) {

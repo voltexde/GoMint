@@ -1,13 +1,13 @@
 package io.gomint.server.registry;
 
-import io.gomint.server.util.ClassPath;
+import com.google.common.reflect.ClassPath;
 import io.gomint.server.util.collection.FixedIndexResizableArray;
-import io.gomint.server.util.collection.GeneratorAPIClassMap;
-import io.gomint.server.util.collection.GeneratorMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.io.IOException;
 
 /**
  * @author geNAZt
@@ -19,7 +19,7 @@ public class Registry<R> {
 
     private final GeneratorCallback<R> generatorCallback;
     private final FixedIndexResizableArray<R> generators = new FixedIndexResizableArray<>();
-    private final GeneratorAPIClassMap<Class<?>> apiReferences = GeneratorAPIClassMap.withExpectedSize( 250 );
+    private final Object2IntMap<Class<?>> apiReferences = new Object2IntOpenHashMap<>();
 
     /**
      * Build a new generator registry
@@ -38,8 +38,12 @@ public class Registry<R> {
     public void register( String classPath ) {
         LOGGER.debug( "Going to scan: {}", classPath );
 
-        for ( ClassPath.ClassInfo classInfo : ClassPath.getTopLevelClasses( classPath ) ) {
-            register( classInfo.load() );
+        try {
+            for ( ClassPath.ClassInfo classInfo : ClassPath.from( Registry.class.getClassLoader() ).getTopLevelClasses( classPath ) ) {
+                register( classInfo.load() );
+            }
+        } catch ( IOException e ) {
+            e.printStackTrace();
         }
     }
 

@@ -67,19 +67,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.koloboke</groupId>
-            <artifactId>koloboke-impl-common-jdk8</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.koloboke</groupId>
-            <artifactId>koloboke-compile</artifactId>
-            <version>0.5.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>3.20.0-GA</version>
@@ -129,11 +116,6 @@
             <artifactId>jna-platform</artifactId>
             <version>4.5.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>15.0</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -150,9 +132,30 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                         <manifestEntries>
-                            <Implementation-Build>${buildNumber}</Implementation-Build>
+                            <Implementation-Build>s:${buildNumber}-b:${buildScmBranch}</Implementation-Build>
                         </manifestEntries>
                     </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scmBranchPropertyName>buildScmBranch</scmBranchPropertyName>
+                    <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <shortRevisionLength>7</shortRevisionLength>
                 </configuration>
             </plugin>
 
@@ -178,6 +181,88 @@
                                 </transformer>
                             </transformers>
                             <filters>
+                                <filter>
+                                    <artifact>it.unimi.dsi:fastutil</artifact>
+                                    <includes>
+                                        <include>it/unimi/dsi/fastutil/Function**</include>
+                                        <include>it/unimi/dsi/fastutil/Hash**</include>
+                                        <include>it/unimi/dsi/fastutil/HashCommon**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/AbstractLong2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/AbstractLong2LongFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/AbstractLong2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/AbstractLong2LongMap**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/Long2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/Long2LongFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/Long2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/Long2LongMap**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/Long2LongOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/LongCollection**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/LongIterable**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/LongSet**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/LongOpenHashSet**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/AbstractLongSet**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/AbstractLongCollection**</include>
+                                        <include>it/unimi/dsi/fastutil/longs/LongIterator**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/Int2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/Int2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/Int2ObjectOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/AbstractInt2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/AbstractInt2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/IntCollection**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/IntIterable**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/IntIterator**</include>
+                                        <include>it/unimi/dsi/fastutil/ints/IntSet**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObjectCollection**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObjectSet**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/ObjectCollection**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/ObjectIterator**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/ObjectIterable**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/ObjectSet**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2IntMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2IntFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2IntOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObject2IntMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObject2IntFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2ObjectOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObject2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObject2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/ObjectOpenHashSet**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/Short2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/Short2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/Short2ObjectOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/AbstractShort2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/AbstractShort2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/ShortCollection**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/ShortIterable**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/ShortIterator**</include>
+                                        <include>it/unimi/dsi/fastutil/shorts/ShortSet**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/Byte2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/Byte2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/Byte2ObjectOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/AbstractByte2ObjectMap**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/AbstractByte2ObjectFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/ByteCollection**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/ByteIterable**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/ByteIterator**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/ByteSet**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2ByteMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2ByteFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2ByteOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObject2ByteMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObject2ByteFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2BooleanMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2BooleanFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/Object2BooleanOpenHashMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObject2BooleanMap**</include>
+                                        <include>it/unimi/dsi/fastutil/objects/AbstractObject2BooleanFunction**</include>
+                                        <include>it/unimi/dsi/fastutil/booleans/BooleanCollection**</include>
+                                        <include>it/unimi/dsi/fastutil/booleans/BooleanIterable**</include>
+                                        <include>it/unimi/dsi/fastutil/booleans/BooleanIterator**</include>
+                                    </includes>
+                                </filter>
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>

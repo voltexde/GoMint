@@ -20,14 +20,6 @@
         <system>GitHub Issues</system>
     </issueManagement>
 
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
     <scm>
         <url>https://github.com/GoMint/GoMint</url>
         <connection>scm:git:git://github.com/GoMint/GoMint.git</connection>
@@ -72,9 +64,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.koloboke</groupId>
-            <artifactId>koloboke-api-jdk8</artifactId>
-            <version>1.0.0</version>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>8.1.1</version>
         </dependency>
 
         <dependency>
@@ -101,24 +93,6 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <doCheck>true</doCheck>
-                    <doUpdate>true</doUpdate>
                 </configuration>
             </plugin>
         </plugins>

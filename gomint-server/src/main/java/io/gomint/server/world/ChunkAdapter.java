@@ -7,7 +7,6 @@
 
 package io.gomint.server.world;
 
-import com.koloboke.function.LongObjConsumer;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.async.Delegate2;
@@ -17,7 +16,6 @@ import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
-import io.gomint.server.util.collection.EntityIDMap;
 import io.gomint.server.world.postprocessor.PostProcessor;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
@@ -25,6 +23,8 @@ import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
 import io.gomint.world.Chunk;
 import io.gomint.world.block.Block;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,13 @@ import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.ByteOrder;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -83,7 +89,7 @@ public class ChunkAdapter implements Chunk {
     protected long lastSavedTimestamp;
 
     // Entities
-    protected EntityIDMap entities = null;
+    protected Long2ObjectMap<io.gomint.entity.Entity> entities = null;
 
     // Post loading processing
     protected Queue<PostProcessor> postProcessors = new LinkedList<>();
@@ -172,10 +178,10 @@ public class ChunkAdapter implements Chunk {
         this.players.add( player );
 
         if ( this.entities == null ) {
-            this.entities = EntityIDMap.withExpectedSize( 20 );
+            this.entities = new Long2ObjectOpenHashMap<>();
         }
 
-        this.entities.justPut( player.getEntityId(), player );
+        this.entities.put( player.getEntityId(), player );
     }
 
     /**
@@ -191,7 +197,7 @@ public class ChunkAdapter implements Chunk {
             return;
         }
 
-        this.entities.justRemove( player.getEntityId() );
+        this.entities.remove( player.getEntityId() );
         if ( this.entities.size() == 0 ) {
             this.entities = null;
         }
@@ -204,10 +210,10 @@ public class ChunkAdapter implements Chunk {
      */
     void addEntity( Entity entity ) {
         if ( this.entities == null ) {
-            this.entities = EntityIDMap.withExpectedSize( 20 );
+            this.entities = new Long2ObjectOpenHashMap<>();
         }
 
-        this.entities.justPut( entity.getEntityId(), entity );
+        this.entities.put( entity.getEntityId(), entity );
     }
 
     /**
@@ -220,7 +226,7 @@ public class ChunkAdapter implements Chunk {
             return;
         }
 
-        this.entities.justRemove( entity.getEntityId() );
+        this.entities.remove( entity.getEntityId() );
         if ( this.entities.size() == 0 ) {
             this.entities = null;
         }
@@ -572,14 +578,11 @@ public class ChunkAdapter implements Chunk {
     public <T extends io.gomint.entity.Entity> void iterateEntities( Class<T> entityClass, Consumer<T> entityConsumer ) {
         // Iterate over all chunks
         if ( this.entities != null ) {
-            this.entities.forEach( new LongObjConsumer<io.gomint.entity.Entity>() {
-                @Override
-                public void accept( long l, io.gomint.entity.Entity entity ) {
-                    if ( entityClass.isAssignableFrom( entity.getClass() ) ) {
-                        entityConsumer.accept( (T) entity );
-                    }
+            for ( Long2ObjectMap.Entry<io.gomint.entity.Entity> entry : this.entities.long2ObjectEntrySet() ) {
+                if ( entityClass.isAssignableFrom( entry.getValue().getClass() ) ) {
+                    entityConsumer.accept( (T) entry.getValue() );
                 }
-            } );
+            }
         }
     }
 

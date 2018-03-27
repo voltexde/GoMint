@@ -7,7 +7,6 @@
 
 package io.gomint.server.network.handler;
 
-import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
@@ -27,9 +26,7 @@ public class PacketEntityEventHandler implements PacketHandler<PacketEntityEvent
                 break;
 
             default:
-                ObjCursor<Entity> entityObjCursor = connection.getEntity().getAttachedEntities().cursor();
-                while ( entityObjCursor.moveNext() ) {
-                    Entity entity = entityObjCursor.elem();
+                for ( Entity entity : connection.getEntity().getAttachedEntities() ) {
                     if ( entity instanceof EntityPlayer ) {
                         ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
                     }

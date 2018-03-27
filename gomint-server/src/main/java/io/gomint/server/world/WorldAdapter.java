@@ -26,7 +26,6 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.EnumConnectors;
-import io.gomint.server.util.collection.PlayerMap;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Blocks;
@@ -38,6 +37,8 @@ import io.gomint.world.block.BlockFace;
 import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.GeneratorContext;
 import io.gomint.world.generator.integrated.VoidGenerator;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -99,7 +100,7 @@ public abstract class WorldAdapter implements World {
     private Thread asyncWorkerThread;
 
     // EntityPlayer handling
-    private PlayerMap players;
+    private Object2ObjectMap<io.gomint.server.entity.EntityPlayer, ChunkAdapter> players;
 
     protected WorldAdapter( GoMintServer server, File worldDir ) {
         this.chunkGenerator = new VoidGenerator( this, new GeneratorContext() );
@@ -108,7 +109,7 @@ public abstract class WorldAdapter implements World {
         this.worldDir = worldDir;
         this.entityManager = new EntityManager( this );
         this.config = this.server.getWorldConfig( worldDir.getName() );
-        this.players = PlayerMap.withExpectedSize( this.server.getServerConfig().getMaxPlayers() );
+        this.players = new Object2ObjectOpenHashMap<>();
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
         this.startAsyncWorker( server.getExecutorService() );
@@ -122,7 +123,7 @@ public abstract class WorldAdapter implements World {
      *
      * @return The Collection View of the Players currently on this world
      */
-    public PlayerMap getPlayers0() {
+    public Object2ObjectMap<io.gomint.server.entity.EntityPlayer, ChunkAdapter> getPlayers0() {
         return this.players;
     }
 
@@ -132,15 +133,7 @@ public abstract class WorldAdapter implements World {
      * @return collection of all players online on this world
      */
     public Collection<EntityPlayer> getPlayers() {
-        Collection<EntityPlayer> playerReturn = new HashSet<>();
-
-        for ( Object o : this.players.table() ) {
-            if ( o != null && o instanceof io.gomint.server.entity.EntityPlayer ) {
-                playerReturn.add( (EntityPlayer) o );
-            }
-        }
-
-        return playerReturn;
+        return new HashSet<>( this.players.keySet() );
     }
 
     @Override
@@ -627,13 +620,13 @@ public abstract class WorldAdapter implements World {
 
         if ( oldChunk == null ) {
             newChunk.addPlayer( player );
-            this.players.justPut( player, newChunk );
+            this.players.put( player, newChunk );
         }
 
         if ( oldChunk != null && !oldChunk.equals( newChunk ) ) {
             oldChunk.removePlayer( player );
             newChunk.addPlayer( player );
-            this.players.justPut( player, newChunk );
+            this.players.put( player, newChunk );
         }
     }
 
@@ -1131,7 +1124,7 @@ public abstract class WorldAdapter implements World {
             }
 
             // Break animation (this also plays the break sound in the client)
-            // sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) );
+            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) );
 
             block.setType( BlockAir.class );
 
@@ -1244,13 +1237,7 @@ public abstract class WorldAdapter implements World {
     @Override
     public void unload( Consumer<EntityPlayer> playerConsumer ) {
         // Unload all players via API
-        Set<EntityPlayer> playerCopy = new HashSet<>( this.players.size() );
-        for ( Object o : this.players.table() ) {
-            if ( o instanceof EntityPlayer ) {
-                playerCopy.add( (EntityPlayer) o );
-            }
-        }
-
+        Set<EntityPlayer> playerCopy = new HashSet<>( this.players.keySet() );
         playerCopy.forEach( playerConsumer );
 
         // Stop this world

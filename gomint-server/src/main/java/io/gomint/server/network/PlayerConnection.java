@@ -7,7 +7,6 @@
 
 package io.gomint.server.network;
 
-import com.koloboke.collect.LongCursor;
 import io.gomint.event.player.PlayerCleanedupEvent;
 import io.gomint.event.player.PlayerKickEvent;
 import io.gomint.event.player.PlayerQuitEvent;
@@ -20,8 +19,44 @@ import io.gomint.math.Location;
 import io.gomint.player.DeviceInfo;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.network.handler.*;
-import io.gomint.server.network.packet.*;
+import io.gomint.server.network.handler.PacketAdventureSettingsHandler;
+import io.gomint.server.network.handler.PacketAnimateHandler;
+import io.gomint.server.network.handler.PacketCommandRequestHandler;
+import io.gomint.server.network.handler.PacketContainerCloseHandler;
+import io.gomint.server.network.handler.PacketCraftingEventHandler;
+import io.gomint.server.network.handler.PacketEncryptionResponseHandler;
+import io.gomint.server.network.handler.PacketEntityEventHandler;
+import io.gomint.server.network.handler.PacketEntityFallHandler;
+import io.gomint.server.network.handler.PacketHandler;
+import io.gomint.server.network.handler.PacketHotbarHandler;
+import io.gomint.server.network.handler.PacketInteractHandler;
+import io.gomint.server.network.handler.PacketInventoryTransactionHandler;
+import io.gomint.server.network.handler.PacketLoginHandler;
+import io.gomint.server.network.handler.PacketMobArmorEquipmentHandler;
+import io.gomint.server.network.handler.PacketMobEquipmentHandler;
+import io.gomint.server.network.handler.PacketModalResponseHandler;
+import io.gomint.server.network.handler.PacketMovePlayerHandler;
+import io.gomint.server.network.handler.PacketPlayerActionHandler;
+import io.gomint.server.network.handler.PacketResourcePackResponseHandler;
+import io.gomint.server.network.handler.PacketServerSettingsRequestHandler;
+import io.gomint.server.network.handler.PacketSetChunkRadiusHandler;
+import io.gomint.server.network.handler.PacketTextHandler;
+import io.gomint.server.network.handler.PacketWorldSoundEventHandler;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketBatch;
+import io.gomint.server.network.packet.PacketConfirmChunkRadius;
+import io.gomint.server.network.packet.PacketDisconnect;
+import io.gomint.server.network.packet.PacketEncryptionResponse;
+import io.gomint.server.network.packet.PacketLogin;
+import io.gomint.server.network.packet.PacketMovePlayer;
+import io.gomint.server.network.packet.PacketPlayState;
+import io.gomint.server.network.packet.PacketResourcePackResponse;
+import io.gomint.server.network.packet.PacketResourcePacksInfo;
+import io.gomint.server.network.packet.PacketSetCommandsEnabled;
+import io.gomint.server.network.packet.PacketSetDifficulty;
+import io.gomint.server.network.packet.PacketSetSpawnPosition;
+import io.gomint.server.network.packet.PacketStartGame;
+import io.gomint.server.network.packet.PacketWorldTime;
 import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.protocol.WrappedMCPEPacket;
 import io.gomint.server.scheduler.AsyncScheduledTask;
@@ -29,11 +64,13 @@ import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.StringUtil;
 import io.gomint.server.util.Values;
-import io.gomint.server.util.collection.ChunkHashSet;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -42,7 +79,11 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -109,9 +150,9 @@ public class PlayerConnection {
 
     // World data
     @Getter
-    private final ChunkHashSet playerChunks;
+    private final LongSet playerChunks;
     @Getter
-    private final ChunkHashSet loadingChunks;
+    private final LongSet loadingChunks;
     private int neededChunksForSpawn;
 
     // Connection State:
@@ -147,8 +188,8 @@ public class PlayerConnection {
         this.connectionHandler = tcpConnection;
         this.state = initialState;
         this.server = networkManager.getServer();
-        this.playerChunks = ChunkHashSet.withExpectedSize( 100 );
-        this.loadingChunks = ChunkHashSet.withExpectedSize( 100 );
+        this.playerChunks = new LongOpenHashSet();
+        this.loadingChunks = new LongOpenHashSet();
 
         // Attach data processor if needed
         if ( this.connection != null ) {
@@ -380,7 +421,7 @@ public class PlayerConnection {
      */
     private boolean sendWorldChunk( ChunkAdapter chunkAdapter ) {
         this.playerChunks.add( chunkAdapter.longHashCode() );
-        this.loadingChunks.removeLong( chunkAdapter.longHashCode() );
+        this.loadingChunks.remove( chunkAdapter.longHashCode() );
         this.addToSendQueue( chunkAdapter.getCachedPacket() );
         this.entity.getEntityVisibilityManager().updateAddedChunk( chunkAdapter );
 
@@ -625,10 +666,11 @@ public class PlayerConnection {
         }
 
         // Check for unloading chunks
-        LongCursor longCursor = this.playerChunks.cursor();
-        while ( longCursor.moveNext() ) {
-            int x = (int) ( longCursor.elem() >> 32 );
-            int z = (int) ( longCursor.elem() ) + Integer.MIN_VALUE;
+        LongIterator longCursor = this.playerChunks.iterator();
+        while ( longCursor.hasNext() ) {
+            long hash = longCursor.nextLong();
+            int x = (int) ( hash >> 32 );
+            int z = (int) ( hash ) + Integer.MIN_VALUE;
 
             if ( Math.abs( x - currentXChunk ) > viewDistance ||
                 Math.abs( z - currentZChunk ) > viewDistance ) {
@@ -846,7 +888,7 @@ public class PlayerConnection {
         if ( !this.entity.getChunkSendQueue().isEmpty() ) {
             for ( ChunkAdapter adapter : this.entity.getChunkSendQueue() ) {
                 long hash = CoordinateUtils.toLong( adapter.getX(), adapter.getZ() );
-                this.loadingChunks.removeLong( hash );
+                this.loadingChunks.remove( hash );
             }
         }
 

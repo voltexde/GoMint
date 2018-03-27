@@ -2,17 +2,15 @@ package io.gomint.server.world;
 
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.util.collection.ChunkSliceIndexMap;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.storage.TemporaryStorage;
+import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -33,8 +31,8 @@ class ChunkSlice {
     private NibbleArray blockLight = new NibbleArray( (short) 4096 );
     private NibbleArray skyLight = new NibbleArray( (short) 4096 );
 
-    private ChunkSliceIndexMap<TileEntity> tileEntities = ChunkSliceIndexMap.withExpectedSize( 20 );
-    private ChunkSliceIndexMap<TemporaryStorage> temporaryStorages = ChunkSliceIndexMap.withExpectedSize( 20 );
+    private Short2ObjectOpenHashMap<TileEntity> tileEntities = new Short2ObjectOpenHashMap<>();
+    private Short2ObjectOpenHashMap<TemporaryStorage> temporaryStorages = new Short2ObjectOpenHashMap<>();
 
     private short getIndex( int x, int y, int z ) {
         return (short) ( ( x << 8 ) + ( z << 4 ) + y );
@@ -73,7 +71,7 @@ class ChunkSlice {
         int fullY = CoordinateUtils.getChunkMin( this.sectionY ) + y;
         int fullZ = CoordinateUtils.getChunkMin( this.chunk.getZ() ) + z;
 
-        if ( isAllAir ) {
+        if ( this.isAllAir ) {
             return (T) Blocks.get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ) );
         }
 
@@ -82,21 +80,11 @@ class ChunkSlice {
     }
 
     Collection<TileEntity> getTileEntities() {
-        List<TileEntity> tileEntities = new ArrayList<>();
-
-        this.tileEntities.values().forEach( new Consumer<TileEntity>() {
-            @Override
-            public void accept( TileEntity tileEntity ) {
-                tileEntities.add( tileEntity );
-            }
-        } );
-
-        return tileEntities;
+        return new ArrayList<>( this.tileEntities.values() );
     }
 
     void addTileEntity( int x, int y, int z, TileEntity tileEntity ) {
-        int index = getIndex( x, y, z );
-        this.tileEntities.justPut( (short) index, tileEntity );
+        this.tileEntities.put( getIndex( x, y, z ), tileEntity );
     }
 
     void setBlock( int x, int y, int z, byte blockId ) {
@@ -160,7 +148,7 @@ class ChunkSlice {
         TemporaryStorage storage = this.temporaryStorages.get( index );
         if ( storage == null ) {
             storage = new TemporaryStorage();
-            this.temporaryStorages.justPut( index, storage );
+            this.temporaryStorages.put( index, storage );
         }
 
         return storage;
@@ -168,7 +156,7 @@ class ChunkSlice {
 
     public void resetTemporaryStorage( int x, int y, int z ) {
         short index = getIndex( x, y, z );
-        this.temporaryStorages.justRemove( index );
+        this.temporaryStorages.remove( index );
     }
 
 }

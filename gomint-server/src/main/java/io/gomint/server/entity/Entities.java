@@ -11,7 +11,10 @@ import io.gomint.entity.Entity;
 import io.gomint.server.entity.generator.EntityGenerator;
 import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
-import javassist.*;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * @author geNAZt
@@ -20,35 +23,11 @@ import javassist.*;
 public class Entities {
 
     private static final Registry<EntityGenerator> GENERATORS = new Registry<>( new GeneratorCallback<EntityGenerator>() {
-        private ClassPool pool = ClassPool.getDefault();
-        private CtClass inter;
-
         @Override
         public EntityGenerator generate( Class<?> clazz ) {
-            if ( this.inter == null ) {
-                try {
-                    this.inter = pool.get( "io.gomint.server.entity.generator.EntityGenerator" );
-                } catch ( NotFoundException e ) {
-                    e.printStackTrace();
-                }
-            }
-
-            CtClass generatorClass = this.pool.makeClass( "io.gomint.server.entity.generator." + clazz.getSimpleName() );
-            generatorClass.addInterface( this.inter );
-
-            // Generate the generation method
             try {
-                generatorClass.addMethod( CtNewMethod.make( "public io.gomint.entity.Entity generate() {" +
-                    "return new " + clazz.getName() + "();" +
-                    "}", generatorClass ) );
-            } catch ( CannotCompileException e ) {
-                e.printStackTrace();
-                return null;
-            }
-
-            try {
-                return (EntityGenerator) generatorClass.toClass().newInstance();
-            } catch ( InstantiationException | IllegalAccessException | CannotCompileException e ) {
+                return (EntityGenerator) Entities.class.getClassLoader().loadClass( "io.gomint.server.entity.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+            } catch ( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
                 e.printStackTrace();
             }
 

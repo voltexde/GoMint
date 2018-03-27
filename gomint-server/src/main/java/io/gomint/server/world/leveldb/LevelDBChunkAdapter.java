@@ -11,16 +11,16 @@ import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.MaterialMagicNumbers;
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.Palette;
-import io.gomint.server.util.collection.PaletteBlockMap;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +99,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                 short[] indexes = palette.getIndexes();
 
                 // Read NBT data
-                PaletteBlockMap chunkPalette = PaletteBlockMap.withExpectedSize( buf.getInt() ); // Varint my ass
+                Int2ObjectMap<Pair<Byte, Byte>> chunkPalette = new Int2ObjectOpenHashMap<>( buf.getInt() ); // Varint my ass
 
                 int index = 0;
                 NBTReader reader = new NBTReader( new ByteArrayInputStream( buf.array(), buf.position(), buf.capacity() ), ByteOrder.LITTLE_ENDIAN );
@@ -109,7 +109,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                         byte blockId = (byte) MaterialMagicNumbers.valueOfWithId( compound.getString( "name", "minecraft:air" ) );
                         byte blockData = compound.getShort( "val", (short) 0 ).byteValue();
 
-                        chunkPalette.justPut( index++, new Pair<>( blockId, blockData ) );
+                        chunkPalette.put( index++, new Pair<>( blockId, blockData ) );
                     } catch ( IOException e ) {
                         LOGGER.error( "Error in loading tile entities", e );
                         break;

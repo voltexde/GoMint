@@ -1,6 +1,6 @@
 package io.gomint.inventory.item;
 
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * @author geNAZt

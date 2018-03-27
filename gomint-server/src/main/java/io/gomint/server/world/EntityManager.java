@@ -7,14 +7,16 @@
 
 package io.gomint.server.world;
 
-import com.koloboke.collect.map.LongObjCursor;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketEntityMovement;
 import io.gomint.server.network.packet.PacketPlayerlist;
-import io.gomint.server.util.collection.EntityIDMap;
 import io.gomint.world.Chunk;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +36,8 @@ public class EntityManager {
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityManager.class );
 
     private final WorldAdapter world;
-    private EntityIDMap entitiesById;
-    private EntityIDMap spawnedInThisTick;
+    private Long2ObjectMap<Entity> entitiesById;
+    private Long2ObjectMap<Entity> spawnedInThisTick;
 
     private boolean currentlyTicking;
 
@@ -46,8 +48,8 @@ public class EntityManager {
      */
     EntityManager( WorldAdapter world ) {
         this.world = world;
-        this.entitiesById = EntityIDMap.withExpectedSize( 20 );
-        this.spawnedInThisTick = EntityIDMap.withExpectedSize( 20 );
+        this.entitiesById = new Long2ObjectOpenHashMap<>();
+        this.spawnedInThisTick = new Long2ObjectOpenHashMap<>();
     }
 
     /**
@@ -61,15 +63,20 @@ public class EntityManager {
         // Update all entities:
         Set<io.gomint.server.entity.Entity> movedEntities = null;
         Set<io.gomint.server.entity.Entity> metadataChangedEntities = null;
+        LongSet removeEntities = null;
+
         this.currentlyTicking = true;
 
-        if ( this.entitiesById.size() > 0 ) {
-            LongObjCursor<Entity> cursor = this.entitiesById.cursor();
-            while ( cursor.moveNext() ) {
-                io.gomint.server.entity.Entity entity = (io.gomint.server.entity.Entity) cursor.value();
+        if ( !this.entitiesById.isEmpty() ) {
+            for ( Long2ObjectMap.Entry<Entity> entry : this.entitiesById.long2ObjectEntrySet() ) {
+                io.gomint.server.entity.Entity entity = (io.gomint.server.entity.Entity) entry.getValue();
                 if ( !entity.isTicking() ) {
                     if ( entity.isDead() ) {
-                        cursor.remove();
+                        if ( removeEntities == null ) {
+                            removeEntities = new LongOpenHashSet();
+                        }
+
+                        removeEntities.add( entry.getLongKey() );
                         despawnEntity( entity );
                     }
 
@@ -117,7 +124,11 @@ public class EntityManager {
                         }
                     }
                 } else {
-                    cursor.remove();
+                    if ( removeEntities == null ) {
+                        removeEntities = new LongOpenHashSet();
+                    }
+
+                    removeEntities.add( entry.getLongKey() );
                     despawnEntity( entity );
                 }
             }
@@ -202,20 +213,15 @@ public class EntityManager {
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
 
                 // Check which player we need to inform about this movement
-                for ( Object o : this.world.getPlayers0().table() ) {
-                    if ( o == null || ( !( o instanceof io.gomint.server.entity.EntityPlayer ) ) ) {
-                        continue;
-                    }
-
-                    io.gomint.server.entity.EntityPlayer entityPlayer = (io.gomint.server.entity.EntityPlayer) o;
+                for ( io.gomint.server.entity.EntityPlayer player : this.world.getPlayers0().keySet() ) {
                     if ( movedEntity instanceof io.gomint.server.entity.EntityPlayer &&
-                        ( entityPlayer.isHidden( (EntityPlayer) movedEntity ) || o.equals( movedEntity ) ) ) {
+                        ( player.isHidden( (EntityPlayer) movedEntity ) || player.equals( movedEntity ) ) ) {
                         continue;
                     }
 
-                    entityPlayer.getEntityVisibilityManager().updateEntity( movedEntity, chunk );
-                    if ( entityPlayer.getEntityVisibilityManager().isVisible( movedEntity ) ) {
-                        entityPlayer.getConnection().addToSendQueue( packetEntityMovement );
+                    player.getEntityVisibilityManager().updateEntity( movedEntity, chunk );
+                    if ( player.getEntityVisibilityManager().isVisible( movedEntity ) ) {
+                        player.getConnection().addToSendQueue( packetEntityMovement );
                     }
                 }
             }
@@ -234,12 +240,7 @@ public class EntityManager {
                 packetEntityMetadata.setMetadata( entity.getMetadata() );
 
                 // Send to all players
-                for ( Object o : this.world.getPlayers0().table() ) {
-                    if ( o == null || ( !( o instanceof io.gomint.server.entity.EntityPlayer ) ) ) {
-                        continue;
-                    }
-
-                    io.gomint.server.entity.EntityPlayer entityPlayer = (io.gomint.server.entity.EntityPlayer) o;
+                for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
                     if ( entity instanceof io.gomint.server.entity.EntityPlayer && entityPlayer.isHidden( (EntityPlayer) entity ) ) {
                         continue;
                     }
@@ -255,8 +256,11 @@ public class EntityManager {
     }
 
     private void mergeSpawnedEntities() {
-        if ( this.spawnedInThisTick.size() > 0 ) {
-            this.spawnedInThisTick.forEach( ( l, entity ) -> entitiesById.justPut( l, entity ) );
+        if ( !this.spawnedInThisTick.isEmpty() ) {
+            for ( Long2ObjectMap.Entry<Entity> entry : this.spawnedInThisTick.long2ObjectEntrySet() ) {
+                this.entitiesById.put( entry.getLongKey(), entry.getValue() );
+            }
+
             this.spawnedInThisTick.clear();
         }
     }
@@ -315,9 +319,9 @@ public class EntityManager {
         cEntity.setPitch( pitch );
 
         if ( this.currentlyTicking ) {
-            this.spawnedInThisTick.justPut( entity.getEntityId(), entity );
+            this.spawnedInThisTick.put( entity.getEntityId(), entity );
         } else {
-            this.entitiesById.justPut( entity.getEntityId(), entity );
+            this.entitiesById.put( entity.getEntityId(), entity );
         }
 
         // Register to the correct chunk
@@ -380,12 +384,7 @@ public class EntityManager {
         }
 
         // Check which player we need to inform about this movement
-        for ( Object o : this.world.getPlayers0().table() ) {
-            if ( o == null || ( !( o instanceof io.gomint.server.entity.EntityPlayer ) ) ) {
-                continue;
-            }
-
-            io.gomint.server.entity.EntityPlayer entityPlayer = (io.gomint.server.entity.EntityPlayer) o;
+        for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
             if ( entity instanceof io.gomint.server.entity.EntityPlayer && ( entityPlayer.isHidden( (EntityPlayer) entity ) || entityPlayer.equals( entity ) ) ) {
                 continue;
             }
@@ -429,8 +428,8 @@ public class EntityManager {
         }
 
         // Remove from maps
-        this.entitiesById.justRemove( entity.getEntityId() );
-        this.spawnedInThisTick.justRemove( entity.getEntityId() );
+        this.entitiesById.remove( entity.getEntityId() );
+        this.spawnedInThisTick.remove( entity.getEntityId() );
     }
 
 }

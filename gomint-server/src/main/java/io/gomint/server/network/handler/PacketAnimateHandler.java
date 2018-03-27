@@ -1,6 +1,5 @@
 package io.gomint.server.network.handler;
 
-import com.koloboke.collect.ObjCursor;
 import io.gomint.entity.Entity;
 import io.gomint.event.player.PlayerAnimationEvent;
 import io.gomint.server.entity.EntityPlayer;
@@ -16,24 +15,24 @@ public class PacketAnimateHandler implements PacketHandler<PacketAnimate> {
 
     @Override
     public void handle( PacketAnimate packet, long currentTimeMillis, PlayerConnection connection ) {
-        ObjCursor<Entity> entityObjCursor = connection.getEntity().getAttachedEntities().cursor();
+        PlayerAnimationEvent playerAnimationEvent = null;
+
 
         switch ( packet.getPlayerAnimation() ) {
-
             case SWING:
+                playerAnimationEvent = new PlayerAnimationEvent( connection.getEntity(), PlayerAnimationEvent.Animation.SWING );
+                break;
+            default:
+                return;
+        }
 
-                PlayerAnimationEvent playerAnimationEvent = new PlayerAnimationEvent( connection.getEntity(), PlayerAnimationEvent.Animation.SWING );
-                connection.getServer().getPluginManager().callEvent( playerAnimationEvent );
-
-                if( !playerAnimationEvent.isCancelled() ) {
-                    while ( entityObjCursor.moveNext() ) {
-                        Entity entity = entityObjCursor.elem();
-                        if ( entity instanceof EntityPlayer ) {
-                            ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
-                        }
-                    }
+        connection.getServer().getPluginManager().callEvent( playerAnimationEvent );
+        if ( !playerAnimationEvent.isCancelled() ) {
+            for ( Entity entity : connection.getEntity().getAttachedEntities() ) {
+                if ( entity instanceof EntityPlayer ) {
+                    ( (EntityPlayer) entity ).getConnection().addToSendQueue( packet );
                 }
-            break;
+            }
         }
     }
 

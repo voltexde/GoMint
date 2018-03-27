@@ -55,12 +55,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.jar.Manifest;
 
 /**
  * @author BlackyPaw
@@ -200,7 +203,24 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         }
 
-        LOGGER.info( "Starting " + getVersion() );
+        // Extract informations from the manifest
+        String buildVersion = "dev/unsupported";
+        ClassLoader cl = getClass().getClassLoader();
+        try {
+            URL url = cl.getResource( "META-INF/MANIFEST.MF" );
+            if ( url != null ) {
+                Manifest manifest = new Manifest( url.openStream() );
+                buildVersion = manifest.getMainAttributes().getValue( "Implementation-Build" );
+            }
+
+            if ( buildVersion == null ) {
+                buildVersion = "dev/unsupported";
+            }
+        } catch ( IOException e ) {
+            // Ignored .-.
+        }
+
+        LOGGER.info( "Starting {} {}", getVersion(), buildVersion );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
         // ------------------------------------ //

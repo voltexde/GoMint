@@ -7,7 +7,6 @@
 
 package io.gomint.server.entity;
 
-import com.koloboke.collect.ObjCursor;
 import io.gomint.command.CommandOutput;
 import io.gomint.command.CommandOverload;
 import io.gomint.command.ParamValidator;
@@ -21,10 +20,22 @@ import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityTeleportEvent;
 import io.gomint.event.inventory.InventoryCloseEvent;
 import io.gomint.event.inventory.InventoryOpenEvent;
-import io.gomint.event.player.*;
-import io.gomint.gui.*;
-import io.gomint.math.*;
+import io.gomint.event.player.PlayerDeathEvent;
+import io.gomint.event.player.PlayerExhaustEvent;
+import io.gomint.event.player.PlayerFoodLevelChangeEvent;
+import io.gomint.event.player.PlayerJoinEvent;
+import io.gomint.event.player.PlayerRespawnEvent;
+import io.gomint.gui.ButtonList;
+import io.gomint.gui.Form;
+import io.gomint.gui.FormListener;
+import io.gomint.gui.FormResponse;
+import io.gomint.gui.Modal;
+import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.BlockPosition;
+import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
+import io.gomint.math.Vector2;
 import io.gomint.player.DeviceInfo;
 import io.gomint.server.command.CommandCanidate;
 import io.gomint.server.command.CommandHolder;
@@ -32,29 +43,69 @@ import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.entity.projectile.EntityFishingHook;
-import io.gomint.server.inventory.*;
+import io.gomint.server.inventory.ArmorInventory;
+import io.gomint.server.inventory.ContainerInventory;
+import io.gomint.server.inventory.CraftingInputInventory;
+import io.gomint.server.inventory.CursorInventory;
+import io.gomint.server.inventory.EnchantmentTableInventory;
+import io.gomint.server.inventory.Inventory;
+import io.gomint.server.inventory.InventoryHolder;
+import io.gomint.server.inventory.OffhandInventory;
+import io.gomint.server.inventory.PlayerInventory;
+import io.gomint.server.inventory.WindowMagicNumbers;
 import io.gomint.server.inventory.item.ItemAir;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.packet.*;
+import io.gomint.server.network.packet.PacketAvailableCommands;
+import io.gomint.server.network.packet.PacketContainerClose;
+import io.gomint.server.network.packet.PacketDespawnEntity;
+import io.gomint.server.network.packet.PacketEntityEvent;
+import io.gomint.server.network.packet.PacketModalRequest;
+import io.gomint.server.network.packet.PacketPlayState;
+import io.gomint.server.network.packet.PacketPlayerlist;
+import io.gomint.server.network.packet.PacketRespawnPosition;
+import io.gomint.server.network.packet.PacketServerSettingsResponse;
+import io.gomint.server.network.packet.PacketSetGamemode;
+import io.gomint.server.network.packet.PacketSetTitle;
+import io.gomint.server.network.packet.PacketText;
+import io.gomint.server.network.packet.PacketTransfer;
+import io.gomint.server.network.packet.PacketUpdateAttributes;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.util.EnumConnectors;
-import io.gomint.server.util.collection.ContainerIDMap;
-import io.gomint.server.util.collection.ContainerObjectMap;
-import io.gomint.server.util.collection.FormIDMap;
-import io.gomint.server.util.collection.FormListenerIDMap;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
-import io.gomint.world.*;
+import io.gomint.world.Gamemode;
+import io.gomint.world.Particle;
+import io.gomint.world.ParticleData;
+import io.gomint.world.Sound;
+import io.gomint.world.SoundData;
+import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
+import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ByteMap;
+import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -94,8 +145,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Set<Long> hiddenPlayers;
 
     // Container handling
-    private ContainerObjectMap windowIds;
-    private ContainerIDMap containerIds;
+    private Byte2ObjectMap<ContainerInventory> windowIds;
+    private Object2ByteMap<ContainerInventory> containerIds;
 
     // Inventory
     private Inventory cursorInventory;
@@ -139,8 +190,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     // Form stuff
     private int formId;
-    private FormIDMap forms = FormIDMap.withExpectedSize( 2 );
-    private FormListenerIDMap formListeners = FormListenerIDMap.withExpectedSize( 2 );
+    private Int2ObjectMap<io.gomint.server.gui.Form> forms = new Int2ObjectOpenHashMap<>();
+    private Int2ObjectMap<io.gomint.server.gui.FormListener> formListeners = new Int2ObjectOpenHashMap<>();
 
     // Server settings
     private int serverSettingsForm = -1;
@@ -479,8 +530,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
             // Trigger open
             ContainerInventory containerInventory = (ContainerInventory) inventory;
-            this.windowIds.justPut( foundId, containerInventory );
-            this.containerIds.justPut( containerInventory, foundId );
+            this.windowIds.put( foundId, containerInventory );
+            this.containerIds.put( containerInventory, foundId );
             containerInventory.addViewer( this, foundId );
         }
     }
@@ -588,8 +639,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.enchantmentOutputInventory = new CursorInventory( this );
 
-        this.windowIds = ContainerObjectMap.withExpectedSize( 2 );
-        this.containerIds = ContainerIDMap.withExpectedSize( 2 );
+        this.windowIds = new Byte2ObjectOpenHashMap<>();
+        this.containerIds = new Object2ByteOpenHashMap<>();
         this.connection.getServer().getCreativeInventory().addViewer( this );
 
         // Send crafting recipes
@@ -692,7 +743,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         ContainerInventory containerInventory = this.windowIds.remove( windowId );
         if ( containerInventory != null ) {
             containerInventory.removeViewer( this );
-            this.containerIds.justRemove( containerInventory );
+            this.containerIds.removeByte( containerInventory );
 
             InventoryCloseEvent inventoryCloseEvent = new InventoryCloseEvent( this, containerInventory );
             this.getWorld().getServer().getPluginManager().callEvent( inventoryCloseEvent );
@@ -1098,7 +1149,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         int formId = this.formId++;
         io.gomint.server.gui.Form implForm = (io.gomint.server.gui.Form) form;
 
-        this.forms.justPut( formId, implForm );
+        this.forms.put( formId, implForm );
 
         io.gomint.server.gui.FormListener formListener = null;
         if ( form instanceof ButtonList ) {
@@ -1109,7 +1160,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             formListener = new io.gomint.server.gui.FormListener<FormResponse>();
         }
 
-        this.formListeners.justPut( formId, formListener );
+        this.formListeners.put( formId, formListener );
 
         // Send packet for client
         String json = implForm.toJSON().toJSONString();
@@ -1130,7 +1181,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         int formId = this.formId++;
         io.gomint.server.gui.Form implForm = (io.gomint.server.gui.Form) form;
 
-        this.forms.justPut( formId, implForm );
+        this.forms.put( formId, implForm );
 
         io.gomint.server.gui.FormListener formListener = null;
         if ( form instanceof ButtonList ) {
@@ -1141,7 +1192,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             formListener = new io.gomint.server.gui.FormListener<FormResponse>();
         }
 
-        this.formListeners.justPut( formId, formListener );
+        this.formListeners.put( formId, formListener );
         this.serverSettingsForm = formId;
         return formListener;
     }
@@ -1149,8 +1200,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public void removeSettingsForm() {
         if ( this.serverSettingsForm != -1 ) {
-            this.forms.justRemove( this.serverSettingsForm );
-            this.formListeners.justRemove( this.serverSettingsForm );
+            this.forms.remove( this.serverSettingsForm );
+            this.formListeners.remove( this.serverSettingsForm );
             this.serverSettingsForm = -1;
         }
     }
@@ -1163,8 +1214,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             io.gomint.server.gui.FormListener formListener = this.formListeners.get( formId );
 
             if ( this.serverSettingsForm != formId ) {
-                this.forms.justRemove( formId );
-                this.formListeners.justRemove( formId );
+                this.forms.remove( formId );
+                this.formListeners.remove( formId );
             }
 
             if ( json.equals( "null" ) ) {
@@ -1183,9 +1234,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void despawn() {
-        ObjCursor<Entity> entityObjCursor = getAttachedEntities().cursor();
-        while ( entityObjCursor.moveNext() ) {
-            Entity entity = entityObjCursor.elem();
+        for ( Entity entity : this.getAttachedEntities() ) {
             if ( entity instanceof EntityPlayer ) {
                 ( (EntityPlayer) entity ).getEntityVisibilityManager().removeEntity( this );
             }
