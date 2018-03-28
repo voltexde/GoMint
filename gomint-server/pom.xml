@@ -248,6 +248,9 @@
                                         <include>it/unimi/dsi/fastutil/bytes/ByteIterable**</include>
                                         <include>it/unimi/dsi/fastutil/bytes/ByteIterator**</include>
                                         <include>it/unimi/dsi/fastutil/bytes/ByteSet**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/ByteOpenHashSet**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/AbstractByteSet**</include>
+                                        <include>it/unimi/dsi/fastutil/bytes/AbstractByteCollection**</include>
                                         <include>it/unimi/dsi/fastutil/objects/Object2ByteMap**</include>
                                         <include>it/unimi/dsi/fastutil/objects/Object2ByteFunction**</include>
                                         <include>it/unimi/dsi/fastutil/objects/Object2ByteOpenHashMap**</include>
