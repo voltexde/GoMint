@@ -9,7 +9,6 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.component.AIBehaviourComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
-import io.gomint.server.entity.potion.Effects;
 import io.gomint.server.entity.potion.effect.Effect;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.network.packet.Packet;
@@ -500,7 +499,8 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     @Override
     public void addEffect( PotionEffect effect, int amplifier, long duration, TimeUnit timeUnit ) {
         byte effectId = (byte) EnumConnectors.POTION_EFFECT_CONNECTOR.convert( effect ).getId();
-        Effect effectInstance = Effects.generate( effectId, amplifier, this.world.getServer().getCurrentTickTime() + timeUnit.toMillis( duration ) );
+        Effect effectInstance = this.world.getServer().getEffects().generate( effectId, amplifier,
+            this.world.getServer().getCurrentTickTime() + timeUnit.toMillis( duration ) );
 
         if ( effectInstance != null ) {
             this.effectManager.addEffect( effectId, effectInstance );

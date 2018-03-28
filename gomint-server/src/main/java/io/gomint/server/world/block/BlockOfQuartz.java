@@ -1,7 +1,11 @@
 package io.gomint.server.world.block;
 
-import io.gomint.inventory.item.*;
-import io.gomint.server.inventory.item.Items;
+import io.gomint.inventory.item.ItemDiamondPickaxe;
+import io.gomint.inventory.item.ItemGoldenPickaxe;
+import io.gomint.inventory.item.ItemIronPickaxe;
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.inventory.item.ItemStonePickaxe;
+import io.gomint.inventory.item.ItemWoodenPickaxe;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockType;
 
@@ -88,7 +92,7 @@ public class BlockOfQuartz extends Block implements io.gomint.world.block.BlockB
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
         if ( isCorrectTool( itemInHand ) ) {
             return new ArrayList<ItemStack>() {{
-                add( Items.create( getBlockId() & 0xFF, getBlockData(), (byte) 1, null ) );
+                add( world.getServer().getItems().create( getBlockId() & 0xFF, getBlockData(), (byte) 1, null ) );
             }};
         }
 

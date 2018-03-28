@@ -10,11 +10,8 @@ package io.gomint.server.entity.tileentity;
 import io.gomint.entity.Entity;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -42,13 +39,13 @@ public class ItemFrameTileEntity extends TileEntity {
         //
         NBTTagCompound itemCompound = tagCompound.getCompound( "Item", false );
         if ( itemCompound != null ) {
-            this.holdingItem = Items.create(
-                    itemCompound.getShort( "id", (short) 0 ),
-                    itemCompound.getShort( "Damage", (short) 0 ),
-                    itemCompound.getByte( "Count", (byte) 1 ),
-                    itemCompound.getCompound( "tag", false ) );
+            this.holdingItem = world.getServer().getItems().create(
+                itemCompound.getShort( "id", (short) 0 ),
+                itemCompound.getShort( "Damage", (short) 0 ),
+                itemCompound.getByte( "Count", (byte) 1 ),
+                itemCompound.getCompound( "tag", false ) );
         } else {
-            this.holdingItem = Items.create( 0, (short) 0, (byte) 0, null );
+            this.holdingItem = world.getServer().getItems().create( 0, (short) 0, (byte) 0, null );
         }
     }
 

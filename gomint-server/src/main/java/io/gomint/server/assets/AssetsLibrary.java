@@ -9,13 +9,13 @@ package io.gomint.server.assets;
 
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.ShapedRecipe;
 import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.crafting.SmeltingRecipe;
 import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -25,7 +25,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * A wrapper class around any suitable file format (currently NBT) that allows
@@ -46,6 +49,17 @@ public class AssetsLibrary {
     private int shapelessRecipes;
     private int shapedRecipes;
     private int smeltingRecipes;
+
+    private final GoMintServer server;
+
+    /**
+     * Create new asset library
+     *
+     * @param server which has been started
+     */
+    public AssetsLibrary( GoMintServer server ) {
+        this.server = server;
+    }
 
     /**
      * Loads the assets library from the given file.
@@ -182,7 +196,7 @@ public class AssetsLibrary {
             bin.close();
         }
 
-        return Items.create( id, data, amount, compound );
+        return this.server.getItems().create( id, data, amount, compound );
     }
 
 }

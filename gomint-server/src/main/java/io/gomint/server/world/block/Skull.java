@@ -1,7 +1,5 @@
 package io.gomint.server.world.block;
 
-import io.gomint.world.block.BlockType;
-
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.MojangRotation;
@@ -9,10 +7,10 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.SkullTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.PlacementData;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,8 +72,8 @@ public class Skull extends Block implements io.gomint.world.block.BlockSkull {
 
     @Override
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
-        return new ArrayList<ItemStack>(){{
-            add( Items.create( 397, getBlockData(), (byte) 1, null ) );
+        return new ArrayList<ItemStack>() {{
+            add( world.getServer().getItems().create( 397, getBlockData(), (byte) 1, null ) );
         }};
     }
 

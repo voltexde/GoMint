@@ -7,18 +7,25 @@
 
 package io.gomint.server.world.anvil;
 
-import com.google.common.cache.*;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.google.common.io.Files;
-import io.gomint.GoMint;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.plugin.PluginClassloader;
 import io.gomint.server.util.Pair;
-import io.gomint.server.world.*;
+import io.gomint.server.world.ChunkAdapter;
+import io.gomint.server.world.ChunkCache;
+import io.gomint.server.world.CoordinateUtils;
+import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.WorldCreateException;
+import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.block.Block;
-import io.gomint.server.world.block.Blocks;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Chunk;
@@ -33,7 +40,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -180,7 +191,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                                 blockId = MaterialMagicNumbers.valueOfWithId( temp[1] );
                             }
 
-                            Block block = Blocks.get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
+                            Block block = this.server.getBlocks().get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
                             for ( int i = 0; i < amountOfLayers; i++ ) {
                                 layers.add( block );
                             }
@@ -198,7 +209,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                                     blockId = Integer.parseInt( temp[1] );
                                 }
 
-                                Block block = Blocks.get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
+                                Block block = this.server.getBlocks().get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
                                 for ( int i = 0; i < amountOfLayers; i++ ) {
                                     layers.add( block );
                                 }

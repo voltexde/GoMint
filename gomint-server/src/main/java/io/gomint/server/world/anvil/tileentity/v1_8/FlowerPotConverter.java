@@ -10,7 +10,6 @@ package io.gomint.server.world.anvil.tileentity.v1_8;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.FlowerPotTileEntity;
 import io.gomint.server.inventory.MaterialMagicNumbers;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -44,11 +43,11 @@ public class FlowerPotConverter extends BasisConverter<FlowerPotTileEntity> {
 
         // Skip non existent items for PE
         if ( material == 0 ) {
-            return new FlowerPotTileEntity( Items.create( 0, (short) 0, (byte) 0, null ), position );
+            return new FlowerPotTileEntity( this.worldAdapter.getServer().getItems().create( 0, (short) 0, (byte) 0, null ), position );
         }
 
         short data = compound.getInteger( "Data", -1 ).shortValue();
-        return new FlowerPotTileEntity( Items.create( material, data, (byte) 1, null ), position );
+        return new FlowerPotTileEntity( this.worldAdapter.getServer().getItems().create( material, data, (byte) 1, null ), position );
     }
 
 }

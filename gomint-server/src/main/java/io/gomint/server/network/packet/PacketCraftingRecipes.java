@@ -7,13 +7,14 @@
 
 package io.gomint.server.network.packet;
 
+import io.gomint.GoMint;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.ShapedRecipe;
 import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.crafting.SmeltingRecipe;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -117,7 +118,7 @@ public class PacketCraftingRecipes extends Packet {
                     short data = (short) buffer.readSignedVarInt();
                     ItemStack result = Packet.readItemStack( buffer );
 
-                    this.recipes.add( new SmeltingRecipe( Items.create( id, data, (byte) -1, null ), result, null ) );
+                    this.recipes.add( new SmeltingRecipe( ( (GoMintServer) GoMint.instance() ).getItems().create( id, data, (byte) -1, null ), result, null ) );
                     break;
 
                 case 2:
@@ -126,7 +127,7 @@ public class PacketCraftingRecipes extends Packet {
                     id = buffer.readSignedVarInt();
                     result = Packet.readItemStack( buffer );
 
-                    this.recipes.add( new SmeltingRecipe( Items.create( id, (short) 0, (byte) -1, null ), result, null ) );
+                    this.recipes.add( new SmeltingRecipe( ( (GoMintServer) GoMint.instance() ).getItems().create( id, (short) 0, (byte) -1, null ), result, null ) );
                     break;
             }
         }

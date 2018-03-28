@@ -15,7 +15,6 @@ import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.PacketTileEntityData;
@@ -215,13 +214,13 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Internal overload for NBT compound calculations
      *
-     * @param <T>       block generic type
-     * @param data      optional data for the block
+     * @param <T>  block generic type
+     * @param data optional data for the block
      * @return the new placed block
      */
     public <T extends io.gomint.world.block.Block> T setBlockFromPlacementData( PlacementData data ) {
         BlockPosition pos = this.location.toBlockPosition();
-        Block instance = Blocks.get( data.getBlockId() );
+        Block instance = this.world.getServer().getBlocks().get( data.getBlockId() );
 
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
@@ -260,7 +259,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     @Override
     public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType ) {
         BlockPosition pos = this.location.toBlockPosition();
-        Block instance = Blocks.get( blockType );
+        Block instance = this.world.getServer().getBlocks().get( blockType );
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
             worldAdapter.setBlockId( pos, instance.getBlockId() );
@@ -603,7 +602,7 @@ public abstract class Block implements io.gomint.world.block.Block {
      */
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
         return new ArrayList<ItemStack>() {{
-            add( Items.create( getBlockId() & 0xFF, getBlockData(), (byte) 1, null ) );
+            add( world.getServer().getItems().create( getBlockId() & 0xFF, getBlockData(), (byte) 1, null ) );
         }};
     }
 

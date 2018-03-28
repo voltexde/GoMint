@@ -1,11 +1,7 @@
 package io.gomint.server.inventory;
 
-import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryContent;
-
-import java.util.Collection;
 
 /**
  * @author geNAZt

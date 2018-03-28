@@ -38,7 +38,6 @@ public class Bootstrap {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Bootstrap.class );
 
-
     /**
      * Main entry point. May be used for custom dependency injection, dynamic
      * library class loaders and other experiments which need to be done before
@@ -47,6 +46,12 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
+        try {
+            Thread.sleep( 15000 );
+        } catch ( InterruptedException e ) {
+            e.printStackTrace();
+        }
+
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
 

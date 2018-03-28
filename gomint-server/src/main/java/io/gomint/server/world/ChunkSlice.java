@@ -72,10 +72,10 @@ class ChunkSlice {
         int fullZ = CoordinateUtils.getChunkMin( this.chunk.getZ() ) + z;
 
         if ( this.isAllAir ) {
-            return (T) Blocks.get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ) );
+            return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ) );
         }
 
-        return (T) Blocks.get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
+        return (T) this.chunk.getWorld().getServer().getBlocks().get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
             this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
     }
 
@@ -103,10 +103,9 @@ class ChunkSlice {
     void setData( int x, int y, int z, byte data ) {
         short index = getIndex( x, y, z );
 
-        if ( !this.isAllAir ) {
-            if ( this.data == null ) {
-                this.data = new NibbleArray( (short) 4096 );
-            }
+        // Check if we need to set new nibble array
+        if ( !this.isAllAir && this.data == null ) {
+            this.data = new NibbleArray( (short) 4096 );
         }
 
         // All air and we want to set block data? How about no!

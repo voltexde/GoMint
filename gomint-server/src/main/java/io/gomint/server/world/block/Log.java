@@ -1,7 +1,6 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockLog;
@@ -140,7 +139,7 @@ public class Log extends Block implements BlockLog {
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
         // Strip away direction meta
         return new ArrayList<ItemStack>() {{
-            add( Items.create( getBlockId() & 0xFF, getTypeData(), (byte) 1, null ) );
+            add( world.getServer().getItems().create( getBlockId() & 0xFF, getTypeData(), (byte) 1, null ) );
         }};
     }
 

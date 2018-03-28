@@ -10,7 +10,6 @@ package io.gomint.server.world.anvil.tileentity.v1_8;
 import io.gomint.math.Location;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.anvil.tileentity.TileEntityConverter;
 import io.gomint.taglib.NBTTagCompound;
@@ -63,13 +62,13 @@ public abstract class BasisConverter<T> extends TileEntityConverter<T> {
 
         // Skip non existent items for PE
         if ( material == 0 ) {
-            return Items.create( 0, (short) 0, (byte) 0, null );
+            return this.worldAdapter.getServer().getItems().create( 0, (short) 0, (byte) 0, null );
         }
 
         short data = compound.getShort( "Damage", (short) 0 );
         byte amount = compound.getByte( "Count", (byte) 1 );
 
-        return Items.create( material, data, amount, compound.getCompound( "tag", false ) );
+        return this.worldAdapter.getServer().getItems().create( material, data, amount, compound.getCompound( "tag", false ) );
     }
 
 }

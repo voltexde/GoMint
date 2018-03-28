@@ -1,6 +1,7 @@
 package io.gomint.server.registry;
 
 import com.google.common.reflect.ClassPath;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.util.collection.FixedIndexResizableArray;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -20,13 +21,16 @@ public class Registry<R> {
     private final GeneratorCallback<R> generatorCallback;
     private final FixedIndexResizableArray<R> generators = new FixedIndexResizableArray<>();
     private final Object2IntMap<Class<?>> apiReferences = new Object2IntOpenHashMap<>();
+    private final GoMintServer server;
 
     /**
      * Build a new generator registry
      *
+     * @param server which started this gomint
      * @param callback which is used to generate a generator for each found element
      */
-    public Registry( GeneratorCallback<R> callback ) {
+    public Registry( GoMintServer server, GeneratorCallback<R> callback ) {
+        this.server = server;
         this.generatorCallback = callback;
     }
 
@@ -38,12 +42,8 @@ public class Registry<R> {
     public void register( String classPath ) {
         LOGGER.debug( "Going to scan: {}", classPath );
 
-        try {
-            for ( ClassPath.ClassInfo classInfo : ClassPath.from( Registry.class.getClassLoader() ).getTopLevelClasses( classPath ) ) {
-                register( classInfo.load() );
-            }
-        } catch ( IOException e ) {
-            e.printStackTrace();
+        for ( ClassPath.ClassInfo classInfo : this.server.getClassPath().getTopLevelClasses( classPath ) ) {
+            register( classInfo.load() );
         }
     }
 

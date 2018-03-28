@@ -1,13 +1,12 @@
 package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.inventory.item.generator.ItemGenerator;
 import io.gomint.server.registry.Registry;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 /**
  * @author geNAZt
@@ -16,18 +15,25 @@ import java.util.Collection;
 public class Items {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Items.class );
-    private static final Registry<ItemGenerator> GENERATORS = new Registry<>( clazz -> {
-        try {
-            return (ItemGenerator) Class.forName( "io.gomint.server.inventory.item.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
-        } catch ( ClassNotFoundException | IllegalAccessException | InstantiationException e1 ) {
-            LOGGER.error( "Could not use pre generated generator: ", e1 );
-        }
+    private final Registry<ItemGenerator> generators;
 
-        return null;
-    } );
+    /**
+     * Create a new item registry
+     *
+     * @param server which builds this registry
+     */
+    public Items( GoMintServer server ) {
+        this.generators = new Registry<>( server, clazz -> {
+            try {
+                return (ItemGenerator) Class.forName( "io.gomint.server.inventory.item.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+            } catch ( ClassNotFoundException | IllegalAccessException | InstantiationException e1 ) {
+                LOGGER.error( "Could not use pre generated generator: ", e1 );
+            }
 
-    static {
-        GENERATORS.register( "io.gomint.server.inventory.item" );
+            return null;
+        } );
+
+        this.generators.register( "io.gomint.server.inventory.item" );
     }
 
     /**
@@ -40,8 +46,8 @@ public class Items {
      * @param <T>    type of item stack
      * @return generated item stack
      */
-    public static <T extends ItemStack> T create( int id, short data, byte amount, NBTTagCompound nbt ) {
-        ItemGenerator itemGenerator = GENERATORS.getGenerator( id );
+    public <T extends ItemStack> T create( int id, short data, byte amount, NBTTagCompound nbt ) {
+        ItemGenerator itemGenerator = this.generators.getGenerator( id );
         if ( itemGenerator == null ) {
             LOGGER.warn( "Unknown item {}", id );
             return null;
@@ -63,8 +69,8 @@ public class Items {
      * @param <T>       type of item stack
      * @return generated item stack
      */
-    public static <T extends ItemStack> T create( Class<T> itemClass, byte amount ) {
-        ItemGenerator itemGenerator = GENERATORS.getGenerator( itemClass );
+    public <T extends ItemStack> T create( Class<T> itemClass, byte amount ) {
+        ItemGenerator itemGenerator = this.generators.getGenerator( itemClass );
         if ( itemGenerator == null ) {
             return null;
         }

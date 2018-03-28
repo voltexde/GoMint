@@ -5,6 +5,7 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.Registry;
@@ -20,24 +21,31 @@ import org.slf4j.LoggerFactory;
 public class Blocks {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Blocks.class );
-    private static final Registry<BlockGenerator> GENERATORS = new Registry<>( clazz -> {
-        try {
-            // Use the same code source as the Gomint JAR
-            return (BlockGenerator) Blocks.class.getClassLoader().loadClass( "io.gomint.server.world.block.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
-        } catch ( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
-            LOGGER.error( "Could not load block generator", e );
-        }
+    private final Registry<BlockGenerator> generators;
 
-        return null;
-    } );
+    /**
+     * Create a new block registry
+     *
+     * @param server which builds this registry
+     */
+    public Blocks( GoMintServer server ) {
+        this.generators = new Registry<>( server, clazz -> {
+            try {
+                // Use the same code source as the Gomint JAR
+                return (BlockGenerator) Blocks.class.getClassLoader().loadClass( "io.gomint.server.world.block.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+            } catch ( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
+                LOGGER.error( "Could not load block generator", e );
+            }
 
-    static {
-        GENERATORS.register( "io.gomint.server.world.block" );
+            return null;
+        } );
+
+        this.generators.register( "io.gomint.server.world.block" );
     }
 
-    public static <T extends Block> T get( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel,
+    public <T extends Block> T get( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel,
                                            TileEntity tileEntity, Location location ) {
-        BlockGenerator instance = GENERATORS.getGenerator( blockId );
+        BlockGenerator instance = this.generators.getGenerator( blockId );
         if ( instance != null ) {
             if ( location == null ) {
                 return instance.generate();
@@ -50,8 +58,8 @@ public class Blocks {
         return null;
     }
 
-    public static Block get( byte blockId ) {
-        BlockGenerator instance = GENERATORS.getGenerator( blockId & 0xFF );
+    public Block get( byte blockId ) {
+        BlockGenerator instance = this.generators.getGenerator( blockId & 0xFF );
         if ( instance != null ) {
             return instance.generate();
         }
@@ -60,8 +68,8 @@ public class Blocks {
         return null;
     }
 
-    public static <T extends Block> T get( Class<?> apiInterface ) {
-        BlockGenerator instance = GENERATORS.getGenerator( apiInterface );
+    public <T extends Block> T get( Class<?> apiInterface ) {
+        BlockGenerator instance = this.generators.getGenerator( apiInterface );
         if ( instance != null ) {
             return instance.generate();
         }
@@ -69,14 +77,14 @@ public class Blocks {
         return null;
     }
 
-    public static int getID( Class<?> block ) {
-        return GENERATORS.getId( block );
+    public int getID( Class<?> block ) {
+        return this.generators.getId( block );
     }
 
-    public static boolean replaceWithItem( EntityPlayer entity, Block clickedBlock, Block block, ItemStack item, Vector clickVector ) {
+    public boolean replaceWithItem( EntityPlayer entity, Block clickedBlock, Block block, ItemStack item, Vector clickVector ) {
         // We need to change the block id first
         int id = ( (io.gomint.server.inventory.item.ItemStack) item ).getBlockId();
-        BlockGenerator blockGenerator = GENERATORS.getGenerator( id );
+        BlockGenerator blockGenerator = this.generators.getGenerator( id );
         Block newBlock = blockGenerator.generate();
         if ( !newBlock.beforePlacement( entity, item, block.location ) ) {
             return false;

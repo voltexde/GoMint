@@ -62,7 +62,7 @@ public class WorldManager {
      */
     public Collection<WorldAdapter> getWorlds() {
         if ( !GoMint.instance().isMainThread() ) {
-            LOGGER.warn( "Getting worlds from an async thread. This is not safe and can lead to CME" );
+            LOGGER.warn( "Getting worlds from an async thread. This is not safe and can lead to CME", new Exception() );
         }
 
         return this.loadedWorlds.values();

@@ -7,13 +7,13 @@
 
 package io.gomint.server.world.block;
 
-import io.gomint.inventory.item.*;
-import io.gomint.math.BlockPosition;
-import io.gomint.math.Vector;
-import io.gomint.server.entity.Entity;
-import io.gomint.server.inventory.item.Items;
+import io.gomint.inventory.item.ItemDiamondAxe;
+import io.gomint.inventory.item.ItemGoldenAxe;
+import io.gomint.inventory.item.ItemIronAxe;
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.inventory.item.ItemStoneAxe;
+import io.gomint.inventory.item.ItemWoodenAxe;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.server.world.PlacementData;
 import io.gomint.world.block.BlockType;
 import io.gomint.world.block.BlockWoodenDoor;
 
@@ -123,7 +123,7 @@ public class WoodenDoor extends Door implements BlockWoodenDoor {
         }
 
         return new ArrayList<ItemStack>() {{
-            add( Items.create( itemId, (short) 0, (byte) 1, null ) );
+            add( world.getServer().getItems().create( itemId, (short) 0, (byte) 1, null ) );
         }};
     }
 

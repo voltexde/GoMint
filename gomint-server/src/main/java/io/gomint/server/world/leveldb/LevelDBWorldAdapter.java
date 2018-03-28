@@ -7,7 +7,6 @@
 
 package io.gomint.server.world.leveldb;
 
-import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.util.DumpUtil;
@@ -16,7 +15,6 @@ import io.gomint.server.world.ChunkCache;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.block.Block;
-import io.gomint.server.world.block.Blocks;
 import io.gomint.taglib.NBTStream;
 import io.gomint.world.Chunk;
 import io.gomint.world.Difficulty;
@@ -114,7 +112,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                                 int blockId = ( (Long) layerConfig.get( "block_id" ) ).intValue();
                                 byte blockData = ( (Long) layerConfig.get( "block_data" ) ).byteValue();
 
-                                Block block = Blocks.get( blockId, blockData, (byte) 0, (byte) 0, null, null );
+                                Block block = this.server.getBlocks().get( blockId, blockData, (byte) 0, (byte) 0, null, null );
                                 for ( int i = 0; i < count; i++ ) {
                                     blocks.add( block );
                                 }

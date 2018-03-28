@@ -256,7 +256,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
         if ( this.entityHolders != null && !this.entityHolders.isEmpty() ) {
             for ( NBTTagCompound holder : this.entityHolders ) {
-                LOGGER.debug( "Found entity: {}", holder );
+                LOGGER.info( "Found entity: {}", holder );
             }
         }
 

@@ -7,16 +7,22 @@
 
 package io.gomint.server.inventory.item;
 
+import io.gomint.GoMint;
 import io.gomint.enchant.Enchantment;
 import io.gomint.math.Vector;
-import io.gomint.server.enchant.Enchantments;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.Block;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents a stack of up to 255 items of the same type which may
@@ -263,7 +269,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
 
     @Override
     public void addEnchantment( Class<? extends Enchantment> clazz, short level ) {
-        short id = Enchantments.getId( clazz );
+        short id = ( (GoMintServer) GoMint.instance() ).getEnchantments().getId( clazz );
         if ( id == -1 ) {
             return;
         }
@@ -299,7 +305,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
             this.enchantments = new HashMap<>();
             for ( Object compound : nbtEnchCompounds ) {
                 NBTTagCompound enchantCompound = (NBTTagCompound) compound;
-                io.gomint.server.enchant.Enchantment enchantment = Enchantments.create(
+                io.gomint.server.enchant.Enchantment enchantment = ( (GoMintServer) GoMint.instance() ).getEnchantments().create(
                     enchantCompound.getShort( "id", (short) 0 ),
                     enchantCompound.getShort( "lvl", (short) 0 )
                 );
@@ -313,7 +319,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
 
     @Override
     public void removeEnchantment( Class<? extends Enchantment> clazz ) {
-        short id = Enchantments.getId( clazz );
+        short id = ( (GoMintServer) GoMint.instance() ).getEnchantments().getId( clazz );
         if ( id == -1 ) {
             return;
         }
@@ -360,8 +366,8 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         if ( !( other instanceof ItemStack ) ) return false;
         ItemStack otherItemStack = (ItemStack) other;
         return this.getMaterial() == otherItemStack.getMaterial() &&
-                this.getData() == otherItemStack.getData() &&
-                Objects.equals( this.nbt, otherItemStack.nbt );
+            this.getData() == otherItemStack.getData() &&
+            Objects.equals( this.nbt, otherItemStack.nbt );
     }
 
     /**

@@ -220,7 +220,7 @@ public class EnchantmentProcessor {
                     this.enchantments = new ArrayList<>();
                     for ( Object enchant : enchants ) {
                         NBTTagCompound enchantCompound = (NBTTagCompound) enchant;
-                        Enchantment enchantment = Enchantments.create(
+                        Enchantment enchantment = this.player.getWorld().getServer().getEnchantments().create(
                             enchantCompound.getShort( "id", (short) 0 ),
                             enchantCompound.getShort( "lvl", (short) 0 )
                         );

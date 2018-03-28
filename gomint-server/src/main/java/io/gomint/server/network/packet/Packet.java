@@ -7,13 +7,14 @@
 
 package io.gomint.server.network.packet;
 
+import io.gomint.GoMint;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityLink;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.type.CommandOrigin;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
@@ -122,7 +123,7 @@ public abstract class Packet {
             buffer.readString();    // TODO: Implement proper support once we know the string values
         }
 
-        return Items.create( id, data, amount, nbt );
+        return ( (GoMintServer) GoMint.instance() ).getItems().create( id, data, amount, nbt );
     }
 
     /**

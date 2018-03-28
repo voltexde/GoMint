@@ -9,16 +9,12 @@ package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
 import io.gomint.math.Location;
-import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.InventoryHolder;
-import io.gomint.server.inventory.MaterialMagicNumbers;
-import io.gomint.server.inventory.item.Items;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -33,7 +29,7 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
      * Create a new flower pot with the item given as content
      *
      * @param itemStack which should be inside the flower pot
-     * @param position of the flower pot
+     * @param position  of the flower pot
      */
     public FlowerPotTileEntity( ItemStack itemStack, Location position ) {
         super( position );
@@ -53,7 +49,7 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
 
         // Skip non existent items for PE
         if ( material == 0 ) {
-            this.holdingItem = Items.create( 0, (short) 0, (byte) 1, null );
+            this.holdingItem = world.getServer().getItems().create( 0, (short) 0, (byte) 1, null );
             return;
         }
 
@@ -62,7 +58,7 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
             data = tagCompound.getInteger( "Data", -1 ).shortValue();
         }
 
-        this.holdingItem = Items.create( material, data, (byte) 1, null );
+        this.holdingItem = world.getServer().getItems().create( material, data, (byte) 1, null );
     }
 
     @Override
