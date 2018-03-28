@@ -300,6 +300,12 @@ public abstract class WorldAdapter implements World {
      * @return id of the block
      */
     public byte getBlockId( BlockPosition position ) {
+        // Sanity check
+        if ( position.getY() < 0 ) {
+            this.logger.warn( "Got request for block under y 0", new Exception() );
+            return 0;
+        }
+
         final ChunkAdapter chunk = this.loadChunk(
             CoordinateUtils.fromBlockToChunk( position.getX() ),
             CoordinateUtils.fromBlockToChunk( position.getZ() ),
