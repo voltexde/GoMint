@@ -11,7 +11,7 @@ pipeline {
     stage('Depends') {
       steps {
         sh 'apt-get update'
-        sh 'apt-get install -y openjfx'
+        sh 'apt-get install -y openjfx git'
         script {
           def changeLogSets = currentBuild.changeSets
           def changes = [];
