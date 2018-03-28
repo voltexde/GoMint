@@ -33,11 +33,4 @@ public class DaylightDetectorConverter extends BasisConverter<DaylightDetectorTi
         return new DaylightDetectorTileEntity( position );
     }
 
-    @Override
-    public void writeTo( DaylightDetectorTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "DLDetector" );
-        writePosition( entity.getLocation(), compound );
-    }
-
 }

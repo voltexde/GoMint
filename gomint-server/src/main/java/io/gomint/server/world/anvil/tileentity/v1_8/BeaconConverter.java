@@ -37,15 +37,4 @@ public class BeaconConverter extends BasisConverter<BeaconTileEntity> {
         return new BeaconTileEntity( primary, secondary, position );
     }
 
-    @Override
-    public void writeTo( BeaconTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "Beacon" );
-        writePosition( entity.getLocation(), compound );
-
-        // Write primary and secondary effect
-        compound.addValue( "Primary", entity.getPrimary() );
-        compound.addValue( "Secondary", entity.getSecondary() );
-    }
-
 }

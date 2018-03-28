@@ -24,11 +24,4 @@ public class EndPortalConverter extends BasisConverter<EndPortalTileEntity> {
         return new EndPortalTileEntity( getPosition( compound ) );
     }
 
-    @Override
-    public void writeTo( EndPortalTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "AirPortal" );
-        writePosition( entity.getLocation(), compound );
-    }
-
 }

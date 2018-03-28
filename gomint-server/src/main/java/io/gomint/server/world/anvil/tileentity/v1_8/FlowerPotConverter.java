@@ -51,15 +51,4 @@ public class FlowerPotConverter extends BasisConverter<FlowerPotTileEntity> {
         return new FlowerPotTileEntity( Items.create( material, data, (byte) 1, null ), position );
     }
 
-    @Override
-    public void writeTo( FlowerPotTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "FlowerPot" );
-        writePosition( entity.getLocation(), compound );
-
-        // Store the item
-        compound.addValue( "Item", MaterialMagicNumbers.newIdFromValue( entity.getHoldingItem().getMaterial() ) );
-        compound.addValue( "Data", (int) entity.getHoldingItem().getData() );
-    }
-
 }

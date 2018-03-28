@@ -76,25 +76,4 @@ public class ChestConverter extends BasisConverter<ChestTileEntity> {
         return new ChestTileEntity( items, position );
     }
 
-    @Override
-    public void writeTo( ChestTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "Chest" );
-        writePosition( entity.getLocation(), compound );
-
-        // Write the items
-        List<NBTTagCompound> nbtTagCompounds = new ArrayList<>();
-        for ( int i = 0; i < entity.getInventory().size(); i++ ) {
-            ItemStack itemStack = (ItemStack) entity.getInventory().getItem( i );
-            if ( itemStack != null ) {
-                NBTTagCompound nbtTagCompound = new NBTTagCompound( "" );
-                nbtTagCompound.addValue( "Slot", (byte) i );
-                writeItemStack( itemStack, nbtTagCompound );
-                nbtTagCompounds.add( nbtTagCompound );
-            }
-        }
-
-        compound.addValue( "Items", nbtTagCompounds );
-    }
-
 }

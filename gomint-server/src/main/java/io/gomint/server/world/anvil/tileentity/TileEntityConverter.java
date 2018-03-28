@@ -32,12 +32,4 @@ public abstract class TileEntityConverter<T> {
      */
     public abstract T readFrom( NBTTagCompound compound );
 
-    /**
-     * Write the given tile entity into the given compound
-     *
-     * @param entity which should be saved
-     * @param compound which should be used to safe the entity state
-     */
-    public abstract void writeTo( T entity, NBTTagCompound compound );
-
 }

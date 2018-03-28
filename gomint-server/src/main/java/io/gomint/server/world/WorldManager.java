@@ -7,19 +7,20 @@
 
 package io.gomint.server.world;
 
+import io.gomint.GoMint;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
 import io.gomint.server.world.leveldb.ZippedLevelDBWorldAdapter;
 import io.gomint.world.World;
 import io.gomint.world.generator.CreateOptions;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author BlackyPaw
@@ -30,7 +31,7 @@ public class WorldManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( WorldManager.class );
     private final GoMintServer server;
-    private List<WorldAdapter> loadedWorlds;
+    private Object2ObjectMap<String, WorldAdapter> loadedWorlds;
 
     /**
      * Constructs a new world manager that does not yet hold any worlds.
@@ -39,7 +40,7 @@ public class WorldManager {
      */
     public WorldManager( GoMintServer server ) {
         this.server = server;
-        this.loadedWorlds = new ArrayList<>();
+        this.loadedWorlds = new Object2ObjectOpenHashMap<>();
     }
 
     /**
@@ -49,7 +50,7 @@ public class WorldManager {
      * @param dT            The delta from the full second which has been calculated in the last tick
      */
     public void update( long currentTimeMS, float dT ) {
-        for ( WorldAdapter world : this.loadedWorlds ) {
+        for ( WorldAdapter world : this.getWorlds() ) {
             world.update( currentTimeMS, dT );
         }
     }
@@ -60,7 +61,11 @@ public class WorldManager {
      * @return A collection of all worlds held by the world manager
      */
     public Collection<WorldAdapter> getWorlds() {
-        return this.loadedWorlds;
+        if ( !GoMint.instance().isMainThread() ) {
+            LOGGER.warn( "Getting worlds from an async thread. This is not safe and can lead to CME" );
+        }
+
+        return this.loadedWorlds.values();
     }
 
     /**
@@ -71,13 +76,11 @@ public class WorldManager {
      * @return The world if found or null otherwise
      */
     public WorldAdapter getWorld( String name ) {
-        for ( WorldAdapter world : this.loadedWorlds ) {
-            if ( world.getWorldName().equals( name ) ) {
-                return world;
-            }
+        if ( !GoMint.instance().isMainThread() ) {
+            LOGGER.warn( "Getting a world from an async thread. This is not safe and can lead to CME" );
         }
 
-        return null;
+        return this.loadedWorlds.get( name );
     }
 
     /**
@@ -87,7 +90,7 @@ public class WorldManager {
      * @param world The world to be added
      */
     private void addWorld( WorldAdapter world ) {
-        this.loadedWorlds.add( world );
+        this.loadedWorlds.put( world.getWorldName(), world );
     }
 
     /**
@@ -100,6 +103,10 @@ public class WorldManager {
      * @throws WorldLoadException Thrown in case the world could not be loaded
      */
     public World loadWorld( String path ) throws WorldLoadException {
+        if ( !GoMint.instance().isMainThread() ) {
+            LOGGER.warn( "Loading worlds from an async thread. This is not safe and can lead to CME" );
+        }
+
         LOGGER.info( "Attempting to load world '{}'", path );
 
         File file = new File( path );
@@ -137,21 +144,21 @@ public class WorldManager {
     private World loadZippedLevelDBWorld( File path, String name ) throws WorldLoadException {
         LevelDBWorldAdapter world = ZippedLevelDBWorldAdapter.load( this.server, path, name );
         this.addWorld( world );
-        LOGGER.info( "Successfully loaded world '" + name + "'" );
+        LOGGER.info( "Successfully loaded world '{}'", name );
         return world;
     }
 
     private World loadLevelDBWorld( File path ) throws WorldLoadException {
         LevelDBWorldAdapter world = LevelDBWorldAdapter.load( this.server, path );
         this.addWorld( world );
-        LOGGER.info( "Successfully loaded world '" + path.getName() + "'" );
+        LOGGER.info( "Successfully loaded world '{}'", path.getName() );
         return world;
     }
 
     private World loadAnvilWorld( File path ) throws WorldLoadException {
         AnvilWorldAdapter world = AnvilWorldAdapter.load( this.server, path );
         this.addWorld( world );
-        LOGGER.info( "Successfully loaded world '" + path.getName() + "'" );
+        LOGGER.info( "Successfully loaded world '{}'", path.getName() );
         return world;
     }
 
@@ -159,7 +166,11 @@ public class WorldManager {
      * Close and save all worlds
      */
     public void close() {
-        for ( WorldAdapter loadedWorld : this.loadedWorlds ) {
+        if ( !GoMint.instance().isMainThread() ) {
+            LOGGER.warn( "Closing worlds from an async thread. This is not safe and can lead to CME" );
+        }
+
+        for ( WorldAdapter loadedWorld : this.getWorlds() ) {
             loadedWorld.close();
         }
     }
@@ -170,10 +181,21 @@ public class WorldManager {
      * @param worldAdapter which should be unloaded
      */
     void unloadWorld( WorldAdapter worldAdapter ) {
-        this.loadedWorlds.remove( worldAdapter );
+        this.loadedWorlds.remove( worldAdapter.getWorldName() );
     }
 
+    /**
+     * Create a new world
+     *
+     * @param name    of the new world
+     * @param options with which this world should be generated
+     * @return generated world
+     */
     public World createWorld( String name, CreateOptions options ) {
+        if ( !GoMint.instance().isMainThread() ) {
+            LOGGER.warn( "Creating worlds from an async thread. This is not safe and can lead to CME" );
+        }
+
         // Check which type of world we want to create
         WorldAdapter world;
         switch ( options.worldType() ) {
@@ -191,7 +213,7 @@ public class WorldManager {
                 return null;
         }
 
-        this.loadedWorlds.add( world );
+        this.loadedWorlds.put( world.getWorldName(), world );
         return world;
     }
 

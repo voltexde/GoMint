@@ -33,11 +33,4 @@ public class EnderChestConverter extends BasisConverter<EnderChestTileEntity> {
         return new EnderChestTileEntity( position );
     }
 
-    @Override
-    public void writeTo( EnderChestTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "EnderChest" );
-        writePosition( entity.getLocation(), compound );
-    }
-
 }

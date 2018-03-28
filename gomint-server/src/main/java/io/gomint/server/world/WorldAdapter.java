@@ -7,6 +7,7 @@
 
 package io.gomint.server.world;
 
+import io.gomint.GoMint;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.event.player.PlayerInteractEvent;
@@ -1236,6 +1237,10 @@ public abstract class WorldAdapter implements World {
 
     @Override
     public void unload( Consumer<EntityPlayer> playerConsumer ) {
+        if ( !GoMint.instance().isMainThread() ) {
+            this.logger.warn( "Unloading worlds from an async thread. This is not safe and can lead to CME" );
+        }
+
         // Unload all players via API
         Set<EntityPlayer> playerCopy = new HashSet<>( this.players.keySet() );
         playerCopy.forEach( playerConsumer );

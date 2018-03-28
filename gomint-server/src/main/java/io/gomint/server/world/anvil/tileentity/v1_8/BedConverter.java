@@ -37,11 +37,4 @@ public class BedConverter extends BasisConverter<BedTileEntity> {
         return new BedTileEntity( BlockColor.RED, position );
     }
 
-    @Override
-    public void writeTo( BedTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "Bed" );
-        writePosition( entity.getLocation(), compound );
-    }
-
 }

@@ -77,25 +77,4 @@ public class DispenserConverter extends BasisConverter<DispenserTileEntity> {
         return new DispenserTileEntity( items, position );
     }
 
-    @Override
-    public void writeTo( DispenserTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "Trap" );
-        writePosition( entity.getLocation(), compound );
-
-        // Write the items
-        List<NBTTagCompound> nbtTagCompounds = new ArrayList<>();
-        for ( int i = 0; i < entity.getInventory().size(); i++ ) {
-            ItemStack itemStack = (ItemStack) entity.getInventory().getItem( i );
-            if ( itemStack != null ) {
-                NBTTagCompound nbtTagCompound = new NBTTagCompound( "" );
-                nbtTagCompound.addValue( "Slot", (byte) i );
-                writeItemStack( itemStack, nbtTagCompound );
-                nbtTagCompounds.add( nbtTagCompound );
-            }
-        }
-
-        compound.addValue( "Items", nbtTagCompounds );
-    }
-
 }

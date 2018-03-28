@@ -47,18 +47,6 @@ public abstract class BasisConverter<T> extends TileEntityConverter<T> {
     }
 
     /**
-     * Write the location to a compound
-     *
-     * @param location which should be written
-     * @param compound which should be used to write to
-     */
-    protected void writePosition( Location location, NBTTagCompound compound ) {
-        compound.addValue( "x", (int) location.getX() );
-        compound.addValue( "y", (int) location.getY() );
-        compound.addValue( "z", (int) location.getZ() );
-    }
-
-    /**
      * Get the item out of the compound
      *
      * @param compound which has serialized information about the item stack
@@ -82,22 +70,6 @@ public abstract class BasisConverter<T> extends TileEntityConverter<T> {
         byte amount = compound.getByte( "Count", (byte) 1 );
 
         return Items.create( material, data, amount, compound.getCompound( "tag", false ) );
-    }
-
-    /**
-     * Write the item stack to a compound
-     *
-     * @param itemStack which should be written
-     * @param compound  to write to
-     */
-    protected void writeItemStack( ItemStack itemStack, NBTTagCompound compound ) {
-        compound.addValue( "id", MaterialMagicNumbers.newIdFromValue( itemStack.getMaterial() ) );
-        compound.addValue( "Count", itemStack.getAmount() );
-        compound.addValue( "Damage", itemStack.getData() );
-
-        if ( itemStack.getNbtData() != null ) {
-            compound.addValue( "tag", itemStack.getNbtData().deepClone( "tag" ) );
-        }
     }
 
 }

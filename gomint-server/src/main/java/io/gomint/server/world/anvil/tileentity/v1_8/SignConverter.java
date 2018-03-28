@@ -58,25 +58,6 @@ public class SignConverter extends BasisConverter<SignTileEntity> {
         return new SignTileEntity( lines, position );
     }
 
-    @Override
-    public void writeTo( SignTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "Sign" );
-        writePosition( entity.getLocation(), compound );
-
-        // Write the lines
-        for ( int i = 0; i < entity.getLines().size(); i++ ) {
-            String line = entity.getLines().get( i );
-            if ( line == null ) {
-                line = "";
-            }
-
-            JSONObject object = new JSONObject();
-            object.put( "text", line );
-            compound.addValue( "Text" + (i + 1), object.toJSONString() );
-        }
-    }
-
     private String cleanText( NBTTagCompound compound, String tagName ) {
         String text = compound.getString( tagName, "" );
         if ( text != null && ( text.startsWith( "{\"text" ) || text.startsWith( "{\"extra" ) ) ) {

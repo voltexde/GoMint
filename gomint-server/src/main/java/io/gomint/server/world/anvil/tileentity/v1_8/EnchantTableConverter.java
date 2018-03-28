@@ -35,11 +35,4 @@ public class EnchantTableConverter extends BasisConverter<EnchantTableTileEntity
         return new EnchantTableTileEntity( position );
     }
 
-    @Override
-    public void writeTo( EnchantTableTileEntity entity, NBTTagCompound compound ) {
-        // Write basic stuff
-        compound.addValue( "id", "EnchantTable" );
-        writePosition( entity.getLocation(), compound );
-    }
-
 }
