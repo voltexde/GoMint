@@ -1,9 +1,13 @@
 package io.gomint.server.world.block;
 
-import io.gomint.world.block.BlockType;
-
-import io.gomint.inventory.item.*;
+import io.gomint.inventory.item.ItemDiamondAxe;
+import io.gomint.inventory.item.ItemGoldenAxe;
+import io.gomint.inventory.item.ItemIronAxe;
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.inventory.item.ItemStoneAxe;
+import io.gomint.inventory.item.ItemWoodenAxe;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.world.block.BlockType;
 
 /**
  * @author geNAZt
@@ -25,11 +29,11 @@ public class Wood extends Block implements io.gomint.world.block.BlockWood {
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return new Class[]{
-                ItemWoodenAxe.class,
-                ItemIronAxe.class,
-                ItemDiamondAxe.class,
-                ItemGoldenAxe.class,
-                ItemStoneAxe.class
+            ItemWoodenAxe.class,
+            ItemIronAxe.class,
+            ItemDiamondAxe.class,
+            ItemGoldenAxe.class,
+            ItemStoneAxe.class
         };
     }
 
@@ -46,6 +50,52 @@ public class Wood extends Block implements io.gomint.world.block.BlockWood {
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public WoodType getWoodType() {
+        switch ( this.getBlockData() ) {
+            case 5:
+                return WoodType.DARK_OAK;
+            case 4:
+                return WoodType.ACACIA;
+            case 3:
+                return WoodType.JUNGLE;
+            case 2:
+                return WoodType.BIRCH;
+            case 1:
+                return WoodType.SPRUCE;
+            case 0:
+            default:
+                return WoodType.OAK;
+        }
+    }
+
+    @Override
+    public void setWoodType( WoodType woodType ) {
+        switch ( woodType ) {
+            case DARK_OAK:
+                this.setBlockData( (byte) 5 );
+                break;
+            case ACACIA:
+                this.setBlockData( (byte) 4 );
+                break;
+            case JUNGLE:
+                this.setBlockData( (byte) 3 );
+                break;
+            case BIRCH:
+                this.setBlockData( (byte) 2 );
+                break;
+            case SPRUCE:
+                this.setBlockData( (byte) 1 );
+                break;
+            case OAK:
+            default:
+                this.setBlockData( (byte) 0 );
+                break;
+        }
+
+        this.updateBlock();
     }
 
 }
