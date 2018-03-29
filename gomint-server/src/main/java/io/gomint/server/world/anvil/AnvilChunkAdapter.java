@@ -8,11 +8,13 @@
 package io.gomint.server.world.anvil;
 
 import io.gomint.math.BlockPosition;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Pair;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldLoadException;
+import io.gomint.server.world.anvil.entity.EntityConverters;
 import io.gomint.server.world.anvil.tileentity.TileEntityConverters;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTStream;
@@ -50,6 +52,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
     // Converters
     private TileEntityConverters tileEntityConverters;
+    private EntityConverters entityConverters;
 
     /**
      * Load a Chunk from a NBTTagCompound. This is used when loaded from a Regionfile.
@@ -244,10 +247,10 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
         // Load tile entities
         if ( this.tileEntityHolders != null && !this.tileEntityHolders.isEmpty() ) {
-            for ( NBTTagCompound tileEntity : this.tileEntityHolders ) {
-                TileEntity tileEntity1 = this.tileEntityConverters.read( tileEntity );
-                if ( tileEntity1 != null ) {
-                    this.addTileEntity( tileEntity1 );
+            for ( NBTTagCompound holder : this.tileEntityHolders ) {
+                TileEntity tileEntity = this.tileEntityConverters.read( holder );
+                if ( tileEntity != null ) {
+                    this.addTileEntity( tileEntity );
                 }
             }
 
@@ -256,7 +259,10 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
         if ( this.entityHolders != null && !this.entityHolders.isEmpty() ) {
             for ( NBTTagCompound holder : this.entityHolders ) {
-                LOGGER.info( "Found entity: {}", holder );
+                Entity entity = this.entityConverters.read( holder );
+                if ( entity != null ) {
+                    this.addEntity( entity );
+                }
             }
         }
 
@@ -268,6 +274,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
         // Check for gomint shortcut
         if ( this.converted ) {
             this.tileEntityConverters = new io.gomint.server.world.anvil.tileentity.mcpe.TileEntities( this.world );
+            this.entityConverters = new io.gomint.server.world.anvil.entity.mcpe.Entities( this.world );
             return;
         }
 

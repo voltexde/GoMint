@@ -208,7 +208,7 @@ public class ChunkAdapter implements Chunk {
      *
      * @param entity The entity which should be added
      */
-    void addEntity( Entity entity ) {
+    protected void addEntity( Entity entity ) {
         if ( this.entities == null ) {
             this.entities = new Long2ObjectOpenHashMap<>();
         }

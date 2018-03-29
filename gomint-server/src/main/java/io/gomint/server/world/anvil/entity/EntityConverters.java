@@ -7,21 +7,21 @@
 
 package io.gomint.server.world.anvil.entity;
 
+import io.gomint.server.entity.Entity;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
  * @version 1.0
- * @param <T> type of entity which this converter should generate
  */
-public abstract class EntityConverter<T> {
+public interface EntityConverters {
 
     /**
-     * Construct and read a entity from the given compound
+     * Convert a entity to the PE format
      *
      * @param compound which should be read
-     * @return entity with config found in the compound
+     * @return constructed tile entity
      */
-    public abstract T readFrom( NBTTagCompound compound );
+    Entity read( NBTTagCompound compound );
 
 }
