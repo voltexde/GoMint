@@ -93,6 +93,10 @@ public class WallSign extends Block implements BlockWallSign {
             return null;
         }
 
+        if ( sign.getLines().size() < line ) {
+            return null;
+        }
+
         return sign.getLines().get( line - 1 );
     }
 

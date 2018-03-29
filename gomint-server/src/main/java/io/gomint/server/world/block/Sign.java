@@ -93,7 +93,7 @@ public class Sign extends Block implements BlockSign {
             return null;
         }
 
-        if ( sign.getLines().size() <= line ) {
+        if ( sign.getLines().size() < line ) {
             return null;
         }
 
