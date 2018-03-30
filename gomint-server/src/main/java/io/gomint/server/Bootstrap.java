@@ -67,6 +67,8 @@ public class Bootstrap {
         // Check the libs (versions and artifacts)
         if ( !options.has( "slc" ) ) { // -slc (skip lib checking)
             checkLibs( libsFolder );
+        } else {
+            LOGGER.warn( "Excluding the library check can lead to weird behaviour. Please enable it before you submit issues" );
         }
 
         File[] files = libsFolder.listFiles();
