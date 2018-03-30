@@ -105,42 +105,64 @@ public class Bootstrap {
     private static void checkLibs( File libsFolder ) {
         // Load the dependency list
         try ( BufferedReader reader = new BufferedReader( new InputStreamReader( Bootstrap.class.getResourceAsStream( "/libs.dep" ) ) ) ) {
-            String libURL;
-            while ( ( libURL = reader.readLine() ) != null ) {
+            // Parse the line
+            String line;
+            while ( ( line = reader.readLine() ) != null ) {
                 // Check for comment
-                if ( libURL.isEmpty() || libURL.equals( System.getProperty( "line.separator" ) ) || libURL.startsWith( "#" ) ) {
+                if ( line.isEmpty() || line.equals( System.getProperty( "line.separator" ) ) || line.startsWith( "#" ) ) {
                     continue;
                 }
 
-                // Head first to get informations about the file
-                URL url = new URL( libURL );
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setConnectTimeout( 1000 );
-                urlConnection.setReadTimeout( 1000 );
-                urlConnection.setRequestMethod( "HEAD" );
+                // Extract the command mode
+                String[] splitCommand = line.split( "~" );
+                switch ( splitCommand[0] ) {
+                    case "delete":
+                        File toDelete = new File( libsFolder, splitCommand[1] );
+                        if ( toDelete.exists() ) {
+                            if ( !toDelete.delete() ) {
+                                LOGGER.error( "Could not delete old version of required lib. Please delete {}", splitCommand[1] );
+                                System.exit( -1 );
+                            } else {
+                                LOGGER.info( "Deleted old version of requried lib {}", splitCommand[1] );
+                            }
+                        }
 
-                // Filter out non java archive content types
-                if ( !"application/java-archive".equals( urlConnection.getHeaderField( "Content-Type" ) ) ) {
-                    LOGGER.debug( "Skipping the download of {} because its not a Java Archive", libURL );
-                    continue;
+                        break;
+
+                    case "download":
+                        String libURL = splitCommand[1];
+
+                        // Head first to get informations about the file
+                        URL url = new URL( libURL );
+                        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                        urlConnection.setConnectTimeout( 1000 );
+                        urlConnection.setReadTimeout( 1000 );
+                        urlConnection.setRequestMethod( "HEAD" );
+
+                        // Filter out non java archive content types
+                        if ( !"application/java-archive".equals( urlConnection.getHeaderField( "Content-Type" ) ) ) {
+                            LOGGER.debug( "Skipping the download of {} because its not a Java Archive", libURL );
+                            continue;
+                        }
+
+                        // We need the contentLength to compare
+                        int contentLength = Integer.parseInt( urlConnection.getHeaderField( "Content-Length" ) );
+
+                        String[] tempSplit = url.getPath().split( "/" );
+                        String fileName = tempSplit[tempSplit.length - 1];
+
+                        // Check if we have a file with the same length
+                        File libFile = new File( libsFolder, fileName );
+                        if ( libFile.exists() && libFile.length() == contentLength ) {
+                            LOGGER.debug( "Skipping the download of {} because there already is a correct sized copy", libURL );
+                            continue;
+                        }
+
+                        // Download the file from the Server
+                        Files.copy( url.openStream(), libFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                        LOGGER.info( "Downloading library: {}", fileName );
+                        break;
                 }
-
-                // We need the contentLength to compare
-                int contentLength = Integer.parseInt( urlConnection.getHeaderField( "Content-Length" ) );
-
-                String[] tempSplit = url.getPath().split( "/" );
-                String fileName = tempSplit[tempSplit.length - 1];
-
-                // Check if we have a file with the same length
-                File libFile = new File( libsFolder, fileName );
-                if ( libFile.exists() && libFile.length() == contentLength ) {
-                    LOGGER.debug( "Skipping the download of {} because there already is a correct sized copy", libURL );
-                    continue;
-                }
-
-                // Download the file from the Server
-                Files.copy( url.openStream(), libFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                LOGGER.info( "Downloading library: {}", fileName );
             }
         } catch ( IOException e ) {
             LOGGER.error( "Could not download needed library: ", e );
