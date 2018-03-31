@@ -22,6 +22,7 @@ import io.gomint.server.util.Values;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.*;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Chunk;
 import lombok.Getter;
 import lombok.Setter;
@@ -1230,6 +1231,45 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     public boolean shouldBeSeen( EntityPlayer player ) {
         return !this.hideByDefault || this.shownFor.contains( player );
+    }
+
+    /**
+     * Take over configuration from the given compound
+     *
+     * @param compound which holds entity data
+     */
+    public void initFromNBT( NBTTagCompound compound ) {
+        // Read position
+        List<Object> pos = compound.getList( "Pos", false );
+        if ( pos != null ) {
+            // Data in the array are three floats (x, y, z)
+            float x = (float) pos.get( 0 );
+            float y = (float) pos.get( 1 );
+            float z = (float) pos.get( 2 );
+
+            this.setPosition( x, y, z );
+        }
+
+        // Now we read motion
+        List<Object> motion = compound.getList( "Motion", false );
+        if ( motion != null ) {
+            // Data in the array are three floats (x, y, z)
+            float x = (float) motion.get( 0 );
+            float y = (float) motion.get( 1 );
+            float z = (float) motion.get( 2 );
+
+            this.transform.setMotion( x, y, z );
+        }
+
+        // Read rotation
+        List<Object> rotation = compound.getList( "Rotation", false );
+        if ( rotation != null ) {
+            float yaw = (float) rotation.get( 0 );
+            float pitch = (float) rotation.get( 1 );
+
+            this.setYaw( yaw );
+            this.setPitch( pitch );
+        }
     }
 
 }

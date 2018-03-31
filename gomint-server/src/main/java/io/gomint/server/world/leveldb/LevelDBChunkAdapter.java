@@ -8,9 +8,11 @@
 package io.gomint.server.world.leveldb;
 
 import io.gomint.math.BlockPosition;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.MaterialMagicNumbers;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.Palette;
 import io.gomint.server.world.ChunkAdapter;
@@ -197,9 +199,11 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         while ( nbtReader.hasMoreToRead() ) {
             try {
                 NBTTagCompound compound = nbtReader.parse();
-                /*DumpUtil.dumpNBTCompund( compound );
                 Integer id = compound.getInteger( "id", 0 );
-                System.out.println( id & 0xFF );*/
+                Entity entity = this.world.getServer().getEntities().create( id & 0xFF );
+                if ( entity != null ) {
+                    entity.initFromNBT( compound );
+                }
             } catch ( IOException e ) {
                 LOGGER.error( "Error in loading entities", e );
                 break;

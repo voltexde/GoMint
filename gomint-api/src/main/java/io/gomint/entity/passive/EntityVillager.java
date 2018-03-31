@@ -18,4 +18,26 @@ public interface EntityVillager extends EntityLiving {
         return GoMint.instance().createEntity( EntityVillager.class );
     }
 
+    /**
+     * Set the profession of a villager
+     *
+     * @param profession of the villager
+     */
+    void setProfession( Profession profession );
+
+    /**
+     * Get the current profession of a villager
+     *
+     * @return profession of this villager
+     */
+    Profession getProfession();
+
+    enum Profession {
+        FARMER,
+        LIBRARIAN,
+        PRIEST,
+        BLACKSMITH,
+        BUTCHER;
+    }
+
 }
