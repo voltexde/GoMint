@@ -520,7 +520,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         }
 
         // Sword special case
-        if ( item instanceof ItemSword ) {
+        if ( !foundInterface && item instanceof ItemSword ) {
             toolStrength = 1.5F;
         }
 
