@@ -16,4 +16,12 @@ public class ToolPresets {
         ItemWoodenAxe.class
     };
 
+    public static final Class[] PICKAXE = new Class[]{
+        ItemDiamondPickaxe.class,
+        ItemGoldenPickaxe.class,
+        ItemIronPickaxe.class,
+        ItemStonePickaxe.class,
+        ItemWoodenPickaxe.class
+    };
+
 }
