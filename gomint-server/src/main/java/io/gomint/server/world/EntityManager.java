@@ -7,6 +7,7 @@
 
 package io.gomint.server.world;
 
+import io.gomint.GoMint;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketEntityMetadata;
@@ -77,7 +78,6 @@ public class EntityManager {
                         }
 
                         removeEntities.add( entry.getLongKey() );
-                        despawnEntity( entity );
                     }
 
                     // Check if entity moved via external teleport
@@ -129,8 +129,13 @@ public class EntityManager {
                     }
 
                     removeEntities.add( entry.getLongKey() );
-                    despawnEntity( entity );
                 }
+            }
+        }
+
+        if ( removeEntities != null && !removeEntities.isEmpty() ) {
+            for ( Long entity : removeEntities ) {
+                despawnEntity( this.entitiesById.get( entity ) );
             }
         }
 
@@ -303,6 +308,9 @@ public class EntityManager {
      * @param pitch     The pitch value of the entity
      */
     public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
+        if ( !GoMint.instance().isMainThread() ) {
+            LOGGER.error( "Could not spawn entity from async thread", new Exception(  ) );
+        }
         // TODO: Entity spawn event
 
         // Only allow server implementations
@@ -407,6 +415,10 @@ public class EntityManager {
      * @param entity The entity which should be despawned
      */
     public void despawnEntity( Entity entity ) {
+        if (!GoMint.instance().isMainThread()) {
+            LOGGER.error( "Could not despawn entity from async thread", new Exception() );
+        }
+
         // Only allow server implementations
         if ( !( entity instanceof io.gomint.server.entity.Entity ) ) {
             return;

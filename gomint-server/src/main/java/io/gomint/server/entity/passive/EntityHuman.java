@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.passive;
 
+import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
@@ -95,6 +96,10 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
 
         this.metadataContainer.putByte( MetadataContainer.DATA_PLAYER_INDEX, (byte) 0 );
 
+        this.metadataContainer.putShort( MetadataContainer.DATA_AIR, (short) 400 );
+        this.metadataContainer.putShort( MetadataContainer.DATA_MAX_AIRDATA_MAX_AIR, (short) 400 );
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, true );
+
         // Sleeping stuff
         this.setPlayerFlag( EntityFlag.PLAYER_SLEEP, false );
         this.metadataContainer.putPosition( DATA_PLAYER_BED_POSITION, 0, 0, 0 );
@@ -178,6 +183,27 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
 
                 if ( this.foodTicks >= 80 ) {
                     this.foodTicks = 0;
+                }
+            }
+
+            // Breathing
+            // Check for block stuff
+            boolean breathing = !this.isInsideLiquid() || this.hasEffect( PotionEffect.WATER_BREATHING );
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, breathing );
+
+            short air = this.metadataContainer.getShort( MetadataContainer.DATA_AIR );
+            short maxAir = this.metadataContainer.getShort( MetadataContainer.DATA_MAX_AIRDATA_MAX_AIR );
+
+            if ( !breathing ) {
+                if ( --air < 0 ) {
+                    EntityDamageEvent damageEvent = new EntityDamageEvent( this, EntityDamageEvent.DamageSource.DROWNING, 2.0f );
+                    damage( damageEvent );
+                } else {
+                    this.metadataContainer.putShort( MetadataContainer.DATA_AIR, air );
+                }
+            } else {
+                if ( air != maxAir ) {
+                    this.metadataContainer.putShort( MetadataContainer.DATA_AIR, maxAir );
                 }
             }
 

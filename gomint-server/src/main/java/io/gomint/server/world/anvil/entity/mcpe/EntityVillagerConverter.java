@@ -25,7 +25,12 @@ public class EntityVillagerConverter extends BaseConverter<EntityVillager> {
         this.setRotation( compound, entityVillager );
 
         // Set profession
-        entityVillager.getMetadata().putInt( MetadataContainer.DATA_VARIANT, compound.getInteger( "Profession", 0 ) );
+        int profession = compound.getInteger( "Profession", 0 );
+        if ( profession < 0 || profession > 4 ) {
+            profession = 0;
+        }
+
+        entityVillager.getMetadata().putInt( MetadataContainer.DATA_VARIANT, profession );
 
         return entityVillager;
     }

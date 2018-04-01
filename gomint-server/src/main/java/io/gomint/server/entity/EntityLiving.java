@@ -76,10 +76,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         this.pathfinding = new PathfindingEngine( this.getTransform() );
         this.initAttributes();
 
-        this.metadataContainer.putShort( MetadataContainer.DATA_AIR, (short) 400 );
-        this.metadataContainer.putShort( MetadataContainer.DATA_MAX_AIRDATA_MAX_AIR, (short) 400 );
         this.metadataContainer.putFloat( MetadataContainer.DATA_SCALE, 1.0f );
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, true );
     }
 
     private void initAttributes() {
@@ -188,10 +185,6 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
                 }
             }
 
-            // Check for block stuff
-            boolean breathing = !this.isInsideLiquid() || this.hasEffect( PotionEffect.WATER_BREATHING );
-            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.BREATHING, breathing );
-
             // Check for damage due to blocks (cactus, fire, lava)
             List<Block> blockList = this.world.getCollisionBlocks( this );
             if ( blockList != null ) {
@@ -203,23 +196,6 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
             io.gomint.server.world.block.Block standingIn = this.world.getBlockAt( this.getPosition().toBlockPosition() );
             standingIn.onEntityStanding( this );
-
-            // Breathing
-            short air = this.metadataContainer.getShort( MetadataContainer.DATA_AIR );
-            short maxAir = this.metadataContainer.getShort( MetadataContainer.DATA_MAX_AIRDATA_MAX_AIR );
-
-            if ( !breathing ) {
-                if ( --air < 0 ) {
-                    EntityDamageEvent damageEvent = new EntityDamageEvent( this, EntityDamageEvent.DamageSource.DROWNING, 2.0f );
-                    damage( damageEvent );
-                } else {
-                    this.metadataContainer.putShort( MetadataContainer.DATA_AIR, air );
-                }
-            } else {
-                if ( air != maxAir ) {
-                    this.metadataContainer.putShort( MetadataContainer.DATA_AIR, maxAir );
-                }
-            }
 
             this.lastUpdateDT = 0;
         }
