@@ -15,6 +15,7 @@ import io.gomint.server.network.packet.PacketAddItemEntity;
 import io.gomint.server.network.packet.PacketPickupItemEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.world.Gamemode;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -140,6 +141,10 @@ public class EntityItem extends Entity implements EntityItemDrop {
 
             // Ask the API is we can pickup
             PlayerPickupItemEvent event = new PlayerPickupItemEvent( player, this, this.getItemStack() );
+            if ( player.getGamemode() == Gamemode.SPECTATOR ) {
+                event.setCancelled( true );
+            }
+
             this.world.getServer().getPluginManager().callEvent( event );
 
             if ( !event.isCancelled() ) {
