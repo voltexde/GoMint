@@ -21,10 +21,8 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Helper class that manages all entities inside a world.
@@ -59,7 +57,7 @@ public class EntityManager {
      * @param currentTimeMS The current system time in milliseconds
      * @param dT            The time that has passed since the last update in seconds
      */
-    public void update( long currentTimeMS, float dT ) {
+    public synchronized void update( long currentTimeMS, float dT ) {
         // --------------------------------------
         // Update all entities:
         Set<io.gomint.server.entity.Entity> movedEntities = null;
@@ -276,7 +274,7 @@ public class EntityManager {
      * @param entityId The entity's unique ID
      * @return The entity if found or null otherwise
      */
-    public Entity findEntity( long entityId ) {
+    public synchronized Entity findEntity( long entityId ) {
         Entity entity = this.entitiesById.get( entityId );
         if ( entity == null ) {
             return this.spawnedInThisTick.get( entityId );
@@ -293,7 +291,7 @@ public class EntityManager {
      * @param positionY The y coordinate to spawn the entity at
      * @param positionZ The z coordinate to spawn the entity at
      */
-    public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ ) {
+    public synchronized void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ ) {
         this.spawnEntityAt( entity, positionX, positionY, positionZ, 0.0F, 0.0F );
     }
 
@@ -307,10 +305,7 @@ public class EntityManager {
      * @param yaw       The yaw value of the entity ; will be applied to both the entity's body and head
      * @param pitch     The pitch value of the entity
      */
-    public void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
-        if ( !GoMint.instance().isMainThread() ) {
-            LOGGER.error( "Could not spawn entity from async thread", new Exception(  ) );
-        }
+    public synchronized void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
         // TODO: Entity spawn event
 
         // Only allow server implementations
@@ -414,11 +409,7 @@ public class EntityManager {
      *
      * @param entity The entity which should be despawned
      */
-    public void despawnEntity( Entity entity ) {
-        if (!GoMint.instance().isMainThread()) {
-            LOGGER.error( "Could not despawn entity from async thread", new Exception() );
-        }
-
+    public synchronized void despawnEntity( Entity entity ) {
         // Only allow server implementations
         if ( !( entity instanceof io.gomint.server.entity.Entity ) ) {
             return;
@@ -442,6 +433,12 @@ public class EntityManager {
         // Remove from maps
         this.entitiesById.remove( entity.getEntityId() );
         this.spawnedInThisTick.remove( entity.getEntityId() );
+    }
+
+    public synchronized void addFromChunk( Long2ObjectMap<Entity> entities ) {
+        for ( Long2ObjectMap.Entry<Entity> entry : entities.long2ObjectEntrySet() ) {
+            this.entitiesById.put( entry.getLongKey(), entry.getValue() );
+        }
     }
 
 }

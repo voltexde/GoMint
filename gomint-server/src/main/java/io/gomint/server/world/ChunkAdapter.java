@@ -661,4 +661,8 @@ public class ChunkAdapter implements Chunk {
         return CoordinateUtils.toLong( this.x, this.z );
     }
 
+    public Long2ObjectMap<io.gomint.entity.Entity> getEntities() {
+        return this.entities;
+    }
+
 }

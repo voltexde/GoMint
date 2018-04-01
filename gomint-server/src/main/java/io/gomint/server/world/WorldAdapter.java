@@ -52,6 +52,7 @@ import io.gomint.world.block.BlockFace;
 import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.GeneratorContext;
 import io.gomint.world.generator.integrated.VoidGenerator;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.EqualsAndHashCode;
@@ -1360,6 +1361,13 @@ public abstract class WorldAdapter implements World {
     @Override
     public void save() {
         this.chunkCache.saveAll();
+    }
+
+    public void registerEntitiesFromChunk( ChunkAdapter chunk ) {
+        Long2ObjectMap<Entity> entities = chunk.getEntities();
+        if ( entities != null && !entities.isEmpty() ) {
+            this.entityManager.addFromChunk( entities );
+        }
     }
 
 }

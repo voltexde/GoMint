@@ -261,6 +261,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             for ( NBTTagCompound holder : this.entityHolders ) {
                 Entity entity = this.entityConverters.read( holder );
                 if ( entity != null ) {
+                    entity.setWorld( this.world );
                     this.addEntity( entity );
                 }
             }

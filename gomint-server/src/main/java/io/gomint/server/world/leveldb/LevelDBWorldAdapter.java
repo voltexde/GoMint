@@ -305,6 +305,8 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                 DumpUtil.dumpByteArray( extraData );
             }
 
+            // Register entities
+            this.registerEntitiesFromChunk( loadingChunk );
             this.chunkCache.putChunk( loadingChunk );
 
             // Run post processors
