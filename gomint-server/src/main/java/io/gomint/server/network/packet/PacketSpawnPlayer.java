@@ -15,7 +15,7 @@ import java.util.UUID;
  * @author geNAZt
  * @version 1.1
  */
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode( callSuper = false )
 @Data
 public class PacketSpawnPlayer extends Packet {
 
@@ -64,17 +64,13 @@ public class PacketSpawnPlayer extends Packet {
         buffer.writeUUID( this.uuid );
         buffer.writeString( this.name );
 
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            buffer.writeString( this.thirdPartyName );
-            buffer.writeSignedVarInt( this.platformID );
-        }
+        buffer.writeString( this.thirdPartyName );
+        buffer.writeSignedVarInt( this.platformID );
 
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.runtimeEntityId );
 
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            buffer.writeString( this.unknown );
-        }
+        buffer.writeString( this.unknown );
 
         buffer.writeLFloat( this.x );
         buffer.writeLFloat( this.y );

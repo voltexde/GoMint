@@ -45,10 +45,8 @@ public class PacketAddItemEntity extends Packet {
         buffer.writeLFloat( this.motionY );
         buffer.writeLFloat( this.motionZ );
 
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            // Write unknown flag
-            buffer.writeBoolean( this.unknown );
-        }
+        // Write unknown flag
+        buffer.writeBoolean( this.unknown );
     }
 
     @Override

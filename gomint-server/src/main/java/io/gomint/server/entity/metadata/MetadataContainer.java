@@ -87,10 +87,10 @@ public class MetadataContainer {
     public static final int DATA_MINECART_DISPLAY_BLOCK = 16; //int (id | (data << 16))
     public static final int DATA_MINECART_DISPLAY_OFFSET = 17; //int
     public static final int DATA_MINECART_HAS_DISPLAY = 18; //byte (must be 1 for minecart to show block inside)
-    public static final int DATA_PLAYER_INDEX = 27;
-    public static final int DATA_SCALE = 39;
-    public static final int DATA_MAX_AIRDATA_MAX_AIR = 43;
-    public static final int DATA_FUSE_LENGTH = 56;
+    public static final int DATA_PLAYER_INDEX = 26;
+    public static final int DATA_SCALE = 38;
+    public static final int DATA_MAX_AIRDATA_MAX_AIR = 42;
+    public static final int DATA_FUSE_LENGTH = 55;
 
     private Byte2ObjectMap<MetadataValue> entries;
     private boolean dirty;

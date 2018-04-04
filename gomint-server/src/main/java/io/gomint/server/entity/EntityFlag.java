@@ -22,11 +22,11 @@ public enum EntityFlag {
     CAN_CLIMB( 19 ),
     SWIMMER( 20 ),
     CAN_FLY( 21 ),
-    GLIDING( 30 ),
-    BREATHING( 33 ),
+    GLIDING( 31 ),
+    BREATHING( 34 ),
 
-    HAS_COLLISION( 45 ),
-    AFFECTED_BY_GRAVITY( 46 );
+    HAS_COLLISION( 46 ),
+    AFFECTED_BY_GRAVITY( 47 );
 
     @Getter
     private final int id;

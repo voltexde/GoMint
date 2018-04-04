@@ -34,10 +34,8 @@ public class PacketPlayerlist extends Packet {
                 buffer.writeSignedVarLong( entry.getEntityId() );
                 buffer.writeString( entry.getName() );
 
-                if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-                    buffer.writeString( entry.getThirdPartyName() );
-                    buffer.writeSignedVarInt( entry.getPlatformID() );
-                }
+                buffer.writeString( entry.getThirdPartyName() );
+                buffer.writeSignedVarInt( entry.getPlatformID() );
 
                 buffer.writeString( entry.getSkin().getName() );
 
@@ -64,9 +62,7 @@ public class PacketPlayerlist extends Packet {
                 buffer.writeString( entry.xboxId );
 
                 // TODO: Is this the same as the unknown one in SpawnPlayer?
-                if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-                    buffer.writeString( "" );
-                }
+                buffer.writeString( "" );
             }
         } else {
             for ( Entry entry : this.entries ) {

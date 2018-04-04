@@ -78,6 +78,8 @@ public class PacketStartGame extends Packet {
         buffer.writeLFloat( this.spawn.getZ() );
         buffer.writeLFloat( this.spawn.getYaw() ); // Vec2
         buffer.writeLFloat( this.spawn.getPitch() );
+
+        // LevelSettings
         buffer.writeSignedVarInt( this.seed );
         buffer.writeSignedVarInt( this.dimension );
         buffer.writeSignedVarInt( this.generator );
@@ -102,12 +104,9 @@ public class PacketStartGame extends Packet {
         buffer.writeBoolean( this.hasTrustPlayersEnabled );
         buffer.writeSignedVarInt( this.defaultPlayerPermission );
         buffer.writeSignedVarInt( this.xboxLiveBroadcastMode );
-
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            buffer.writeBoolean( this.hasPlatformBroadcast );
-            buffer.writeUnsignedVarInt( this.platformBroadcastMode );
-            buffer.writeBoolean( this.xboxLiveBroadcastIntent );
-        }
+        buffer.writeBoolean( this.hasPlatformBroadcast );
+        buffer.writeUnsignedVarInt( this.platformBroadcastMode );
+        buffer.writeBoolean( this.xboxLiveBroadcastIntent );
 
         buffer.writeString( this.levelId );
         buffer.writeString( this.worldName );

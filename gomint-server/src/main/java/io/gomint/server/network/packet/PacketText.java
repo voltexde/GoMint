@@ -47,47 +47,37 @@ public class PacketText extends Packet {
         buffer.writeBoolean( false );
 
         // Workaround for the popup notice
-        if ( protocolID == 201 && this.type == Type.POPUP_NOTICE ) {
-            buffer.writeString( this.message );
-            buffer.writeString( this.sender );
-        } else {
-            if ( this.type == Type.POPUP_NOTICE ) {
-                this.message += "\n" + this.sender;
-            }
+        if ( this.type == Type.POPUP_NOTICE ) {
+            this.message += "\n" + this.sender;
+        }
 
-            switch ( this.type ) {
-                case PLAYER_CHAT:
-                case WHISPER:
-                case ANNOUNCEMENT:
-                    buffer.writeString( this.sender );
-                    if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-                        buffer.writeString( this.sourceThirdPartyName );
-                        buffer.writeSignedVarInt( this.sourcePlatform );
-                    }
-                case CLIENT_MESSAGE:
-                case TIP_MESSAGE:
-                case SYSTEM_MESSAGE:
-                    buffer.writeString( this.message );
-                    break;
+        switch ( this.type ) {
+            case PLAYER_CHAT:
+            case WHISPER:
+            case ANNOUNCEMENT:
+                buffer.writeString( this.sender );
+                buffer.writeString( this.sourceThirdPartyName );
+                buffer.writeSignedVarInt( this.sourcePlatform );
+            case CLIENT_MESSAGE:
+            case TIP_MESSAGE:
+            case SYSTEM_MESSAGE:
+                buffer.writeString( this.message );
+                break;
 
-                case POPUP_NOTICE:
-                case JUKEBOX_POPUP:
-                case LOCALIZABLE_MESSAGE:
-                    buffer.writeString( this.message );
-                    buffer.writeByte( (byte) this.arguments.length );
-                    for ( String argument : this.arguments ) {
-                        buffer.writeString( argument );
-                    }
+            case POPUP_NOTICE:
+            case JUKEBOX_POPUP:
+            case LOCALIZABLE_MESSAGE:
+                buffer.writeString( this.message );
+                buffer.writeByte( (byte) this.arguments.length );
+                for ( String argument : this.arguments ) {
+                    buffer.writeString( argument );
+                }
 
-                    break;
-            }
+                break;
         }
 
         buffer.writeString( this.xuid );
-
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            buffer.writeString( "" );
-        }
+        buffer.writeString( "" ); // TODO: Check if this is the same as in SpawnPlayer / PlayerList
     }
 
     @Override
@@ -104,11 +94,8 @@ public class PacketText extends Packet {
             case WHISPER:
             case ANNOUNCEMENT:
                 this.sender = buffer.readString();
-
-                if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-                    this.sourceThirdPartyName = buffer.readString();
-                    this.sourcePlatform = buffer.readSignedVarInt();
-                }
+                this.sourceThirdPartyName = buffer.readString();
+                this.sourcePlatform = buffer.readSignedVarInt();
             case CLIENT_MESSAGE:
             case TIP_MESSAGE:
             case SYSTEM_MESSAGE:
@@ -130,9 +117,7 @@ public class PacketText extends Packet {
         }
 
         this.xuid = buffer.readString();
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            buffer.readString();
-        }
+        System.out.println( buffer.readString() );
     }
 
     public enum Type {
