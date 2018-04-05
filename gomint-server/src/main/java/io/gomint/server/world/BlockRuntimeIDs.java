@@ -58,6 +58,8 @@ public class BlockRuntimeIDs {
             LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}", blockId, dataValue, new Exception() );
         }
 
+        LOGGER.info( "Got palette id {} for {}:{}", runtimeId, blockId, dataValue );
+
         return runtimeId;
     }
 
