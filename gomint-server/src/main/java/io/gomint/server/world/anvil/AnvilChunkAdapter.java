@@ -105,10 +105,10 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     for ( int z = 0; z < 16; ++z ) {
                         short blockIndex = (short) ( ( y - baseIndex ) << 8 | z << 4 | x );
 
-                        byte blockId = this.getBlock( x, y, z );
+                        int blockId = this.getBlock( x, y, z );
                         byte blockData = this.getData( x, y, z );
 
-                        blocks[blockIndex] = blockId;
+                        blocks[blockIndex] = (byte) blockId;
                         data.set( blockIndex, blockData );
                     }
                 }
@@ -313,11 +313,15 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     int y = sectionY + j;
                     short blockIndex = (short) ( j << 8 | k << 4 | i );
 
-                    byte blockId = (byte) ( ( ( add != null ? add.get( blockIndex ) << 8 : 0 ) | blocks[blockIndex] ) & 0xFF );
+                    int blockId = ( ( ( add != null ? add.get( blockIndex ) << 8 : 0 ) | blocks[blockIndex] ) & 0xFF );
                     byte blockData = data.get( blockIndex );
 
+                    if ( j == 0 && k == 0 && i == 3 && blockData == 11 ) {
+                        System.out.println( "Chunk data: " + blockId );
+                    }
+
                     if ( !this.converted ) {
-                        Pair<Byte, Byte> convertedData = CONVERTER.convert( blockId, blockData );
+                        Pair<Integer, Byte> convertedData = CONVERTER.convert( blockId, blockData );
                         if ( convertedData != null ) {
                             blockId = convertedData.getFirst();
                             blockData = convertedData.getSecond();

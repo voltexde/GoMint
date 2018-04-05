@@ -46,11 +46,17 @@ public class Palette {
         }
     }
 
-    private final ByteBuffer buffer;
+    private ByteBuffer dataOutput;
+    private ByteBuffer buffer;
     private PaletteVersion paletteVersion = null;
 
     // Output indexes
     private short[] output = null;
+
+    // Input bitset
+    private BitSet input = null;
+    private int inputIndex = 0;
+    private int wordsWritten = 0;
 
     /**
      * Construct a new reader for the given palette version
@@ -71,6 +77,58 @@ public class Palette {
         if ( this.paletteVersion == null ) {
             throw new IllegalArgumentException( "Palette version " + version + " is unknown" );
         }
+    }
+
+    public Palette( ByteBuffer data, int version ) {
+        this.dataOutput = data;
+
+        for ( PaletteVersion paletteVersionCanidate : PaletteVersion.values() ) {
+            if ( paletteVersionCanidate.getVersionId() >= version && paletteVersionCanidate.getAmountOfPadding() == 0 ) {
+                this.paletteVersion = paletteVersionCanidate;
+                break;
+            }
+        }
+
+        if ( this.paletteVersion == null ) {
+            throw new IllegalArgumentException( "Palette version " + version + " is unknown" );
+        }
+    }
+
+    public void addIndex( Integer id ) {
+        // Do we need new input?
+        if ( this.input == null ) {
+            this.input = new BitSet( 32 );
+            this.inputIndex = 0;
+        }
+
+        // Check if old input is full and we need a new one
+        if ( this.wordsWritten == this.paletteVersion.getAmountOfWords() ) {
+            // Write to output
+            this.dataOutput.putInt( this.convert( this.input ) );
+
+            // New input
+            this.input = new BitSet( 32 );
+            this.inputIndex = 0;
+            this.wordsWritten = 0;
+        }
+
+        // Write id
+        while ( id != 0L ) {
+            if ( id % 2L != 0 ) {
+                this.input.set( this.inputIndex );
+            }
+
+            ++this.inputIndex;
+            id = id >>> 1;
+        }
+
+        // Increment written words
+        this.wordsWritten++;
+    }
+
+    public void finish() {
+        this.dataOutput.putInt( this.convert( this.input ) );
+        this.input = null;
     }
 
     public short[] getIndexes() {
@@ -109,6 +167,16 @@ public class Palette {
 
     public boolean isPadded() {
         return this.paletteVersion.getAmountOfPadding() > 0;
+    }
+
+    private int convert( BitSet bits ) {
+        int value = 0;
+
+        for ( int i = 0; i < bits.length(); ++i ) {
+            value += bits.get( i ) ? ( 1L << i ) : 0L;
+        }
+
+        return value;
     }
 
     private BitSet convert( int value ) {

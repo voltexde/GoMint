@@ -298,7 +298,7 @@ public abstract class WorldAdapter implements World {
      * @param position where we want to search
      * @return id of the block
      */
-    public byte getBlockId( BlockPosition position ) {
+    public int getBlockId( BlockPosition position ) {
         // Sanity check
         if ( position.getY() < 0 ) {
             this.logger.warn( "Got request for block under y 0", new Exception() );

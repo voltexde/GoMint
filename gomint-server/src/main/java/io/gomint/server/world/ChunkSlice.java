@@ -1,14 +1,16 @@
 package io.gomint.server.world;
 
 import io.gomint.math.Location;
+import io.gomint.server.SelfInstrumentation;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.world.block.Blocks;
+import io.gomint.server.util.collection.NumberArray;
 import io.gomint.server.world.storage.TemporaryStorage;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -26,8 +28,9 @@ class ChunkSlice {
 
     private boolean isAllAir = true;
 
-    private byte[] blocks = null;
+    private NumberArray blocks = null;
     private NibbleArray data = null;
+
     private NibbleArray blockLight = new NibbleArray( (short) 4096 );
     private NibbleArray skyLight = new NibbleArray( (short) 4096 );
 
@@ -46,7 +49,7 @@ class ChunkSlice {
      * @param z coordinate in this slice (capped to 16)
      * @return id of the block
      */
-    byte getBlock( int x, int y, int z ) {
+    int getBlock( int x, int y, int z ) {
         return this.getBlockInternal( getIndex( x, y, z ) );
     }
 
@@ -56,12 +59,12 @@ class ChunkSlice {
      * @param index which should be looked up
      * @return block id of the index
      */
-    byte getBlockInternal( short index ) {
+    int getBlockInternal( short index ) {
         if ( this.isAllAir ) {
             return 0;
         }
 
-        return this.blocks[index];
+        return this.blocks.get( index );
     }
 
     <T extends io.gomint.world.block.Block> T getBlockInstance( int x, int y, int z ) {
@@ -75,7 +78,7 @@ class ChunkSlice {
             return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ) );
         }
 
-        return (T) this.chunk.getWorld().getServer().getBlocks().get( this.blocks[index] & 0xFF, this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
+        return (T) this.chunk.getWorld().getServer().getBlocks().get( this.blocks.get( index ), this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
             this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
     }
 
@@ -87,16 +90,16 @@ class ChunkSlice {
         this.tileEntities.put( getIndex( x, y, z ), tileEntity );
     }
 
-    void setBlock( int x, int y, int z, byte blockId ) {
+    void setBlock( int x, int y, int z, int blockId ) {
         short index = getIndex( x, y, z );
 
         if ( blockId != 0 && this.blocks == null ) {
-            this.blocks = new byte[4096];
+            this.blocks = new NumberArray();
             this.isAllAir = false;
         }
 
         if ( this.blocks != null ) {
-            this.blocks[index] = blockId;
+            this.blocks.add( index, blockId );
         }
     }
 
@@ -129,16 +132,99 @@ class ChunkSlice {
     }
 
     byte[] getBytes() {
+        /*// Count how many unique blocks we have in this chunk
+        List<Integer> ids = new ArrayList<>();
+        List<Integer> indexIDs = new ArrayList<>();
+
+        for ( int x = 0; x < 16; x++ ) {
+            for ( int z = 0; z < 16; z++ ) {
+                for ( int y = 0; y < 16; y++ ) {
+                    short blockIndex = getIndex( x, y, z );
+                    int blockId = this.blocks == null ? 0 : this.blocks.get( blockIndex );
+                    byte blockData = this.data == null ? 0 : this.data.get( blockIndex );
+
+                    int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData );
+                    if ( !ids.contains( runtimeId ) ) {
+                        ids.add( runtimeId );
+                    }
+
+                    indexIDs.add( ids.indexOf( runtimeId ) );
+                }
+            }
+        }
+
+        ByteBuffer buffer = ByteBuffer.allocate( 4096 + 4 + 4096 );
+        buffer.order( ByteOrder.LITTLE_ENDIAN );
+
+        // Get correct wordsize
+        int value = ids.size();
+        int count = 0;
+
+        while ( value > 0 ) {
+            count++;
+            value = value >> 1;
+        }
+
+        // Prepare palette
+        try {
+            byte paletteWord = (byte) ( count << 1 );
+            paletteWord += 1;
+            buffer.put( paletteWord );
+
+            Palette palette = new Palette( buffer, count );
+            for ( Integer id : indexIDs ) {
+                palette.addIndex( id );
+            }
+
+            palette.finish();
+        } catch ( Exception ignored ) {
+
+        }
+
+        // Write runtimeIDs
+        writeVarint( buffer, ids.size() );
+
+        for ( Integer id : ids ) {
+            writeVarint( buffer, id );
+        }
+
+        // Copy result
+        byte[] outputData = new byte[buffer.position()];
+        System.arraycopy( buffer.array(), buffer.arrayOffset(), outputData, 0, buffer.position() );
+        DumpUtil.dumpByteArray( outputData );
+        return outputData;*/
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try {
-            baos.write( this.blocks == null ? new byte[4096] : this.blocks );
+            baos.write( this.blocks == null ? new byte[4096] : this.remapToBytes( this.blocks ) );
             baos.write( this.data == null ? new byte[2048] : this.data.raw() );
         } catch ( Exception ignored ) {
 
         }
 
         return baos.toByteArray();
+    }
+
+    private byte[] remapToBytes( NumberArray blocks ) {
+        byte[] data = new byte[4096];
+
+        for ( int i = 0; i < 4096; i++ ) {
+            data[i] = (byte) blocks.get( (short) i );
+        }
+
+        return data;
+    }
+
+    private void writeVarint( ByteBuffer stream, int value ) {
+        int copyValue = value;
+
+        while ( ( copyValue & -128 ) != 0 ) {
+            stream.put( (byte) ( copyValue & 127 | 128 ) );
+            copyValue >>>= 7;
+        }
+
+        stream.put( (byte) copyValue );
     }
 
     public TemporaryStorage getTemporaryStorage( int x, int y, int z ) {
@@ -156,6 +242,10 @@ class ChunkSlice {
     public void resetTemporaryStorage( int x, int y, int z ) {
         short index = getIndex( x, y, z );
         this.temporaryStorages.remove( index );
+    }
+
+    public long getMemorySize() {
+        return this.isAllAir ? 0 : SelfInstrumentation.getObjectSize( this.blocks );
     }
 
 }

@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BlockRuntimeIDs {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( BlockRuntimeIDs.class );
-    private static final Map<Pair<Byte, Byte>, Integer> RUNTIME_IDS = new ConcurrentHashMap<>();
+    private static final Map<Pair<Integer, Byte>, Integer> RUNTIME_IDS = new ConcurrentHashMap<>();
 
     static {
         // Get the correct resource
@@ -45,20 +45,18 @@ public class BlockRuntimeIDs {
             JSONArray runtimeIDs = (JSONArray) parser.parse( reader );
             for ( Object id : runtimeIDs ) {
                 JSONObject idObj = (JSONObject) id;
-                RUNTIME_IDS.put( new Pair<>( ( (Long) idObj.get( "id" ) ).byteValue(), ( (Long) idObj.get( "data" ) ).byteValue() ), ( (Long) idObj.get( "runtimeID" ) ).intValue() );
+                RUNTIME_IDS.put( new Pair<>( ( (Long) idObj.get( "id" ) ).intValue(), ( (Long) idObj.get( "data" ) ).byteValue() ), ( (Long) idObj.get( "runtimeID" ) ).intValue() );
             }
         } catch ( IOException | ParseException e ) {
             e.printStackTrace();
         }
     }
 
-    public static Integer fromLegacy( byte blockId, byte dataValue ) {
+    public static Integer fromLegacy( int blockId, byte dataValue ) {
         Integer runtimeId = RUNTIME_IDS.get( new Pair<>( blockId, dataValue ) );
         if ( runtimeId == null ) {
             LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}", blockId, dataValue, new Exception() );
         }
-
-        LOGGER.info( "Got palette id {} for {}:{}", runtimeId, blockId, dataValue );
 
         return runtimeId;
     }

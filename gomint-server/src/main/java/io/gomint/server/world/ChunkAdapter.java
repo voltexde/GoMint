@@ -9,6 +9,7 @@ package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
+import io.gomint.server.SelfInstrumentation;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
@@ -94,9 +95,6 @@ public class ChunkAdapter implements Chunk {
     // Post loading processing
     protected Queue<PostProcessor> postProcessors = new LinkedList<>();
 
-    // Caching of hashes
-    private long chunkHash;
-
     // CHECKSTYLE:ON
 
     /**
@@ -121,7 +119,7 @@ public class ChunkAdapter implements Chunk {
             int blockHash = this.world.randomUpdateNumber >> 2;
             for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
                 short index = (short) ( blockHash & 0xfff );
-                byte blockId = chunkSlice.getBlockInternal( index );
+                int blockId = chunkSlice.getBlockInternal( index );
                 switch ( blockId ) {
                     case (byte) 244:    // Beetroot
                     case 2:             // Grass
@@ -350,7 +348,7 @@ public class ChunkAdapter implements Chunk {
      * @param z  The z-coordinate of the block
      * @param id The ID to set the block to
      */
-    public void setBlock( int x, int y, int z, byte id ) {
+    public void setBlock( int x, int y, int z, int id ) {
         int ySection = y >> 4;
         ChunkSlice slice = ensureSlice( ySection );
         slice.setBlock( x, y - 16 * ySection, z, id );
@@ -365,7 +363,7 @@ public class ChunkAdapter implements Chunk {
      * @param z The z-coordinate of the block
      * @return The ID of the block
      */
-    public byte getBlock( int x, int y, int z ) {
+    public int getBlock( int x, int y, int z ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         return slice.getBlock( x, y - 16 * ( y >> 4 ), z );
     }
@@ -506,7 +504,7 @@ public class ChunkAdapter implements Chunk {
 
         buffer.writeByte( (byte) topEmpty );
         for ( int i = 0; i < topEmpty; i++ ) {
-            buffer.writeByte( (byte) 0 );
+            buffer.writeByte( (byte) 0 ); // TODO: Move to 1 once we have new palette
             buffer.writeBytes( ensureSlice( i ).getBytes() );
         }
 
@@ -663,6 +661,19 @@ public class ChunkAdapter implements Chunk {
 
     public Long2ObjectMap<io.gomint.entity.Entity> getEntities() {
         return this.entities;
+    }
+
+    public long getMemorySize() {
+        long size = SelfInstrumentation.getObjectSize( this.chunkSlices );
+
+        for ( ChunkSlice slice : this.chunkSlices ) {
+            if ( slice != null ) {
+                size += SelfInstrumentation.getObjectSize( slice );
+                size += slice.getMemorySize();
+            }
+        }
+
+        return size;
     }
 
 }

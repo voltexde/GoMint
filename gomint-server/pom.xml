@@ -132,6 +132,7 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                         <manifestEntries>
+                            <Premain-Class>io.gomint.server.SelfInstrumentation</Premain-Class>
                             <Implementation-Build>s:${buildNumber}-b:${buildScmBranch}</Implementation-Build>
                         </manifestEntries>
                     </archive>
