@@ -88,7 +88,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             }
 
             Object jsonChainRaw = json.get( "chain" );
-            if ( jsonChainRaw == null || !( jsonChainRaw instanceof JSONArray ) ) {
+            if ( !( jsonChainRaw instanceof JSONArray ) ) {
                 return;
             }
 
@@ -138,10 +138,12 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
                 // Check for names
                 String name = chainValidator.getUsername();
-                if ( name.length() < 1 || name.length() > 16 ) {
-                    connection.disconnect( "disconnectionScreen.invalidName" );
-                    return;
-                } else if ( !NAME_PATTERN.matcher( name ).matches() ) {
+                if ( name.length() >= 1 && name.length() <= 16 ) {
+                    if ( !NAME_PATTERN.matcher( name ).matches() ) {
+                        connection.disconnect( "disconnectionScreen.invalidName" );
+                        return;
+                    }
+                } else {
                     connection.disconnect( "disconnectionScreen.invalidName" );
                     return;
                 }
