@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class InvisibleBedrock extends Block implements io.gomint.world.block.BlockInvisibleBedrock {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 95;
     }
 

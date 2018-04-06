@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Podzol extends Block implements io.gomint.world.block.BlockPodzol {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 243;
+    public int getBlockId() {
+        return 243;
     }
 
     @Override

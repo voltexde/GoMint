@@ -19,8 +19,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class EnderChest extends ContainerBlock implements io.gomint.world.block.BlockEnderChest {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 130;
+    public int getBlockId() {
+        return 130;
     }
 
     @Override

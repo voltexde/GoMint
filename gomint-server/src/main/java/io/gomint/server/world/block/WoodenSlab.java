@@ -14,8 +14,8 @@ import io.gomint.world.block.BlockWoodenSlab;
 public class WoodenSlab extends Slab implements BlockWoodenSlab {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 158;
+    public int getBlockId() {
+        return 158;
     }
 
     @Override

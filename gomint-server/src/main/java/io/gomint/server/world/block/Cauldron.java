@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Cauldron extends Block implements io.gomint.world.block.BlockCauldron {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 118;
     }
 

@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Furnace extends Block implements io.gomint.world.block.BlockFurnace {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 61;
     }
 

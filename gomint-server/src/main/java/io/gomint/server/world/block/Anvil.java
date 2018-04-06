@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Anvil extends Block implements io.gomint.world.block.BlockAnvil {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 145;
+    public int getBlockId() {
+        return 145;
     }
 
     @Override

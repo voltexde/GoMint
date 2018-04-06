@@ -17,7 +17,7 @@ import io.gomint.world.block.BlockType;
 public class Wood extends Block implements io.gomint.world.block.BlockWood {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 5;
     }
 

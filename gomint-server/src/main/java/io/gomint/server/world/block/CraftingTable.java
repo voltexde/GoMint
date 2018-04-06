@@ -20,7 +20,7 @@ public class CraftingTable extends Block implements io.gomint.world.block.BlockC
     private static final Logger LOGGER = LoggerFactory.getLogger( CraftingTable.class );
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 58;
     }
 

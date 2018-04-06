@@ -16,7 +16,7 @@ import java.util.function.Function;
 public class WoodenPressurePlate extends BasePressurePlate implements io.gomint.world.block.BlockWoodenPressurePlate {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 72;
     }
 

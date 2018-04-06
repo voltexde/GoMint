@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class LightWeightedPressurePlate extends Block implements io.gomint.world.block.BlockLightWeightedPressurePlate {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 147;
+    public int getBlockId() {
+        return 147;
     }
 
     @Override

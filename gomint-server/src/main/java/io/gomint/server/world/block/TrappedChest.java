@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class TrappedChest extends Block implements io.gomint.world.block.BlockTrappedChest {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 146;
+    public int getBlockId() {
+        return 146;
     }
 
     @Override

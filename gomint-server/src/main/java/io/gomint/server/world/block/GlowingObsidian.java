@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class GlowingObsidian extends Block implements io.gomint.world.block.BlockGlowingObsidian {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 246;
+    public int getBlockId() {
+        return 246;
     }
 
     @Override

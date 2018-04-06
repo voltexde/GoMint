@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Stonecutter extends Block implements io.gomint.world.block.BlockStonecutter {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 245;
+    public int getBlockId() {
+        return 245;
     }
 
     @Override

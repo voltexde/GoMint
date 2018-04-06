@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class IronTrapdoor extends Block implements io.gomint.world.block.BlockIronTrapdoor {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 167;
+    public int getBlockId() {
+        return 167;
     }
 
     @Override

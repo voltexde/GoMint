@@ -14,7 +14,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Netherrack extends Block implements io.gomint.world.block.BlockNetherrack {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 87;
     }
 

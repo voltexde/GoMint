@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class RedSandstoneStairs extends Stairs {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 180;
+    public int getBlockId() {
+        return 180;
     }
 
     @Override

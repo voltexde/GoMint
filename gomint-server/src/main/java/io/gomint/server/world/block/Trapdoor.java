@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Trapdoor extends Block implements io.gomint.world.block.BlockTrapdoor {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 96;
     }
 

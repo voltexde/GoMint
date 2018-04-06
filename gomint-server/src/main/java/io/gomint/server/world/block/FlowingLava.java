@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class FlowingLava extends Liquid implements BlockFlowingLava {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 10;
     }
 

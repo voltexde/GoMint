@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class EndRod extends Block implements io.gomint.world.block.BlockEndRod {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 208;
+    public int getBlockId() {
+        return 208;
     }
 
     @Override

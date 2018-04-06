@@ -15,8 +15,8 @@ import java.util.List;
 public class BlockOfCoal extends Block implements io.gomint.world.block.BlockBlockOfCoal {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 173;
+    public int getBlockId() {
+        return 173;
     }
 
     @Override

@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class WoodenDoubleSlab extends Block implements io.gomint.world.block.BlockWoodenDoubleSlab {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 157;
+    public int getBlockId() {
+        return 157;
     }
 
     @Override

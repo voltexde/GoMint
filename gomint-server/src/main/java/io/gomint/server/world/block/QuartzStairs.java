@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class QuartzStairs extends Stairs {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 156;
+    public int getBlockId() {
+        return 156;
     }
 
     @Override

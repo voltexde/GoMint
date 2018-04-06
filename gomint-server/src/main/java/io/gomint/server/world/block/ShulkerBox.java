@@ -21,8 +21,8 @@ public class ShulkerBox extends Block implements io.gomint.world.block.BlockShul
     private static final Logger LOGGER = LoggerFactory.getLogger( ShulkerBox.class );
 
     @Override
-    public byte getBlockId() {
-        return (byte) 218;
+    public int getBlockId() {
+        return 218;
     }
 
     @Override

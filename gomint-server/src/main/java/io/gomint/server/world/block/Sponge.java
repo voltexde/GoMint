@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Sponge extends Block implements io.gomint.world.block.BlockSponge {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 19;
     }
 

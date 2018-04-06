@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Sapling extends Block implements io.gomint.world.block.BlockSapling {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 6;
     }
 

@@ -16,8 +16,8 @@ import java.util.List;
 public class Beetroot extends Growable implements BlockBeetroot {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 244;
+    public int getBlockId() {
+        return 244;
     }
 
     @Override

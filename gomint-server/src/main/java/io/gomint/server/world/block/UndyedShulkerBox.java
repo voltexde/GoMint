@@ -30,8 +30,8 @@ public class UndyedShulkerBox extends Block implements BlockUndyedShulkerBox {
     private static final Logger LOGGER = LoggerFactory.getLogger( ShulkerBox.class );
 
     @Override
-    public byte getBlockId() {
-        return (byte) 205;
+    public int getBlockId() {
+        return 205;
     }
 
     @Override

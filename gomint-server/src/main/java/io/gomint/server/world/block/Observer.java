@@ -13,8 +13,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class Observer extends Block implements io.gomint.world.block.BlockObserver {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 251;
+    public int getBlockId() {
+        return 251;
     }
 
     @Override

@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class LapisLazuliOre extends Block implements io.gomint.world.block.BlockLapisLazuliOre {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 21;
     }
 

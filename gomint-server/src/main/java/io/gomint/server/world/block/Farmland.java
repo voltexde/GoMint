@@ -20,7 +20,7 @@ import java.util.function.Predicate;
 public class Farmland extends Block implements io.gomint.world.block.BlockFarmland {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 60;
     }
 

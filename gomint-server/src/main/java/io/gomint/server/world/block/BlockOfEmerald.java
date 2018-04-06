@@ -18,8 +18,8 @@ import java.util.List;
 public class BlockOfEmerald extends Block implements io.gomint.world.block.BlockBlockOfEmerald {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 133;
+    public int getBlockId() {
+        return 133;
     }
 
     @Override

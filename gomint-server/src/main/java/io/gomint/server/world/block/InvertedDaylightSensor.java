@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class InvertedDaylightSensor extends Block implements io.gomint.world.block.BlockInvertedDaylightSensor {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 178;
+    public int getBlockId() {
+        return 178;
     }
 
     @Override

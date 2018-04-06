@@ -16,8 +16,8 @@ import io.gomint.taglib.NBTTagCompound;
 public class ItemFrame extends Block implements io.gomint.world.block.BlockItemFrame {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 199;
+    public int getBlockId() {
+        return 199;
     }
 
     @Override

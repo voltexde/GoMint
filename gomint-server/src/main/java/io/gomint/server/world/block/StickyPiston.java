@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class StickyPiston extends Block implements io.gomint.world.block.BlockStickyPiston {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 29;
     }
 

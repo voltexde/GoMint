@@ -20,8 +20,8 @@ import java.util.List;
 public class BlockOfQuartz extends Block implements io.gomint.world.block.BlockBlockOfQuartz {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 155;
+    public int getBlockId() {
+        return 155;
     }
 
     @Override

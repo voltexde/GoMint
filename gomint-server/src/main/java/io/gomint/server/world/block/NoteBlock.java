@@ -17,7 +17,7 @@ import io.gomint.world.block.BlockNoteblock;
 public class NoteBlock extends Block implements BlockNoteblock {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 25;
     }
 

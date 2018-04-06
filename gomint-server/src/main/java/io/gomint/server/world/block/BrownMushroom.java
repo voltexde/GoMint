@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class BrownMushroom extends Block implements io.gomint.world.block.BlockBrownMushroom {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 39;
     }
 

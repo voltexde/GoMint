@@ -34,7 +34,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
     private static final byte HEAD = 0x08;
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 26;
     }
 
@@ -204,15 +204,15 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
 
         if ( zAbs > xAbs ) {
             if ( directionPlane.getZ() > 0 ) {
-                return new PlacementData( (byte) 26, (byte) 0, compound );
+                return new PlacementData( 26, (byte) 0, compound );
             } else {
-                return new PlacementData( (byte) 26, (byte) 2, compound );
+                return new PlacementData( 26, (byte) 2, compound );
             }
         } else {
             if ( directionPlane.getX() > 0 ) {
-                return new PlacementData( (byte) 26, (byte) 3, compound );
+                return new PlacementData( 26, (byte) 3, compound );
             } else {
-                return new PlacementData( (byte) 26, (byte) 1, compound );
+                return new PlacementData( 26, (byte) 1, compound );
             }
         }
     }

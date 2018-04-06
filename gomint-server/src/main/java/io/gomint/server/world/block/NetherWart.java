@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class NetherWart extends Block implements io.gomint.world.block.BlockNetherWart {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 115;
     }
 

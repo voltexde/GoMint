@@ -46,7 +46,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     // CHECKSTYLE:OFF
     @Getter
-    private byte blockId;
+    private int blockId;
     @Setter
     protected WorldAdapter world;
     @Setter
@@ -62,7 +62,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     private byte blockLightLevel;
 
     // Set all needed data
-    public void setData( byte blockId, byte blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, byte skyLightLevel, byte blockLightLevel ) {
+    public void setData( int blockId, byte blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, byte skyLightLevel, byte blockLightLevel ) {
         this.blockId = blockId;
         this.blockData = blockData;
         this.tileEntity = tileEntity;
@@ -478,7 +478,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
         io.gomint.server.inventory.item.ItemStack implStack = (io.gomint.server.inventory.item.ItemStack) item;
-        return new PlacementData( (byte) implStack.getBlockId(), (byte) item.getData(), null );
+        return new PlacementData( implStack.getBlockId(), (byte) item.getData(), null );
     }
 
     /**

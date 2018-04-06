@@ -22,8 +22,8 @@ import io.gomint.world.block.BlockType;
 public class ChainCommandBlock extends ContainerBlock implements BlockChainCommandBlock {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 189;
+    public int getBlockId() {
+        return 189;
     }
 
     @Override

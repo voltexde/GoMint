@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class SlimeBlock extends Block implements io.gomint.world.block.BlockSlimeBlock {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 165;
+    public int getBlockId() {
+        return 165;
     }
 
     @Override

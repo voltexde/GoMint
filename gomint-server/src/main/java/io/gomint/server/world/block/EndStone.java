@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class EndStone extends Block implements io.gomint.world.block.BlockEndStone {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 121;
     }
 

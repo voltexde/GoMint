@@ -19,7 +19,7 @@ import io.gomint.world.block.BlockType;
 public class Jukebox extends Block implements BlockJukebox {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 84;
     }
 

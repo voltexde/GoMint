@@ -14,7 +14,7 @@ import io.gomint.world.block.BlockDirt;
 public class Dirt extends Block implements BlockDirt {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 3;
     }
 

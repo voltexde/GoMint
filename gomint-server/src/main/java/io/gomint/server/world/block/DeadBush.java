@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class DeadBush extends Block implements io.gomint.world.block.BlockDeadBush {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 32;
     }
 

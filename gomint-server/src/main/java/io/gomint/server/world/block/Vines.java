@@ -13,7 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Vines extends Block implements io.gomint.world.block.BlockVines {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 106;
     }
 

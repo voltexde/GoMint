@@ -11,7 +11,7 @@ import io.gomint.world.block.BlockType;
 public class StonePressurePlate extends BasePressurePlate implements io.gomint.world.block.BlockStonePressurePlate {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 70;
     }
 

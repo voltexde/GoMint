@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class BrewingStand extends Block implements io.gomint.world.block.BlockBrewingStand {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 117;
     }
 

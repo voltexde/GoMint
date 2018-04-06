@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class TallGrass extends Block implements io.gomint.world.block.BlockTallGrass {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 31;
     }
 

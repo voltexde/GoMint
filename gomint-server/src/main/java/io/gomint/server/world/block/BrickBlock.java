@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class BrickBlock extends Block implements io.gomint.world.block.BlockBrickBlock {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 45;
     }
 

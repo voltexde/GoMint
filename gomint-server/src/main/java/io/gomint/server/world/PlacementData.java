@@ -3,7 +3,6 @@ package io.gomint.server.world;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 
 /**
@@ -15,7 +14,7 @@ import lombok.experimental.Accessors;
 @Accessors( chain = true )
 public class PlacementData {
 
-    private byte blockId;
+    private int blockId;
     private byte metaData;
     private NBTTagCompound compound;
 

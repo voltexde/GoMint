@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class DoubleRedSandstoneSlab extends Block implements io.gomint.world.block.BlockDoubleRedSandstoneSlab {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 181;
+    public int getBlockId() {
+        return 181;
     }
 
     @Override

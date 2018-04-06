@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class RedstoneComparatorPowered extends Block implements io.gomint.world.block.BlockRedstoneComparatorPowered {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 150;
+    public int getBlockId() {
+        return 150;
     }
 
     @Override

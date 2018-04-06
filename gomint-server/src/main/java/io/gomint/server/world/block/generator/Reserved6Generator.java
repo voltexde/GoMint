@@ -13,7 +13,7 @@ package io.gomint.server.world.block.generator;
  */
 public class Reserved6Generator implements BlockGenerator {
 
-    public io.gomint.server.world.block.Block generate( byte blockId, byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {
+    public io.gomint.server.world.block.Block generate( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {
         io.gomint.server.world.block.Block block = new io.gomint.server.world.block.Reserved6();
         block.setData( blockId, blockData, tileEntity, (io.gomint.server.world.WorldAdapter) location.getWorld(), location, skyLightLevel, blockLightLevel );
         return block;

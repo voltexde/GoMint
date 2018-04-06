@@ -15,8 +15,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class DaylightDetector extends Block implements io.gomint.world.block.BlockDaylightDetector {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 151;
+    public int getBlockId() {
+        return 151;
     }
 
     @Override

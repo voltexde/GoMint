@@ -19,7 +19,7 @@ import java.util.List;
 public class GrassBlock extends Block implements io.gomint.world.block.BlockGrassBlock {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 2;
     }
 

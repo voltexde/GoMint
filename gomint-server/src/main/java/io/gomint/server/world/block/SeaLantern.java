@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class SeaLantern extends Block implements io.gomint.world.block.BlockSeaLantern {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 169;
+    public int getBlockId() {
+        return 169;
     }
 
     @Override

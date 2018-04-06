@@ -17,7 +17,7 @@ import java.util.List;
 public class Log extends Block implements BlockLog {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 17;
     }
 

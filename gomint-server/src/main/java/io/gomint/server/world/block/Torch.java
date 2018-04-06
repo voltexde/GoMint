@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Torch extends Block implements io.gomint.world.block.BlockTorch {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 50;
     }
 

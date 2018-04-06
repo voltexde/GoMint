@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class RedstoneWire extends Block implements io.gomint.world.block.BlockRedstoneWire {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 55;
     }
 

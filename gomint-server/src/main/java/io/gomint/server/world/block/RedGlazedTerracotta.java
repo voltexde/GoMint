@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class RedGlazedTerracotta extends Block implements io.gomint.world.block.BlockRedGlazedTerracotta {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 234;
+    public int getBlockId() {
+        return 234;
     }
 
     @Override

@@ -283,7 +283,7 @@ public abstract class WorldAdapter implements World {
      * @param position Position of the block
      * @param blockId  The new block id
      */
-    public void setBlockId( BlockPosition position, byte blockId ) {
+    public void setBlockId( BlockPosition position, int blockId ) {
         final ChunkAdapter chunk = this.loadChunk(
             CoordinateUtils.fromBlockToChunk( position.getX() ),
             CoordinateUtils.fromBlockToChunk( position.getZ() ),

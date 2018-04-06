@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class PurpurStairs extends Stairs {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 203;
+    public int getBlockId() {
+        return 203;
     }
 
     @Override

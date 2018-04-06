@@ -18,8 +18,8 @@ import io.gomint.world.block.BlockType;
 public class ConcretePowder extends Block implements io.gomint.world.block.BlockConcretePowder {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 237;
+    public int getBlockId() {
+        return 237;
     }
 
     @Override

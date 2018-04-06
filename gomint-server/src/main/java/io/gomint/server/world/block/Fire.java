@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class Fire extends Block implements io.gomint.world.block.BlockFire {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 51;
     }
 

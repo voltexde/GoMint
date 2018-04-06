@@ -17,7 +17,7 @@ import io.gomint.world.block.BlockType;
 public class Ladder extends Block implements io.gomint.world.block.BlockLadder {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 65;
     }
 

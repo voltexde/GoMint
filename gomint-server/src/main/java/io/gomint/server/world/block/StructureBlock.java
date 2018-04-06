@@ -12,8 +12,8 @@ import io.gomint.server.registry.RegisterInfo;
 public class StructureBlock extends Block implements io.gomint.world.block.BlockStructureBlock {
 
     @Override
-    public byte getBlockId() {
-        return (byte) 252;
+    public int getBlockId() {
+        return 252;
     }
 
     @Override

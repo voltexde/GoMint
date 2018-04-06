@@ -14,7 +14,7 @@ import io.gomint.world.block.BlockFlowingWater;
 public class FlowingWater extends Liquid implements BlockFlowingWater {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 8;
     }
 

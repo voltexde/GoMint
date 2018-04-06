@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class MelonStem extends Block implements io.gomint.world.block.BlockMelonStem {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 105;
     }
 

@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Snow extends Block implements io.gomint.world.block.BlockSnow {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 80;
     }
 

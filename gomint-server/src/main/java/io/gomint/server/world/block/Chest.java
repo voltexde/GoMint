@@ -26,7 +26,7 @@ import java.util.List;
 public class Chest extends ContainerBlock implements BlockChest {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 54;
     }
 

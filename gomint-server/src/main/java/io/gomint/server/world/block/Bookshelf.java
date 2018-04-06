@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Bookshelf extends Block implements io.gomint.world.block.BlockBookshelf {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 47;
     }
 

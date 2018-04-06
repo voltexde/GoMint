@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Flower extends Block implements io.gomint.world.block.BlockFlower {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 38;
     }
 

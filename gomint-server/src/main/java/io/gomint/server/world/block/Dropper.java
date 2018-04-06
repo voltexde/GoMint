@@ -13,7 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Dropper extends Block implements io.gomint.world.block.BlockDropper {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 125;
     }
 

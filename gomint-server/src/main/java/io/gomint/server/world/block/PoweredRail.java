@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class PoweredRail extends Block implements io.gomint.world.block.BlockPoweredRail {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 27;
     }
 

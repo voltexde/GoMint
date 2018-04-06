@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Obsidian extends Block implements io.gomint.world.block.BlockObsidian {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 49;
     }
 

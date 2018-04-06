@@ -14,7 +14,7 @@ import io.gomint.world.block.BlockStationaryWater;
 public class StationaryWater extends Liquid implements BlockStationaryWater {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 9;
     }
 

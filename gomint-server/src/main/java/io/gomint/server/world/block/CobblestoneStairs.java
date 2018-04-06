@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class CobblestoneStairs extends Stairs {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 67;
     }
 

@@ -58,8 +58,8 @@ public class Blocks {
         return null;
     }
 
-    public Block get( byte blockId ) {
-        BlockGenerator instance = this.generators.getGenerator( blockId & 0xFF );
+    public Block get( int blockId ) {
+        BlockGenerator instance = this.generators.getGenerator( blockId );
         if ( instance != null ) {
             return instance.generate();
         }

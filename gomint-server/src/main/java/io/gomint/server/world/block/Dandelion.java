@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Dandelion extends Block implements io.gomint.world.block.BlockDandelion {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 37;
     }
 

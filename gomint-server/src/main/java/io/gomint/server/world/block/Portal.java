@@ -12,7 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 public class Portal extends Block implements io.gomint.world.block.BlockPortal {
 
     @Override
-    public byte getBlockId() {
+    public int getBlockId() {
         return 90;
     }
 
