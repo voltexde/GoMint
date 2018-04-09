@@ -7,10 +7,12 @@
 
 package io.gomint.plugin.listener;
 
+import io.gomint.GoMint;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.entity.EntityTeleportEvent;
+import io.gomint.gui.Modal;
 
 /**
  * @author geNAZt
@@ -21,8 +23,14 @@ public class EntityTeleportListener implements EventListener {
     @EventHandler
     public void onEntityTeleport( EntityTeleportEvent event ) {
         if ( event.getEntity() instanceof EntityPlayer ) {
-            ( (EntityPlayer) event.getEntity() ).getInventory().clear();
+            // ( (EntityPlayer) event.getEntity() ).getInventory().clear();
+            Modal form = GoMint.instance().createModal( "Teleport Feedback", "Waren Sie mit dem Teleport zufrieden?" );
+            form.setTrueButtonText( "Yay" );
+            form.setFalseButtonText( "Ney" );
+            ( (EntityPlayer) event.getEntity() ).showForm( form );
         }
+
+
     }
 
 }
