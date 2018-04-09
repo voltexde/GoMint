@@ -328,7 +328,12 @@ public enum EntityType {
     /**
      * Entity Type value for a armor stand.
      */
-    ARMOR_STAND( 61 );
+    ARMOR_STAND( 61 ),
+
+    /**
+     * Entity type value for a falling block
+     */
+    FALLING_BLOCK( 66 );
 
     private final int id;
 

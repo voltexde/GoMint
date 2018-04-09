@@ -52,14 +52,6 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().addEffect( PotionEffect.SPEED, 0, 30, TimeUnit.MINUTES );
 
         this.plugin.getScheduler().schedule( () -> event.getPlayer().removeAllEffects(), 15, TimeUnit.SECONDS );
-        this.plugin.getScheduler().schedule( () -> {
-            Block block = event.getPlayer().getWorld().getBlockAt( event.getPlayer().getLocation().toBlockPosition().add( BlockPosition.DOWN ) );
-            if ( block.getType() == BlockType.WOOD ) {
-                block.setType( BlockStone.class );
-            } else {
-                block.setType( BlockWood.class );
-            }
-        }, 50, 50, TimeUnit.MILLISECONDS );
     }
 
 }

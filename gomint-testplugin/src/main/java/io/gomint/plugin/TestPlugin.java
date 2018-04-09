@@ -55,15 +55,15 @@ public class TestPlugin extends Plugin {
 
     @Override
     public void onInstall() {
-        EntityHuman floatingText = EntityHuman.create();
+        /*EntityHuman floatingText = EntityHuman.create();
         floatingText.setSkin( PlayerSkin.empty() );
         floatingText.setScale( 0f );
         floatingText.setTicking( false );
         floatingText.setNameTag( "Test123" );
-        floatingText.spawn( new Location( GoMint.instance().getWorld( "test_plot" ), 12, 83, 12 ) );
+        floatingText.spawn( new Location( GoMint.instance().getWorld( "test_plot" ), 12, 83, 12 ) );*/
 
         // Register listener
-        registerListener( new PlayerMoveListener() );
+        registerListener( new PlayerMoveListener( this ) );
         registerListener( new PlayerJoinListener( this ) );
         registerListener( new BlockBreakListener() );
         registerListener( new EntityTeleportListener() );
