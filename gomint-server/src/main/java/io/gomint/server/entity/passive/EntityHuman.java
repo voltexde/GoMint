@@ -19,6 +19,7 @@ import io.gomint.server.inventory.ArmorInventory;
 import io.gomint.server.inventory.PlayerInventory;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.server.network.packet.PacketSpawnPlayer;
 import io.gomint.server.player.PlayerSkin;
@@ -490,6 +491,11 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
 
     @Override
     public void postSpawn( PlayerConnection connection ) {
+        // TODO: Remove this, its a client bug in 1.2.13
+        PacketEntityMetadata metadata = new PacketEntityMetadata();
+        metadata.setMetadata( this.metadataContainer );
+        connection.addToSendQueue( metadata );
+
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 1 );
         packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
