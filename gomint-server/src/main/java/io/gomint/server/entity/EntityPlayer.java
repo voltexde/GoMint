@@ -1364,6 +1364,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void postSpawn( PlayerConnection connection ) {
         // TODO: Remove this, its a client bug in 1.2.13
         PacketEntityMetadata metadata = new PacketEntityMetadata();
+        metadata.setEntityId( this.getEntityId() );
         metadata.setMetadata( this.metadataContainer );
         connection.addToSendQueue( metadata );
     }
