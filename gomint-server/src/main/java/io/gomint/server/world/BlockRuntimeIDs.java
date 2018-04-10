@@ -53,6 +53,11 @@ public class BlockRuntimeIDs {
     }
 
     public static Integer fromLegacy( int blockId, byte dataValue ) {
+        // Fix air block bullshit from nukkit worlds
+        if ( blockId == 0 ) {
+            dataValue = 0;
+        }
+
         Integer runtimeId = RUNTIME_IDS.get( new Pair<>( blockId, dataValue ) );
         if ( runtimeId == null ) {
             LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}", blockId, dataValue, new Exception() );
