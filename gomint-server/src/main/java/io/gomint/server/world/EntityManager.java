@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import io.gomint.GoMint;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
+import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketEntityMovement;
 import io.gomint.server.network.packet.PacketPlayerlist;
@@ -356,11 +357,7 @@ public class EntityManager {
                         playerlist = new PacketPlayerlist();
                         playerlist.setMode( (byte) 0 );
                         playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-                            add( new PacketPlayerlist.Entry( entityPlayer.getUUID(),
-                                entityPlayer.getEntityId(),
-                                entityPlayer.getDisplayName(), "", 0,
-                                entityPlayer.getXboxID(),
-                                entityPlayer.getSkin() ) );
+                            add( new PacketPlayerlist.Entry( entityPlayer ) );
                         }} );
                     }
 
@@ -372,8 +369,7 @@ public class EntityManager {
                         listEntry = new ArrayList<>();
                     }
 
-                    listEntry.add( new PacketPlayerlist.Entry( player.getUUID(), player.getEntityId(),
-                        player.getDisplayName(), "", 0, player.getXboxID(), player.getSkin() ) );
+                    listEntry.add( new PacketPlayerlist.Entry( (EntityHuman) player ) );
                 }
             }
 

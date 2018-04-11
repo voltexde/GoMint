@@ -2,6 +2,7 @@ package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.player.PlayerSkin;
+import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.network.Protocol;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -86,6 +87,10 @@ public class PacketPlayerlist extends Packet {
         private int platformID;
         private String xboxId = "";
         private PlayerSkin skin;
+
+        public Entry( EntityHuman human ) {
+            this( human.getUUID(), human.getEntityId(), human.getName(), human.getDisplayName(), 0, human.getXboxID(), human.getSkin() );
+        }
     }
 
 }

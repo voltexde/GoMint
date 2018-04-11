@@ -22,7 +22,6 @@ import io.gomint.event.inventory.InventoryCloseEvent;
 import io.gomint.event.inventory.InventoryOpenEvent;
 import io.gomint.event.player.*;
 import io.gomint.gui.*;
-import io.gomint.inventory.item.ItemBlockOfIron;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.player.DeviceInfo;
@@ -327,7 +326,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 1 );
         packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( other.getUUID(), other.getEntityId(), null, null, 0, null, null ) );
+            add( new PacketPlayerlist.Entry( other ) );
         }} );
         getConnection().addToSendQueue( packetPlayerlist );
     }
@@ -345,7 +344,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
             packetPlayerlist.setMode( (byte) 0 );
             packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-                add( new PacketPlayerlist.Entry( other.getUUID(), other.getEntityId(), other.getDisplayName(), "", 0, other.getXboxID(), other.getSkin() ) );
+                add( new PacketPlayerlist.Entry( other ) );
             }} );
             getConnection().addToSendQueue( packetPlayerlist );
             getConnection().addToSendQueue( other.createSpawnPacket() );
@@ -642,7 +641,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 1 );
         packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( getUUID(), getEntityId(), null, null, 0, null, null ) );
+            add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
         }} );
 
         // Cleanup the visibility manager
@@ -1341,7 +1340,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         PacketPlayerlist playerlist = new PacketPlayerlist();
         playerlist.setMode( (byte) 0 );
         playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( getUUID(), getEntityId(), getDisplayName(), "", 0, getXboxID(), getSkin() ) );
+            add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
         }} );
         this.getConnection().addToSendQueue( playerlist );
 

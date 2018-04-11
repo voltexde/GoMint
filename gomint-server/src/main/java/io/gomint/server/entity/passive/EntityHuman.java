@@ -423,7 +423,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 0 );
         packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, "", 0, xboxId, getSkin() ) );
+            add( new PacketPlayerlist.Entry( EntityHuman.this ) );
         }} );
 
         for ( io.gomint.entity.EntityPlayer player : this.world.getServer().getPlayers() ) {
@@ -483,7 +483,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 0 );
         packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, "", 0, xboxId, getSkin() ) );
+            add( new PacketPlayerlist.Entry( EntityHuman.this ) );
         }} );
 
         connection.addToSendQueue( packetPlayerlist );
@@ -500,7 +500,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 1 );
         packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( uuid, getEntityId(), displayName, "", 0, xboxId, getSkin() ) );
+            add( new PacketPlayerlist.Entry( EntityHuman.this ) );
         }} );
 
         connection.addToSendQueue( packetPlayerlist );
