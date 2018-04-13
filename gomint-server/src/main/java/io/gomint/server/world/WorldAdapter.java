@@ -164,7 +164,7 @@ public abstract class WorldAdapter implements World {
                     throw new IllegalArgumentException( "Sound " + sound + " needs block sound data" );
                 }
 
-                soundData = this.server.getBlocks().getID( data.getBlock() );
+                soundData = BlockRuntimeIDs.fromLegacy( this.server.getBlocks().getID( data.getBlock() ), (byte) 0 );
 
                 break;
 
@@ -926,7 +926,7 @@ public abstract class WorldAdapter implements World {
     /**
      * Get blocks which collide with the given entity.
      *
-     * @param entity which is used to check for block collisions
+     * @param entity             which is used to check for block collisions
      * @param includePassThrough if the result should also include blocks which can normally be passed through
      * @return list of blocks with which the entity collides, or null when no block has been found
      */
@@ -1023,7 +1023,7 @@ public abstract class WorldAdapter implements World {
                 if ( success ) {
                     // Play sound
                     io.gomint.server.world.block.Block newBlock = replaceBlock.getLocation().getWorld().getBlockAt( replaceBlock.getLocation().toBlockPosition() );
-                    playSound( null, newBlock.getLocation(), Sound.PLACE, (byte) 1, newBlock.getBlockId() );
+                    playSound( null, newBlock.getLocation(), Sound.PLACE, (byte) 1, BlockRuntimeIDs.fromLegacy( newBlock.getBlockId(), (byte) 0 ) );
 
                     // Schedule neighbour updates
                     scheduleNeighbourUpdates( newBlock );
