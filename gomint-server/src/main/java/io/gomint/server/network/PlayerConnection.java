@@ -437,6 +437,9 @@ public class PlayerConnection {
 
                 this.state = PlayerConnectionState.PLAYING;
                 this.checkForNewChunks( null );
+
+                this.entity.getLoginPerformance().setChunkEnd( this.entity.getWorld().getServer().getCurrentTickTime() );
+                this.entity.getLoginPerformance().print();
             }
         }
 

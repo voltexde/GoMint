@@ -189,6 +189,8 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                 connection.getEntity().setSkin( playerSkin );
                 connection.getEntity().setNameTagVisible( true );
                 connection.getEntity().setNameTagAlwaysVisible( true );
+                connection.getEntity().getLoginPerformance().setLoginPacket( currentTimeMillis );
+                connection.getEntity().getLoginPerformance().setEncryptionStart( currentTimeMillis );
 
                 // Fill in fast access maps
                 connection.getServer().getPlayersByUUID().put( chainValidator.getUuid(), connection.getEntity() );

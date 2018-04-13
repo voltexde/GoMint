@@ -25,6 +25,7 @@ import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.player.DeviceInfo;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.command.CommandCanidate;
 import io.gomint.server.command.CommandHolder;
 import io.gomint.server.enchant.EnchantmentProcessor;
@@ -35,8 +36,10 @@ import io.gomint.server.inventory.*;
 import io.gomint.server.inventory.item.ItemAir;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
+import io.gomint.server.performance.LoginPerformance;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.util.EnumConnectors;
@@ -160,6 +163,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     // Exp
     private int xp;
 
+    // Performance metrics
+    @Getter
+    private LoginPerformance loginPerformance;
+
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
      *
@@ -184,6 +191,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.locale = locale;
         this.adventureSettings = new AdventureSettings( this );
+
+        // Performance stuff
+        this.loginPerformance = new LoginPerformance();
     }
 
     // ==================================== ACCESSORS ==================================== //
@@ -227,6 +237,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         int tempViewDistance = Math.min( viewDistance, this.world.getConfig().getViewDistance() );
         if ( this.viewDistance != tempViewDistance ) {
             this.viewDistance = tempViewDistance;
+        }
+
+        if ( this.connection.getState() != PlayerConnectionState.PLAYING ) {
+            this.getLoginPerformance().setChunkStart( this.world.getServer().getCurrentTickTime() );
         }
 
         this.connection.onViewDistanceChanged();
