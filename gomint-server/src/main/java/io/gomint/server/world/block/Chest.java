@@ -1,11 +1,11 @@
 package io.gomint.server.world.block;
 
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.Inventory;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.ChestTileEntity;
@@ -13,8 +13,6 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockChest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -41,7 +39,7 @@ public class Chest extends ContainerBlock implements BlockChest {
     }
 
     @Override
-    public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+    public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         ChestTileEntity tileEntity = this.getTileEntity();
         if ( tileEntity != null ) {
             tileEntity.interact( entity, face, facePos, item );

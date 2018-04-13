@@ -16,6 +16,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -219,8 +220,10 @@ public class ChunkCache {
                 long[] returnVal = new long[this.cachedChunks.size()];
                 int index = 0;
 
-
-                for ( long l : this.cachedChunks.keySet() ) {
+                Long2ObjectMap.FastEntrySet<ChunkAdapter> set = (Long2ObjectMap.FastEntrySet<ChunkAdapter>) this.cachedChunks.long2ObjectEntrySet();
+                ObjectIterator<Long2ObjectMap.Entry<ChunkAdapter>> iterator = set.fastIterator();
+                while ( iterator.hasNext() ) {
+                    long l = iterator.next().getLongKey();
                     if ( !this.alreadyTicked.contains( l ) ) {
                         returnVal[index++] = l;
                     }
@@ -244,7 +247,10 @@ public class ChunkCache {
                 long[] returnVal = new long[needCurrent];
                 int index = 0;
 
-                for ( long l : this.cachedChunks.keySet() ) {
+                Long2ObjectMap.FastEntrySet<ChunkAdapter> set = (Long2ObjectMap.FastEntrySet<ChunkAdapter>) this.cachedChunks.long2ObjectEntrySet();
+                ObjectIterator<Long2ObjectMap.Entry<ChunkAdapter>> iterator = set.fastIterator();
+                while ( iterator.hasNext() ) {
+                    long l = iterator.next().getLongKey();
                     if ( !this.alreadyTicked.contains( l ) ) {
                         returnVal[index++] = l;
                         this.alreadyTicked.add( l );

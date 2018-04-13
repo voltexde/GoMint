@@ -8,6 +8,7 @@ import io.gomint.math.Vector2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.world.PlacementData;
 import io.gomint.world.block.BlockAir;
+import io.gomint.world.block.BlockFace;
 
 /**
  * @author geNAZt
@@ -43,7 +44,7 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
     }
 
     @Override
-    public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+    public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         // Open / Close the door
         // TODO: Door events
         toggle();

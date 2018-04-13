@@ -14,6 +14,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockFace;
 import lombok.Getter;
 
 /**
@@ -98,7 +99,7 @@ public abstract class TileEntity {
      */
     public abstract void update( long currentMillis, float dF );
 
-    public void interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+    public void interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
 
     }
 

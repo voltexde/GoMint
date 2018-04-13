@@ -6,6 +6,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
+import io.gomint.world.block.BlockFace;
 
 /**
  * @author geNAZt
@@ -30,7 +31,7 @@ public class ItemElytra extends ItemStack implements io.gomint.inventory.item.It
     }
 
     @Override
-    public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
+    public boolean interact( EntityPlayer entity, BlockFace face, Vector clickPosition, Block clickedBlock ) {
         if ( clickedBlock == null ) {
             ItemStack old = (ItemStack) entity.getArmorInventory().getChestplate();
             entity.getArmorInventory().setChestplate( this );

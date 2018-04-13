@@ -17,6 +17,7 @@ import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemAir;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockFace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +91,7 @@ public class ChestTileEntity extends ContainerTileEntity implements InventoryHol
     }
 
     @Override
-    public void interact( Entity entity, int face, Vector facePos, io.gomint.inventory.item.ItemStack item ) {
+    public void interact( Entity entity, BlockFace face, Vector facePos, io.gomint.inventory.item.ItemStack item ) {
         // Open the chest inventory for the entity
         if ( entity instanceof EntityPlayer ) {
             ( (EntityPlayer) entity ).openInventory( this.inventory );

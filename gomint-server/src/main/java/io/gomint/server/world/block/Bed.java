@@ -13,6 +13,7 @@ import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.PlacementData;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockBed;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 import io.gomint.world.block.data.BlockColor;
 import io.gomint.world.block.data.Facing;
@@ -144,7 +145,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
     @Override
     public boolean beforePlacement( Entity entity, ItemStack item, Location location ) {
         // We need to check if we are placed on a solid block
-        Block block = (Block) location.getWorld().getBlockAt( location.toBlockPosition() ).getSide( 0 );
+        Block block = (Block) location.getWorld().getBlockAt( location.toBlockPosition() ).getSide( BlockFace.DOWN );
         if ( block.isSolid() ) {
             // Check for other block
             Vector2 directionPlane = entity.getDirectionPlane();
@@ -153,38 +154,38 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
 
             if ( zAbs > xAbs ) {
                 if ( directionPlane.getZ() > 0 ) {
-                    Block other = (Block) block.getSide( Facing.SOUTH );
+                    Block other = block.getSide( Facing.SOUTH );
                     if ( !other.isSolid() ) {
                         return false;
                     }
 
-                    Block replacingHead = (Block) other.getSide( 1 );
+                    Block replacingHead = other.getSide( BlockFace.UP );
                     return replacingHead.canBeReplaced( item );
                 } else {
-                    Block other = (Block) block.getSide( Facing.NORTH );
+                    Block other = block.getSide( Facing.NORTH );
                     if ( !other.isSolid() ) {
                         return false;
                     }
 
-                    Block replacingHead = (Block) other.getSide( 1 );
+                    Block replacingHead = other.getSide( BlockFace.UP );
                     return replacingHead.canBeReplaced( item );
                 }
             } else {
                 if ( directionPlane.getX() > 0 ) {
-                    Block other = (Block) block.getSide( Facing.EAST );
+                    Block other = block.getSide( Facing.EAST );
                     if ( !other.isSolid() ) {
                         return false;
                     }
 
-                    Block replacingHead = (Block) other.getSide( 1 );
+                    Block replacingHead = other.getSide( BlockFace.UP );
                     return replacingHead.canBeReplaced( item );
                 } else {
-                    Block other = (Block) block.getSide( Facing.WEST );
+                    Block other = block.getSide( Facing.WEST );
                     if ( !other.isSolid() ) {
                         return false;
                     }
 
-                    Block replacingHead = (Block) other.getSide( 1 );
+                    Block replacingHead = other.getSide( BlockFace.UP );
                     return replacingHead.canBeReplaced( item );
                 }
             }

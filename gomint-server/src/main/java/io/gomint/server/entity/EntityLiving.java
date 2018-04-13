@@ -185,15 +185,6 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
                 }
             }
 
-            // Check for damage due to blocks (cactus, fire, lava)
-            List<Block> blockList = this.world.getCollisionBlocks( this );
-            if ( blockList != null ) {
-                for ( Block block : blockList ) {
-                    io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
-                    implBlock.onEntityCollision( this );
-                }
-            }
-
             io.gomint.server.world.block.Block standingIn = this.world.getBlockAt( this.getPosition().toBlockPosition() );
             standingIn.onEntityStanding( this );
 

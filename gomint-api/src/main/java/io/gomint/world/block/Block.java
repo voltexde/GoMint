@@ -116,7 +116,7 @@ public interface Block {
      * @param face for which we want the block
      * @return attached block
      */
-    Block getSide( int face );
+    Block getSide( BlockFace face );
 
     /**
      * Get a list of drops which will be dropped when using the given tool

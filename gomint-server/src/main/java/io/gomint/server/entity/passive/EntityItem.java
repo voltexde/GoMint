@@ -85,9 +85,8 @@ public class EntityItem extends Entity implements EntityItemDrop {
 
         this.lastUpdateDt += dT;
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
-            if ( this.isCollided && !this.isReset ) {
+            if ( this.isCollided && !this.isReset && this.getVelocity().length() < 0.0025 ) {
                 this.setVelocity( Vector.ZERO ); // Reset velocity
-                this.setImmobile( true );
                 this.isReset = true;
             }
 

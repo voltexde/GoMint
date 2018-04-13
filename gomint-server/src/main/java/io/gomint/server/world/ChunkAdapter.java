@@ -130,10 +130,6 @@ public class ChunkAdapter implements Chunk {
                     case (byte) 161:    // Acacia leaves
                     case 78:            // Top snow
                     case 79:            // Ice
-                    case 11:            // Stationary lava
-                    case 10:            // FlowingLava
-                    case 9:             // Stationary water
-                    case 8:             // FlowingWater
                         int blockX = ( blockHash >> 8 ) & 0x0f;
                         int blockY = ( blockHash ) & 0x0f;
                         int blockZ = ( blockHash >> 4 ) & 0x0f;

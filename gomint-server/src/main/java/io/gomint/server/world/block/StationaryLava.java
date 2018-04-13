@@ -59,6 +59,11 @@ public class StationaryLava extends Liquid implements BlockStationaryLava {
     }
 
     @Override
+    protected byte getFlowDecayPerBlock() {
+        return 2;
+    }
+
+    @Override
     public float getBlastResistance() {
         return 500.0f;
     }

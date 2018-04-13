@@ -260,7 +260,7 @@ public abstract class WorldAdapter implements World {
 
         ChunkAdapter chunkAdapter = this.getChunk( position.getX() >> 4, position.getZ() >> 4 );
         if ( chunkAdapter != null ) {
-            return chunkAdapter.getBlockAt( position.getX() & 0xF, position.getY(), position.getX() & 0xF );
+            return chunkAdapter.getBlockAt( position.getX() & 0xF, position.getY(), position.getZ() & 0xF );
         }
 
         return null;
@@ -894,7 +894,7 @@ public abstract class WorldAdapter implements World {
         return nearby[0];
     }
 
-    private <T> List<T> iterateBlocks( int minX, int maxX, int minY, int maxY, int minZ, int maxZ, AxisAlignedBB bb, boolean returnBoundingBoxes ) {
+    private <T> List<T> iterateBlocks( int minX, int maxX, int minY, int maxY, int minZ, int maxZ, AxisAlignedBB bb, boolean returnBoundingBoxes, boolean includePassThrough ) {
         List values = null;
 
         for ( int z = minZ; z < maxZ; ++z ) {
@@ -902,7 +902,7 @@ public abstract class WorldAdapter implements World {
                 for ( int y = minY; y < maxY; ++y ) {
                     Block block = this.getBlockAt( x, y, z );
 
-                    if ( !block.canPassThrough() ) {
+                    if ( !block.canPassThrough() || includePassThrough ) {
                         AxisAlignedBB blockBox = block.getBoundingBox();
                         if ( blockBox.intersectsWith( bb ) ) {
                             if ( values == null ) {
@@ -927,9 +927,10 @@ public abstract class WorldAdapter implements World {
      * Get blocks which collide with the given entity.
      *
      * @param entity which is used to check for block collisions
+     * @param includePassThrough if the result should also include blocks which can normally be passed through
      * @return list of blocks with which the entity collides, or null when no block has been found
      */
-    public List<Block> getCollisionBlocks( io.gomint.entity.Entity entity ) {
+    public List<Block> getCollisionBlocks( io.gomint.entity.Entity entity, boolean includePassThrough ) {
         AxisAlignedBB bb = entity.getBoundingBox().grow( 0.1f, 0.01f, 0.1f );
 
         int minX = MathUtils.fastFloor( bb.getMinX() );
@@ -939,7 +940,7 @@ public abstract class WorldAdapter implements World {
         int maxY = MathUtils.fastCeil( bb.getMaxY() );
         int maxZ = MathUtils.fastCeil( bb.getMaxZ() );
 
-        return iterateBlocks( minX, maxX, minY, maxY, minZ, maxZ, bb, false );
+        return iterateBlocks( minX, maxX, minY, maxY, minZ, maxZ, bb, false, includePassThrough );
     }
 
     @Override
@@ -951,7 +952,7 @@ public abstract class WorldAdapter implements World {
         int maxY = MathUtils.fastCeil( bb.getMaxY() );
         int maxZ = MathUtils.fastCeil( bb.getMaxZ() );
 
-        List<AxisAlignedBB> collisions = iterateBlocks( minX, maxX, minY, maxY, minZ, maxZ, bb, true );
+        List<AxisAlignedBB> collisions = iterateBlocks( minX, maxX, minY, maxY, minZ, maxZ, bb, true, false );
 
         if ( includeEntities ) {
             Collection<io.gomint.entity.Entity> entities = getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity );
@@ -979,7 +980,7 @@ public abstract class WorldAdapter implements World {
      * @param entity        which interacts with the block
      * @return true when interaction was successful, false when not
      */
-    public boolean useItemOn( ItemStack itemInHand, BlockPosition blockPosition, int face, Vector clickPosition, io.gomint.server.entity.EntityPlayer entity ) {
+    public boolean useItemOn( ItemStack itemInHand, BlockPosition blockPosition, BlockFace face, Vector clickPosition, io.gomint.server.entity.EntityPlayer entity ) {
         Block blockClicked = this.getBlockAt( blockPosition );
         if ( blockClicked instanceof Air ) {
             return false;
@@ -1038,7 +1039,9 @@ public abstract class WorldAdapter implements World {
     private void scheduleNeighbourUpdates( Block block ) {
         io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
         for ( BlockFace face : BlockFace.values() ) {
-            io.gomint.server.world.block.Block neighbourBlock = (io.gomint.server.world.block.Block) implBlock.getSide( face.getValue() );
+            io.gomint.server.world.block.Block neighbourBlock = implBlock.getSide( face );
+
+            // CHECKSTYLE:OFF
             try {
                 long next = neighbourBlock.update( UpdateReason.NEIGHBOUR_UPDATE, this.server.getCurrentTickTime(), 0f );
                 if ( next > this.server.getCurrentTickTime() ) {
@@ -1048,6 +1051,7 @@ public abstract class WorldAdapter implements World {
             } catch ( Exception e ) {
                 this.logger.error( "Exception while updating block @ {}", neighbourBlock.getLocation(), e );
             }
+            // CHECKSTYLE:ON
         }
     }
 

@@ -5,6 +5,7 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
 import io.gomint.server.network.Protocol;
+import io.gomint.world.block.BlockFace;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class PacketInventoryTransaction extends Packet {
 
     // Type USE_ITEM / RELEASE_ITEM
     private BlockPosition blockPosition;
-    private int face;
+    private BlockFace face;
     private Vector playerPosition;
     private Vector clickPosition;
 
@@ -76,7 +77,7 @@ public class PacketInventoryTransaction extends Packet {
             case TYPE_USE_ITEM:
                 this.actionType = buffer.readUnsignedVarInt();
                 this.blockPosition = readBlockPosition( buffer );
-                this.face = buffer.readSignedVarInt();
+                this.face = readBlockFace( buffer );
                 this.hotbarSlot = buffer.readSignedVarInt();
                 this.itemInHand = readItemStack( buffer );
                 this.playerPosition = new Vector( buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat() );

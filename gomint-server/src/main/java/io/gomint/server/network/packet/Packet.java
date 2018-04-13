@@ -19,6 +19,7 @@ import io.gomint.server.network.type.CommandOrigin;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Gamerule;
+import io.gomint.world.block.BlockFace;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -291,6 +292,26 @@ public abstract class Packet {
 
         buffer.writeByte( commandOrigin.getUnknown2() );
         buffer.writeByte( commandOrigin.getType() );
+    }
+
+    BlockFace readBlockFace( PacketBuffer buffer ) {
+        int value = buffer.readSignedVarInt();
+        switch ( value ) {
+            case 0:
+                return BlockFace.DOWN;
+            case 1:
+                return BlockFace.UP;
+            case 2:
+                return BlockFace.EAST;
+            case 3:
+                return BlockFace.WEST;
+            case 4:
+                return BlockFace.NORTH;
+            case 5:
+                return BlockFace.SOUTH;
+        }
+
+        return null;
     }
 
 }

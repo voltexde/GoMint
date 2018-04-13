@@ -199,7 +199,7 @@ public class Explosion {
             block.setType( Air.class );
 
             for ( BlockFace blockFace : BlockFace.values() ) {
-                Block attached = block.getSide( blockFace.getValue() );
+                Block attached = block.getSide( blockFace );
                 if ( !event.getAffectedBlocks().contains( attached ) && !alreadyUpdated.contains( attached ) ) {
                     io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) attached;
                     implBlock.update( UpdateReason.EXPLOSION, currentTimeMS, dT );

@@ -226,7 +226,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                 if ( !event.isCancelled() ) {
                     io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) connection.getEntity().getInventory().getItemInHand();
-                    itemStack.interact( connection.getEntity(), -1, packet.getClickPosition(), null );
+                    itemStack.interact( connection.getEntity(), null, packet.getClickPosition(), null );
                 }
 
                 break;
@@ -438,13 +438,13 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             Block blockClicked = connection.getEntity().getWorld().getBlockAt( packet.getBlockPosition() );
             connection.getEntity().getBlockUpdates().add( packet.getBlockPosition() );
 
-            if ( packet.getFace() > -1 ) {
+            if ( packet.getFace() != null ) {
                 // Attach to block send queue
                 Block replacedBlock = blockClicked.getSide( packet.getFace() );
                 connection.getEntity().getBlockUpdates().add( replacedBlock.getLocation().toBlockPosition() );
 
                 for ( BlockFace face : BlockFace.values() ) {
-                    connection.getEntity().getBlockUpdates().add( replacedBlock.getSide( face.getValue() ).getLocation().toBlockPosition() );
+                    connection.getEntity().getBlockUpdates().add( replacedBlock.getSide( face ).getLocation().toBlockPosition() );
                 }
             }
         }

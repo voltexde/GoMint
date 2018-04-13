@@ -5,6 +5,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.UpdateReason;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,7 @@ public class WoodenButton extends Block implements io.gomint.world.block.BlockWo
     }
 
     @Override
-    public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+    public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         // Press the button
         this.press();
 

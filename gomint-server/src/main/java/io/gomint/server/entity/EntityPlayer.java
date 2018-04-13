@@ -78,7 +78,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Queue<ChunkAdapter> chunkSendQueue = new ConcurrentLinkedQueue<>();
 
     // EntityPlayer Information
-    private Gamemode gamemode = Gamemode.SURVIVAL;
+    private Gamemode gamemode = Gamemode.CREATIVE;
     @Getter
     private AdventureSettings adventureSettings;
     @Getter

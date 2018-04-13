@@ -8,6 +8,7 @@ import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketPlayerAction;
+import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.LevelEvent;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Block;
@@ -58,7 +59,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
                     // Nasty hack for fire
                     io.gomint.server.world.block.Block block = connection.getEntity().getWorld().getBlockAt( packet.getPosition() );
-                    Block faced = (Block) block.getSide( packet.getFace() );
+                    Block faced = block.getSide( packet.getFace() );
                     if ( faced instanceof Fire ) {
                         BlockBreakEvent event1 = new BlockBreakEvent( connection.getEntity(), faced, new ArrayList<>() );
                         connection.getServer().getPluginManager().callEvent( event1 );
@@ -143,10 +144,12 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 // Broadcast break effects
                 if ( connection.getEntity().getBreakVector() != null ) {
                     Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getBreakVector() );
+                    int runtimeId = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() );
+
                     connection.getEntity().getWorld().sendLevelEvent(
                         connection.getEntity().getBreakVector().toVector(),
                         LevelEvent.PARTICLE_PUNCH_BLOCK,
-                        block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) | ( packet.getFace() << 16 ) );
+                        runtimeId | ( packet.getFace().ordinal() << 24 ) );
                 }
 
                 break;

@@ -14,6 +14,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
+import io.gomint.world.block.BlockFace;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -403,7 +404,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         // Normal items do nothing
     }
 
-    public boolean interact( EntityPlayer entity, int face, Vector clickPosition, Block clickedBlock ) {
+    public boolean interact( EntityPlayer entity, BlockFace face, Vector clickPosition, Block clickedBlock ) {
         return false;
     }
 

@@ -263,6 +263,25 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 }
             }
 
+            // Check for block collision
+            List<io.gomint.world.block.Block> blockList = this.world.getCollisionBlocks( this, true );
+            if ( blockList != null ) {
+                Vector pushedByBlocks = new Vector( 0, 0, 0 );
+
+                for ( io.gomint.world.block.Block block : blockList ) {
+                    io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
+                    implBlock.onEntityCollision( this );
+                    implBlock.addVelocity( this, pushedByBlocks );
+                }
+
+                if ( pushedByBlocks.length() > 0 ) {
+                    pushedByBlocks.normalize().multiply( 0.014f );
+                    Vector newMotion = this.transform.getMotion().add( pushedByBlocks );
+                    this.transform.setMotion( newMotion.getX(), newMotion.getY(), newMotion.getZ() );
+                    this.broadCastMotion();
+                }
+            }
+
             // Check for void damage
             if ( this.getPositionY() < -16.0f ) {
                 this.dealVoidDamage();
@@ -424,12 +443,14 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
         }
 
-        // Move by new bounding box
-        this.transform.setPosition(
-            ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
-            this.boundingBox.getMinY(),
-            ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
-        );
+        if ( dX != 0 || dY != 0 || dZ != 0 ) {
+            // Move by new bounding box
+            this.transform.setPosition(
+                ( this.boundingBox.getMinX() + this.boundingBox.getMaxX() ) / 2,
+                this.boundingBox.getMinY(),
+                ( this.boundingBox.getMinZ() + this.boundingBox.getMaxZ() ) / 2
+            );
+        }
 
         // Check for grounding states
         this.checkIfCollided( movX, movY, movZ, dX, dY, dZ );
@@ -894,7 +915,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
     public void setImmobile( boolean value ) {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.IMMOBILE, value );
     }
-
 
     @Override
     public boolean isImmobile() {

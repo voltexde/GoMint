@@ -198,6 +198,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                 case ".Level.LastUpdate":
                 case ".Level.LightPopulated":
                 case ".Level.TerrainPopulated":
+                case ".Level.BiomeColors":
                     break;
                 case ".DataVersion":
                     AnvilChunkAdapter.this.version = (int) object;

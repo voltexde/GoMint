@@ -14,6 +14,7 @@ import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockFace;
 import lombok.Getter;
 
 /**
@@ -67,7 +68,7 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
     }
 
     @Override
-    public void interact( Entity entity, int face, Vector facePos, io.gomint.inventory.item.ItemStack item ) {
+    public void interact( Entity entity, BlockFace face, Vector facePos, io.gomint.inventory.item.ItemStack item ) {
 
     }
 

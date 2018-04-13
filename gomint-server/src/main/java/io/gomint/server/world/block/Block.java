@@ -24,6 +24,7 @@ import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.data.Facing;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -114,13 +115,12 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     /**
      * Called when a entity decides to interact with the block
-     *
-     * @param entity  The entity which interacts with it
+     *  @param entity  The entity which interacts with it
      * @param face    The block face the entity interacts with
      * @param facePos The position where the entity interacted with the block
      * @param item    The item with which the entity interacted, can be null
      */
-    public boolean interact( Entity entity, int face, Vector facePos, ItemStack item ) {
+    public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         return false;
     }
 
@@ -244,15 +244,16 @@ public abstract class Block implements io.gomint.world.block.Block {
                 }
             }
 
+            instance = this.world.getBlockAt( pos );
             long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
             if ( next > this.world.getServer().getCurrentTickTime() ) {
-                this.world.addTickingBlock( next, this.location.toBlockPosition() );
+                this.world.addTickingBlock( next, pos.clone() );
             }
 
             worldAdapter.updateBlock( pos );
         }
 
-        return world.getBlockAt( pos );
+        return (T) instance;
     }
 
     @Override
@@ -275,6 +276,11 @@ public abstract class Block implements io.gomint.world.block.Block {
                     instance.setTileEntity( tileEntity );
                     worldAdapter.storeTileEntity( pos, tileEntity );
                 }
+            }
+
+            long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
+            if ( next > this.world.getServer().getCurrentTickTime() ) {
+                this.world.addTickingBlock( next, this.location.toBlockPosition() );
             }
 
             worldAdapter.updateBlock( pos );
@@ -300,6 +306,11 @@ public abstract class Block implements io.gomint.world.block.Block {
         // Check if new block needs tile entity
         if ( instance.getTileEntity() != null ) {
             worldAdapter.storeTileEntity( pos, instance.getTileEntity() );
+        }
+
+        long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
+        if ( next > this.world.getServer().getCurrentTickTime() ) {
+            this.world.addTickingBlock( next, this.location.toBlockPosition() );
         }
 
         worldAdapter.updateBlock( pos );
@@ -329,6 +340,11 @@ public abstract class Block implements io.gomint.world.block.Block {
             // Construct new tile entity
             TileEntity tileEntity = TileEntities.construct( compound, worldAdapter );
             worldAdapter.storeTileEntity( pos, tileEntity );
+        }
+
+        long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
+        if ( next > this.world.getServer().getCurrentTickTime() ) {
+            this.world.addTickingBlock( next, this.location.toBlockPosition() );
         }
 
         worldAdapter.updateBlock( pos );
@@ -392,26 +408,32 @@ public abstract class Block implements io.gomint.world.block.Block {
     }
 
     @Override
-    public io.gomint.world.block.Block getSide( int face ) {
+    public Block getSide( BlockFace face ) {
         switch ( face ) {
-            case 0:
+            case DOWN:
                 return this.getRelative( BlockPosition.DOWN );
-            case 1:
+            case UP:
                 return this.getRelative( BlockPosition.UP );
-            case 2:
+            case NORTH:
                 return this.getRelative( BlockPosition.NORTH );
-            case 3:
+            case SOUTH:
                 return this.getRelative( BlockPosition.SOUTH );
-            case 4:
+            case WEST:
                 return this.getRelative( BlockPosition.WEST );
-            case 5:
+            case EAST:
                 return this.getRelative( BlockPosition.EAST );
         }
 
         return null;
     }
 
-    public io.gomint.world.block.Block getSide( Facing face ) {
+    /**
+     * Get the side of this block
+     *
+     * @param face which side we want to get
+     * @return block attached to the side given
+     */
+    public Block getSide( Facing face ) {
         switch ( face ) {
             case SOUTH:
                 return this.getRelative( BlockPosition.SOUTH );
@@ -426,7 +448,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         return null;
     }
 
-    private io.gomint.world.block.Block getRelative( BlockPosition position ) {
+    private Block getRelative( BlockPosition position ) {
         return this.location.getWorld().getBlockAt( this.location.toBlockPosition().add( position ) );
     }
 
@@ -613,7 +635,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         this.blockData = blockData;
     }
 
-    public void onEntityCollision( EntityLiving entity ) {
+    public void onEntityCollision( Entity entity ) {
 
     }
 
@@ -640,7 +662,11 @@ public abstract class Block implements io.gomint.world.block.Block {
         }
     }
 
-    public void afterBreak() {
+    public boolean canBeFlowedInto() {
+        return false;
+    }
+
+    public void addVelocity( Entity entity, Vector pushedByBlocks ) {
 
     }
 
