@@ -29,6 +29,10 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
     @Override
     public void handle( PacketPlayerAction packet, long currentTimeMillis, PlayerConnection connection ) {
         switch ( packet.getAction() ) {
+            case STOP_SWIMMING:
+                // Apart from this being spammed we currently don't allow swimming
+                break;
+
             case SET_ENCHANT_SEED:
                 // Just ignore the seed, it just announces that we enchanted
                 connection.getEntity().setEnchantmentProcessor( new EnchantmentProcessor( connection.getEntity() ) );
