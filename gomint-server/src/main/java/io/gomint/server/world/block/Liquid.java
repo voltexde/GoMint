@@ -166,7 +166,7 @@ public abstract class Liquid extends Block implements BlockLiquid {
     }
 
     private void checkSpread( BlockPosition pos, int decay ) {
-        if ( decay >= 0 ) {
+        if ( decay >= 0 && pos.getY() > 0 ) {
             Block bottomBlock = this.world.getBlockAt( pos.clone().add( BlockPosition.DOWN ) );
             this.flowIntoBlock( bottomBlock, decay | 0x08 );
             if ( decay == 0 || !bottomBlock.canBeFlowedInto() ) {
