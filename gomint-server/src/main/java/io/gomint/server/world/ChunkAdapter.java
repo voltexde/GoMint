@@ -500,7 +500,7 @@ public class ChunkAdapter implements Chunk {
 
         buffer.writeByte( (byte) topEmpty );
         for ( int i = 0; i < topEmpty; i++ ) {
-            buffer.writeByte( (byte) 0 ); // TODO: Move to 1 once we have new palette
+            buffer.writeByte( (byte) 1 ); // TODO: Move to 1 once we have new palette
             buffer.writeBytes( ensureSlice( i ).getBytes() );
         }
 

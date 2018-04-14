@@ -1,18 +1,22 @@
 package io.gomint.server.world;
 
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
 import io.gomint.server.SelfInstrumentation;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.util.Palette;
 import io.gomint.server.util.collection.NumberArray;
 import io.gomint.server.world.storage.TemporaryStorage;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -132,7 +136,7 @@ class ChunkSlice {
     }
 
     byte[] getBytes() {
-        /*// Count how many unique blocks we have in this chunk
+        // Count how many unique blocks we have in this chunk
         List<Integer> ids = new ArrayList<>();
         List<Integer> indexIDs = new ArrayList<>();
 
@@ -153,78 +157,41 @@ class ChunkSlice {
             }
         }
 
-        ByteBuffer buffer = ByteBuffer.allocate( 4096 + 4 + 4096 );
-        buffer.order( ByteOrder.LITTLE_ENDIAN );
+        PacketBuffer buffer = new PacketBuffer( 512 );
 
         // Get correct wordsize
         int value = ids.size();
-        int count = 0;
-
-        while ( value > 0 ) {
-            count++;
-            value = value >> 1;
-        }
+        int numberOfBits = MathUtils.fastFloor( log2( value ) ) + 1;
 
         // Prepare palette
-        try {
-            byte paletteWord = (byte) ( count << 1 );
-            paletteWord += 1;
-            buffer.put( paletteWord );
+        int amountOfBlocks = MathUtils.fastFloor( 32f / (float) numberOfBits );
+        Palette palette = new Palette( buffer, amountOfBlocks, false );
 
-            Palette palette = new Palette( buffer, count );
-            for ( Integer id : indexIDs ) {
-                palette.addIndex( id );
-            }
+        byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );
+        buffer.writeByte( paletteWord );
 
-            palette.finish();
-        } catch ( Exception ignored ) {
-
+        for ( Integer id : indexIDs ) {
+            palette.addIndex( id );
         }
 
+        palette.finish();
+
         // Write runtimeIDs
-        writeVarint( buffer, ids.size() );
+        buffer.writeSignedVarInt( ids.size() );
 
         for ( Integer id : ids ) {
-            writeVarint( buffer, id );
+            buffer.writeSignedVarInt( id );
         }
 
         // Copy result
-        byte[] outputData = new byte[buffer.position()];
-        System.arraycopy( buffer.array(), buffer.arrayOffset(), outputData, 0, buffer.position() );
-        DumpUtil.dumpByteArray( outputData );
-        return outputData;*/
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        try {
-            baos.write( this.blocks == null ? new byte[4096] : this.remapToBytes( this.blocks ) );
-            baos.write( this.data == null ? new byte[2048] : this.data.raw() );
-        } catch ( Exception ignored ) {
-
-        }
-
-        return baos.toByteArray();
+        byte[] outputData = new byte[buffer.getPosition()];
+        System.arraycopy( buffer.getBuffer(), buffer.getBufferOffset(), outputData, 0, buffer.getPosition() );
+        return outputData;
     }
 
-    private byte[] remapToBytes( NumberArray blocks ) {
-        byte[] data = new byte[4096];
-
-        for ( int i = 0; i < 4096; i++ ) {
-            data[i] = (byte) blocks.get( (short) i );
-        }
-
-        return data;
-    }
-
-    private void writeVarint( ByteBuffer stream, int value ) {
-        int copyValue = value;
-
-        while ( ( copyValue & -128 ) != 0 ) {
-            stream.put( (byte) ( copyValue & 127 | 128 ) );
-            copyValue >>>= 7;
-        }
-
-        stream.put( (byte) copyValue );
+    private int log2( int n ) {
+        if ( n <= 0 ) throw new IllegalArgumentException();
+        return 31 - Integer.numberOfLeadingZeros( n );
     }
 
     public TemporaryStorage getTemporaryStorage( int x, int y, int z ) {

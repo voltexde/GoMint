@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BlockRuntimeIDs {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( BlockRuntimeIDs.class );
-    private static final Map<Pair<Integer, Byte>, Integer> RUNTIME_IDS = new ConcurrentHashMap<>();
+    private static final Map<Pair<Integer, Byte>, Integer> RUNTIME_IDS = new HashMap<>(); // HashMaps are fine for multithreaded reading
 
     static {
         // Get the correct resource

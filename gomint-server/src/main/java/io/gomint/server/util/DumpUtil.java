@@ -77,7 +77,6 @@ public class DumpUtil {
     public static void dumpByteArray( byte[] bytes ) {
         int count = 0;
         int total = 0;
-        byte[] data = new byte[16];
 
         StringBuilder stringBuilder = new StringBuilder( "\n 00000000: " );
 
@@ -87,20 +86,18 @@ public class DumpUtil {
                 hex = "0" + hex;
             }
 
-            data[count] = aByte;
             stringBuilder.append( hex ).append( " " );
             total++;
 
-            if ( ++count == 16 ) {
+            if ( ++count == 32 ) {
                 StringBuilder intDisplay = new StringBuilder( Integer.toString( total ) );
                 int missingTrailing = 8 - intDisplay.length();
                 for ( int i = 0; i < missingTrailing; i++ ) {
                     intDisplay.insert( 0, "0" );
                 }
 
-                stringBuilder.append( " " ).append( new String( data ).replaceAll( "\n", "." ) ).append( "\n " ).append( intDisplay ).append( ": " );
+                stringBuilder.append( " " ).append( "\n " ).append( intDisplay ).append( ": " );
                 count = 0;
-                data = new byte[16];
             }
         }
 

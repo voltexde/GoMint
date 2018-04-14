@@ -7,10 +7,10 @@
 
 package io.gomint.server.util;
 
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.MathUtils;
 import lombok.Getter;
 
-import java.nio.ByteBuffer;
 import java.util.BitSet;
 
 /**
@@ -21,7 +21,7 @@ import java.util.BitSet;
 public class Palette {
 
     @Getter
-    private enum PaletteVersion {
+    public enum PaletteVersion {
         P1( 1, 32 ),
         P2( 2, 16 ),
         P3( 3, 10, 2 ),
@@ -31,6 +31,7 @@ public class Palette {
         P8( 8, 4 ),
         P16( 16, 2 );
 
+        @Getter
         private final byte versionId;
         private final byte amountOfWords;
         private final byte amountOfPadding;
@@ -46,8 +47,7 @@ public class Palette {
         }
     }
 
-    private ByteBuffer dataOutput;
-    private ByteBuffer buffer;
+    private PacketBuffer data;
     private PaletteVersion paletteVersion = null;
 
     // Output indexes
@@ -61,29 +61,16 @@ public class Palette {
     /**
      * Construct a new reader for the given palette version
      *
-     * @param in      of the data
-     * @param version of the palette
+     * @param data    which should be used to read/write
+     * @param version of the palette or the amount of blocks we want to store in one word
+     * @param read    do we read or write to this palette?
      */
-    public Palette( ByteBuffer in, byte version ) {
-        this.buffer = in;
+    public Palette( PacketBuffer data, int version, boolean read ) {
+        this.data = data;
 
         for ( PaletteVersion paletteVersionCanidate : PaletteVersion.values() ) {
-            if ( paletteVersionCanidate.getVersionId() == version ) {
-                this.paletteVersion = paletteVersionCanidate;
-                break;
-            }
-        }
-
-        if ( this.paletteVersion == null ) {
-            throw new IllegalArgumentException( "Palette version " + version + " is unknown" );
-        }
-    }
-
-    public Palette( ByteBuffer data, int version ) {
-        this.dataOutput = data;
-
-        for ( PaletteVersion paletteVersionCanidate : PaletteVersion.values() ) {
-            if ( paletteVersionCanidate.getVersionId() >= version && paletteVersionCanidate.getAmountOfPadding() == 0 ) {
+            if ( ( !read && paletteVersionCanidate.getAmountOfWords() <= version ) ||
+                ( read && paletteVersionCanidate.getVersionId() == version ) ) {
                 this.paletteVersion = paletteVersionCanidate;
                 break;
             }
@@ -104,7 +91,7 @@ public class Palette {
         // Check if old input is full and we need a new one
         if ( this.wordsWritten == this.paletteVersion.getAmountOfWords() ) {
             // Write to output
-            this.dataOutput.putInt( this.convert( this.input ) );
+            this.data.writeLInt( this.convert( this.input ) );
 
             // New input
             this.input = new BitSet( 32 );
@@ -124,10 +111,13 @@ public class Palette {
 
         // Increment written words
         this.wordsWritten++;
+
+        // Set the index correct
+        this.inputIndex = this.wordsWritten * this.paletteVersion.getVersionId();
     }
 
     public void finish() {
-        this.dataOutput.putInt( this.convert( this.input ) );
+        this.data.writeLInt( this.convert( this.input ) );
         this.input = null;
     }
 
@@ -139,7 +129,7 @@ public class Palette {
             // We need the amount of iterations
             int iterations = MathUtils.fastCeil( 4096 / (float) this.paletteVersion.getAmountOfWords() );
             for ( int i = 0; i < iterations; i++ ) {
-                BitSet bitSet = convert( this.buffer.getInt() );
+                BitSet bitSet = convert( this.data.readLInt() );
                 int index = 0;
 
                 for ( byte b = 0; b < this.paletteVersion.getAmountOfWords(); b++ ) {
@@ -169,30 +159,17 @@ public class Palette {
         return this.paletteVersion.getAmountOfPadding() > 0;
     }
 
-    private int convert( BitSet bits ) {
-        int value = 0;
-
-        for ( int i = 0; i < bits.length(); ++i ) {
-            value += bits.get( i ) ? ( 1L << i ) : 0L;
+    private int convert( BitSet bs ) {
+        long[] result = bs.toLongArray();
+        if ( result.length == 0 ) {
+            return 0;
         }
 
-        return value;
+        return (int) result[0];
     }
 
     private BitSet convert( int value ) {
-        BitSet bits = new BitSet( 32 );
-        int index = 0;
-        while ( value != 0L ) {
-            if ( value % 2L != 0 ) {
-                bits.set( index );
-            }
-
-            ++index;
-            value = value >>> 1;
-        }
-
-        return bits;
+        return BitSet.valueOf( new long[]{ value } );
     }
-
 
 }

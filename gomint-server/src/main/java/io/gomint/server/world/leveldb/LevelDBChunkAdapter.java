@@ -7,6 +7,7 @@
 
 package io.gomint.server.world.leveldb;
 
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntities;
@@ -85,26 +86,24 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
     }
 
     void loadSection( int sectionY, byte[] chunkData ) {
-        ByteBuffer buf = ByteBuffer.wrap( chunkData );
+        PacketBuffer buffer = new PacketBuffer( chunkData, 0 );
 
         // First byte is chunk section version
-        byte subchunkVersion = buf.get();
+        byte subchunkVersion = buffer.readByte();
         switch ( subchunkVersion ) {
             case 1:
-                buf.order( ByteOrder.LITTLE_ENDIAN );
-
-                byte data = buf.get();
+                byte data = buffer.readByte();
                 boolean isPersistent = ( ( data >> 8 ) & 1 ) != 1; // last bit is the isPresent state (shift and mask it to 1)
                 byte wordTemplate = (byte) ( data >>> 1 ); // Get rid of the last bit (which seems to be the isPresent state)
 
-                Palette palette = new Palette( buf, wordTemplate );
+                Palette palette = new Palette( buffer, wordTemplate, true );
                 short[] indexes = palette.getIndexes();
 
                 // Read NBT data
-                Int2ObjectMap<Pair<Byte, Byte>> chunkPalette = new Int2ObjectOpenHashMap<>( buf.getInt() ); // Varint my ass
+                Int2ObjectMap<Pair<Byte, Byte>> chunkPalette = new Int2ObjectOpenHashMap<>( buffer.readLInt() ); // Varint my ass
 
                 int index = 0;
-                NBTReader reader = new NBTReader( new ByteArrayInputStream( buf.array(), buf.position(), buf.capacity() ), ByteOrder.LITTLE_ENDIAN );
+                NBTReader reader = new NBTReader( new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), buffer.getRemaining() ), ByteOrder.LITTLE_ENDIAN );
                 while ( reader.hasMoreToRead() ) {
                     try {
                         NBTTagCompound compound = reader.parse();
@@ -136,11 +135,11 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             case 0:
                 // Next 4096 bytes are block data
                 byte[] blockData = new byte[4096];
-                buf.get( blockData );
+                buffer.readBytes( blockData );
 
                 // Next 2048 bytes are metadata
                 byte[] metaData = new byte[2048];
-                buf.get( metaData );
+                buffer.readBytes( metaData );
                 NibbleArray meta = new NibbleArray( metaData );
 
                 // In older versions of the chunk there are light values saved
