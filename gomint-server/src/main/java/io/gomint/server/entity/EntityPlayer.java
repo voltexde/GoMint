@@ -25,7 +25,6 @@ import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.player.DeviceInfo;
-import io.gomint.server.GoMintServer;
 import io.gomint.server.command.CommandCanidate;
 import io.gomint.server.command.CommandHolder;
 import io.gomint.server.enchant.EnchantmentProcessor;
@@ -638,7 +637,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         Vector2 directionPlane = this.getDirectionPlane();
         float dot = directionPlane.dot( new Vector2( eyePosition.getX(), eyePosition.getZ() ) );
         float dot1 = directionPlane.dot( new Vector2( playerPosition.getX(), playerPosition.getZ() ) );
-        return ( dot1 - dot ) >= -0.5f;
+        return ( dot1 - dot ) >= -( MathUtils.SQRT_3 / 2 );
     }
 
     /**
