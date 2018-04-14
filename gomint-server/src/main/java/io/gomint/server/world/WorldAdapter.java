@@ -1211,7 +1211,7 @@ public abstract class WorldAdapter implements World {
                 }
 
                 io.gomint.server.world.block.Block block = (io.gomint.server.world.block.Block) data.getBlock();
-                dataNumber = block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) | ( data.getFace() << 16 );
+                dataNumber = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() ) | ( data.getFace() << 24 );
 
                 break;
 
@@ -1221,7 +1221,7 @@ public abstract class WorldAdapter implements World {
                 }
 
                 block = (io.gomint.server.world.block.Block) data.getBlock();
-                dataNumber = block.getBlockId() & 0xFF | ( block.getBlockData() << 8 );
+                dataNumber = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() );
 
                 break;
         }
