@@ -8,6 +8,7 @@
 package io.gomint.server;
 
 import io.gomint.server.util.collection.NumberArray;
+import io.gomint.server.world.BlockRuntimeIDs;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.slf4j.Logger;

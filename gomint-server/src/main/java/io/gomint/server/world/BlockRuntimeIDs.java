@@ -8,6 +8,8 @@
 package io.gomint.server.world;
 
 import io.gomint.server.util.Pair;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -16,8 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author geNAZt
@@ -26,9 +26,12 @@ import java.util.Map;
 public class BlockRuntimeIDs {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( BlockRuntimeIDs.class );
-    private static final Map<Pair<Integer, Byte>, Integer> RUNTIME_IDS = new HashMap<>(); // HashMaps are fine for multithreaded reading
+    private static final Long2IntMap RUNTIME_IDS = new Long2IntOpenHashMap(); // HashMaps are fine for multithreaded reading
 
     static {
+        // Set cleary invalid default value
+        RUNTIME_IDS.defaultReturnValue( -1 );
+
         // Get the correct resource
         InputStream inputStream = BlockRuntimeIDs.class.getResourceAsStream( "/temp_runtimeids.json" );
         if ( inputStream == null ) {
@@ -45,7 +48,8 @@ public class BlockRuntimeIDs {
             JSONArray runtimeIDs = (JSONArray) parser.parse( reader );
             for ( Object id : runtimeIDs ) {
                 JSONObject idObj = (JSONObject) id;
-                RUNTIME_IDS.put( new Pair<>( ( (Long) idObj.get( "id" ) ).intValue(), ( (Long) idObj.get( "data" ) ).byteValue() ), ( (Long) idObj.get( "runtimeID" ) ).intValue() );
+                long blockId = (Long) idObj.get( "id" ) << 32 | ( ( (Long) idObj.get( "data" ) ).intValue() & 0xffffffffL );
+                RUNTIME_IDS.put( blockId, ( (Long) idObj.get( "runtimeID" ) ).intValue() );
             }
         } catch ( IOException | ParseException e ) {
             e.printStackTrace();
@@ -53,18 +57,21 @@ public class BlockRuntimeIDs {
     }
 
     public static Integer fromLegacy( int blockId, byte dataValue ) {
-        // The nukkit data corruption seems to go further, now single sandstone blocks where found corrupted
+        // The nukkit/PC data corruption seems to go further, now single sandstone blocks where found corrupted
         // I simply assume that every block could be corrupted and try to use data value 0 as fallback when the
         // original combination could not be found
-        Integer runtimeId = RUNTIME_IDS.get( new Pair<>( blockId, dataValue ) );
-        if ( runtimeId == null ) {
-            runtimeId = RUNTIME_IDS.get( new Pair<>( blockId, (byte) 0 ) );
-            if ( runtimeId == null ) {
+        long hashId = ( (long) blockId ) << 32 | ( dataValue & 0xffffffffL );
+
+        int runtimeId = RUNTIME_IDS.get( hashId );
+        if ( runtimeId == RUNTIME_IDS.defaultReturnValue() ) {
+            hashId = ( (long) blockId ) << 32;
+            runtimeId = RUNTIME_IDS.get( hashId );
+            if ( runtimeId == RUNTIME_IDS.defaultReturnValue() ) {
                 LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}", blockId, dataValue, new Exception() );
             }
         }
 
-        return runtimeId;
+        return runtimeId == RUNTIME_IDS.defaultReturnValue() ? null : runtimeId;
     }
 
 }
