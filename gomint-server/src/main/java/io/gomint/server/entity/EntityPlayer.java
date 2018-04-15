@@ -390,7 +390,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             getWorld().removePlayer( this );
             this.world = (WorldAdapter) to.getWorld();
             this.world.spawnEntityAt( this, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch() );
-            this.connection.sendMovePlayer( new Location( to.getWorld(), getPositionX() + 1000000, 4000, getPositionZ() + 1000000 ) );
 
             // Be sure to get rid of all loaded chunks
             this.connection.resetPlayerChunks();
