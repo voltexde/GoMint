@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author geNAZt
@@ -54,14 +53,15 @@ public class BlockRuntimeIDs {
     }
 
     public static Integer fromLegacy( int blockId, byte dataValue ) {
-        // Fix air block bullshit from nukkit worlds
-        if ( blockId == 0 ) {
-            dataValue = 0;
-        }
-
+        // The nukkit data corruption seems to go further, now single sandstone blocks where found corrupted
+        // I simply assume that every block could be corrupted and try to use data value 0 as fallback when the
+        // original combination could not be found
         Integer runtimeId = RUNTIME_IDS.get( new Pair<>( blockId, dataValue ) );
         if ( runtimeId == null ) {
-            LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}", blockId, dataValue, new Exception() );
+            runtimeId = RUNTIME_IDS.get( new Pair<>( blockId, (byte) 0 ) );
+            if ( runtimeId == null ) {
+                LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}", blockId, dataValue, new Exception() );
+            }
         }
 
         return runtimeId;
