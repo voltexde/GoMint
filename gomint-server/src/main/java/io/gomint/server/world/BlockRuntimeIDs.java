@@ -67,7 +67,8 @@ public class BlockRuntimeIDs {
             hashId = ( (long) blockId ) << 32;
             runtimeId = RUNTIME_IDS.get( hashId );
             if ( runtimeId == RUNTIME_IDS.defaultReturnValue() ) {
-                LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}", blockId, dataValue, new Exception() );
+                LOGGER.warn( "Unknown blockId and dataValue combination: {}:{}. Be sure your worlds are not corrupted!", blockId, dataValue );
+                return 0;
             }
         }
 
