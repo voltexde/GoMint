@@ -2,20 +2,15 @@ package io.gomint.plugin;
 
 import io.gomint.GoMint;
 import io.gomint.config.InvalidConfigurationException;
-import io.gomint.entity.passive.EntityHuman;
-import io.gomint.math.Location;
-import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.config.Config;
 import io.gomint.plugin.generator.PlotChunkGenerator;
 import io.gomint.plugin.listener.BlockBreakListener;
-import io.gomint.plugin.listener.EntityTeleportListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerMoveListener;
 import io.gomint.world.generator.CreateOptions;
 import lombok.Getter;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * @author geNAZt
@@ -66,7 +61,6 @@ public class TestPlugin extends Plugin {
         registerListener( new PlayerMoveListener( this ) );
         registerListener( new PlayerJoinListener( this ) );
         registerListener( new BlockBreakListener() );
-        registerListener( new EntityTeleportListener() );
     }
 
     @Override
