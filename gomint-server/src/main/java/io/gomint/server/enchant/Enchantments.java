@@ -25,7 +25,7 @@ public class Enchantments {
     public Enchantments( GoMintServer server ) {
         this.generators =  new Registry<>( server, clazz -> {
             try {
-                return (EnchantmentGenerator) Class.forName( "io.gomint.server.enchant.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+                return (EnchantmentGenerator)ClassLoader.getSystemClassLoader().loadClass( "io.gomint.server.enchant.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
             } catch ( ClassNotFoundException | IllegalAccessException | InstantiationException e1 ) {
                 LOGGER.error( "Could not use pre generated generator: ", e1 );
             }

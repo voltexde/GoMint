@@ -25,7 +25,7 @@ public class Items {
     public Items( GoMintServer server ) {
         this.generators = new Registry<>( server, clazz -> {
             try {
-                return (ItemGenerator) Class.forName( "io.gomint.server.inventory.item.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+                return (ItemGenerator) ClassLoader.getSystemClassLoader().loadClass( "io.gomint.server.inventory.item.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
             } catch ( ClassNotFoundException | IllegalAccessException | InstantiationException e1 ) {
                 LOGGER.error( "Could not use pre generated generator: ", e1 );
             }

@@ -106,6 +106,36 @@ public class NumberArray {
                 }
 
                 break;
+
+            case STORAGE_MODE_SHORT:
+                for ( short i = 0; i < this.shorts.length; i++ ) {
+                    if ( getShort( i ) == value ) {
+                        storageIndex = i;
+                        break;
+                    }
+                }
+
+                if ( storageIndex == -1 ) {
+                    storageIndex = (short) ( this.shorts.length );
+                    this.setShort( storageIndex, (short) value );
+                }
+
+                break;
+
+            case STORAGE_MODE_INT:
+                for ( short i = 0; i < this.ints.length; i++ ) {
+                    if ( getInt( i ) == value ) {
+                        storageIndex = i;
+                        break;
+                    }
+                }
+
+                if ( storageIndex == -1 ) {
+                    storageIndex = (short) ( this.ints.length );
+                    this.setInt( storageIndex, value );
+                }
+
+                break;
         }
 
         // Create index pointer
@@ -136,9 +166,43 @@ public class NumberArray {
                 return this.getNibble( storageIndex ) & 0xFF;
             case STORAGE_MODE_BYTE:
                 return this.getByte( storageIndex ) & 0xFF;
+            case STORAGE_MODE_SHORT:
+                return this.getShort( storageIndex ) & 0xFFFF;
+            case STORAGE_MODE_INT:
+                return this.getInt( storageIndex );
         }
 
         return 0;
+    }
+
+    private void setInt( short index, int value ) {
+        // Check if we need to grow the nibble array
+        if ( index >= this.ints.length ) {
+            int[] temp = new int[this.ints.length + 1];
+            System.arraycopy( this.ints, 0, temp, 0, this.ints.length );
+            this.ints = temp;
+        }
+
+        this.ints[index] = value;
+    }
+
+    private int getInt( short index ) {
+        return this.ints[index];
+    }
+
+    private void setShort( short index, short value ) {
+        // Check if we need to grow the nibble array
+        if ( index >= this.shorts.length ) {
+            short[] temp = new short[this.shorts.length + 1];
+            System.arraycopy( this.shorts, 0, temp, 0, this.shorts.length );
+            this.shorts = temp;
+        }
+
+        this.shorts[index] = value;
+    }
+
+    private short getShort( short index ) {
+        return this.shorts[index];
     }
 
     private void setByte( short index, byte value ) {

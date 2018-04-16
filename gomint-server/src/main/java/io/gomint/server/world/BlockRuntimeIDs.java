@@ -7,7 +7,6 @@
 
 package io.gomint.server.world;
 
-import io.gomint.server.util.Pair;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import org.json.simple.JSONArray;
@@ -56,6 +55,13 @@ public class BlockRuntimeIDs {
         }
     }
 
+    /**
+     * Get the correct runtime id for the client. This may also result in blocks being 0'ed due to invalid blocks.
+     *
+     * @param blockId   which should be converted
+     * @param dataValue which should be converted
+     * @return runtime id or 0
+     */
     public static Integer fromLegacy( int blockId, byte dataValue ) {
         // The nukkit/PC data corruption seems to go further, now single sandstone blocks where found corrupted
         // I simply assume that every block could be corrupted and try to use data value 0 as fallback when the
@@ -72,7 +78,7 @@ public class BlockRuntimeIDs {
             }
         }
 
-        return runtimeId == RUNTIME_IDS.defaultReturnValue() ? null : runtimeId;
+        return runtimeId;
     }
 
 }

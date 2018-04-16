@@ -15,10 +15,6 @@ import io.gomint.server.registry.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 /**
  * @author geNAZt
  * @version 1.0
@@ -33,7 +29,7 @@ public class Entities {
             @Override
             public EntityGenerator generate( Class<?> clazz ) {
                 try {
-                    return (EntityGenerator) Entities.class.getClassLoader().loadClass( "io.gomint.server.entity.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+                    return (EntityGenerator) ClassLoader.getSystemClassLoader().loadClass( "io.gomint.server.entity.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
                 } catch ( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
                     e.printStackTrace();
                 }

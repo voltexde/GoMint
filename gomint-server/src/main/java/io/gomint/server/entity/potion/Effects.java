@@ -27,7 +27,7 @@ public class Effects {
             public EffectGenerator generate( Class<?> clazz ) {
                 try {
                     // Use the same code source as the Gomint JAR
-                    return (EffectGenerator) Effects.class.getClassLoader().loadClass( "io.gomint.server.entity.potion.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+                    return (EffectGenerator) ClassLoader.getSystemClassLoader().loadClass( "io.gomint.server.entity.potion.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
                 } catch ( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
                     e.printStackTrace();
                 }

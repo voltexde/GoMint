@@ -8,15 +8,15 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Palette;
 import io.gomint.server.util.collection.NumberArray;
 import io.gomint.server.world.storage.TemporaryStorage;
+import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author geNAZt
@@ -137,27 +137,33 @@ class ChunkSlice {
 
     byte[] getBytes() {
         // Count how many unique blocks we have in this chunk
-        List<Integer> ids = new ArrayList<>();
-        List<Integer> indexIDs = new ArrayList<>();
+        int index = 0;
+        Long2IntMap ids = new Long2IntArrayMap();
+        Long2IntMap runtimeIndex = new Long2IntArrayMap();
+        ids.defaultReturnValue( -1 );
+        int[] indexIDs = new int[4096];
 
         for ( int x = 0; x < 16; x++ ) {
             for ( int z = 0; z < 16; z++ ) {
                 for ( int y = 0; y < 16; y++ ) {
-                    short blockIndex = getIndex( x, y, z );
+                    short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
                     int blockId = this.blocks == null ? 0 : this.blocks.get( blockIndex );
                     byte blockData = this.data == null ? 0 : this.data.get( blockIndex );
 
-                    int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData );
-                    if ( !ids.contains( runtimeId ) ) {
-                        ids.add( runtimeId );
+                    long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
+                    int foundIndex = ids.get( hashId );
+                    if ( foundIndex == -1 ) {
+                        int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData );
+                        runtimeIndex.put( index, runtimeId );
+                        ids.put( hashId, index );
+                        foundIndex = index;
+                        index++;
                     }
 
-                    indexIDs.add( ids.indexOf( runtimeId ) );
+                    indexIDs[blockIndex] = foundIndex;
                 }
             }
         }
-
-        PacketBuffer buffer = new PacketBuffer( 512 );
 
         // Get correct wordsize
         int value = ids.size();
@@ -165,6 +171,8 @@ class ChunkSlice {
 
         // Prepare palette
         int amountOfBlocks = MathUtils.fastFloor( 32f / (float) numberOfBits );
+
+        PacketBuffer buffer = new PacketBuffer( MathUtils.fastCeil( 4096 / (float) amountOfBlocks ) + 1 + 4 + ids.size() * 4 );
         Palette palette = new Palette( buffer, amountOfBlocks, false );
 
         byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );
@@ -179,8 +187,10 @@ class ChunkSlice {
         // Write runtimeIDs
         buffer.writeSignedVarInt( ids.size() );
 
-        for ( Integer id : ids ) {
-            buffer.writeSignedVarInt( id );
+        Long2IntMap.FastEntrySet entrySet = (Long2IntMap.FastEntrySet) runtimeIndex.long2IntEntrySet();
+        ObjectIterator<Long2IntMap.Entry> iterator = entrySet.fastIterator();
+        while ( iterator.hasNext() ) {
+            buffer.writeSignedVarInt( iterator.next().getIntValue() );
         }
 
         // Copy result

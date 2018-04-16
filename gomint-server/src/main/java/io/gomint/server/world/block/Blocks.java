@@ -32,7 +32,7 @@ public class Blocks {
         this.generators = new Registry<>( server, clazz -> {
             try {
                 // Use the same code source as the Gomint JAR
-                return (BlockGenerator) Blocks.class.getClassLoader().loadClass( "io.gomint.server.world.block.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
+                return (BlockGenerator) ClassLoader.getSystemClassLoader().loadClass( "io.gomint.server.world.block.generator." + clazz.getSimpleName() + "Generator" ).newInstance();
             } catch ( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
                 LOGGER.error( "Could not load block generator", e );
             }

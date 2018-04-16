@@ -94,7 +94,7 @@ public class Palette {
             this.data.writeLInt( this.convert( this.input ) );
 
             // New input
-            this.input = new BitSet( 32 );
+            this.input.set( 0, 32, false );
             this.inputIndex = 0;
             this.wordsWritten = 0;
         }

@@ -8,8 +8,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 /**
  * @author geNAZt
  * @version 1.0
@@ -26,7 +24,7 @@ public class Registry<R> {
     /**
      * Build a new generator registry
      *
-     * @param server which started this gomint
+     * @param server   which started this gomint
      * @param callback which is used to generate a generator for each found element
      */
     public Registry( GoMintServer server, GeneratorCallback<R> callback ) {
