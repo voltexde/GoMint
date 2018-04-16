@@ -7,6 +7,7 @@ import io.gomint.event.player.PlayerToggleSprintEvent;
 import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.PacketPlayerAction;
 import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.LevelEvent;
@@ -148,7 +149,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 // Broadcast break effects
                 if ( connection.getEntity().getBreakVector() != null ) {
                     Block block = connection.getEntity().getWorld().getBlockAt( connection.getEntity().getBreakVector() );
-                    int runtimeId = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() );
+                    int runtimeId = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData(), Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
 
                     connection.getEntity().getWorld().sendLevelEvent(
                         connection.getEntity().getBreakVector().toVector(),

@@ -1556,7 +1556,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     public void setUsingItem( boolean value ) {
         if ( value ) {
-            this.actionStart = ((GoMintServer) GoMint.instance()).getCurrentTickTime();
+            this.actionStart = ( (GoMintServer) GoMint.instance() ).getCurrentTickTime();
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ACTION, true );
         } else {
             this.actionStart = -1;

@@ -381,7 +381,7 @@ public class PlayerConnection {
     private boolean sendWorldChunk( ChunkAdapter chunkAdapter ) {
         this.playerChunks.add( chunkAdapter.longHashCode() );
         this.loadingChunks.remove( chunkAdapter.longHashCode() );
-        this.addToSendQueue( chunkAdapter.getCachedPacket() );
+        this.addToSendQueue( chunkAdapter.getCachedPacket( this.protocolID ) );
         this.entity.getEntityVisibilityManager().updateAddedChunk( chunkAdapter );
 
         if ( this.state == PlayerConnectionState.LOGIN ) {

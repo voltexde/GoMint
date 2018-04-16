@@ -15,6 +15,7 @@ import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.world.postprocessor.PostProcessor;
@@ -64,6 +65,7 @@ public class ChunkAdapter implements Chunk {
     // Networking
     boolean dirty;
     SoftReference<PacketWorldChunk> cachedPacket;
+    SoftReference<PacketWorldChunk> cachedPacketBeta;
 
     // Chunk
     protected final int x;
@@ -225,11 +227,13 @@ public class ChunkAdapter implements Chunk {
      * Remove the dirty state for the chunk and set the batched packet to the
      * cache.
      *
-     * @param batch The batch which has been generated to be sent to the clients
+     * @param batch     The batch which has been generated to be sent to the clients
+     * @param batchBeta The batch which has been generated to be sent to the clients
      */
-    void setCachedPacket( PacketWorldChunk batch ) {
+    void setCachedPacket( PacketWorldChunk batch, PacketWorldChunk batchBeta ) {
         this.dirty = false;
         this.cachedPacket = new SoftReference<>( batch );
+        this.cachedPacketBeta = new SoftReference<>( batchBeta );
     }
 
     /**
@@ -259,11 +263,12 @@ public class ChunkAdapter implements Chunk {
      * This operation is done asynchronously in order to limit how many chunks are being
      * packaged in parallel as well as to cache some chunk packets.
      *
+     * @param player   which should get this chunk
      * @param callback The callback to be invoked once the operation is complete
      */
-    void packageChunk( Delegate2<Long, ChunkAdapter> callback ) {
-        if ( !this.dirty && this.cachedPacket != null ) {
-            Packet packet = this.cachedPacket.get();
+    void packageChunk( EntityPlayer player, Delegate2<Long, ChunkAdapter> callback ) {
+        if ( !this.dirty && this.cachedPacket != null && this.cachedPacketBeta != null ) {
+            Packet packet = player.getConnection().getProtocolID() == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ? this.cachedPacketBeta.get() : this.cachedPacket.get();
             if ( packet != null ) {
                 callback.invoke( CoordinateUtils.toLong( x, z ), this );
             } else {
@@ -490,9 +495,10 @@ public class ChunkAdapter implements Chunk {
      * Invoked by the world's asynchronous worker thread once the chunk is supposed
      * to actually pack itself into a world chunk packet.
      *
+     * @param protocolId for which we want this chunk data
      * @return The world chunk packet that is to be sent
      */
-    PacketWorldChunk createPackagedData() {
+    PacketWorldChunk createPackagedData( int protocolId ) {
         PacketBuffer buffer = new PacketBuffer( 512 );
 
         // Detect how much data we can skip
@@ -508,8 +514,8 @@ public class ChunkAdapter implements Chunk {
 
         buffer.writeByte( (byte) topEmpty );
         for ( int i = 0; i < topEmpty; i++ ) {
-            buffer.writeByte( (byte) 1 );
-            buffer.writeBytes( ensureSlice( i ).getBytes() );
+            buffer.writeByte( protocolId == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ? (byte) 8 : (byte) 1 );
+            buffer.writeBytes( ensureSlice( i ).getBytes( protocolId ) );
         }
 
         buffer.writeBytes( this.height );
@@ -626,15 +632,17 @@ public class ChunkAdapter implements Chunk {
         }
     }
 
-    public PacketWorldChunk getCachedPacket() {
+    public PacketWorldChunk getCachedPacket( int protocolId ) {
         if ( this.dirty ) {
             this.cachedPacket.clear();
-            this.cachedPacket = new SoftReference<>( createPackagedData() );
+            this.cachedPacketBeta.clear();
+            this.cachedPacket = new SoftReference<>( createPackagedData( Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) );
+            this.cachedPacketBeta = new SoftReference<>( createPackagedData( Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) );
             this.dirty = false;
         }
 
         // Check if we have a object
-        PacketWorldChunk packetWorldChunk = this.cachedPacket.get();
+        PacketWorldChunk packetWorldChunk = protocolId == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ? this.cachedPacketBeta.get() : this.cachedPacket.get();
         if ( packetWorldChunk == null ) {
             // The packet got cleared from the JVM due to memory limits
             if ( this.world.getServer().getCurrentTickTime() - LAST_WARNING.get() >= 5000 ) {
@@ -648,7 +656,7 @@ public class ChunkAdapter implements Chunk {
                 LAST_WARNING.set( this.world.getServer().getCurrentTickTime() );
             }
 
-            return createPackagedData();
+            return createPackagedData( protocolId );
         }
 
         return packetWorldChunk;

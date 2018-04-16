@@ -5,6 +5,7 @@ import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.server.SelfInstrumentation;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.util.Palette;
 import io.gomint.server.util.collection.NumberArray;
 import io.gomint.server.world.storage.TemporaryStorage;
@@ -92,7 +93,7 @@ class ChunkSlice {
             return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ), layer );
         }
 
-        return (T) this.chunk.getWorld().getServer().getBlocks().get( blockStorage.get( index ), dataStorage == null ? 0 :dataStorage.get( index ), this.skyLight.get( index ),
+        return (T) this.chunk.getWorld().getServer().getBlocks().get( blockStorage.get( index ), dataStorage == null ? 0 : dataStorage.get( index ), this.skyLight.get( index ),
             this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ), layer );
     }
 
@@ -145,62 +146,75 @@ class ChunkSlice {
         return this.isAllAir;
     }
 
-    byte[] getBytes() {
-        // Count how many unique blocks we have in this chunk
-        int index = 0;
-        Long2IntMap ids = new Long2IntArrayMap();
-        Long2IntMap runtimeIndex = new Long2IntArrayMap();
-        ids.defaultReturnValue( -1 );
-        int[] indexIDs = new int[4096];
+    byte[] getBytes( int protocolID ) {
+        // Check how many layers we have
+        boolean isBeta = protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION;
+        int amountOfLayers = 1;
+        if ( isBeta ) {
+            amountOfLayers = this.blocks[1] != null ? 2 : 1;
+        }
 
-        for ( int x = 0; x < 16; x++ ) {
-            for ( int z = 0; z < 16; z++ ) {
-                for ( int y = 0; y < 16; y++ ) {
-                    short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
-                    int blockId = this.blocks[0] == null ? 0 : this.blocks[0].get( blockIndex );
-                    byte blockData = this.data[0] == null ? 0 : this.data[0].get( blockIndex );
+        PacketBuffer buffer = new PacketBuffer( Short.MAX_VALUE );
+        if ( isBeta ) {
+            buffer.writeByte( (byte) amountOfLayers );
+        }
 
-                    long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
-                    int foundIndex = ids.get( hashId );
-                    if ( foundIndex == -1 ) {
-                        int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData );
-                        runtimeIndex.put( index, runtimeId );
-                        ids.put( hashId, index );
-                        foundIndex = index;
-                        index++;
+        for ( int i = 0; i < amountOfLayers; i++ ) {
+            // Count how many unique blocks we have in this chunk
+            int index = 0;
+            Long2IntMap ids = new Long2IntArrayMap();
+            Long2IntMap runtimeIndex = new Long2IntArrayMap();
+            ids.defaultReturnValue( -1 );
+            int[] indexIDs = new int[4096];
+
+            for ( int x = 0; x < 16; x++ ) {
+                for ( int z = 0; z < 16; z++ ) {
+                    for ( int y = 0; y < 16; y++ ) {
+                        short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
+                        int blockId = this.blocks[i] == null ? 0 : this.blocks[i].get( blockIndex );
+                        byte blockData = this.data[i] == null ? 0 : this.data[i].get( blockIndex );
+
+                        long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
+                        int foundIndex = ids.get( hashId );
+                        if ( foundIndex == -1 ) {
+                            int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData, protocolID );
+                            runtimeIndex.put( index, runtimeId );
+                            ids.put( hashId, index );
+                            foundIndex = index;
+                            index++;
+                        }
+
+                        indexIDs[blockIndex] = foundIndex;
                     }
-
-                    indexIDs[blockIndex] = foundIndex;
                 }
             }
-        }
 
-        // Get correct wordsize
-        int value = ids.size();
-        int numberOfBits = MathUtils.fastFloor( log2( value ) ) + 1;
+            // Get correct wordsize
+            int value = ids.size();
+            int numberOfBits = MathUtils.fastFloor( log2( value ) ) + 1;
 
-        // Prepare palette
-        int amountOfBlocks = MathUtils.fastFloor( 32f / (float) numberOfBits );
+            // Prepare palette
+            int amountOfBlocks = MathUtils.fastFloor( 32f / (float) numberOfBits );
 
-        PacketBuffer buffer = new PacketBuffer( MathUtils.fastCeil( 4096 / (float) amountOfBlocks ) + 1 + 4 + ids.size() * 4 );
-        Palette palette = new Palette( buffer, amountOfBlocks, false );
+            Palette palette = new Palette( buffer, amountOfBlocks, false );
 
-        byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );
-        buffer.writeByte( paletteWord );
+            byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );
+            buffer.writeByte( paletteWord );
 
-        for ( Integer id : indexIDs ) {
-            palette.addIndex( id );
-        }
+            for ( Integer id : indexIDs ) {
+                palette.addIndex( id );
+            }
 
-        palette.finish();
+            palette.finish();
 
-        // Write runtimeIDs
-        buffer.writeSignedVarInt( ids.size() );
+            // Write runtimeIDs
+            buffer.writeSignedVarInt( ids.size() );
 
-        Long2IntMap.FastEntrySet entrySet = (Long2IntMap.FastEntrySet) runtimeIndex.long2IntEntrySet();
-        ObjectIterator<Long2IntMap.Entry> iterator = entrySet.fastIterator();
-        while ( iterator.hasNext() ) {
-            buffer.writeSignedVarInt( iterator.next().getIntValue() );
+            Long2IntMap.FastEntrySet entrySet = (Long2IntMap.FastEntrySet) runtimeIndex.long2IntEntrySet();
+            ObjectIterator<Long2IntMap.Entry> iterator = entrySet.fastIterator();
+            while ( iterator.hasNext() ) {
+                buffer.writeSignedVarInt( iterator.next().getIntValue() );
+            }
         }
 
         // Copy result

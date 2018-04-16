@@ -24,6 +24,7 @@ import io.gomint.server.entity.passive.EntityItem;
 import io.gomint.server.entity.passive.EntityXPOrb;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.random.FastRandom;
@@ -164,7 +165,8 @@ public abstract class WorldAdapter implements World {
                     throw new IllegalArgumentException( "Sound " + sound + " needs block sound data" );
                 }
 
-                soundData = BlockRuntimeIDs.fromLegacy( this.server.getBlocks().getID( data.getBlock() ), (byte) 0 );
+                soundData = BlockRuntimeIDs.fromLegacy( this.server.getBlocks().getID( data.getBlock() ), (byte) 0,
+                    player != null ? ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().getProtocolID() : Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
 
                 break;
 
@@ -302,6 +304,7 @@ public abstract class WorldAdapter implements World {
      * Get the current id at the given location
      *
      * @param position where we want to search
+     * @param layer    where the block is
      * @return id of the block
      */
     public int getBlockId( BlockPosition position, int layer ) {
@@ -323,6 +326,7 @@ public abstract class WorldAdapter implements World {
      * Set the data byte for the given block
      *
      * @param position Position of the block
+     * @param layer    where this block is
      * @param data     The new data of the block
      */
     public void setBlockData( BlockPosition position, int layer, byte data ) {
@@ -607,10 +611,11 @@ public abstract class WorldAdapter implements World {
         };
 
         if ( !sync ) {
-            this.getOrLoadChunk( x, z, true, chunk -> chunk.packageChunk( sendDelegate ) );
+            this.getOrLoadChunk( x, z, true, chunk -> chunk.packageChunk( player, sendDelegate ) );
         } else {
             ChunkAdapter chunkAdapter = this.loadChunk( x, z, true );
-            if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ) {
+            if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ||
+                chunkAdapter.cachedPacketBeta == null || chunkAdapter.cachedPacketBeta.get() == null ) {
                 packageChunk( chunkAdapter, sendDelegate );
             } else {
                 sendDelegate.invoke( CoordinateUtils.toLong( x, z ), chunkAdapter );
@@ -709,8 +714,9 @@ public abstract class WorldAdapter implements World {
      * @param callback The callback which should be invoked when the packing has been done
      */
     private void packageChunk( ChunkAdapter chunk, Delegate2<Long, ChunkAdapter> callback ) {
-        PacketWorldChunk packet = chunk.createPackagedData();
-        chunk.setCachedPacket( packet );
+        PacketWorldChunk packet = chunk.createPackagedData( Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
+        PacketWorldChunk betaPacket = chunk.createPackagedData( Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION );
+        chunk.setCachedPacket( packet, betaPacket );
         callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk );
     }
 
@@ -830,8 +836,8 @@ public abstract class WorldAdapter implements World {
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( pos );
 
-        updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() ) );
-        updateBlock.setPrioAndMetadata( (byte) PacketUpdateBlock.FLAG_ALL_PRIORITY << 4 );
+        updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData(), connection.getProtocolID() ) );
+        updateBlock.setPrioAndMetadata( PacketUpdateBlock.FLAG_ALL_PRIORITY );
 
         connection.addToSendQueue( updateBlock );
 
@@ -1029,7 +1035,7 @@ public abstract class WorldAdapter implements World {
                 if ( success ) {
                     // Play sound
                     io.gomint.server.world.block.Block newBlock = replaceBlock.getLocation().getWorld().getBlockAt( replaceBlock.getLocation().toBlockPosition() );
-                    playSound( null, newBlock.getLocation(), Sound.PLACE, (byte) 1, BlockRuntimeIDs.fromLegacy( newBlock.getBlockId(), (byte) 0 ) );
+                    playSound( null, newBlock.getLocation(), Sound.PLACE, (byte) 1, BlockRuntimeIDs.fromLegacy( newBlock.getBlockId(), (byte) 0, entity.getConnection().getProtocolID() ) );
 
                     // Schedule neighbour updates
                     scheduleNeighbourUpdates( newBlock );
@@ -1217,7 +1223,8 @@ public abstract class WorldAdapter implements World {
                 }
 
                 io.gomint.server.world.block.Block block = (io.gomint.server.world.block.Block) data.getBlock();
-                dataNumber = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() ) | ( data.getFace() << 24 );
+                dataNumber = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData(),
+                    player != null ? ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().getProtocolID() : Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) | ( data.getFace() << 24 );
 
                 break;
 
@@ -1227,7 +1234,8 @@ public abstract class WorldAdapter implements World {
                 }
 
                 block = (io.gomint.server.world.block.Block) data.getBlock();
-                dataNumber = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData() );
+                dataNumber = BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData(),
+                    player != null ? ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().getProtocolID() : Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
 
                 break;
         }

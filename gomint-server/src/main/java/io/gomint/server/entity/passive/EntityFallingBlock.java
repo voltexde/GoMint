@@ -10,6 +10,7 @@ package io.gomint.server.entity.passive;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityType;
 import io.gomint.server.entity.metadata.MetadataContainer;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.WorldAdapter;
@@ -82,7 +83,7 @@ public class EntityFallingBlock extends Entity implements io.gomint.entity.passi
 
         this.blockId = block1.getBlockId();
         this.blockData = block1.getBlockData();
-        this.metadataContainer.putInt( MetadataContainer.DATA_VARIANT, BlockRuntimeIDs.fromLegacy( block1.getBlockId(), block1.getBlockData() ) );
+        this.metadataContainer.putInt( MetadataContainer.DATA_VARIANT, BlockRuntimeIDs.fromLegacy( block1.getBlockId(), block1.getBlockData(), Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) );
     }
 
 }

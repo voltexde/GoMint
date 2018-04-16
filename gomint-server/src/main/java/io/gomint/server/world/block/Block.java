@@ -481,7 +481,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( position );
-        updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( this.getBlockId(), this.getBlockData() ) );
+        updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( this.getBlockId(), this.getBlockData(), connection.getProtocolID() ) );
         updateBlock.setPrioAndMetadata( PacketUpdateBlock.FLAG_ALL_PRIORITY );
 
         connection.addToSendQueue( updateBlock );

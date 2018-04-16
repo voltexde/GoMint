@@ -24,6 +24,7 @@ public class PacketUpdateBlock extends Packet {
     private BlockPosition position;
     private int blockId;
     private int prioAndMetadata;
+    private int layer;
 
     public PacketUpdateBlock() {
         super( Protocol.PACKET_UPDATE_BLOCK );
@@ -34,6 +35,10 @@ public class PacketUpdateBlock extends Packet {
         writeBlockPosition( this.position, buffer );
         buffer.writeUnsignedVarInt( this.blockId );
         buffer.writeUnsignedVarInt( this.prioAndMetadata );
+
+        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
+            buffer.writeUnsignedVarInt( this.layer );
+        }
     }
 
     @Override
