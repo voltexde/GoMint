@@ -21,6 +21,7 @@ public class PacketMobEquipmentHandler implements PacketHandler<PacketMobEquipme
         ItemStack wanted = connection.getEntity().getInventory().getItem( packet.getSelectedSlot() );
         if ( wanted != null && wanted.equals( packet.getStack() ) && wanted.getAmount() == packet.getStack().getAmount() ) {
             connection.getEntity().getInventory().updateItemInHandWithItem( packet.getSelectedSlot() );
+            connection.getEntity().setUsingItem( false );
         }
     }
 

@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.GoMint;
 import io.gomint.command.CommandOutput;
 import io.gomint.command.CommandOverload;
 import io.gomint.command.ParamValidator;
@@ -25,6 +26,7 @@ import io.gomint.gui.*;
 import io.gomint.math.*;
 import io.gomint.math.Vector;
 import io.gomint.player.DeviceInfo;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.command.CommandCanidate;
 import io.gomint.server.command.CommandHolder;
 import io.gomint.server.enchant.EnchantmentProcessor;
@@ -154,10 +156,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private EntityFishingHook fishingHook;
     private long lastPickupXP;
 
-    // Bow ticking
+    // Item usage ticking
     @Getter
-    @Setter
-    private long startBow = -1;
+    private long actionStart = -1;
 
     // Exp
     private int xp;
@@ -1551,6 +1552,16 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             return new CommandOutput().fail( "Command has thrown an error. Please check the logs" );
         }
         // CHECKSTYLE:ON
+    }
+
+    public void setUsingItem( boolean value ) {
+        if ( value ) {
+            this.actionStart = ((GoMintServer) GoMint.instance()).getCurrentTickTime();
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ACTION, true );
+        } else {
+            this.actionStart = -1;
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ACTION, false );
+        }
     }
 
 }

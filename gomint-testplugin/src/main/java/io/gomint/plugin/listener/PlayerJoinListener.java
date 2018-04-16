@@ -31,10 +31,9 @@ public class PlayerJoinListener implements EventListener {
     public void onPlayerJoin( PlayerJoinEvent event ) {
         event.getPlayer().setDisplayName( "§6Project Lead §7|§6 " + event.getPlayer().getName() );
         event.getPlayer().teleport( GoMint.instance().getDefaultWorld().getSpawnLocation().clone().add( 0, 1, 0 ) );
-        // event.getPlayer().setGamemode( Gamemode.CREATIVE );
 
-        event.getPlayer().getInventory().setItem( 0, ItemSandstone.create( 64 ) );
-        event.getPlayer().getInventory().setItem( 1, ItemIronPickaxe.create( 1 ) );
+        event.getPlayer().getInventory().setItem( 0, ItemArrow.create( 64 ) );
+        event.getPlayer().getInventory().setItem( 1, ItemBow.create( 1 ) );
     }
 
 }

@@ -90,7 +90,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
     protected boolean isCollidedVertically;
     protected boolean isCollidedHorizontally;
     protected boolean isCollided;
-    protected Set<Block> collidedWith;
+    protected Set<Block> collidedWith = new HashSet<>();
+    private boolean stuckInBlock = false;
     // CHECKSTYLE:ON
 
     /**
@@ -338,17 +339,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         // Check if we collide with some blocks when we would move that fast
         List<AxisAlignedBB> collisionList = this.world.getCollisionCubes( this, this.boundingBox.getOffsetBoundingBox( dX, dY, dZ ), false );
-        if ( collisionList != null ) {
+        if ( collisionList != null && !this.stuckInBlock) {
             // Check if we would hit a y border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
                 if ( dY != movY ) {
                     Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
                     LOGGER.debug( "Entity {} collided with {}", this, block );
-
-                    if ( this.collidedWith == null ) {
-                        this.collidedWith = new HashSet<>();
-                    }
 
                     this.collidedWith.add( block );
                 }
@@ -363,10 +360,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
                     Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
                     LOGGER.debug( "Entity {} collided with {}", this, block );
 
-                    if ( this.collidedWith == null ) {
-                        this.collidedWith = new HashSet<>();
-                    }
-
                     this.collidedWith.add( block );
                 }
             }
@@ -379,10 +372,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 if ( dZ != movZ ) {
                     Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
                     LOGGER.debug( "Entity {} collided with {}", this, block );
-
-                    if ( this.collidedWith == null ) {
-                        this.collidedWith = new HashSet<>();
-                    }
 
                     this.collidedWith.add( block );
                 }
@@ -513,7 +502,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 return;
             }
 
-            LOGGER.warn( "Entity {}({}) [{}] @ {} is stuck in a block {} @ {} -> {}",
+            LOGGER.debug( "Entity {}({}) [{}] @ {} is stuck in a block {} @ {} -> {}",
                 this.getClass().getSimpleName(), this.getEntityId(), this.stuckInBlockTicks, this.getLocation().toVector(), block.getClass().getSimpleName(), block.getLocation().toVector(), block.getBoundingBox() );
 
             // Calc with how much force we can get out of here, this depends on how far we are in
@@ -593,8 +582,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
                     break;
             }
 
+            this.stuckInBlock = true;
             this.broadCastMotion();
         } else {
+            this.stuckInBlock = false;
             this.stuckInBlockTicks = 0;
         }
     }

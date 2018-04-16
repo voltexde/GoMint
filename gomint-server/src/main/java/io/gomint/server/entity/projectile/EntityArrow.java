@@ -30,6 +30,7 @@ import java.util.Set;
 public class EntityArrow extends EntityProjectile implements io.gomint.entity.projectile.EntityArrow {
 
     private boolean firedHitEvent = false;
+    private boolean isReset = false;
 
     private boolean canBePickedup;
     private boolean critical;
@@ -110,9 +111,9 @@ public class EntityArrow extends EntityProjectile implements io.gomint.entity.pr
                 }
             }
 
-            if ( this.canBePickedup && !this.getVelocity().equals( Vector.ZERO ) ) {
+            if ( this.canBePickedup && !this.isReset && this.getVelocity().length() < 0.0025 ) {
                 this.setVelocity( Vector.ZERO );
-                this.setAffectedByGravity( false );
+                this.isReset = true;
             }
 
             // Despawn after 1200 ticks ( 1 minute )

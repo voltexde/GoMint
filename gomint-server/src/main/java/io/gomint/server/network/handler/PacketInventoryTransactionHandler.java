@@ -111,7 +111,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                 // Find the entity from this packet
                 io.gomint.entity.Entity entity = connection.getEntity().getWorld().findEntity( packet.getEntityId() );
-                if ( entity == null || !connection.getEntity().getHoverEntity().equals( entity ) ) {
+                if ( !connection.getEntity().getHoverEntity().equals( entity ) ) {
                     LOGGER.warn( "{} entity does not match: {}; {}; {}", connection.getEntity().getName(), entity, connection.getEntity().getHoverEntity(), packet.getEntityId() );
                     reset( packet, connection );
                     return;
@@ -130,6 +130,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                 break;
             default:
+                connection.getEntity().setUsingItem( false );
                 break;
         }
     }
@@ -200,11 +201,15 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             default:
                 break;
         }
+
+        connection.getEntity().setUsingItem( false );
     }
 
     private void handleUseItem( ItemStack itemInHand, PlayerConnection connection, PacketInventoryTransaction packet ) {
         switch ( packet.getActionType() ) {
             case 0: // Click on block
+                connection.getEntity().setUsingItem( false );
+
                 if ( !connection.getEntity().getWorld().useItemOn( itemInHand, packet.getBlockPosition(), packet.getFace(), packet.getClickPosition(), connection.getEntity() ) ) {
                     reset( packet, connection );
                     return;
@@ -227,6 +232,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 if ( !event.isCancelled() ) {
                     io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) connection.getEntity().getInventory().getItemInHand();
                     itemStack.interact( connection.getEntity(), null, packet.getClickPosition(), null );
+                    connection.getEntity().setUsingItem( true );
                 }
 
                 break;
@@ -344,6 +350,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
     }
 
     private void handleTypeNormal( PlayerConnection connection, PacketInventoryTransaction packet ) {
+        connection.getEntity().setUsingItem( false );
+
         TransactionGroup transactionGroup = new TransactionGroup( connection.getEntity() );
         for ( PacketInventoryTransaction.NetworkTransaction transaction : packet.getActions() ) {
             Inventory inventory = getInventory( transaction, connection.getEntity() );
