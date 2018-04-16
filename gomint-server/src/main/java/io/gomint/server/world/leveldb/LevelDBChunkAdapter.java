@@ -21,6 +21,7 @@ import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTReader;
+import io.gomint.taglib.NBTReaderNoBuffer;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -90,42 +92,58 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
 
         // First byte is chunk section version
         byte subchunkVersion = buffer.readByte();
+        int storages = 1;
         switch ( subchunkVersion ) {
+            case 8:
+                storages = buffer.readByte();
             case 1:
-                byte data = buffer.readByte();
-                boolean isPersistent = ( ( data >> 8 ) & 1 ) != 1; // last bit is the isPresent state (shift and mask it to 1)
-                byte wordTemplate = (byte) ( data >>> 1 ); // Get rid of the last bit (which seems to be the isPresent state)
+                for ( int sI = 0; sI < storages; sI++ ) {
+                    byte data = buffer.readByte();
+                    boolean isPersistent = ( ( data >> 8 ) & 1 ) != 1; // last bit is the isPresent state (shift and mask it to 1)
+                    byte wordTemplate = (byte) ( data >>> 1 ); // Get rid of the last bit (which seems to be the isPresent state)
 
-                Palette palette = new Palette( buffer, wordTemplate, true );
-                short[] indexes = palette.getIndexes();
+                    Palette palette = new Palette( buffer, wordTemplate, true );
+                    short[] indexes = palette.getIndexes();
 
-                // Read NBT data
-                Int2ObjectMap<Pair<Byte, Byte>> chunkPalette = new Int2ObjectOpenHashMap<>( buffer.readLInt() ); // Varint my ass
+                    // Read NBT data
+                    int needed = buffer.readLInt();
+                    Int2ObjectMap<Pair<Byte, Byte>> chunkPalette = new Int2ObjectOpenHashMap<>( needed ); // Varint my ass
 
-                int index = 0;
-                NBTReader reader = new NBTReader( new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), buffer.getRemaining() ), ByteOrder.LITTLE_ENDIAN );
-                while ( reader.hasMoreToRead() ) {
-                    try {
-                        NBTTagCompound compound = reader.parse();
-                        byte blockId = (byte) MaterialMagicNumbers.valueOfWithId( compound.getString( "name", "minecraft:air" ) );
-                        byte blockData = compound.getShort( "val", (short) 0 ).byteValue();
+                    int index = 0;
+                    NBTReaderNoBuffer reader = new NBTReaderNoBuffer( new InputStream() {
+                        @Override
+                        public int read() throws IOException {
+                            return buffer.readByte();
+                        }
 
-                        chunkPalette.put( index++, new Pair<>( blockId, blockData ) );
-                    } catch ( IOException e ) {
-                        LOGGER.error( "Error in loading tile entities", e );
-                        break;
+                        @Override
+                        public int available() throws IOException {
+                            return buffer.getRemaining();
+                        }
+                    }, ByteOrder.LITTLE_ENDIAN );
+                    while ( index < needed ) {
+                        try {
+                            NBTTagCompound compound = reader.parse();
+                            byte blockId = (byte) MaterialMagicNumbers.valueOfWithId( compound.getString( "name", "minecraft:air" ) );
+                            byte blockData = compound.getShort( "val", (short) 0 ).byteValue();
+
+                            chunkPalette.put( index++, new Pair<>( blockId, blockData ) );
+                        } catch ( IOException e ) {
+                            LOGGER.error( "Error in loading tile entities", e );
+                            break;
+                        }
                     }
-                }
 
-                for ( int j = 0; j < 16; ++j ) {
-                    for ( int i = 0; i < 16; ++i ) {
-                        for ( int k = 0; k < 16; ++k ) {
-                            int y = ( sectionY << 4 ) + j;
-                            short blockIndex = (short) ( k << 8 | i << 4 | j ); // j k i - k j i - i k j -
+                    for ( int j = 0; j < 16; ++j ) {
+                        for ( int i = 0; i < 16; ++i ) {
+                            for ( int k = 0; k < 16; ++k ) {
+                                int y = ( sectionY << 4 ) + j;
+                                short blockIndex = (short) ( k << 8 | i << 4 | j ); // j k i - k j i - i k j -
 
-                            Pair<Byte, Byte> dataPair = chunkPalette.get( indexes[blockIndex] );
-                            this.setBlock( k, y, i, dataPair.getFirst() );
-                            this.setData( k, y, i, dataPair.getSecond() );
+                                Pair<Byte, Byte> dataPair = chunkPalette.get( indexes[blockIndex] );
+                                this.setBlock( k, y, i, sI, dataPair.getFirst() );
+                                this.setData( k, y, i, sI, dataPair.getSecond() );
+                            }
                         }
                     }
                 }
@@ -153,10 +171,10 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                             int y = ( sectionY << 4 ) + j;
                             short blockIndex = (short) ( k << 8 | i << 4 | j ); // j k i - k j i - i k j -
                             byte blockId = blockData[blockIndex];
-                            this.setBlock( k, y, i, blockId );
+                            this.setBlock( k, y, i, 0, blockId );
 
                             if ( meta.get( blockIndex ) != 0 ) {
-                                this.setData( k, y, i, meta.get( blockIndex ) );
+                                this.setData( k, y, i, 0, meta.get( blockIndex ) );
                             }
 
                             switch ( blockId ) {

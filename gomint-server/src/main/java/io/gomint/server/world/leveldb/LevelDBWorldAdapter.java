@@ -44,7 +44,6 @@ import java.util.List;
 @EqualsAndHashCode( callSuper = true )
 public class LevelDBWorldAdapter extends WorldAdapter {
 
-    private boolean needsSpawnAdjustment;
     private DB db;
     private int worldVersion;
 
@@ -82,9 +81,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         this.prepareSpawnRegion();
 
         // Adjust spawn location if needed
-        if ( this.needsSpawnAdjustment ) {
-            this.adjustSpawn();
-        }
+        this.adjustSpawn();
     }
 
     private void prepareGenerator() {
@@ -112,7 +109,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                                 int blockId = ( (Long) layerConfig.get( "block_id" ) ).intValue();
                                 byte blockData = ( (Long) layerConfig.get( "block_data" ) ).byteValue();
 
-                                Block block = this.server.getBlocks().get( blockId, blockData, (byte) 0, (byte) 0, null, null );
+                                Block block = this.server.getBlocks().get( blockId, blockData, (byte) 0, (byte) 0, null, null, 0 );
                                 for ( int i = 0; i < count; i++ ) {
                                     blocks.add( block );
                                 }
@@ -209,11 +206,6 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                         LevelDBWorldAdapter.this.spawn.setX( (int) value );
                         break;
                     case ".SpawnY":
-                        int v = (int) value;
-                        if ( v == 32767 ) {
-                            LevelDBWorldAdapter.this.needsSpawnAdjustment = true;
-                        }
-
                         LevelDBWorldAdapter.this.spawn.setY( (int) value );
                         break;
                     case ".SpawnZ":

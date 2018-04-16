@@ -13,9 +13,9 @@ package io.gomint.server.world.block.generator;
  */
 public class StonePressurePlateGenerator implements BlockGenerator {
 
-    public io.gomint.server.world.block.Block generate( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location ) {
+    public io.gomint.server.world.block.Block generate( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel, io.gomint.server.entity.tileentity.TileEntity tileEntity, io.gomint.math.Location location, int layer ) {
         io.gomint.server.world.block.Block block = new io.gomint.server.world.block.StonePressurePlate();
-        block.setData( blockId, blockData, tileEntity, (io.gomint.server.world.WorldAdapter) location.getWorld(), location, skyLightLevel, blockLightLevel );
+        block.setData( blockId, blockData, tileEntity, (io.gomint.server.world.WorldAdapter) location.getWorld(), location, layer, skyLightLevel, blockLightLevel );
         return block;
     }
 

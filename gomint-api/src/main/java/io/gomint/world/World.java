@@ -68,6 +68,18 @@ public interface World {
     <T extends Block> T getBlockAt( int x, int y, int z );
 
     /**
+     * Get the block at that position or null if the position is not loaded in the world.
+     *
+     * @param x     x coordinate
+     * @param y     y coordinate
+     * @param z     z coordinate
+     * @param layer on which layer is this block
+     * @return block which has been found at that position or null
+     */
+    <T extends Block> T getBlockAt( int x, int y, int z, WorldLayer layer );
+
+
+    /**
      * Gets the value of the given gamerule set for this world.
      *
      * @param gamerule The gamerule to get a value for

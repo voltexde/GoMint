@@ -62,6 +62,7 @@ public class PacketPlayerAction extends Packet {
         START_GLIDE,
         STOP_GLIDE,
 
+        START_SWIMMING,
         STOP_SWIMMING,
 
         INTERACT_BLOCK,
@@ -106,6 +107,8 @@ public class PacketPlayerAction extends Packet {
                     return CONTINUE_BREAK;
                 case 20:
                     return SET_ENCHANT_SEED;
+                case 21:
+                    return START_SWIMMING;
                 case 22:
                     return STOP_SWIMMING;
             }

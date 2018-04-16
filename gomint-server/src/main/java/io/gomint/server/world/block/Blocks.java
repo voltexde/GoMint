@@ -44,14 +44,14 @@ public class Blocks {
     }
 
     public <T extends Block> T get( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel,
-                                           TileEntity tileEntity, Location location ) {
+                                           TileEntity tileEntity, Location location, int layer ) {
         BlockGenerator instance = this.generators.getGenerator( blockId );
         if ( instance != null ) {
             if ( location == null ) {
                 return instance.generate();
             }
 
-            return instance.generate( (byte) blockId, blockData, skyLightLevel, blockLightLevel, tileEntity, location );
+            return instance.generate( (byte) blockId, blockData, skyLightLevel, blockLightLevel, tileEntity, location, layer );
         }
 
         LOGGER.warn( "Unknown block {}", blockId );

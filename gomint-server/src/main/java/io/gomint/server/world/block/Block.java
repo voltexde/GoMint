@@ -54,6 +54,9 @@ public abstract class Block implements io.gomint.world.block.Block {
     @Getter
     protected Location location;
     @Getter
+    @Setter
+    private int layer;
+    @Getter
     private byte blockData;
     @Setter
     private TileEntity tileEntity;
@@ -63,7 +66,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     private byte blockLightLevel;
 
     // Set all needed data
-    public void setData( int blockId, byte blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, byte skyLightLevel, byte blockLightLevel ) {
+    public void setData( int blockId, byte blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, int layer, byte skyLightLevel, byte blockLightLevel ) {
         this.blockId = blockId;
         this.blockData = blockData;
         this.tileEntity = tileEntity;
@@ -71,6 +74,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         this.location = location;
         this.skyLightLevel = skyLightLevel;
         this.blockLightLevel = blockLightLevel;
+        this.layer = layer;
     }
     // CHECKSTYLE:ON
 
@@ -115,7 +119,8 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     /**
      * Called when a entity decides to interact with the block
-     *  @param entity  The entity which interacts with it
+     *
+     * @param entity  The entity which interacts with it
      * @param face    The block face the entity interacts with
      * @param facePos The position where the entity interacted with the block
      * @param item    The item with which the entity interacted, can be null
@@ -137,7 +142,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     <T, R> R storeInTemporaryStorage( String key, Function<T, R> func ) {
         // Check world storage
         BlockPosition blockPosition = this.location.toBlockPosition();
-        TemporaryStorage temporaryStorage = ( (WorldAdapter) this.location.getWorld() ).getTemporaryBlockStorage( blockPosition );
+        TemporaryStorage temporaryStorage = ( (WorldAdapter) this.location.getWorld() ).getTemporaryBlockStorage( blockPosition, this.layer );
         return temporaryStorage.store( key, func );
     }
 
@@ -151,7 +156,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     <T> T getFromTemporaryStorage( String key ) {
         // Check world storage
         BlockPosition blockPosition = this.location.toBlockPosition();
-        TemporaryStorage temporaryStorage = ( (WorldAdapter) this.location.getWorld() ).getTemporaryBlockStorage( blockPosition );
+        TemporaryStorage temporaryStorage = ( (WorldAdapter) this.location.getWorld() ).getTemporaryBlockStorage( blockPosition, this.layer );
         return (T) temporaryStorage.get( key );
     }
 
@@ -207,7 +212,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         }
 
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
-        return worldAdapter.getBlockId( this.location.toBlockPosition() ) == this.getBlockId();
+        return worldAdapter.getBlockId( this.location.toBlockPosition(), this.layer ) == this.getBlockId();
     }
 
     /**
@@ -223,9 +228,9 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
-            worldAdapter.setBlockId( pos, data.getBlockId() );
-            worldAdapter.setBlockData( pos, data.getMetaData() );
-            worldAdapter.resetTemporaryStorage( pos );
+            worldAdapter.setBlockId( pos, this.layer, data.getBlockId() );
+            worldAdapter.setBlockData( pos, this.layer, data.getMetaData() );
+            worldAdapter.resetTemporaryStorage( pos, this.layer );
 
             instance.setWorld( worldAdapter );
             instance.setLocation( this.location );
@@ -262,9 +267,9 @@ public abstract class Block implements io.gomint.world.block.Block {
         Block instance = this.world.getServer().getBlocks().get( blockType );
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
-            worldAdapter.setBlockId( pos, instance.getBlockId() );
-            worldAdapter.setBlockData( pos, (byte) 0 );
-            worldAdapter.resetTemporaryStorage( pos );
+            worldAdapter.setBlockId( pos, this.layer, instance.getBlockId() );
+            worldAdapter.setBlockData( pos, this.layer, (byte) 0 );
+            worldAdapter.resetTemporaryStorage( pos, this.layer );
 
             instance.setWorld( worldAdapter );
             instance.setLocation( this.location );
@@ -299,9 +304,9 @@ public abstract class Block implements io.gomint.world.block.Block {
         Block instance = (Block) apiInstance;
         BlockPosition pos = this.location.toBlockPosition();
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
-        worldAdapter.setBlockId( pos, instance.getBlockId() );
-        worldAdapter.setBlockData( pos, instance.getBlockData() );
-        worldAdapter.resetTemporaryStorage( pos );
+        worldAdapter.setBlockId( pos, this.layer, instance.getBlockId() );
+        worldAdapter.setBlockData( pos, this.layer, instance.getBlockData() );
+        worldAdapter.resetTemporaryStorage( pos, this.layer );
 
         // Check if new block needs tile entity
         if ( instance.getTileEntity() != null ) {
@@ -322,9 +327,9 @@ public abstract class Block implements io.gomint.world.block.Block {
         Block instance = (Block) apiInstance;
         BlockPosition pos = this.location.toBlockPosition();
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
-        worldAdapter.setBlockId( pos, instance.getBlockId() );
-        worldAdapter.setBlockData( pos, instance.getBlockData() );
-        worldAdapter.resetTemporaryStorage( pos );
+        worldAdapter.setBlockId( pos, this.layer, instance.getBlockId() );
+        worldAdapter.setBlockData( pos, this.layer, instance.getBlockData() );
+        worldAdapter.resetTemporaryStorage( pos, this.layer );
 
         // Check if new block needs tile entity
         if ( instance.getTileEntity() != null ) {
@@ -629,7 +634,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     public void setBlockData( byte blockData ) {
         // Only update when there has been a value already loaded
         if ( this.blockData > -1 && isPlaced() ) {
-            this.world.setBlockData( this.location.toBlockPosition(), blockData );
+            this.world.setBlockData( this.location.toBlockPosition(), this.layer, blockData );
         }
 
         this.blockData = blockData;
@@ -658,7 +663,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     public void setBlockId( byte blockId ) {
         if ( isPlaced() ) {
             this.blockId = blockId;
-            this.world.setBlockId( this.location.toBlockPosition(), blockId );
+            this.world.setBlockId( this.location.toBlockPosition(), this.layer, blockId );
         }
     }
 

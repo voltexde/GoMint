@@ -23,6 +23,7 @@ import io.gomint.taglib.NBTTagCompound;
 import io.gomint.taglib.NBTWriter;
 import io.gomint.world.Biome;
 import io.gomint.world.Chunk;
+import io.gomint.world.WorldLayer;
 import io.gomint.world.block.Block;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -38,13 +39,7 @@ import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.ByteOrder;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -119,7 +114,7 @@ public class ChunkAdapter implements Chunk {
             int blockHash = this.world.randomUpdateNumber >> 2;
             for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
                 short index = (short) ( blockHash & 0xfff );
-                int blockId = chunkSlice.getBlockInternal( index );
+                int blockId = chunkSlice.getBlockInternal( 0, index );
                 switch ( blockId ) {
                     case (byte) 244:    // Beetroot
                     case 2:             // Grass
@@ -134,7 +129,7 @@ public class ChunkAdapter implements Chunk {
                         int blockY = ( blockHash ) & 0x0f;
                         int blockZ = ( blockHash >> 4 ) & 0x0f;
 
-                        Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ );
+                        Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ, 0 );
                         if ( block instanceof io.gomint.server.world.block.Block ) {
                             long next = ( (io.gomint.server.world.block.Block) block )
                                 .update( UpdateReason.RANDOM, currentTimeMS, dT );
@@ -339,56 +334,60 @@ public class ChunkAdapter implements Chunk {
     /**
      * Sets the ID of a block at the specified coordinates given in chunk coordinates.
      *
-     * @param x  The x-coordinate of the block
-     * @param y  The y-coordinate of the block
-     * @param z  The z-coordinate of the block
-     * @param id The ID to set the block to
+     * @param x     The x-coordinate of the block
+     * @param y     The y-coordinate of the block
+     * @param z     The z-coordinate of the block
+     * @param layer layer on which this block is
+     * @param id    The ID to set the block to
      */
-    public void setBlock( int x, int y, int z, int id ) {
+    public void setBlock( int x, int y, int z, int layer, int id ) {
         int ySection = y >> 4;
         ChunkSlice slice = ensureSlice( ySection );
-        slice.setBlock( x, y - 16 * ySection, z, id );
+        slice.setBlock( x, y - 16 * ySection, z, layer, id );
         this.dirty = true;
     }
 
     /**
      * Sets the ID of a block at the specified coordinates given in chunk coordinates.
      *
-     * @param x The x-coordinate of the block
-     * @param y The y-coordinate of the block
-     * @param z The z-coordinate of the block
+     * @param x     The x-coordinate of the block
+     * @param y     The y-coordinate of the block
+     * @param z     The z-coordinate of the block
+     * @param layer in which the block is
      * @return The ID of the block
      */
-    public int getBlock( int x, int y, int z ) {
+    public int getBlock( int x, int y, int z, int layer ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
-        return slice.getBlock( x, y - 16 * ( y >> 4 ), z );
+        return slice.getBlock( x, y - 16 * ( y >> 4 ), z, layer );
     }
 
     /**
      * Sets the metadata value of the block at the specified coordinates.
      *
-     * @param x    The x-coordinate of the block
-     * @param y    The y-coordinate of the block
-     * @param z    The z-coordinate of the block
-     * @param data The data value to set
+     * @param x     The x-coordinate of the block
+     * @param y     The y-coordinate of the block
+     * @param z     The z-coordinate of the block
+     * @param layer layer on which this block is
+     * @param data  The data value to set
      */
-    public void setData( int x, int y, int z, byte data ) {
+    public void setData( int x, int y, int z, int layer, byte data ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
-        slice.setData( x, y - 16 * ( y >> 4 ), z, data );
+        slice.setData( x, y - 16 * ( y >> 4 ), z, layer, data );
         this.dirty = true;
     }
 
     /**
      * Gets the metadata value of the block at the specified coordinates.
      *
-     * @param x The x-coordinate of the block
-     * @param y The y-coordinate of the block
-     * @param z The z-coordinate of the block
+     * @param x     The x-coordinate of the block
+     * @param y     The y-coordinate of the block
+     * @param z     The z-coordinate of the block
+     * @param layer in which the block is
      * @return The data value of the block
      */
-    public byte getData( int x, int y, int z ) {
+    public byte getData( int x, int y, int z, int layer ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
-        return slice.getData( x, y - 16 * ( y >> 4 ), z );
+        return slice.getData( x, y - 16 * ( y >> 4 ), z, layer );
     }
 
     /**
@@ -440,18 +439,27 @@ public class ChunkAdapter implements Chunk {
 
     @Override
     public <T extends Block> T getBlockAt( int x, int y, int z ) {
-        ChunkSlice slice = ensureSlice( y >> 4 );
-        return slice.getBlockInstance( x, y & 0x000000F, z );
+        return getBlockAt( x, y, z, WorldLayer.NORMAL );
     }
 
-    public TemporaryStorage getTemporaryStorage( int x, int y, int z ) {
+    public <T extends Block> T getBlockAt( int x, int y, int z, int layer ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
-        return slice.getTemporaryStorage( x, y - 16 * ( y >> 4 ), z );
+        return slice.getBlockInstance( x, y & 0x000000F, z, layer );
     }
 
-    public void resetTemporaryStorage( int x, int y, int z ) {
+    @Override
+    public <T extends Block> T getBlockAt( int x, int y, int z, WorldLayer layer ) {
+        return this.getBlockAt( x, y, z, layer.ordinal() );
+    }
+
+    public TemporaryStorage getTemporaryStorage( int x, int y, int z, int layer ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
-        slice.resetTemporaryStorage( x, y - 16 * ( y >> 4 ), z );
+        return slice.getTemporaryStorage( x, y - 16 * ( y >> 4 ), z, layer );
+    }
+
+    public void resetTemporaryStorage( int x, int y, int z, int layer ) {
+        ChunkSlice slice = ensureSlice( y >> 4 );
+        slice.resetTemporaryStorage( x, y - 16 * ( y >> 4 ), z, layer );
     }
 
     // ==================================== MISCELLANEOUS ==================================== //
@@ -469,7 +477,7 @@ public class ChunkAdapter implements Chunk {
         for ( int i = 0; i < 16; ++i ) {
             for ( int k = 0; k < 16; ++k ) {
                 for ( int j = ( maxHeight + 16 ) - 1; j > 0; --j ) {
-                    if ( this.getBlock( i, j, k ) != 0 ) {
+                    if ( this.getBlock( i, j, k, 0 ) != 0 ) { // For height MC uses normal layer (0)
                         this.setHeight( i, k, (byte) j );
                         break;
                     }
@@ -500,7 +508,7 @@ public class ChunkAdapter implements Chunk {
 
         buffer.writeByte( (byte) topEmpty );
         for ( int i = 0; i < topEmpty; i++ ) {
-            buffer.writeByte( (byte) 1 ); // TODO: Move to 1 once we have new palette
+            buffer.writeByte( (byte) 1 );
             buffer.writeBytes( ensureSlice( i ).getBytes() );
         }
 
@@ -582,13 +590,20 @@ public class ChunkAdapter implements Chunk {
 
     @Override
     public void setBlock( int x, int y, int z, Block block ) {
+        this.setBlock( x, y, z, WorldLayer.NORMAL, block );
+    }
+
+    @Override
+    public void setBlock( int x, int y, int z, WorldLayer layer, Block block ) {
+        int layerID = layer.ordinal();
+
         io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
 
         // Copy block id
-        this.setBlock( x, y, z, implBlock.getBlockId() );
+        this.setBlock( x, y, z, layerID, implBlock.getBlockId() );
 
         // Copy metadata
-        this.setData( x, y, z, implBlock.getBlockData() );
+        this.setData( x, y, z, layerID, implBlock.getBlockData() );
 
         // Copy NBT
         if ( implBlock.getTileEntity() != null ) {

@@ -32,14 +32,14 @@ class ChunkSlice {
 
     private boolean isAllAir = true;
 
-    private NumberArray blocks = null;
-    private NibbleArray data = null;
+    private NumberArray[] blocks = new NumberArray[2]; // MC currently supports two layers, we init them as we need
+    private NibbleArray[] data = new NibbleArray[2]; // MC currently supports two layers, we init them as we need
 
     private NibbleArray blockLight = new NibbleArray( (short) 4096 );
     private NibbleArray skyLight = new NibbleArray( (short) 4096 );
 
     private Short2ObjectOpenHashMap<TileEntity> tileEntities = new Short2ObjectOpenHashMap<>();
-    private Short2ObjectOpenHashMap<TemporaryStorage> temporaryStorages = new Short2ObjectOpenHashMap<>();
+    private Short2ObjectOpenHashMap[] temporaryStorages = new Short2ObjectOpenHashMap[2];   // MC currently supports two layers, we init them as we need
 
     private short getIndex( int x, int y, int z ) {
         return (short) ( ( x << 8 ) + ( z << 4 ) + y );
@@ -48,42 +48,52 @@ class ChunkSlice {
     /**
      * Get the ID of the specific block in question
      *
-     * @param x coordinate in this slice (capped to 16)
-     * @param y coordinate in this slice (capped to 16)
-     * @param z coordinate in this slice (capped to 16)
+     * @param x     coordinate in this slice (capped to 16)
+     * @param y     coordinate in this slice (capped to 16)
+     * @param z     coordinate in this slice (capped to 16)
+     * @param layer on which the block is
      * @return id of the block
      */
-    int getBlock( int x, int y, int z ) {
-        return this.getBlockInternal( getIndex( x, y, z ) );
+    int getBlock( int x, int y, int z, int layer ) {
+        return this.getBlockInternal( layer, getIndex( x, y, z ) );
     }
 
     /**
      * Get a block by its index
      *
+     * @param layer on which the block is
      * @param index which should be looked up
      * @return block id of the index
      */
-    int getBlockInternal( short index ) {
+    int getBlockInternal( int layer, short index ) {
         if ( this.isAllAir ) {
             return 0;
         }
 
-        return this.blocks.get( index );
+        NumberArray blockStorage = this.blocks[layer];
+        if ( blockStorage == null ) {
+            return 0;
+        }
+
+        return blockStorage.get( index );
     }
 
-    <T extends io.gomint.world.block.Block> T getBlockInstance( int x, int y, int z ) {
+    <T extends io.gomint.world.block.Block> T getBlockInstance( int x, int y, int z, int layer ) {
         short index = getIndex( x, y, z );
 
         int fullX = CoordinateUtils.getChunkMin( this.chunk.getX() ) + x;
         int fullY = CoordinateUtils.getChunkMin( this.sectionY ) + y;
         int fullZ = CoordinateUtils.getChunkMin( this.chunk.getZ() ) + z;
 
-        if ( this.isAllAir ) {
-            return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ) );
+        NumberArray blockStorage = this.blocks[layer];
+        NibbleArray dataStorage = this.data[layer];
+
+        if ( this.isAllAir || blockStorage == null ) {
+            return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ), layer );
         }
 
-        return (T) this.chunk.getWorld().getServer().getBlocks().get( this.blocks.get( index ), this.data == null ? 0 : this.data.get( index ), this.skyLight.get( index ),
-            this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ) );
+        return (T) this.chunk.getWorld().getServer().getBlocks().get( blockStorage.get( index ), dataStorage == null ? 0 :dataStorage.get( index ), this.skyLight.get( index ),
+            this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ), layer );
     }
 
     Collection<TileEntity> getTileEntities() {
@@ -94,41 +104,41 @@ class ChunkSlice {
         this.tileEntities.put( getIndex( x, y, z ), tileEntity );
     }
 
-    void setBlock( int x, int y, int z, int blockId ) {
+    void setBlock( int x, int y, int z, int layer, int blockId ) {
         short index = getIndex( x, y, z );
 
-        if ( blockId != 0 && this.blocks == null ) {
-            this.blocks = new NumberArray();
+        if ( blockId != 0 && this.blocks[layer] == null ) {
+            this.blocks[layer] = new NumberArray();
             this.isAllAir = false;
         }
 
-        if ( this.blocks != null ) {
-            this.blocks.add( index, blockId );
+        if ( this.blocks[layer] != null ) {
+            this.blocks[layer].add( index, blockId );
         }
     }
 
-    void setData( int x, int y, int z, byte data ) {
+    void setData( int x, int y, int z, int layer, byte data ) {
         short index = getIndex( x, y, z );
 
         // Check if we need to set new nibble array
-        if ( !this.isAllAir && this.data == null ) {
-            this.data = new NibbleArray( (short) 4096 );
+        if ( !this.isAllAir && this.data[layer] == null ) {
+            this.data[layer] = new NibbleArray( (short) 4096 );
         }
 
         // All air and we want to set block data? How about no!
-        if ( this.data == null ) {
+        if ( this.data[layer] == null ) {
             return;
         }
 
-        this.data.set( index, data );
+        this.data[layer].set( index, data );
     }
 
-    byte getData( int x, int y, int z ) {
-        if ( this.data == null ) {
+    byte getData( int x, int y, int z, int layer ) {
+        if ( this.data[layer] == null ) {
             return 0;
         }
 
-        return this.data.get( getIndex( x, y, z ) );
+        return this.data[layer].get( getIndex( x, y, z ) );
     }
 
     boolean isAllAir() {
@@ -147,8 +157,8 @@ class ChunkSlice {
             for ( int z = 0; z < 16; z++ ) {
                 for ( int y = 0; y < 16; y++ ) {
                     short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
-                    int blockId = this.blocks == null ? 0 : this.blocks.get( blockIndex );
-                    byte blockData = this.data == null ? 0 : this.data.get( blockIndex );
+                    int blockId = this.blocks == null ? 0 : this.blocks[0].get( blockIndex );
+                    byte blockData = this.data == null ? 0 : this.data[0].get( blockIndex );
 
                     long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
                     int foundIndex = ids.get( hashId );
@@ -204,21 +214,33 @@ class ChunkSlice {
         return 31 - Integer.numberOfLeadingZeros( n );
     }
 
-    public TemporaryStorage getTemporaryStorage( int x, int y, int z ) {
+    public TemporaryStorage getTemporaryStorage( int x, int y, int z, int layer ) {
         short index = getIndex( x, y, z );
 
-        TemporaryStorage storage = this.temporaryStorages.get( index );
+        // Select correct layer
+        Short2ObjectOpenHashMap<TemporaryStorage> storage = this.temporaryStorages[layer];
         if ( storage == null ) {
-            storage = new TemporaryStorage();
-            this.temporaryStorages.put( index, storage );
+            storage = new Short2ObjectOpenHashMap<>();
+            this.temporaryStorages[layer] = storage;
         }
 
-        return storage;
+        TemporaryStorage blockStorage = storage.get( index );
+        if ( blockStorage == null ) {
+            blockStorage = new TemporaryStorage();
+            storage.put( index, blockStorage );
+        }
+
+        return blockStorage;
     }
 
-    public void resetTemporaryStorage( int x, int y, int z ) {
+    public void resetTemporaryStorage( int x, int y, int z, int layer ) {
+        Short2ObjectOpenHashMap<TemporaryStorage> storage = this.temporaryStorages[layer];
+        if ( storage == null ) {
+            return;
+        }
+
         short index = getIndex( x, y, z );
-        this.temporaryStorages.remove( index );
+        storage.remove( index );
     }
 
     public long getMemorySize() {

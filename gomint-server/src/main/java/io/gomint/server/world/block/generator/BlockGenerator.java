@@ -10,7 +10,7 @@ import io.gomint.server.world.block.Block;
  */
 public interface BlockGenerator {
 
-    <T extends Block> T generate( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel, TileEntity tileEntity, Location location );
+    <T extends Block> T generate( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel, TileEntity tileEntity, Location location, int layer );
 
     <T extends Block> T generate();
 

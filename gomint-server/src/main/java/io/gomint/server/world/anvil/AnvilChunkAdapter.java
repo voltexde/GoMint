@@ -105,8 +105,8 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     for ( int z = 0; z < 16; ++z ) {
                         short blockIndex = (short) ( ( y - baseIndex ) << 8 | z << 4 | x );
 
-                        int blockId = this.getBlock( x, y, z );
-                        byte blockData = this.getData( x, y, z );
+                        int blockId = this.getBlock( x, y, z, 0 );
+                        byte blockData = this.getData( x, y, z, 0 );
 
                         blocks[blockIndex] = (byte) blockId;
                         data.set( blockIndex, blockData );
@@ -344,10 +344,10 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                         }
                     }
 
-                    this.setBlock( i, y, k, blockId );
+                    this.setBlock( i, y, k, 0, blockId );
 
                     if ( blockData != 0 ) {
-                        this.setData( i, y, k, blockData );
+                        this.setData( i, y, k, 0, blockData );
                     }
 
                     switch ( blockId ) {

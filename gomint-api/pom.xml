@@ -34,7 +34,7 @@
         <dependency>
             <groupId>io.gomint</groupId>
             <artifactId>taglib</artifactId>
-            <version>1.4.2-SNAPSHOT</version>
+            <version>1.5.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

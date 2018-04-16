@@ -268,28 +268,34 @@ public abstract class WorldAdapter implements World {
 
     @Override
     public <T extends Block> T getBlockAt( int x, int y, int z ) {
+        return this.getBlockAt( x, y, z, WorldLayer.NORMAL );
+    }
+
+    @Override
+    public <T extends Block> T getBlockAt( int x, int y, int z, WorldLayer layer ) {
         // Secure location
         if ( y < 0 || y > 255 ) {
-            return (T) this.server.getBlocks().get( 0, (byte) 0, (byte) ( y > 255 ? 15 : 0 ), (byte) 0, null, new Location( this, x, y, z ) );
+            return (T) this.server.getBlocks().get( 0, (byte) 0, (byte) ( y > 255 ? 15 : 0 ), (byte) 0, null, new Location( this, x, y, z ), layer.ordinal() );
         }
 
         ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, true );
-        return chunk.getBlockAt( x & 0xF, y, z & 0xF );
+        return chunk.getBlockAt( x & 0xF, y, z & 0xF, layer.ordinal() );
     }
 
     /**
      * Set the block id for the given location
      *
      * @param position Position of the block
+     * @param layer    on which we want to set the block
      * @param blockId  The new block id
      */
-    public void setBlockId( BlockPosition position, int blockId ) {
+    public void setBlockId( BlockPosition position, int layer, int blockId ) {
         final ChunkAdapter chunk = this.loadChunk(
             CoordinateUtils.fromBlockToChunk( position.getX() ),
             CoordinateUtils.fromBlockToChunk( position.getZ() ),
             true );
 
-        chunk.setBlock( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, blockId );
+        chunk.setBlock( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, layer, blockId );
     }
 
     /**
@@ -298,7 +304,7 @@ public abstract class WorldAdapter implements World {
      * @param position where we want to search
      * @return id of the block
      */
-    public int getBlockId( BlockPosition position ) {
+    public int getBlockId( BlockPosition position, int layer ) {
         // Sanity check
         if ( position.getY() < 0 ) {
             this.logger.warn( "Got request for block under y 0", new Exception() );
@@ -310,7 +316,7 @@ public abstract class WorldAdapter implements World {
             CoordinateUtils.fromBlockToChunk( position.getZ() ),
             true );
 
-        return chunk.getBlock( position.getX() & 0xF, position.getY(), position.getZ() & 0xF );
+        return chunk.getBlock( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, layer );
     }
 
     /**
@@ -319,12 +325,12 @@ public abstract class WorldAdapter implements World {
      * @param position Position of the block
      * @param data     The new data of the block
      */
-    public void setBlockData( BlockPosition position, byte data ) {
+    public void setBlockData( BlockPosition position, int layer, byte data ) {
         int xChunk = CoordinateUtils.fromBlockToChunk( position.getX() );
         int zChunk = CoordinateUtils.fromBlockToChunk( position.getZ() );
 
         final ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
-        chunk.setData( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, data );
+        chunk.setData( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, layer, data );
     }
 
     private void initGamerules() {
@@ -1069,14 +1075,14 @@ public abstract class WorldAdapter implements World {
         this.asyncWorkerThread.interrupt();
     }
 
-    public TemporaryStorage getTemporaryBlockStorage( BlockPosition position ) {
+    public TemporaryStorage getTemporaryBlockStorage( BlockPosition position, int layer ) {
         // Get chunk
         int x = position.getX(), y = position.getY(), z = position.getZ();
         int xChunk = CoordinateUtils.fromBlockToChunk( x );
         int zChunk = CoordinateUtils.fromBlockToChunk( z );
 
         ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
-        return chunk.getTemporaryStorage( x & 0xF, y, z & 0xF );
+        return chunk.getTemporaryStorage( x & 0xF, y, z & 0xF, layer );
     }
 
     public ChunkAdapter generate( int x, int z ) {
@@ -1139,14 +1145,14 @@ public abstract class WorldAdapter implements World {
         }
     }
 
-    public void resetTemporaryStorage( BlockPosition position ) {
+    public void resetTemporaryStorage( BlockPosition position, int layer ) {
         // Get chunk
         int x = position.getX(), y = position.getY(), z = position.getZ();
         int xChunk = CoordinateUtils.fromBlockToChunk( x );
         int zChunk = CoordinateUtils.fromBlockToChunk( z );
 
         ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
-        chunk.resetTemporaryStorage( x & 0xF, y, z & 0xF );
+        chunk.resetTemporaryStorage( x & 0xF, y, z & 0xF, layer );
     }
 
     public void scheduleBlockUpdate( Location location, long delay, TimeUnit unit ) {
@@ -1274,17 +1280,20 @@ public abstract class WorldAdapter implements World {
             int chunkZ = chunkAdapter.getZ();
             int chunkX = chunkAdapter.getX();
 
-            for ( int x = 0; x < 16; x++ ) {
-                for ( int y = 0; y < 256; y++ ) {
-                    for ( int z = 0; z < 16; z++ ) {
-                        int currentBlockId = chunkAdapter.getBlock( x, y, z ) & 0xFF;
-                        if ( currentBlockId == blockId ) {
-                            T block = getBlockAt( ( chunkX << 4 ) + x, y, ( chunkZ << 4 ) + z );
-                            blockConsumer.accept( block );
+            for ( int i = 0; i < 2; i++ ) {
+                for ( int x = 0; x < 16; x++ ) {
+                    for ( int y = 0; y < 256; y++ ) {
+                        for ( int z = 0; z < 16; z++ ) {
+                            int currentBlockId = chunkAdapter.getBlock( x, y, z, i );
+                            if ( currentBlockId == blockId ) {
+                                T block = getBlockAt( ( chunkX << 4 ) + x, y, ( chunkZ << 4 ) + z );
+                                blockConsumer.accept( block );
+                            }
                         }
                     }
                 }
             }
+
         } );
     }
 
@@ -1301,8 +1310,8 @@ public abstract class WorldAdapter implements World {
         BlockPosition check = new BlockPosition( (int) this.spawn.getX(), 0, (int) this.spawn.getZ() );
         for ( int i = 255; i > 0; i-- ) {
             check.setY( i );
-            if ( this.getBlockId( check ) != 0 ) {
-                this.spawn.setY( i + 1 );
+            if ( this.getBlockId( check, 0 ) != 0 ) {
+                this.spawn.setY( 1 + i );
                 break;
             }
         }

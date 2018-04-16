@@ -191,7 +191,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                                 blockId = MaterialMagicNumbers.valueOfWithId( temp[1] );
                             }
 
-                            Block block = this.server.getBlocks().get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
+                            Block block = this.server.getBlocks().get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null, 0 );
                             for ( int i = 0; i < amountOfLayers; i++ ) {
                                 layers.add( block );
                             }
@@ -209,7 +209,7 @@ public final class AnvilWorldAdapter extends WorldAdapter {
                                     blockId = Integer.parseInt( temp[1] );
                                 }
 
-                                Block block = this.server.getBlocks().get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null );
+                                Block block = this.server.getBlocks().get( blockId, (byte) 0, (byte) 0, (byte) 0, null, null, 0 );
                                 for ( int i = 0; i < amountOfLayers; i++ ) {
                                     layers.add( block );
                                 }

@@ -16,6 +16,11 @@ public abstract class Element {
     @Getter
     private final String text;
 
+    /**
+     * Get the JSON representation of a form
+     *
+     * @return json representation of the form
+     */
     public JSONObject toJSON() {
         JSONObject element = new JSONObject();
         element.put( "text", this.text );
