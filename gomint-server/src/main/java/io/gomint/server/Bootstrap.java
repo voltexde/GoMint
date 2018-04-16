@@ -17,6 +17,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -43,9 +46,6 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
-        // For le performance
-        System.setSecurityManager( null );
-
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
 
@@ -71,26 +71,27 @@ public class Bootstrap {
             LOGGER.warn( "Excluding the library check can lead to weird behaviour. Please enable it before you submit issues" );
         }
 
-        File[] files = libsFolder.listFiles( ( dir, name ) -> name.endsWith( ".jar" ) );
+        File[] files = libsFolder.listFiles();
         if ( files == null ) {
             LOGGER.error( "Library Directory is corrupted" );
             System.exit( -1 );
         }
 
         // Scan the libs/ Directory for .jar Files
-        URL[] fileURLs = new URL[files.length];
-        for ( int i = 0; i < files.length; i++ ) {
-            try {
-                LOGGER.info( "Loading lib: " + files[i].getAbsolutePath() );
-                fileURLs[i] = files[i].toURI().toURL();
-            } catch ( IOException e ) {
-                LOGGER.warn( "Error attaching library to system classpath: ", e );
+        for ( File file : files ) {
+            if ( file.getAbsolutePath().endsWith( ".jar" ) ) {
+                try {
+                    LOGGER.info( "Loading lib: " + file.getAbsolutePath() );
+                    addJARToClasspath( file );
+                } catch ( IOException e ) {
+                    LOGGER.warn( "Error attaching library to system classpath: ", e );
+                }
             }
         }
 
         // Load the Class entrypoint
-        try ( GomintClassLoader classLoader = new GomintClassLoader( fileURLs, ClassLoader.getSystemClassLoader() ) ) {
-            Class<?> coreClass = classLoader.loadClass( "io.gomint.server.GoMintServer" );
+        try {
+            Class<?> coreClass = ClassLoader.getSystemClassLoader().loadClass( "io.gomint.server.GoMintServer" );
             Constructor constructor = coreClass.getDeclaredConstructor( OptionSet.class );
             constructor.newInstance( new Object[]{ options } );
         } catch ( Throwable t ) {
@@ -170,12 +171,43 @@ public class Bootstrap {
         }
     }
 
-    private static class GomintClassLoader extends URLClassLoader {
+    /**
+     * Appends a JAR into the System Classloader
+     *
+     * @param moduleFile which should be added to the classpath
+     * @throws IOException
+     */
+    private static void addJARToClasspath( File moduleFile ) throws IOException {
+        URL moduleURL = moduleFile.toURI().toURL();
 
-        GomintClassLoader( URL[] urls, ClassLoader parent ) {
-            super( urls, parent );
+        // Check if classloader has been changed (it should be a URLClassLoader)
+        if ( !( ClassLoader.getSystemClassLoader() instanceof URLClassLoader ) ) {
+            // This is invalid for Java 9/10, they use a UCP inside a wrapper loader
+            try {
+                Field ucpField = ClassLoader.getSystemClassLoader().getClass().getDeclaredField( "ucp" );
+                ucpField.setAccessible( true );
+
+                Object ucp = ucpField.get( ClassLoader.getSystemClassLoader() );
+                Method addURLucp = ucp.getClass().getDeclaredMethod( "addURL", URL.class );
+                addURLucp.invoke( ucp, moduleURL );
+            } catch ( NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
+                e.printStackTrace();
+            }
+        } else {
+            Class[] parameters = new Class[]{ URL.class };
+
+            ClassLoader sysloader = ClassLoader.getSystemClassLoader();
+            Class sysclass = URLClassLoader.class;
+
+            try {
+                Method method = sysclass.getDeclaredMethod( "addURL", parameters );
+                method.setAccessible( true );
+                method.invoke( sysloader, new Object[]{ moduleURL } );
+            } catch ( NoSuchMethodException | InvocationTargetException | IllegalAccessException e ) {
+                e.printStackTrace();
+                throw new IOException( "Error, could not add URL to system classloader" );
+            }
         }
-
     }
 
 }
