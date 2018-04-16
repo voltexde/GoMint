@@ -157,8 +157,8 @@ class ChunkSlice {
             for ( int z = 0; z < 16; z++ ) {
                 for ( int y = 0; y < 16; y++ ) {
                     short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
-                    int blockId = this.blocks == null ? 0 : this.blocks[0].get( blockIndex );
-                    byte blockData = this.data == null ? 0 : this.data[0].get( blockIndex );
+                    int blockId = this.blocks[0] == null ? 0 : this.blocks[0].get( blockIndex );
+                    byte blockData = this.data[0] == null ? 0 : this.data[0].get( blockIndex );
 
                     long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
                     int foundIndex = ids.get( hashId );
