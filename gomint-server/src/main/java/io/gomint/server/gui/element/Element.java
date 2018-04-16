@@ -22,6 +22,12 @@ public abstract class Element {
         return element;
     }
 
+    /**
+     * Get the correct answer object for this form element
+     *
+     * @param answerOption object given from the client
+     * @return correct answer object for the listener
+     */
     public Object getAnswer( Object answerOption ) {
         return answerOption;
     }

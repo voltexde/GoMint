@@ -58,6 +58,7 @@ public class Dropdown extends Element implements io.gomint.gui.element.Dropdown 
     @Override
     public Object getAnswer( Object answerOption ) {
         long optionIndex = (long) answerOption;
+        this.defaultOption = (int) optionIndex;
         return this.options.get( (int) optionIndex );
     }
 
