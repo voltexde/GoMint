@@ -79,6 +79,14 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
                 ItemStack packetItemInHand = packet.getItemInHand();
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
+                    // For for mojang duplicate interaction bug
+                    if ( connection.getLastInteraction() != null ) {
+                        if ( connection.getLastInteraction().equals( packetItemInHand ) &&
+                            connection.getLastInteraction().getAmount() + 1 == packetItemInHand.getAmount() ) { // We already removed one but the client sends the old stack from click on block interaction
+                            return;
+                        }
+                    }
+
                     LOGGER.warn( "{} item in hand does not match: {} / {}", connection.getEntity().getName(), itemInHand, packetItemInHand );
                     reset( packet, connection );
                     return;
