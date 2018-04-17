@@ -443,16 +443,17 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
         connection.getEntity().getInventory().sendContents( connection );
 
         if ( packet.getBlockPosition() != null ) {
-            Block blockClicked = connection.getEntity().getWorld().getBlockAt( packet.getBlockPosition() );
-            connection.getEntity().getBlockUpdates().add( packet.getBlockPosition() );
+            io.gomint.server.world.block.Block blockClicked = connection.getEntity().getWorld().getBlockAt( packet.getBlockPosition() );
+            blockClicked.send( connection );
 
             if ( packet.getFace() != null ) {
                 // Attach to block send queue
-                Block replacedBlock = blockClicked.getSide( packet.getFace() );
-                connection.getEntity().getBlockUpdates().add( replacedBlock.getLocation().toBlockPosition() );
+                io.gomint.server.world.block.Block replacedBlock = blockClicked.getSide( packet.getFace() );
+                replacedBlock.send( connection );
 
                 for ( BlockFace face : BlockFace.values() ) {
-                    connection.getEntity().getBlockUpdates().add( replacedBlock.getSide( face ).getLocation().toBlockPosition() );
+                    io.gomint.server.world.block.Block replacedSide = replacedBlock.getSide( face );
+                    replacedSide.send( connection );
                 }
             }
         }

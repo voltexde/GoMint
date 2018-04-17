@@ -837,7 +837,7 @@ public abstract class WorldAdapter implements World {
         updateBlock.setPosition( pos );
 
         updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData(), connection.getProtocolID() ) );
-        updateBlock.setPrioAndMetadata( PacketUpdateBlock.FLAG_ALL_PRIORITY );
+        updateBlock.setFlags( PacketUpdateBlock.FLAG_ALL );
 
         connection.addToSendQueue( updateBlock );
 

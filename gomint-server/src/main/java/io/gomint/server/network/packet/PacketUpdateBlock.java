@@ -23,7 +23,7 @@ public class PacketUpdateBlock extends Packet {
     
     private BlockPosition position;
     private int blockId;
-    private int prioAndMetadata;
+    private int flags;
     private int layer;
 
     public PacketUpdateBlock() {
@@ -34,7 +34,7 @@ public class PacketUpdateBlock extends Packet {
     public void serialize( PacketBuffer buffer, int protocolID) {
         writeBlockPosition( this.position, buffer );
         buffer.writeUnsignedVarInt( this.blockId );
-        buffer.writeUnsignedVarInt( this.prioAndMetadata );
+        buffer.writeUnsignedVarInt( this.flags );
 
         if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             buffer.writeUnsignedVarInt( this.layer );
