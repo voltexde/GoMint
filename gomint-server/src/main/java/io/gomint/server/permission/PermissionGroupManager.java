@@ -9,7 +9,9 @@ package io.gomint.server.permission;
 
 import io.gomint.permission.Group;
 import io.gomint.permission.GroupManager;
-import io.gomint.server.util.collection.PermissionGroupMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Setter;
 
 /**
  * @author geNAZt
@@ -17,23 +19,43 @@ import io.gomint.server.util.collection.PermissionGroupMap;
  */
 public class PermissionGroupManager implements GroupManager {
 
-    private PermissionGroupMap groupMap = null;
+    @Setter
+    private boolean dirty;
+    private Object2ObjectMap<String, Group> groupMap = null;
+
+    /**
+     * Update this permission group manager
+     *
+     * @param currentTimeMS The current system time in milliseconds
+     * @param dT            The time that has passed since the last tick in 1/s
+     */
+    public void update( long currentTimeMS, float dT ) {
+        if ( this.groupMap != null && this.dirty ) {
+            for ( Object2ObjectMap.Entry<String, Group> entry : this.groupMap.object2ObjectEntrySet() ) {
+                if ( entry.getValue() instanceof PermissionGroup ) {
+                    ( (PermissionGroup) entry.getValue() ).resetDirty();
+                }
+            }
+
+            this.dirty = false;
+        }
+    }
 
     @Override
     public Group getOrCreateGroup( String name ) {
         // Check if this is the first group we get/create
         if ( this.groupMap == null ) {
-            this.groupMap = PermissionGroupMap.withExpectedSize( 10 );
+            this.groupMap = new Object2ObjectOpenHashMap<>();
 
-            PermissionGroup group = new PermissionGroup( name );
-            this.groupMap.justPut( name, group );
+            PermissionGroup group = new PermissionGroup( this, name );
+            this.groupMap.put( name, group );
             return group;
         }
 
         Group group = this.groupMap.get( name );
         if ( group == null ) {
-            group = new PermissionGroup( name );
-            this.groupMap.justPut( name, group );
+            group = new PermissionGroup( this, name );
+            this.groupMap.put( name, group );
         }
 
         return group;
@@ -41,7 +63,7 @@ public class PermissionGroupManager implements GroupManager {
 
     @Override
     public void removeGroup( Group group ) {
-        this.groupMap.justRemove( group.getName() );
+        this.groupMap.remove( group.getName() );
     }
 
 }

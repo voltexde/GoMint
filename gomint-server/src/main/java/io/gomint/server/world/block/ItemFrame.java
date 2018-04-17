@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.world.block.BlockType;
+
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.tileentity.ItemFrameTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -11,7 +13,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @version 1.0
  */
 @RegisterInfo( id = 199 )
-public class ItemFrame extends Block {
+public class ItemFrame extends Block implements io.gomint.world.block.BlockItemFrame {
 
     @Override
     public int getBlockId() {
@@ -25,14 +27,7 @@ public class ItemFrame extends Block {
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        BlockPosition position = this.location.toBlockPosition();
-
-        compound = new NBTTagCompound( "" );
-
-        // Add generic tile entity stuff
-        compound.addValue( "x", position.getX() );
-        compound.addValue( "y", position.getY() );
-        compound.addValue( "z", position.getZ() );
+        super.createTileEntity( compound );
 
         // Set item
         NBTTagCompound item = new NBTTagCompound( "Item" );
@@ -44,6 +39,21 @@ public class ItemFrame extends Block {
         compound.addValue( "ItemRotation", (byte) 0 );
 
         return new ItemFrameTileEntity( compound, this.world );
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 1.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.ITEM_FRAME;
+    }
+
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
     }
 
 }

@@ -63,7 +63,7 @@ public class EncryptionKeyFactory {
         }
 
         // If needed (for connection encryption) generate a keypair
-        if ( server.getServerConfig().getConnection().isEnableEncryption() ) {
+        if ( server.getServerConfig().getConnection().isEnableEncryption() && !server.getServerConfig().getListener().isUseTCP() ) {
             // Setup KeyPairGenerator:
             KeyPairGenerator generator;
             try {
@@ -78,7 +78,7 @@ public class EncryptionKeyFactory {
             // Generate the keypair:
             this.keyPair = generator.generateKeyPair();
 
-            LOGGER.info( "Server key: " + Base64.getEncoder().encodeToString( this.keyPair.getPublic().getEncoded() ) );
+            LOGGER.info( "Server key: {}", Base64.getEncoder().encodeToString( this.keyPair.getPublic().getEncoded() ) );
         }
     }
 

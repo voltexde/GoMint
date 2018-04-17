@@ -7,7 +7,10 @@
 
 package io.gomint.inventory;
 
+import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
+
+import java.util.Collection;
 
 /**
  * @author geNAZt
@@ -45,5 +48,17 @@ public interface Inventory {
      * @return The size of this inventory
      */
     int size();
+
+    /**
+     * Set all items in this inventory to air
+     */
+    void clear();
+
+    /**
+     * Get a collection of all entities currently viewing this inventory
+     *
+     * @return collection of viewers
+     */
+    Collection<Entity> getViewers();
 
 }

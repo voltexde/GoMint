@@ -7,10 +7,10 @@
 
 package io.gomint.math;
 
-import io.gomint.util.Numbers;
+
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -24,6 +24,8 @@ import lombok.Setter;
  * @version 1.2
  */
 @EqualsAndHashCode
+@ToString
+@Data
 public class Vector implements Cloneable {
 
     public static final Vector ZERO = new Vector( 0, 0, 0 );
@@ -36,9 +38,9 @@ public class Vector implements Cloneable {
     public static final Vector NORTH = new Vector( 0, 0, -1 );
     public static final Vector SOUTH = new Vector( 0, 0, 1 );
 
-    @Getter @Setter protected float x;
-    @Getter @Setter protected float y;
-    @Getter @Setter protected float z;
+    protected float x;
+    protected float y;
+    protected float z;
 
     public Vector() {
 
@@ -122,12 +124,12 @@ public class Vector implements Cloneable {
         return this;
     }
 
-    public double length() {
-        return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+    public float length() {
+        return MathUtils.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
     }
 
     public Vector normalize() {
-        double mag = this.length();
+        float mag = this.length();
         if ( mag == 0.0 ) {
             return this;
         }
@@ -137,11 +139,6 @@ public class Vector implements Cloneable {
         this.z /= mag;
 
         return this;
-    }
-
-    @Override
-    public String toString() {
-        return String.format( "[x=%.3f, y=%.3f, z=%.3f]", this.x, this.y, this.z );
     }
 
     @Override
@@ -157,11 +154,67 @@ public class Vector implements Cloneable {
         }
     }
 
-    public double distanceSquared( Vector position ) {
-        return Numbers.square( x - position.x ) + Numbers.square( y - position.y ) + Numbers.square( z - position.z );
+    public float distanceSquared( Vector position ) {
+        return MathUtils.square( x - position.x ) + MathUtils.square( y - position.y ) + MathUtils.square( z - position.z );
+    }
+
+    public float distance( Vector position ) {
+        return MathUtils.sqrt( distanceSquared( position ) );
     }
 
     public BlockPosition toBlockPosition() {
-        return new BlockPosition( Numbers.fastFloor( x ), Numbers.fastFloor( y ), Numbers.fastFloor( z ) );
+        return new BlockPosition( MathUtils.fastFloor( x ), MathUtils.fastFloor( y ), MathUtils.fastFloor( z ) );
     }
+
+    /**
+     * Get a new vector with the x axis set to the x parameter when the x parameter is
+     * on a line with this and the vector other
+     *
+     * @param other to check with
+     * @param x     which may on the line or not
+     * @return vector with x set or null when x is not on a line with this and the other vector
+     */
+    public Vector getVectorWhenXIsOnLine( Vector other, float x ) {
+        float xDiff = other.x - this.x;
+        float yDiff = other.y - this.y;
+        float zDiff = other.z - this.z;
+
+        float f = ( x - this.x ) / xDiff;
+        return ( f >= 0F && f <= 1F ) ? new Vector( this.x + xDiff * f, this.y + yDiff * f, this.z + zDiff * f ) : null;
+    }
+
+    /**
+     * Get a new vector with the y axis set to the y parameter when the y parameter is
+     * on a line with this and the vector other
+     *
+     * @param other to check with
+     * @param y     which may on the line or not
+     * @return vector with y set or null when y is not on a line with this and the other vector
+     */
+    public Vector getVectorWhenYIsOnLine( Vector other, float y ) {
+        float xDiff = other.x - this.x;
+        float yDiff = other.y - this.y;
+        float zDiff = other.z - this.z;
+
+        float f = ( y - this.y ) / yDiff;
+        return ( f >= 0F && f <= 1F ) ? new Vector( this.x + xDiff * f, this.y + yDiff * f, this.z + zDiff * f ) : null;
+    }
+
+    /**
+     * Get a new vector with the z axis set to the z parameter when the z parameter is
+     * on a line with this and the vector other
+     *
+     * @param other to check with
+     * @param z     which may on the line or not
+     * @return vector with y set or null when y is not on a line with this and the other vector
+     */
+    public Vector getVectorWhenZIsOnLine( Vector other, float z ) {
+        float xDiff = other.x - this.x;
+        float yDiff = other.y - this.y;
+        float zDiff = other.z - this.z;
+
+        float f = ( z - this.z ) / zDiff;
+        return ( f >= 0F && f <= 1F ) ? new Vector( this.x + xDiff * f, this.y + yDiff * f, this.z + zDiff * f ) : null;
+    }
+
 }

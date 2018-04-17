@@ -1,29 +1,30 @@
 package io.gomint.plugin.listener;
 
+import io.gomint.GoMint;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
-import io.gomint.inventory.item.*;
+import io.gomint.inventory.item.ItemBow;
+import io.gomint.inventory.item.ItemFishingRod;
+import io.gomint.plugin.TestPlugin;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@RequiredArgsConstructor
 public class PlayerJoinListener implements EventListener {
+
+    private final TestPlugin plugin;
 
     @EventHandler
     public void onPlayerJoin( PlayerJoinEvent event ) {
-        event.getPlayer().getInventory().setItem( 0, ItemBeetrootSeeds.create( 12 ) );
-        event.getPlayer().getInventory().setItem( 1, ItemFarmland.create( 12 ) );
+        event.getPlayer().setDisplayName( "§6Project Lead §7|§6 " + event.getPlayer().getName() );
+        event.getPlayer().teleport( GoMint.instance().getDefaultWorld().getSpawnLocation().clone().add( 0, 1, 0 ) );
 
-        ItemBucket itemBucket = ItemBucket.create( 1 );
-        itemBucket.setContent( ItemBucket.Content.WATER );
-
-        event.getPlayer().getInventory().setItem( 2, itemBucket );
-        event.getPlayer().getInventory().setItem( 3, ItemCookedBeef.create( 2 ) );
-
-        // Set health to 2
-        event.getPlayer().setHealth( 2 );
+        event.getPlayer().getInventory().setItem( 0, ItemFishingRod.create( 1 ) );
+        event.getPlayer().getInventory().setItem( 1, ItemBow.create( 1 ) );
     }
 
 }

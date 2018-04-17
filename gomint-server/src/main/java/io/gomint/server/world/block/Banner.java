@@ -6,6 +6,19 @@ package io.gomint.server.world.block;
  */
 public abstract class Banner extends Block {
 
+    @Override
+    public float getBlastResistance() {
+        return 5f;
+    }
 
+    @Override
+    public long getBreakTime() {
+        return 1500;
+    }
+
+    @Override
+    public boolean canBeBrokenWithHand() {
+        return true;
+    }
 
 }

@@ -7,10 +7,10 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.SkullTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.PlacementData;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +20,7 @@ import java.util.List;
  * @version 1.0
  */
 @RegisterInfo( id = 144 )
-public class Skull extends Block {
-
-    @Override
-    public int getBlockId() {
-        return 144;
-    }
+public class Skull extends Block implements io.gomint.world.block.BlockSkull {
 
     @Override
     public long getBreakTime() {
@@ -61,26 +56,35 @@ public class Skull extends Block {
 
     @Override
     public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
+        PlacementData data = super.calculatePlacementData( entity, item, clickVector );
+
         NBTTagCompound compound = new NBTTagCompound( "" );
         compound.addValue( "Rot", MojangRotation.fromEntityForBlock( entity ).getRotationValue() );
-        return new PlacementData( (byte) item.getData(), compound );
+        return data.setCompound( compound );
     }
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        if ( compound == null ) {
-            compound = new NBTTagCompound( "" );
-        }
-
+        super.createTileEntity( compound );
         compound.addValue( "SkullType", this.getBlockData() );
         return new SkullTileEntity( compound, this.world );
     }
 
     @Override
-    public List<ItemStack> getDrops() {
-        return new ArrayList<ItemStack>(){{
-            add( Items.create( 397, getBlockData(), (byte) 1, null ) );
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        return new ArrayList<ItemStack>() {{
+            add( world.getServer().getItems().create( 397, getBlockData(), (byte) 1, null ) );
         }};
+    }
+
+    @Override
+    public float getBlastResistance() {
+        return 5.0f;
+    }
+
+    @Override
+    public BlockType getType() {
+        return BlockType.SKULL;
     }
 
 }

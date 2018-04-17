@@ -8,6 +8,7 @@
 package io.gomint.math;
 
 import io.gomint.world.World;
+import io.gomint.world.block.Block;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +26,7 @@ import lombok.ToString;
  * @version 1.2
  */
 @EqualsAndHashCode( callSuper = true )
-@ToString
+@ToString( callSuper = true )
 public class Location extends Vector implements Cloneable {
 
     @Getter private World world;
@@ -129,11 +130,6 @@ public class Location extends Vector implements Cloneable {
     }
 
     @Override
-    public String toString() {
-        return String.format( "[world=%s, x=%.3f, y=%.3f, z=%.3f, yaw=%.3f, pitch=%.3f]", world.getLevelName(), x, y, z, yaw, pitch );
-    }
-
-    @Override
     public Location clone() {
         Location location = (Location) super.clone();
         location.world = this.world;
@@ -146,4 +142,7 @@ public class Location extends Vector implements Cloneable {
         return new Vector( this.x, this.y, this.z );
     }
 
+    public <T extends Block> T getBlock() {
+        return this.world.getBlockAt( MathUtils.fastFloor( this.x ), MathUtils.fastFloor( this.y ), MathUtils.fastFloor( this.z ) );
+    }
 }

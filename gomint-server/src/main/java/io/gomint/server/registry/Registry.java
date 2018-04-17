@@ -1,13 +1,13 @@
 package io.gomint.server.registry;
 
 import com.google.common.reflect.ClassPath;
-import io.gomint.server.util.collection.GeneratorAPIClassMap;
-import io.gomint.server.util.collection.GeneratorMap;
+import io.gomint.server.GoMintServer;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Collection;
 
 /**
  * @author geNAZt
@@ -18,15 +18,18 @@ public class Registry<R> {
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
     private final GeneratorCallback<R> generatorCallback;
-    private final GeneratorMap<R> generators = GeneratorMap.withExpectedSize( 250 );
-    private final GeneratorAPIClassMap<Class<?>> apiReferences = GeneratorAPIClassMap.withExpectedSize( 250 );
+    private final Int2ObjectMap<R> generators = new Int2ObjectOpenHashMap<>();
+    private final Object2IntMap<Class<?>> apiReferences = new Object2IntOpenHashMap<>();
+    private final GoMintServer server;
 
     /**
      * Build a new generator registry
      *
+     * @param server   which started this gomint
      * @param callback which is used to generate a generator for each found element
      */
-    public Registry( GeneratorCallback<R> callback ) {
+    public Registry( GoMintServer server, GeneratorCallback<R> callback ) {
+        this.server = server;
         this.generatorCallback = callback;
     }
 
@@ -36,42 +39,56 @@ public class Registry<R> {
      * @param classPath which should be searched
      */
     public void register( String classPath ) {
-        LOGGER.debug( "Going to scan: " + classPath );
+        LOGGER.debug( "Going to scan: {}", classPath );
 
-        // Search io.gomint.server.inventory.item
-        try {
-            for ( ClassPath.ClassInfo classInfo : ClassPath.from( ClassLoader.getSystemClassLoader() )
-                .getTopLevelClasses( classPath ) ) {
-                register( classInfo.load() );
-            }
-        } catch ( IOException e ) {
-            e.printStackTrace();
+        for ( ClassPath.ClassInfo classInfo : this.server.getClassPath().getTopLevelClasses( classPath ) ) {
+            register( classInfo.load() );
         }
     }
 
-    public void register( Class<?> clazz ) {
+    private void register( Class<?> clazz ) {
         // We need register info
-        if ( !clazz.isAnnotationPresent( RegisterInfo.class ) ) {
+        if ( !clazz.isAnnotationPresent( RegisterInfo.class ) && !clazz.isAnnotationPresent( RegisterInfos.class ) ) {
             LOGGER.debug( "No register info annotation present" );
             return;
         }
 
-        int id = clazz.getAnnotation( RegisterInfo.class ).id();
-        R oldGen = this.generators.get( id );
-        if ( oldGen != null ) {
-            LOGGER.debug( "Duplicated register info for id: " + id + " -> " + clazz.getName() + "; old: " + oldGen.getClass().getName() );
-        }
+        if ( clazz.isAnnotationPresent( RegisterInfo.class ) ) {
+            int id = clazz.getAnnotation( RegisterInfo.class ).id();
+            R generator = this.generatorCallback.generate( clazz );
+            if ( generator != null ) {
+                R oldGen = this.generators.put( id, generator );
+                if ( oldGen != null ) {
+                    LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
+                }
 
-        R generator = this.generatorCallback.generate( id, clazz );
-        if ( generator != null ) {
-            this.generators.put( id, generator );
+                // Check for API interfaces
+                for ( Class<?> apiInter : clazz.getInterfaces() ) {
+                    this.apiReferences.put( apiInter, id );
+                }
 
-            // Check for API interfaces
-            for ( Class<?> apiInter : clazz.getInterfaces() ) {
-                apiReferences.put( apiInter, id );
+                this.apiReferences.put( clazz, id );
             }
+        } else {
+            R generator = this.generatorCallback.generate( clazz );
+            if ( generator != null ) {
+                RegisterInfo[] infos = clazz.getAnnotation( RegisterInfos.class ).value();
+                for ( RegisterInfo info : infos ) {
+                    int id = info.id();
 
-            apiReferences.put( clazz, id );
+                    R oldGen = this.generators.put( id, generator );
+                    if ( oldGen != null ) {
+                        LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
+                    }
+
+                    // Check for API interfaces
+                    for ( Class<?> apiInter : clazz.getInterfaces() ) {
+                        this.apiReferences.put( apiInter, id );
+                    }
+
+                    this.apiReferences.put( clazz, id );
+                }
+            }
         }
     }
 
@@ -89,8 +106,8 @@ public class Registry<R> {
         return generators.get( id );
     }
 
-    public Collection<Integer> getAll() {
-        return generators.keySet();
+    public int getId( Class<?> clazz ) {
+        return apiReferences.getOrDefault( clazz, -1 );
     }
 
 }

@@ -1,5 +1,6 @@
 package io.gomint.server.network.handler;
 
+import io.gomint.event.player.PlayerPreJoinEvent;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.PacketResourcePackResponse;
@@ -30,15 +31,24 @@ public class PacketResourcePackResponseHandler implements PacketHandler<PacketRe
                 LOGGER.debug( "Login state: COMPLETED reached" );
 
                 // Proceed with login
-                connection.setState( PlayerConnectionState.LOGIN );
-                LOGGER.info( "Logging in as " + connection.getEntity().getName() );
-
-                connection.sendWorldInitialization();
-                connection.sendWorldTime( 0 );
-                connection.getEntity().updateAttributes();
+                this.switchToLogin( connection, currentTimeMillis );
 
                 break;
         }
     }
-    
+
+    private void switchToLogin( PlayerConnection connection, long currentTimeMillis ) {
+        // Proceed with login
+        connection.setState( PlayerConnectionState.LOGIN );
+        LOGGER.info( "Logging in as " + connection.getEntity().getName() );
+
+        connection.getEntity().getLoginPerformance().setResourceEnd( currentTimeMillis );
+
+        PlayerPreJoinEvent playerPreJoinEvent = new PlayerPreJoinEvent( connection.getEntity() );
+        connection.getServer().getPluginManager().callEvent( playerPreJoinEvent );
+        if ( !playerPreJoinEvent.isCancelled() ) {
+            connection.getEntity().prepareEntity();
+        }
+    }
+
 }

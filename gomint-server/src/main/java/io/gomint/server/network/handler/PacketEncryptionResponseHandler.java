@@ -24,12 +24,15 @@ public class PacketEncryptionResponseHandler implements PacketHandler<PacketEncr
 
     @Override
     public void handle( PacketEncryptionResponse packet, long currentTimeMillis, PlayerConnection connection ) {
-        connection.getPostProcessWorker().setEncryptionHandler( connection.getEncryptionHandler() );
+        connection.getEntity().getLoginPerformance().setEncryptionEnd( currentTimeMillis );
+
         connection.setState( PlayerConnectionState.LOGIN );
         connection.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
-        connection.sendResourcePacks();
 
-        LOGGER.debug( "Login state: ENCRYPTION_RESPONSE reached" );
+        // Track performance
+        connection.getEntity().getLoginPerformance().setResourceStart( currentTimeMillis );
+
+        connection.initWorldAndResourceSend();
     }
 
 }

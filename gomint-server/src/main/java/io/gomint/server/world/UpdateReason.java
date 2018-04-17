@@ -19,6 +19,16 @@ public enum UpdateReason {
     /**
      * This reason mean that any of the surrounding blocks did update
      */
-    NEIGHBOUR_UPDATE;
+    NEIGHBOUR_UPDATE,
+
+    /**
+     * A neighbour block exploded
+     */
+    EXPLOSION,
+
+    /**
+     * A block has been placed
+     */
+    BLOCK_ADDED
 
 }

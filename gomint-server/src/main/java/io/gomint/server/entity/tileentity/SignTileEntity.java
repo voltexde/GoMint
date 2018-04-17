@@ -8,6 +8,8 @@
 package io.gomint.server.entity.tileentity;
 
 import com.google.common.base.Joiner;
+import io.gomint.math.BlockPosition;
+import io.gomint.math.Location;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -19,9 +21,21 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-class SignTileEntity extends TileEntity {
+public class SignTileEntity extends TileEntity {
 
+    private static final Joiner CONTENT_JOINER = Joiner.on( "\n" ).skipNulls();
     private List<String> lines = new ArrayList<>( 4 );
+
+    /**
+     * Construct a new sign tile
+     *
+     * @param lines content of sign
+     * @param location of the sign
+     */
+    public SignTileEntity( String[] lines, Location location ) {
+        super( location );
+        this.lines.addAll( Arrays.asList( lines ) );
+    }
 
     /**
      * Construct new TileEntity from TagCompound
@@ -35,12 +49,6 @@ class SignTileEntity extends TileEntity {
         if ( tagCompound.containsKey( "Text" ) ) {
             String text = tagCompound.getString( "Text", "" );
             this.lines.addAll( Arrays.asList( text.split( "\n" ) ) );
-        } else {
-            // This is the Anvil version
-            this.lines.add( tagCompound.getString( "Text1", "" ) );
-            this.lines.add( tagCompound.getString( "Text2", "" ) );
-            this.lines.add( tagCompound.getString( "Text3", "" ) );
-            this.lines.add( tagCompound.getString( "Text4", "" ) );
         }
     }
 
@@ -54,7 +62,11 @@ class SignTileEntity extends TileEntity {
         super.toCompound( compound );
 
         compound.addValue( "id", "Sign" );
-        compound.addValue( "Text", Joiner.on( "\n" ).join( this.lines ) );
+        compound.addValue( "Text", CONTENT_JOINER.join( this.lines ) );
+    }
+
+    public List<String> getLines() {
+        return this.lines;
     }
 
 }

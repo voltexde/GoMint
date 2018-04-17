@@ -74,7 +74,44 @@ public enum TileEntities {
     /**
      * More or less a cooler chest
      */
-    SHULKER_BOX( "ShulkerBox", ShulkerBoxTileEntity.class );
+    SHULKER_BOX( "ShulkerBox", ShulkerBoxTileEntity.class ),
+
+    /**
+     * Data for the piston extension
+     */
+    PISTON_ARM( "PistonArm", PistonArmTileEntity.class ),
+
+    /**
+     * Data for a furnace
+     */
+    FURNACE( "Furnace", FurnaceTileEntity.class ),
+
+    /**
+     * Data for a bed
+     */
+    BED( "Bed", BedTileEntity.class ),
+
+    /**
+     * Data for a dispenser
+     */
+    DISPENSER( "Dispenser", DispenserTileEntity.class ),
+
+    // DROPPER( "Dropper", )
+
+    /**
+     * Data for beacon
+     */
+    BEACON( "Beacon", BeaconTileEntity.class ),
+
+    /**
+     * Data for end portals
+     */
+    END_PORTAL( "EndPortal", EndPortalTileEntity.class );
+
+    /**
+     * Data for banner
+     */
+    //BANNER( "Banner", BannerTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;
@@ -117,14 +154,14 @@ public enum TileEntities {
                 try {
                     return (TileEntity) tileEntities.tileEntityConstructor.invoke( compound, world );
                 } catch ( Throwable throwable ) {
-                    throwable.printStackTrace();
+                    LOGGER.warn( "Could not build up tile entity: ", throwable );
                     return null;
                 }
 
             }
         }
 
-        // LOGGER.warn( "Unknown tile entity found: " + id );
+        LOGGER.warn( "Unknown tile entity found: {} -> {}", id, compound );
         return null;
     }
 

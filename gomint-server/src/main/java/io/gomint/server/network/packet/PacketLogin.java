@@ -29,15 +29,13 @@ public class PacketLogin extends Packet {
     }
 
     @Override
-    public void serialize( PacketBuffer buffer ) {
+    public void serialize( PacketBuffer buffer, int protocolID ) {
 
     }
 
     @Override
-    public void deserialize( PacketBuffer buffer ) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.protocol = buffer.readInt();
-
-        // Decompress inner data (i don't know why you compress inside of a Batched Packet but hey)
         this.payload = new byte[buffer.readUnsignedVarInt()];
         buffer.readBytes( this.payload );
     }
