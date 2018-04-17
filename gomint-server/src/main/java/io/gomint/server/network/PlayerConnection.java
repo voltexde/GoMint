@@ -19,6 +19,7 @@ import io.gomint.math.Location;
 import io.gomint.player.DeviceInfo;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.ConnectionHandler;
@@ -136,6 +137,8 @@ public class PlayerConnection {
     // Anti spam because mojang likes to send data
     @Setter @Getter
     private long lastBreakAction;
+    @Setter @Getter
+    private ItemStack lastInteraction;
 
     /**
      * Constructs a new player connection.
@@ -213,6 +216,9 @@ public class PlayerConnection {
     public void update( long currentMillis, float dT ) {
         // Update networking first
         this.updateNetwork( currentMillis );
+
+        // Clear spam stuff
+        this.lastInteraction = null;
 
         // Check if we need to send chunks
         if ( this.entity != null ) {

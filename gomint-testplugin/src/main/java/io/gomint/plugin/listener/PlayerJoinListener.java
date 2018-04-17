@@ -1,22 +1,13 @@
 package io.gomint.plugin.listener;
 
 import io.gomint.GoMint;
-import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
-import io.gomint.inventory.item.*;
-import io.gomint.math.BlockPosition;
+import io.gomint.inventory.item.ItemArrow;
+import io.gomint.inventory.item.ItemBow;
 import io.gomint.plugin.TestPlugin;
-import io.gomint.world.Gamemode;
-import io.gomint.world.block.Block;
-import io.gomint.world.block.BlockStone;
-import io.gomint.world.block.BlockType;
-import io.gomint.world.block.BlockWood;
-import io.gomint.world.block.data.BlockColor;
 import lombok.RequiredArgsConstructor;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt

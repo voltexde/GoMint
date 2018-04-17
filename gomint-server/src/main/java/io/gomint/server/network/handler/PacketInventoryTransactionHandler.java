@@ -20,7 +20,6 @@ import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.world.Gamemode;
-import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.BlockFace;
 import org.slf4j.Logger;
@@ -208,6 +207,11 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
     private void handleUseItem( ItemStack itemInHand, PlayerConnection connection, PacketInventoryTransaction packet ) {
         switch ( packet.getActionType() ) {
             case 0: // Click on block
+                // Only accept valid interactions
+                if ( !checkInteraction( itemInHand, connection ) ) {
+                    return;
+                }
+
                 connection.getEntity().setUsingItem( false );
 
                 if ( !connection.getEntity().getWorld().useItemOn( itemInHand, packet.getBlockPosition(), packet.getFace(), packet.getClickPosition(), connection.getEntity() ) ) {
@@ -225,6 +229,11 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                 break;
             case 1: // Click in air
+                // Only accept valid interactions
+                if ( !checkInteraction( itemInHand, connection ) ) {
+                    return;
+                }
+
                 // Only send interact events, there is nothing special to be done in here
                 PlayerInteractEvent event = new PlayerInteractEvent( connection.getEntity(), PlayerInteractEvent.ClickType.RIGHT, null );
                 connection.getNetworkManager().getServer().getPluginManager().callEvent( event );
@@ -346,6 +355,21 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 break;
             default:
                 break;
+        }
+    }
+
+    private boolean checkInteraction( ItemStack itemInHand, PlayerConnection connection ) {
+        io.gomint.server.inventory.item.ItemStack lastInteraction = connection.getLastInteraction();
+        if ( lastInteraction == null ) {
+            connection.setLastInteraction( (io.gomint.server.inventory.item.ItemStack) itemInHand );
+            return true;
+        } else {
+            if ( lastInteraction.equals( itemInHand ) ) {
+                return false;
+            }
+
+            connection.setLastInteraction( (io.gomint.server.inventory.item.ItemStack) itemInHand );
+            return true;
         }
     }
 
