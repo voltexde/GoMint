@@ -133,6 +133,10 @@ public class PlayerConnection {
     private DeviceInfo deviceInfo;
     private float lastUpdateDT = 0;
 
+    // Anti spam because mojang likes to send data
+    @Setter @Getter
+    private long lastBreakAction;
+
     /**
      * Constructs a new player connection.
      *

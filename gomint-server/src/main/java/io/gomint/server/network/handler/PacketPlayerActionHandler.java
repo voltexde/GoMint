@@ -40,6 +40,13 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 break;
 
             case START_BREAK:
+                // TODO: Mojang BUG: Prevent spam from 1.2.13 windows clients
+                if ( connection.getLastBreakAction() + 50 > currentTimeMillis ) {
+                    return;
+                }
+
+                connection.setLastBreakAction( currentTimeMillis );
+
                 // Sanity checks (against crashes)
                 if ( connection.getEntity().canInteract( packet.getPosition().toVector().add( .5f, .5f, .5f ), 13 ) ) {
                     PlayerInteractEvent event = connection.getServer()
