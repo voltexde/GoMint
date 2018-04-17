@@ -126,7 +126,6 @@ public class PlayerConnection {
     @Getter
     @Setter
     private EntityPlayer entity;
-    private long sentInClientTick;
 
     // Additional data
     @Getter
@@ -135,9 +134,11 @@ public class PlayerConnection {
     private float lastUpdateDT = 0;
 
     // Anti spam because mojang likes to send data
-    @Setter @Getter
+    @Setter
+    @Getter
     private long lastBreakAction;
-    @Setter @Getter
+    @Setter
+    @Getter
     private ItemStack lastInteraction;
 
     /**
@@ -220,18 +221,22 @@ public class PlayerConnection {
         // Clear spam stuff
         this.lastInteraction = null;
 
-        // Check if we need to send chunks
-        if ( this.entity != null ) {
-            if ( !this.entity.getChunkSendQueue().isEmpty() ) {
-                int maximumInClientTick = 4; // Everything oer this seems to cause issues in all clients like not displaying
-                // the chunks correctly or even crashing the client
+
+
+        // Reset sentInClientTick
+        this.lastUpdateDT += dT;
+        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+            // Check if we need to send chunks
+            if ( this.entity != null && !this.entity.getChunkSendQueue().isEmpty() ) {
+                int maximumInClientTick = 4;    // Everything oer this seems to cause issues in all clients like not displaying
+                int currentChunks = 0;          // the chunks correctly or even crashing the client
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );
 
                 // Check if we have a slot
                 Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
-                while ( !queue.isEmpty() && this.sentInClientTick < maximumInClientTick ) {
+                while ( !queue.isEmpty() && currentChunks < maximumInClientTick ) {
                     ChunkAdapter chunk = queue.poll();
                     if ( chunk == null ||
                         Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
@@ -241,11 +246,11 @@ public class PlayerConnection {
                     }
 
                     this.sendWorldChunk( chunk );
-                    this.sentInClientTick++;
+                    currentChunks++;
                 }
             }
 
-            if ( !this.entity.getBlockUpdates().isEmpty() ) {
+            if ( this.entity != null && !this.entity.getBlockUpdates().isEmpty() ) {
                 for ( BlockPosition position : this.entity.getBlockUpdates() ) {
                     int chunkX = CoordinateUtils.fromBlockToChunk( position.getX() );
                     int chunkZ = CoordinateUtils.fromBlockToChunk( position.getZ() );
@@ -257,14 +262,8 @@ public class PlayerConnection {
 
                 this.entity.getBlockUpdates().clear();
             }
-        }
 
-        // Reset sentInClientTick
-        this.lastUpdateDT += dT;
-        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
             this.releaseSendQueue();
-
-            this.sentInClientTick = 0;
             this.lastUpdateDT = 0;
         }
     }

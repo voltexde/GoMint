@@ -133,8 +133,18 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
         return null;
     }
 
+    @Override
     public boolean isHeadPart() {
         return ( this.getBlockData() & Bed.HEAD ) == Bed.HEAD;
+    }
+
+    @Override
+    public void setHeadPart( boolean value ) {
+        if ( !value && isHeadPart() ) {
+            this.setBlockData( (byte) ( this.getBlockData() - Bed.HEAD ) );
+        } else if ( value && !isHeadPart() ) {
+            this.setBlockData( (byte) ( this.getBlockData() + Bed.HEAD ) );
+        }
     }
 
     @Override
