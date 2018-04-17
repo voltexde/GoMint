@@ -2,7 +2,8 @@ package io.gomint.server.registry;
 
 import com.google.common.reflect.ClassPath;
 import io.gomint.server.GoMintServer;
-import io.gomint.server.util.collection.FixedIndexResizableArray;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ public class Registry<R> {
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
     private final GeneratorCallback<R> generatorCallback;
-    private final FixedIndexResizableArray<R> generators = new FixedIndexResizableArray<>();
+    private final Int2ObjectMap<R> generators = new Int2ObjectOpenHashMap<>();
     private final Object2IntMap<Class<?>> apiReferences = new Object2IntOpenHashMap<>();
     private final GoMintServer server;
 
@@ -56,7 +57,7 @@ public class Registry<R> {
             int id = clazz.getAnnotation( RegisterInfo.class ).id();
             R generator = this.generatorCallback.generate( clazz );
             if ( generator != null ) {
-                R oldGen = this.generators.set( id, generator );
+                R oldGen = this.generators.put( id, generator );
                 if ( oldGen != null ) {
                     LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
                 }
@@ -75,7 +76,7 @@ public class Registry<R> {
                 for ( RegisterInfo info : infos ) {
                     int id = info.id();
 
-                    R oldGen = this.generators.set( id, generator );
+                    R oldGen = this.generators.put( id, generator );
                     if ( oldGen != null ) {
                         LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
                     }
