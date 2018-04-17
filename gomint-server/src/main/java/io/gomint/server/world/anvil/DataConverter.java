@@ -100,7 +100,7 @@ public class DataConverter {
         this.converter[sourceId] = new Pair<>( destId, converter );
     }
 
-    Pair<Integer, Byte> convert( int blockId, byte metaData ) {
+    public Pair<Integer, Byte> convert( int blockId, byte metaData ) {
         Pair<Integer, Converter> converterPair = this.converter[blockId];
         if ( converterPair == null ) {
             return null;
