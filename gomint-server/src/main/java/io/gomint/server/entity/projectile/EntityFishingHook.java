@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.projectile;
 
+import io.gomint.inventory.item.ItemType;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
@@ -15,8 +16,6 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.util.Values;
 import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.WorldAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -26,6 +25,7 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
 
     private static final Vector WATER_FLOATING_MOTION = new Vector( 0, 0.1f, 0 );
 
+    private boolean isReset;
     private float lastUpdatedT;
 
     /**
@@ -82,7 +82,7 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
 
-        if ( this.shooter.isDead() ) {
+        if ( this.shooter.isDead() || ((EntityPlayer) this.shooter).getInventory().getItemInHand().getType() != ItemType.FISHING_ROD ) {
             this.despawn();
         }
 
@@ -93,8 +93,9 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
                     this.setVelocity( WATER_FLOATING_MOTION );
                 }
             } else if ( this.isCollided ) {
-                if ( !this.getVelocity().equals( Vector.ZERO ) ) {
+                if ( !this.isReset && this.getVelocity().length() < 0.0025 ) {
                     this.setVelocity( Vector.ZERO );
+                    this.isReset = true;
                 }
             }
         }
