@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * @author geNAZt
@@ -81,8 +82,9 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
                     // For for mojang duplicate interaction bug
                     if ( connection.getLastInteraction() != null ) {
-                        if ( connection.getLastInteraction().equals( packetItemInHand ) &&
-                            connection.getLastInteraction().getAmount() + 1 == packetItemInHand.getAmount() ) { // We already removed one but the client sends the old stack from click on block interaction
+                        if ( !checkInteraction( packetItemInHand, connection ) &&
+                            ( connection.getLastInteraction().getAmount() + 1 == packetItemInHand.getAmount() ||
+                                Math.abs( connection.getLastInteraction().getData() - packetItemInHand.getData() ) <= 2 ) ) { // We already removed one but the client sends the old stack from click on block interaction
                             return;
                         }
                     }
@@ -104,7 +106,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 itemInHand = connection.getEntity().getInventory().getItemInHand();
                 packetItemInHand = packet.getItemInHand();
                 if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
-                    LOGGER.warn( "{} item in hand does not match: {} / {}", connection.getEntity().getName(), itemInHand, packetItemInHand );
+                    LOGGER.warn( "{} item in hand does not match (X): {} / {}", connection.getEntity().getName(), itemInHand, packetItemInHand );
                     reset( packet, connection );
                     return;
                 }
@@ -371,7 +373,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             connection.setLastInteraction( (io.gomint.server.inventory.item.ItemStack) itemInHand );
             return true;
         } else {
-            if ( lastInteraction.equals( itemInHand ) ) {
+            if ( lastInteraction.getType() == itemInHand.getType() &&
+                Objects.equals( lastInteraction.getNbtData(), itemInHand.getNbtData() ) ) {
                 return false;
             }
 
