@@ -872,7 +872,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                             ownVelo.setX( ownVelo.getX() * 0.6F );
                             ownVelo.setZ( ownVelo.getZ() * 0.6F );
                             this.setVelocity( ownVelo );
-                            this.setSprinting( false );
+
+                            if ( !this.world.getServer().getServerConfig().getVanilla().isDisableSprintReset() ) {
+                                this.setSprinting( false );
+                            }
                         }
 
                         targetEntity.broadCastMotion();

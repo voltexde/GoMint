@@ -61,6 +61,10 @@ public class ServerConfig extends YamlConfig {
         add( new WorldConfig() );
     }};
 
+    // ------------------------ Vanilla stuff
+    @Comment( "Configure vanilla features. If you configure this to something else than default you are on your own. I will not support/solve issues when something has been changed here.")
+    private VanillaConfig vanilla = new VanillaConfig();
+
     // ------------------------ Advanced Performance Settings
     @Comment( "Amount of Ticks per second which should be used to drive this server. 20 TPS is recommended for normal Servers. If you want PvP or Minigames you can set it higher but be sure to disable entities to have a stable TPS." )
     private int targetTPS = 20;
