@@ -137,7 +137,10 @@ public class PlayerConnection {
     // Anti spam because mojang likes to send data
     @Setter
     @Getter
-    private long lastBreakAction;
+    private boolean hadStartBreak;
+    @Setter
+    @Getter
+    private boolean startBreakResult;
     @Setter
     @Getter
     private ItemStack lastInteraction;
@@ -220,6 +223,8 @@ public class PlayerConnection {
         this.updateNetwork( currentMillis );
 
         // Clear spam stuff
+        this.startBreakResult = false;
+        this.hadStartBreak = false;
         this.lastInteraction = null;
 
         // Reset sentInClientTick

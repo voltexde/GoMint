@@ -1141,7 +1141,7 @@ public abstract class WorldAdapter implements World {
             }
 
             // Break animation (this also plays the break sound in the client)
-            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, block.getBlockId() & 0xFF | ( block.getBlockData() << 8 ) );
+            sendLevelEvent( position.toVector().add( .5f, .5f, .5f ), LevelEvent.PARTICLE_DESTROY, BlockRuntimeIDs.fromLegacy( block.getBlockId(), block.getBlockData(), Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) );
 
             block.setType( BlockAir.class );
 
