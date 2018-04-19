@@ -23,6 +23,7 @@ import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.handler.*;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.ConnectionHandler;
+import io.gomint.server.network.tcp.protocol.FlushTickPacket;
 import io.gomint.server.network.tcp.protocol.WrappedMCPEPacket;
 import io.gomint.server.scheduler.AsyncScheduledTask;
 import io.gomint.server.util.EnumConnectors;
@@ -221,8 +222,6 @@ public class PlayerConnection {
         // Clear spam stuff
         this.lastInteraction = null;
 
-
-
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
@@ -289,6 +288,7 @@ public class PlayerConnection {
                 }
 
                 this.sendQueue.clear();
+                this.connectionHandler.send( new FlushTickPacket() );
             }
         }
     }
@@ -339,36 +339,6 @@ public class PlayerConnection {
         } else {
             LOGGER.debug( "Writing packet {} to client", Integer.toHexString( packet.getId() & 0xFF ) );
 
-            PacketBuffer buffer = new PacketBuffer( 64 );
-            buffer.writeByte( packet.getId() );
-            buffer.writeShort( (short) 0 );
-            packet.serialize( buffer, this.protocolID );
-
-            WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
-            mcpePacket.setBuffer( buffer );
-            this.connectionHandler.send( mcpePacket );
-        }
-    }
-
-    /**
-     * Sends the given packet to the player.
-     *
-     * @param reliability     The reliability to send the packet with
-     * @param orderingChannel The ordering channel to send the packet on
-     * @param packet          The packet to send to the player
-     */
-    public void send( PacketReliability reliability, int orderingChannel, Packet packet ) {
-        if ( this.connection != null ) {
-            if ( !( packet instanceof PacketBatch ) ) {
-                this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, new Packet[]{ packet } ) );
-            } else {
-                PacketBuffer buffer = new PacketBuffer( 64 );
-                buffer.writeByte( packet.getId() );
-                packet.serialize( buffer, this.protocolID );
-
-                this.connection.send( reliability, orderingChannel, buffer.getBuffer(), 0, buffer.getPosition() );
-            }
-        } else {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
