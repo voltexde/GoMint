@@ -288,7 +288,7 @@ public class PlayerConnection {
                 }
 
                 this.sendQueue.clear();
-                this.connectionHandler.send( new FlushTickPacket() );
+                this.connectionHandler.send( new FlushTickPacket() ); // Tell proxprox to flush this tick
             }
         }
     }
