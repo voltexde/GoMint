@@ -252,6 +252,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) connection.getEntity().getInventory().getItemInHand();
                     itemStack.interact( connection.getEntity(), null, packet.getClickPosition(), null );
                     connection.getEntity().setUsingItem( true );
+                } else {
+                    reset( packet, connection );
                 }
 
                 break;

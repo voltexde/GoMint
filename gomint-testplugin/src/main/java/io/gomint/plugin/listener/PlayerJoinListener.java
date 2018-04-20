@@ -30,6 +30,8 @@ public class PlayerJoinListener implements EventListener {
         ItemBucket bucket = ItemBucket.create( 1 );
         bucket.setContent( ItemBucket.Content.LAVA );
         event.getPlayer().getInventory().setItem( 3, bucket );
+
+        event.getPlayer().getInventory().setItem( 4, ItemEnderPearl.create( 1 ) );
     }
 
 }
