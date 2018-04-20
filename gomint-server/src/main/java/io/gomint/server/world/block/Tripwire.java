@@ -32,6 +32,11 @@ public class Tripwire extends Block implements io.gomint.world.block.BlockTripwi
     }
 
     @Override
+    public long getBreakTime() {
+        return 0;
+    }
+
+    @Override
     public BlockType getType() {
         return BlockType.TRIPWIRE;
     }
