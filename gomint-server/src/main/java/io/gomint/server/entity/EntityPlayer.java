@@ -1319,7 +1319,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void sendTitle( String title, String subtitle, long fadein, long duration, long fadeout, TimeUnit unit ) {
-        if ( !subtitle.equals( "" ) ) {
+        // NPE check
+        if ( title == null ) {
+            title = "";
+        }
+
+        if ( subtitle != null && !Objects.equals( subtitle, "" ) ) {
             PacketSetTitle subtitlePacket = new PacketSetTitle();
             subtitlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
             subtitlePacket.setText( subtitle );
