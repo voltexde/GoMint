@@ -134,7 +134,7 @@ public abstract class WorldAdapter implements World {
      * @return collection of all players online on this world
      */
     public Collection<EntityPlayer> getPlayers() {
-        return new HashSet<>( this.players.keySet() );
+        return Collections.unmodifiableSet( this.players.keySet() );
     }
 
     @Override
