@@ -192,12 +192,24 @@ public class PlayerConnection {
      * @param packet The packet which should be queued
      */
     public void addToSendQueue( Packet packet ) {
-        if ( this.sendQueue == null ) {
-            this.sendQueue = new LinkedBlockingQueue<>();
-        }
+        // We send directly to the proxy if needed
+        if ( this.connectionHandler != null ) {
+            PacketBuffer buffer = new PacketBuffer( 2 );
+            buffer.writeByte( packet.getId() );
+            buffer.writeShort( (short) 0 );
+            packet.serialize( buffer, this.protocolID );
 
-        if ( !this.sendQueue.offer( packet ) ) {
-            LOGGER.warn( "Could not add packet {} to the send queue", packet );
+            WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+            mcpePacket.setBuffer( buffer );
+            this.connectionHandler.send( mcpePacket );
+        } else {
+            if ( this.sendQueue == null ) {
+                this.sendQueue = new LinkedBlockingQueue<>();
+            }
+
+            if ( !this.sendQueue.offer( packet ) ) {
+                LOGGER.warn( "Could not add packet {} to the send queue", packet );
+            }
         }
     }
 
@@ -274,27 +286,15 @@ public class PlayerConnection {
 
     private void releaseSendQueue() {
         // Send all queued packets
-        if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
-            if ( this.connection != null ) {
+        if ( this.connection != null ) {
+            if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
                 Packet[] packets = new Packet[this.sendQueue.size()];
                 this.sendQueue.toArray( packets );
                 this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, packets ) );
                 this.sendQueue.clear();
-            } else {
-                for ( Packet packet : this.sendQueue ) {
-                    PacketBuffer buffer = new PacketBuffer( 64 );
-                    buffer.writeByte( packet.getId() );
-                    buffer.writeShort( (short) 0 );
-                    packet.serialize( buffer, this.protocolID );
-
-                    WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
-                    mcpePacket.setBuffer( buffer );
-                    this.connectionHandler.send( mcpePacket );
-                }
-
-                this.sendQueue.clear();
-                this.connectionHandler.send( new FlushTickPacket() ); // Tell proxprox to flush this tick
             }
+        } else {
+            this.connectionHandler.send( new FlushTickPacket() ); // Tell proxprox to flush this tick
         }
     }
 
