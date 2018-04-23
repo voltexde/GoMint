@@ -385,12 +385,16 @@ public class EntityManager {
         // Check which player we need to inform about this movement
         for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
             if ( entity instanceof io.gomint.server.entity.EntityPlayer && ( entityPlayer.isHidden( (EntityPlayer) entity ) || entityPlayer.equals( entity ) ) ) {
+                LOGGER.debug( "Skipping spawning of {} for {} (is hidden or same entity)", entity, entityPlayer.getName() );
                 continue;
             }
 
             Chunk playerChunk = entityPlayer.getChunk();
             if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
                 Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
+
+                LOGGER.debug( "Spawning {} would be in distance for {}", entity, entityPlayer.getName() );
+
                 if ( ( (io.gomint.server.entity.Entity) entity ).canSee( entityPlayer ) ) {
                     entityPlayer.getEntityVisibilityManager().addEntity( entity );
                 }

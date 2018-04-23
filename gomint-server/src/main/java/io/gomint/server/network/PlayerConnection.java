@@ -219,7 +219,7 @@ public class PlayerConnection {
      */
     public void onViewDistanceChanged() {
         LOGGER.debug( "View distance changed to {}", this.getEntity().getViewDistance() );
-        this.checkForNewChunks( null );
+        this.checkForNewChunks( null, false );
         this.sendChunkRadiusUpdate();
     }
 
@@ -380,7 +380,7 @@ public class PlayerConnection {
                 this.getEntity().firstSpawn();
 
                 this.state = PlayerConnectionState.PLAYING;
-                this.checkForNewChunks( null );
+                this.checkForNewChunks( null, false );
 
                 this.entity.getLoginPerformance().setChunkEnd( this.entity.getWorld().getServer().getCurrentTickTime() );
                 this.entity.getLoginPerformance().print();
@@ -549,9 +549,10 @@ public class PlayerConnection {
     /**
      * Check if we need to send new chunks to the player
      *
-     * @param from which location the entity moved
+     * @param from                which location the entity moved
+     * @param forceResendEntities should we resend all entities known?
      */
-    public void checkForNewChunks( Location from ) {
+    public void checkForNewChunks( Location from, boolean forceResendEntities ) {
         WorldAdapter worldAdapter = this.entity.getWorld();
 
         int currentXChunk = CoordinateUtils.fromBlockToChunk( (int) this.entity.getLocation().getX() );
@@ -588,13 +589,22 @@ public class PlayerConnection {
             return 0;
         } );
 
+        if ( forceResendEntities ) {
+            this.entity.getEntityVisibilityManager().clear();
+        }
+
         for ( Pair<Integer, Integer> chunk : toSendChunks ) {
             long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
 
             if ( !this.playerChunks.contains( hash ) && !this.loadingChunks.contains( hash ) ) {
                 this.loadingChunks.add( hash );
                 LOGGER.debug( "Requesting chunk {} {} for {}", chunk.getFirst(), chunk.getSecond(), this.entity );
-                worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity, false );
+                worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity,
+                    false, ( chunkHash, loadedChunk ) -> this.entity.getChunkSendQueue().offer( loadedChunk ) );
+            } else if ( forceResendEntities ){
+                // We already know this chunk but maybe forceResend is enabled
+                worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity,
+                    false, ( chunkHash, loadedChunk ) -> this.entity.getEntityVisibilityManager().updateAddedChunk( loadedChunk ) );
             }
         }
 

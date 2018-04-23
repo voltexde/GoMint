@@ -454,7 +454,7 @@ public abstract class WorldAdapter implements World {
         for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
             for ( int j = minChunkX; j <= maxChunkX; ++j ) {
                 amountOfChunks++;
-                this.sendChunk( j, i, player, true );
+                this.sendChunk( j, i, player, true, (chunkHash, loadedChunk) -> player.getChunkSendQueue().offer( loadedChunk ) );
             }
         }
 
@@ -600,16 +600,13 @@ public abstract class WorldAdapter implements World {
     /**
      * Send a chunk of this world to the client
      *
-     * @param x      The x-coordinate of the chunk
-     * @param z      The z-coordinate of the chunk
-     * @param player The player we want to send the chunk to
-     * @param sync   Force sync chunk loading
+     * @param x            The x-coordinate of the chunk
+     * @param z            The z-coordinate of the chunk
+     * @param player       The player we want to send the chunk to
+     * @param sync         Force sync chunk loading
+     * @param sendDelegate delegate which may add the chunk to the send queue or add all entities on it to the send queue
      */
-    public void sendChunk( int x, int z, io.gomint.server.entity.EntityPlayer player, boolean sync ) {
-        Delegate2<Long, ChunkAdapter> sendDelegate = ( chunkHash, chunk ) -> {
-            player.getChunkSendQueue().offer( chunk );
-        };
-
+    public void sendChunk( int x, int z, io.gomint.server.entity.EntityPlayer player, boolean sync, Delegate2<Long, ChunkAdapter> sendDelegate ) {
         if ( !sync ) {
             this.getOrLoadChunk( x, z, true, chunk -> chunk.packageChunk( player, sendDelegate ) );
         } else {
