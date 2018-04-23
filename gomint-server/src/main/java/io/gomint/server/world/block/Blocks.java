@@ -51,7 +51,7 @@ public class Blocks {
                 return instance.generate();
             }
 
-            return instance.generate( (byte) blockId, blockData, skyLightLevel, blockLightLevel, tileEntity, location, layer );
+            return instance.generate( blockId, blockData, skyLightLevel, blockLightLevel, tileEntity, location, layer );
         }
 
         LOGGER.warn( "Unknown block {}", blockId );
