@@ -24,6 +24,12 @@ import io.gomint.world.block.BlockFace;
  */
 public class PistonPostProcessor extends PostProcessor {
 
+    /**
+     * Create a new piston fix processor
+     *
+     * @param worldAdapter in which world the piston is
+     * @param position     of the corrupted piston
+     */
     public PistonPostProcessor( WorldAdapter worldAdapter, BlockPosition position ) {
         super( worldAdapter, position );
     }
@@ -73,6 +79,11 @@ public class PistonPostProcessor extends PostProcessor {
 
         // We need to remove old piston head
         byte facing = block.getBlockData();
+        if ( facing > 5 ) { // 6 sided piston lol
+            block.setBlockData( (byte) 0 );
+            facing = 0;
+        }
+
         BlockFace face = Things.convertFromDataToBlockFace( facing );
         block.getSide( face ).setType( Air.class );
     }
