@@ -10,6 +10,7 @@ package io.gomint.config.converter;
 import io.gomint.GoMint;
 import io.gomint.config.ConfigSection;
 import io.gomint.config.InternalConverter;
+import io.gomint.world.World;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
@@ -27,7 +28,10 @@ public class Location implements Converter {
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
         io.gomint.math.Location location = (io.gomint.math.Location) obj;
         java.util.Map<String, Object> saveMap = new HashMap<>();
-        saveMap.put( "world", location.getWorld().getWorldName() );
+        if ( location.getWorld() != null ) {
+            saveMap.put( "world", location.getWorld().getWorldName() );
+        }
+
         saveMap.put( "x", location.getX() );
         saveMap.put( "y", location.getY() );
         saveMap.put( "z", location.getZ() );
@@ -49,7 +53,12 @@ public class Location implements Converter {
         float yaw = getFloat( locationMap.get( "yaw" ) );
         float pitch = getFloat( locationMap.get( "pitch" ) );
 
-        return new io.gomint.math.Location( GoMint.instance().getWorld( (String) locationMap.get( "world" ) ),
+        World world = null;
+        if ( locationMap.containsKey( "world" ) ) {
+            world = GoMint.instance().getWorld( (String) locationMap.get( "world" ) );
+        }
+
+        return new io.gomint.math.Location( world,
             getFloat( locationMap.get( "x" ) ),
             getFloat( locationMap.get( "y" ) ),
             getFloat( locationMap.get( "z" ) ),
