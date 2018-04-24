@@ -17,16 +17,12 @@ import io.gomint.server.world.block.Block;
 import io.gomint.server.world.block.StickyPiston;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 public class PistonPostProcessor extends PostProcessor {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger( PistonPostProcessor.class );
 
     public PistonPostProcessor( WorldAdapter worldAdapter, BlockPosition position ) {
         super( worldAdapter, position );
@@ -38,7 +34,6 @@ public class PistonPostProcessor extends PostProcessor {
         Block block = getBlock();
         if ( block.getTileEntity() == null ) {
             BlockPosition position = block.getLocation().toBlockPosition();
-            LOGGER.warn( "We need to fix piston head @ {}", position );
 
             NBTTagCompound compound = new NBTTagCompound( "" );
 
