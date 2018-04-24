@@ -69,6 +69,10 @@ public class Location implements Converter {
     private float getFloat( Object obj ) {
         if ( obj instanceof Double ) {
             return ( (Double) obj ).floatValue();
+        } else if ( obj instanceof Integer ) {
+            return ( (Integer) obj ).floatValue();
+        } else if ( obj instanceof Long ) {
+            return ( (Long) obj ).floatValue();
         }
 
         return (float) obj;
