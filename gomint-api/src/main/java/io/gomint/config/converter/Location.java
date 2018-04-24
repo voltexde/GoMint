@@ -44,7 +44,7 @@ public class Location implements Converter {
     @Override
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
         java.util.Map<String, Object> locationMap;
-        if ( section instanceof Map ) {
+        if ( section instanceof java.util.Map ) {
             locationMap = (java.util.Map<String, Object>) section;
         } else {
             locationMap = (java.util.Map<String, Object>) ( (ConfigSection) section ).getRawMap();
