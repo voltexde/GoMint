@@ -9,7 +9,6 @@ package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
-import io.gomint.server.SelfInstrumentation;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
@@ -100,7 +99,7 @@ public class ChunkAdapter implements Chunk {
      * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
      * @param dT            The delta from the full second which has been calculated in the last tick
      */
-    public void update( long currentTimeMS, float dT ) {
+    public void tickRandomBlocks( long currentTimeMS, float dT ) {
         for ( ChunkSlice chunkSlice : this.chunkSlices ) {
             // When we hit a nulled slice there is only air left
             if ( chunkSlice == null ) {
@@ -682,17 +681,14 @@ public class ChunkAdapter implements Chunk {
         return this.entities;
     }
 
-    public long getMemorySize() {
-        long size = SelfInstrumentation.getObjectSize( this.chunkSlices );
-
-        for ( ChunkSlice slice : this.chunkSlices ) {
-            if ( slice != null ) {
-                size += SelfInstrumentation.getObjectSize( slice );
-                size += slice.getMemorySize();
+    public void tickTiles( long currentTimeMS, float dT ) {
+        for ( ChunkSlice chunkSlice : this.chunkSlices ) {
+            if ( chunkSlice != null ) {
+                for ( TileEntity tileEntity : chunkSlice.getTileEntities() ) {
+                    tileEntity.update( currentTimeMS, dT );
+                }
             }
         }
-
-        return size;
     }
 
 }

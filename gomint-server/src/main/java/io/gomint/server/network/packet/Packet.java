@@ -16,6 +16,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityLink;
 import io.gomint.server.network.type.CommandOrigin;
+import io.gomint.server.util.Things;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Gamerule;
@@ -296,22 +297,7 @@ public abstract class Packet {
 
     BlockFace readBlockFace( PacketBuffer buffer ) {
         int value = buffer.readSignedVarInt();
-        switch ( value ) {
-            case 0:
-                return BlockFace.DOWN;
-            case 1:
-                return BlockFace.UP;
-            case 2:
-                return BlockFace.NORTH;
-            case 3:
-                return BlockFace.SOUTH;
-            case 4:
-                return BlockFace.WEST;
-            case 5:
-                return BlockFace.EAST;
-        }
-
-        return null;
+        return Things.convertFromDataToBlockFace( (byte) value );
     }
 
 }

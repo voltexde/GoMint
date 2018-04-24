@@ -3,7 +3,6 @@ package io.gomint.server.world;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
-import io.gomint.server.SelfInstrumentation;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.util.Palette;
@@ -255,10 +254,6 @@ class ChunkSlice {
 
         short index = getIndex( x, y, z );
         storage.remove( index );
-    }
-
-    public long getMemorySize() {
-        return this.isAllAir ? 0 : SelfInstrumentation.getObjectSize( this.blocks );
     }
 
 }

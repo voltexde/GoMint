@@ -8,14 +8,9 @@
 package io.gomint.server.world;
 
 import io.gomint.math.MathUtils;
-import io.gomint.server.SelfInstrumentation;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.util.Values;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongIterator;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,18 +131,6 @@ public class ChunkCache {
                 while ( toRemoveCursor.hasNext() ) {
                     this.cachedChunks.remove( toRemoveCursor.nextLong() );
                 }
-            }
-
-            long size = SelfInstrumentation.getObjectSize( this.cachedChunks );
-            if ( size > -1 ) {
-                for ( Long2ObjectMap.Entry<ChunkAdapter> entry : this.cachedChunks.long2ObjectEntrySet() ) {
-                    size += SelfInstrumentation.getObjectSize( entry );
-                    size += SelfInstrumentation.getObjectSize( entry.getLongKey() );
-                    size += SelfInstrumentation.getObjectSize( entry.getValue() );
-                    size += entry.getValue().getMemorySize();
-                }
-
-                LOGGER.info( "Chunk cache size: {} bytes", size );
             }
         }
     }

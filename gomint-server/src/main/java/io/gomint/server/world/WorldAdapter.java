@@ -370,10 +370,8 @@ public abstract class WorldAdapter implements World {
         // ---------------------------------------
         // Update all blocks
 
-        // Random blocks
-        if ( !this.config.isDisableRandomTicking() ) {
-            this.tickRandomBlocks( currentTimeMS, dT );
-        }
+        // Tick chunks (random blocks and tiles)
+        this.tickChunks( currentTimeMS, dT, !this.config.isDisableRandomTicking() );
 
         // Scheduled blocks
         while ( this.tickQueue.getNextTaskTime() < currentTimeMS ) {
@@ -425,41 +423,19 @@ public abstract class WorldAdapter implements World {
         // Perform regular updates:
     }
 
-
-    private void tickRandomBlocks( long currentTimeMS, float dT ) {
+    private void tickChunks( long currentTimeMS, float dT, boolean tickRandomBlocks ) {
         long[] tickingHashes = this.chunkCache.getTickingChunks( dT );
         for ( long chunkHash : tickingHashes ) {
             ChunkAdapter chunkAdapter = this.chunkCache.getChunkInternal( chunkHash );
-            chunkAdapter.update( currentTimeMS, dT );
+            if ( tickRandomBlocks ) {
+                chunkAdapter.tickRandomBlocks( currentTimeMS, dT );
+            }
+
+            chunkAdapter.tickTiles( currentTimeMS, dT );
         }
     }
 
     // ==================================== ENTITY MANAGEMENT ==================================== //
-
-    /**
-     * Adds a new player to this world and schedules all world chunk packets required for spawning
-     * the player for send.
-     *
-     * @param player The player entity to add to the world
-     * @return amount of chunks until the player can be spawned for the first time
-     */
-    public int addPlayer( io.gomint.server.entity.EntityPlayer player ) {
-        // Schedule sending spawn region chunks:
-        final int minChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) - player.getViewDistance();
-        final int minChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) - player.getViewDistance();
-        final int maxChunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() ) + player.getViewDistance();
-        final int maxChunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() ) + player.getViewDistance();
-
-        int amountOfChunks = 0;
-        for ( int i = minChunkZ; i <= maxChunkZ; ++i ) {
-            for ( int j = minChunkX; j <= maxChunkX; ++j ) {
-                amountOfChunks++;
-                this.sendChunk( j, i, player, true, (chunkHash, loadedChunk) -> player.getChunkSendQueue().offer( loadedChunk ) );
-            }
-        }
-
-        return amountOfChunks;
-    }
 
     /**
      * Removes a player from this world and cleans up its references
