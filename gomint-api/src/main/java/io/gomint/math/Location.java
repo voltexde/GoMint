@@ -69,9 +69,6 @@ public class Location extends Vector implements Cloneable {
     }
 
     public void setWorld( World world ) {
-        if ( world == null ) {
-            throw new NullPointerException( "Cannot set world of location to null!" );
-        }
         this.world = world;
     }
 
