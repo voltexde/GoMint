@@ -38,6 +38,7 @@ public class SyncTaskManager {
 
         synchronized ( this.taskList ) {
             this.taskList.add( task.getNextExecution(), task );
+            LOGGER.info( "Added sync task: " + task.getTask().getClass().getName() );
         }
     }
 
@@ -49,6 +50,7 @@ public class SyncTaskManager {
     public void removeTask( SyncScheduledTask task ) {
         synchronized ( this.taskList ) {
             this.taskList.remove( task );
+            LOGGER.info( "Removing sync task: " + task.getTask().getClass().getName() );
         }
     }
 
@@ -72,11 +74,14 @@ public class SyncTaskManager {
                     continue;
                 }
 
+                LOGGER.info( "Pre run sync task: " + task.getTask().getClass().getName() );
                 task.run();
+                LOGGER.info( "Post run sync task: " + task.getTask().getClass().getName() );
 
                 // Reschedule if needed
                 if ( task.getNextExecution() > currentMillis ) {
                     this.taskList.add( task.getNextExecution(), task );
+                    LOGGER.info( "Adding for repeating sync task: " + task.getTask().getClass().getName() );
                 }
             }
         }
