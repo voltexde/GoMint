@@ -19,7 +19,7 @@ import java.io.File;
  */
 @PluginName( "TestPlugin" )
 @Version( major = 1, minor = 0 )
-@Startup( StartupPriority.STARTUP )
+@Startup( StartupPriority.LOAD )
 public class TestPlugin extends Plugin {
 
     @Getter
@@ -57,6 +57,10 @@ public class TestPlugin extends Plugin {
         floatingText.setTicking( false );
         floatingText.setNameTag( "Test123" );
         floatingText.spawn( new Location( GoMint.instance().getWorld( "test_plot" ), 12, 83, 12 ) );*/
+
+
+        // We want to shutdown because of some error
+        this.getServer().shutdown();
 
         // Register listener
         registerListener( new PlayerInteractListener() );

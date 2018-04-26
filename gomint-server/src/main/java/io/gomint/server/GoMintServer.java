@@ -283,6 +283,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.pluginManager.detectPlugins();
         this.pluginManager.loadPlugins( StartupPriority.STARTUP );
 
+        if ( !this.isRunning() ) {
+            this.internalShutdown();
+            return;
+        }
+
         // ------------------------------------ //
         // Pre World Initialization
         // ------------------------------------ //
@@ -336,7 +341,17 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // Load plugins with StartupPriority LOAD
         // ------------------------------------ //
         this.pluginManager.loadPlugins( StartupPriority.LOAD );
+        if ( !this.isRunning() ) {
+            this.internalShutdown();
+            return;
+        }
+
         this.pluginManager.installPlugins();
+
+        if ( !this.isRunning() ) {
+            this.internalShutdown();
+            return;
+        }
 
         LOGGER.info( "Done in " + ( System.currentTimeMillis() - start ) + " ms" );
 
@@ -396,12 +411,22 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         }
 
+        this.internalShutdown();
+    }
+
+    private void internalShutdown() {
         LOGGER.info( "Starting shutdown..." );
 
         // Safe shutdown
         this.pluginManager.close();
-        this.networkManager.close();
-        this.worldManager.close();
+
+        if ( this.networkManager != null ) {
+            this.networkManager.close();
+        }
+
+        if ( this.worldManager != null ) {
+            this.worldManager.close();
+        }
 
         int wait = 500;
         this.executorService.shutdown();
@@ -448,8 +473,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         // Wait up to 5 seconds
         if ( this.announceThreads() ) {
-            start = System.currentTimeMillis();
-            while ( ( System.currentTimeMillis() - start ) < TimeUnit.SECONDS.toMillis( 5 ) ) {
+            long start = System.currentTimeMillis();
+            while ( ( System.currentTimeMillis() - start ) < TimeUnit.SECONDS.toMillis( 10 ) ) {
                 try {
                     Thread.sleep( 50 );
                 } catch ( InterruptedException e ) {
