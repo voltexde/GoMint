@@ -81,7 +81,7 @@ public class SyncTaskManager {
                 // Reschedule if needed
                 if ( task.getNextExecution() > currentMillis ) {
                     this.taskList.add( task.getNextExecution(), task );
-                    LOGGER.info( "Adding for repeating sync task: " + task.getTask().getClass().getName() );
+                    LOGGER.info( "Adding for repeating sync task: {} for {}", task.getTask().getClass().getName(), task.getNextExecution() );
                 }
             }
         }
