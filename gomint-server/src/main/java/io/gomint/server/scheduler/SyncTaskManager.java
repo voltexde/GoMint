@@ -78,9 +78,7 @@ public class SyncTaskManager {
                     continue;
                 }
 
-                LOGGER.info( "Pre run sync task: " + task.getTask().getClass().getName() );
                 task.run();
-                LOGGER.info( "Post run sync task: " + task.getTask().getClass().getName() );
 
                 // Reschedule if needed
                 if ( task.getNextExecution() > currentMillis ) {
