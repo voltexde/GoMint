@@ -60,6 +60,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             } else {
                 message = "disconnectionScreen.outdatedServer";
                 connection.sendPlayState( PacketPlayState.PlayState.LOGIN_FAILED_SERVER );
+                LOGGER.info( "Player did try to login with protocol version {}", packet.getProtocol() );
             }
 
             connection.disconnect( message );
