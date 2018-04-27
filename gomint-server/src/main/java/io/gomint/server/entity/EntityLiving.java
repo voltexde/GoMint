@@ -462,14 +462,16 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     }
 
     @Override
-    public void addEffect( PotionEffect effect, int amplifier, long duration, TimeUnit timeUnit ) {
+    public io.gomint.entity.potion.Effect addEffect( PotionEffect effect, int amplifier, long duration, TimeUnit timeUnit ) {
         byte effectId = (byte) EnumConnectors.POTION_EFFECT_CONNECTOR.convert( effect ).getId();
         Effect effectInstance = this.world.getServer().getEffects().generate( effectId, amplifier,
-            this.world.getServer().getCurrentTickTime() + timeUnit.toMillis( duration ) );
+            this.world.getServer().getCurrentTickTime() + timeUnit.toMillis( duration ), this.effectManager );
 
         if ( effectInstance != null ) {
             this.effectManager.addEffect( effectId, effectInstance );
         }
+
+        return effectInstance;
     }
 
     @Override

@@ -10,6 +10,7 @@ package io.gomint.server.entity.potion;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.potion.effect.Effect;
 import io.gomint.server.entity.potion.generator.EffectGenerator;
+import io.gomint.server.player.EffectManager;
 import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
 
@@ -39,10 +40,10 @@ public class Effects {
         this.generators.register( "io.gomint.server.entity.potion.effect" );
     }
 
-    public Effect generate( int id, int amplifier, long lengthInMS ) {
+    public Effect generate( int id, int amplifier, long lengthInMS, EffectManager manager ) {
         EffectGenerator instance = this.generators.getGenerator( id );
         if ( instance != null ) {
-            return instance.generate( amplifier, lengthInMS );
+            return instance.generate( manager, amplifier, lengthInMS );
         }
 
         return null;
