@@ -887,18 +887,15 @@ public abstract class WorldAdapter implements World {
                 for ( int y = minY; y < maxY; ++y ) {
                     Block block = this.getBlockAt( x, y, z );
 
-                    if ( !block.canPassThrough() || includePassThrough ) {
-                        AxisAlignedBB blockBox = block.getBoundingBox();
-                        if ( blockBox.intersectsWith( bb ) ) {
-                            if ( values == null ) {
-                                values = new ArrayList<>();
-                            }
+                    if ( ( !block.canPassThrough() || includePassThrough ) && block.intersectsWith( bb ) ) {
+                        if ( values == null ) {
+                            values = new ArrayList<>();
+                        }
 
-                            if ( returnBoundingBoxes ) {
-                                values.add( blockBox );
-                            } else {
-                                values.add( block );
-                            }
+                        if ( returnBoundingBoxes ) {
+                            values.addAll( block.getBoundingBox() );
+                        } else {
+                            values.add( block );
                         }
                     }
                 }

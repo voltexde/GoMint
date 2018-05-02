@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -391,15 +392,15 @@ public abstract class Block implements io.gomint.world.block.Block {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox() {
-        return new AxisAlignedBB(
+    public List<AxisAlignedBB> getBoundingBox() {
+        return Collections.singletonList( new AxisAlignedBB(
             this.location.getX(),
             this.location.getY(),
             this.location.getZ(),
             this.location.getX() + 1,
             this.location.getY() + 1,
             this.location.getZ() + 1
-        );
+        ) );
     }
 
     @Override
@@ -673,6 +674,16 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     public void addVelocity( Entity entity, Vector pushedByBlocks ) {
 
+    }
+
+    public boolean intersectsWith( AxisAlignedBB boundingBox ) {
+        for ( AxisAlignedBB axisAlignedBB : getBoundingBox() ) {
+            if ( axisAlignedBB.intersectsWith( boundingBox ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

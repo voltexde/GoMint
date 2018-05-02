@@ -498,7 +498,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         // Are we stuck inside a block?
         Block block = this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ );
-        if ( block.isSolid() && block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
+        if ( block.isSolid() && block.intersectsWith( this.boundingBox ) ) {
             // We need to check for "smooth" movement when its a player (it climbs .5 steps in .3 -> .420 -> .468 .487 .495 .498 .499 steps
             if ( this instanceof EntityPlayer && ( this.stuckInBlockTicks++ <= 20 || ( (EntityPlayer) this ).getAdventureSettings().isNoClip() ) ) { // Yes we can "smooth" for up to 20 ticks, thanks mojang :D
                 return;

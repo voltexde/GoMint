@@ -10,6 +10,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.Registry;
 import io.gomint.server.world.PlacementData;
+import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.generator.BlockGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,11 +91,17 @@ public class Blocks {
             return false;
         }
 
-        // Check if we want to replace the block we are in
-        AxisAlignedBB tempBoundingBox = new AxisAlignedBB( block.location.getX(), block.location.getY(), block.location.getZ(),
-            block.location.getX() + 1, block.location.getY() + 1, block.location.getZ() + 1 );
-        if ( entity.getBoundingBox().intersectsWith( tempBoundingBox ) ) {
-            return false;
+        WorldAdapter adapter = (WorldAdapter) block.location.getWorld();
+
+        // Check only solid blocks for bounding box intersects
+        if ( newBlock.isSolid() ) {
+            newBlock.setLocation( block.location ); // Temp setting, needed for getting bounding boxes
+            for ( AxisAlignedBB bb : newBlock.getBoundingBox() ) {
+                // Check other entities in the bounding box
+                if ( adapter.getNearbyEntities( bb, null ) != null ) {
+                    return false;
+                }
+            }
         }
 
         // We decided that the block would fit
