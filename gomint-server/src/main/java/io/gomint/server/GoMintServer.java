@@ -7,9 +7,7 @@
 
 package io.gomint.server;
 
-import com.google.common.reflect.ClassPath;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
 import io.gomint.config.InvalidConfigurationException;
@@ -123,8 +121,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     // Core utils
     @Getter
-    private ClassPath classPath;
-    @Getter
     private Blocks blocks;
     @Getter
     private Items items;
@@ -166,11 +162,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         LOGGER.info( "Starting {} {}", getVersion(), buildVersion );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
-        try {
+        /*try {
             this.classPath = ClassPath.from( ClassLoader.getSystemClassLoader() );
         } catch ( IOException e ) {
             e.printStackTrace();
-        }
+        }*/ // TODO: Enable when adding new registry values
 
         // ------------------------------------ //
         // Executor Initialization
@@ -186,20 +182,42 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         };
 
-        this.executorService = MoreExecutors.listeningDecorator( new ThreadPoolExecutor( 0, 512, 60L,
+        this.executorService = MoreExecutors.listeningDecorator( new ThreadPoolExecutor( 3, 512, 60L,
             TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory ) );
 
         this.watchdog = new Watchdog( this );
 
+        LOGGER.info( "Loading block, item and entity registers" );
+
         // ------------------------------------ //
         // Build up registries
         // ------------------------------------ //
-        this.blocks = new Blocks( this );
-        this.items = new Items( this );
-        this.enchantments = new Enchantments( this );
-        this.entities = new Entities( this );
-        this.effects = new Effects( this );
+        List<ListenableFuture<?>> registryLoader = new ArrayList<>();
+        registryLoader.add( this.executorService.submit( () -> {
+            this.blocks = new Blocks( this );
+        } ) );
+        registryLoader.add( this.executorService.submit( () -> {
+            this.items = new Items( this );
+        } ) );
+        registryLoader.add( this.executorService.submit( () -> {
+            this.entities = new Entities( this );
+            this.effects = new Effects( this );
+            this.enchantments = new Enchantments( this );
+        } ) );
 
+        SettableFuture<Void> completed = SettableFuture.create();
+        Futures.whenAllSucceed( registryLoader ).run( () -> completed.set( null ), MoreExecutors.directExecutor() );
+
+        try {
+            completed.get();
+        } catch ( InterruptedException | ExecutionException e ) {
+            // There is no timeout
+        }
+
+        startAfterRegistryInit( args, start );
+    }
+
+    private void startAfterRegistryInit( OptionSet args, long start ) {
         // ------------------------------------ //
         // jLine setup
         // ------------------------------------ //

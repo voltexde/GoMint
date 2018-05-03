@@ -697,4 +697,13 @@ public abstract class Block implements io.gomint.world.block.Block {
         return false;
     }
 
+    /**
+     * Only usable for other repair strats like post process runners
+     *
+     * @return the raw tile entity or null if there is none
+     */
+    public TileEntity getRawTileEntity() {
+        return this.tileEntity;
+    }
+
 }

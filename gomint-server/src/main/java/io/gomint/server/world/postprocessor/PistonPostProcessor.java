@@ -38,7 +38,7 @@ public class PistonPostProcessor extends PostProcessor {
     public void process() {
         // Check if we have a tile entity
         Block block = getBlock();
-        if ( block.getTileEntity() == null ) {
+        if ( block.getRawTileEntity() == null ) {
             BlockPosition position = block.getLocation().toBlockPosition();
 
             NBTTagCompound compound = new NBTTagCompound( "" );

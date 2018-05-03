@@ -76,7 +76,7 @@ public class SimplePluginManager implements PluginManager {
         this.server = server;
         this.scheduler = new CoreScheduler( server.getExecutorService(), server.getSyncTaskManager() );
         this.pluginFolder = new File( "plugins" );
-        this.commandManager = new CommandManager( this.server );
+        this.commandManager = new CommandManager();
 
         if ( !this.pluginFolder.exists() && !this.pluginFolder.mkdirs() ) {
             LOGGER.warn( "Plugin folder was not there and could not be created, plugins will not be available" );

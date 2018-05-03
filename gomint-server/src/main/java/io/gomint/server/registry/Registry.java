@@ -2,6 +2,7 @@ package io.gomint.server.registry;
 
 import com.google.common.reflect.ClassPath;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.world.block.AcaciaFenceGate;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -41,9 +42,9 @@ public class Registry<R> {
     public void register( String classPath ) {
         LOGGER.debug( "Going to scan: {}", classPath );
 
-        for ( ClassPath.ClassInfo classInfo : this.server.getClassPath().getTopLevelClasses( classPath ) ) {
+        /*for ( ClassPath.ClassInfo classInfo : this.server.getClassPath().getTopLevelClasses( classPath ) ) {
             register( classInfo.load() );
-        }
+        }*/
     }
 
     private void register( Class<?> clazz ) {
@@ -108,6 +109,30 @@ public class Registry<R> {
 
     public int getId( Class<?> clazz ) {
         return apiReferences.getOrDefault( clazz, -1 );
+    }
+
+    public void register( Class<?> clazz, R generator ) {
+        // We need register info
+        if ( !clazz.isAnnotationPresent( RegisterInfo.class ) && !clazz.isAnnotationPresent( RegisterInfos.class ) ) {
+            LOGGER.debug( "No register info annotation present" );
+            return;
+        }
+
+        if ( clazz.isAnnotationPresent( RegisterInfo.class ) ) {
+            int id = clazz.getAnnotation( RegisterInfo.class ).id();
+            R oldGen = this.generators.put( id, generator );
+
+            if ( oldGen != null ) {
+                LOGGER.warn( "Duplicated register info for id: {} -> {}; old: {}", id, clazz.getName(), oldGen.getClass().getName() );
+            }
+
+            // Check for API interfaces
+            for ( Class<?> apiInter : clazz.getInterfaces() ) {
+                this.apiReferences.put( apiInter, id );
+            }
+
+            this.apiReferences.put( clazz, id );
+        }
     }
 
 }
