@@ -52,6 +52,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -837,41 +838,37 @@ public abstract class WorldAdapter implements World {
      *
      * @param bb        the bounding box which should be used to collect entities in
      * @param exception a entity which should not be included in the list
+     * @param function  which gets called for getting the correct bounding box for this check
      * @return either null if there are no entities or a collection of entities
      */
-    public Collection<Entity> getNearbyEntities( AxisAlignedBB bb, Entity exception ) {
+    public Collection<Entity> getNearbyEntities( AxisAlignedBB bb, Entity exception, Function<Entity, AxisAlignedBB> function ) {
         final Set[] nearby = new HashSet[1];
         final Consumer<Entity> consumer = new Consumer<Entity>() {
             @Override
             public void accept( Entity entity ) {
-                if ( !entity.equals( exception ) && entity.getBoundingBox().intersectsWith( bb ) ) {
-                    if ( nearby[0] == null ) {
-                        nearby[0] = new HashSet<>();
-                    }
+                if ( !entity.equals( exception ) ) {
+                    AxisAlignedBB entityBB = function == null ? entity.getBoundingBox() : function.apply( entity );
+                    if ( entityBB.intersectsWith( bb ) ) {
+                        if ( nearby[0] == null ) {
+                            nearby[0] = new HashSet<>();
+                        }
 
-                    nearby[0].add( entity );
+                        nearby[0].add( entity );
+                    }
                 }
             }
         };
 
-        int lastChunkX = Integer.MAX_VALUE;
-        int lastChunkZ = Integer.MIN_VALUE;
+        int minX = MathUtils.fastFloor( ( bb.getMinX() - 2 ) / 16 );
+        int maxX = MathUtils.fastCeil( ( bb.getMaxX() + 2 ) / 16 );
+        int minZ = MathUtils.fastFloor( ( bb.getMinZ() - 2 ) / 16 );
+        int maxZ = MathUtils.fastCeil( ( bb.getMaxZ() + 2 ) / 16 );
 
-        int minX = MathUtils.fastFloor( ( bb.getMinX() - 2 ) / 4 );
-        int maxX = MathUtils.fastCeil( ( bb.getMaxX() + 2 ) / 4 );
-        int minZ = MathUtils.fastFloor( ( bb.getMinZ() - 2 ) / 4 );
-        int maxZ = MathUtils.fastCeil( ( bb.getMaxZ() + 2 ) / 4 );
-
-        for ( int x = minX; x < maxX; ++x ) {
-            for ( int z = minZ; z < maxZ; ++z ) {
-                int chunkX = x >> 2;
-                int chunkZ = z >> 2;
-
-                if ( chunkX != lastChunkX || chunkZ != lastChunkZ ) {
-                    Chunk chunk = this.getChunk( chunkX, chunkZ );
-                    if ( chunk != null ) {
-                        chunk.iterateEntities( Entity.class, consumer );
-                    }
+        for ( int x = minX; x <= maxX; ++x ) {
+            for ( int z = minZ; z <= maxZ; ++z ) {
+                Chunk chunk = this.getChunk( x, z );
+                if ( chunk != null ) {
+                    chunk.iterateEntities( Entity.class, consumer );
                 }
             }
         }
@@ -879,7 +876,8 @@ public abstract class WorldAdapter implements World {
         return nearby[0];
     }
 
-    private <T> List<T> iterateBlocks( int minX, int maxX, int minY, int maxY, int minZ, int maxZ, AxisAlignedBB bb, boolean returnBoundingBoxes, boolean includePassThrough ) {
+    private <T> List<T> iterateBlocks( int minX, int maxX, int minY, int maxY, int minZ, int maxZ, AxisAlignedBB
+        bb, boolean returnBoundingBoxes, boolean includePassThrough ) {
         List values = null;
 
         for ( int z = minZ; z < maxZ; ++z ) {
@@ -926,7 +924,8 @@ public abstract class WorldAdapter implements World {
     }
 
     @Override
-    public List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb, boolean includeEntities ) {
+    public List<AxisAlignedBB> getCollisionCubes( io.gomint.entity.Entity entity, AxisAlignedBB bb,
+                                                  boolean includeEntities ) {
         int minX = MathUtils.fastFloor( bb.getMinX() );
         int minY = MathUtils.fastFloor( bb.getMinY() );
         int minZ = MathUtils.fastFloor( bb.getMinZ() );
@@ -937,7 +936,7 @@ public abstract class WorldAdapter implements World {
         List<AxisAlignedBB> collisions = iterateBlocks( minX, maxX, minY, maxY, minZ, maxZ, bb, true, false );
 
         if ( includeEntities ) {
-            Collection<io.gomint.entity.Entity> entities = getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity );
+            Collection<io.gomint.entity.Entity> entities = getNearbyEntities( bb.grow( 0.25f, 0.25f, 0.25f ), entity, null );
             if ( entities != null ) {
                 for ( io.gomint.entity.Entity entity1 : entities ) {
                     if ( collisions == null ) {
@@ -962,7 +961,8 @@ public abstract class WorldAdapter implements World {
      * @param entity        which interacts with the block
      * @return true when interaction was successful, false when not
      */
-    public boolean useItemOn( ItemStack itemInHand, BlockPosition blockPosition, BlockFace face, Vector clickPosition, io.gomint.server.entity.EntityPlayer entity ) {
+    public boolean useItemOn( ItemStack itemInHand, BlockPosition blockPosition, BlockFace face, Vector
+        clickPosition, io.gomint.server.entity.EntityPlayer entity ) {
         Block blockClicked = this.getBlockAt( blockPosition );
         if ( blockClicked instanceof Air ) {
             return false;
@@ -1295,7 +1295,8 @@ public abstract class WorldAdapter implements World {
         }
     }
 
-    public void constructGenerator( Class<? extends ChunkGenerator> generator, GeneratorContext context ) throws WorldCreateException {
+    public void constructGenerator( Class<? extends ChunkGenerator> generator, GeneratorContext context ) throws
+        WorldCreateException {
         try {
             this.chunkGenerator = generator.getConstructor( World.class, GeneratorContext.class ).newInstance( this, context );
         } catch ( NoSuchMethodException e ) {

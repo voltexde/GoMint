@@ -46,6 +46,9 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
+        byte in = 11;
+        System.out.println( in >> 2 );
+
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
 

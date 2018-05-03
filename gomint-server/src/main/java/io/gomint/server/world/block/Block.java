@@ -16,6 +16,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketTileEntityData;
 import io.gomint.server.network.packet.PacketUpdateBlock;
 import io.gomint.server.world.BlockRuntimeIDs;
@@ -76,8 +77,17 @@ public abstract class Block implements io.gomint.world.block.Block {
         this.skyLightLevel = skyLightLevel;
         this.blockLightLevel = blockLightLevel;
         this.layer = layer;
+        this.generateBlockStates();
     }
     // CHECKSTYLE:ON
+
+    /**
+     * Hook for blocks which have custom block states. This should be used to convert data from the block to the state
+     * objects
+     */
+    public void generateBlockStates() {
+
+    }
 
     /**
      * Check if a block update is scheduled for this block
@@ -471,7 +481,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Send all block packets needed to display this block
      *
-     * @param connection which should get the block data
+     * @param connection  which should get the block data
      */
     public void send( PlayerConnection connection ) {
         if ( !isPlaced() ) {
@@ -492,6 +502,7 @@ public abstract class Block implements io.gomint.world.block.Block {
             PacketTileEntityData tileEntityData = new PacketTileEntityData();
             tileEntityData.setPosition( position );
             tileEntityData.setTileEntity( this.getTileEntity() );
+
             connection.addToSendQueue( tileEntityData );
         }
     }

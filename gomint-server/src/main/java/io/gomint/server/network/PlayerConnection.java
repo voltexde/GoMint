@@ -299,21 +299,33 @@ public class PlayerConnection {
     }
 
     private void updateNetwork( long currentMillis ) {
+        // It seems that movement is sent last, but we need it first to check if player position of other packets align
+        List<PacketBuffer> packetBuffers = null;
+
         // Receive all waiting packets:
         if ( this.connection != null ) {
             EncapsulatedPacket packetData;
             while ( ( packetData = this.connection.receive() ) != null ) {
-                // CHECKSTYLE:OFF
-                try {
-                    this.handleSocketData( currentMillis, new PacketBuffer( packetData.getPacketData(), 0 ) );
-                } catch ( Exception e ) {
-                    LOGGER.error( "Error whilst processing packet: ", e );
+                if ( packetBuffers == null ) {
+                    packetBuffers = new ArrayList<>();
                 }
-                // CHECKSTYLE:ON
+
+                packetBuffers.add( new PacketBuffer( packetData.getPacketData(), 0 ) );
             }
         } else {
             while ( !this.connectionHandler.getData().isEmpty() ) {
                 PacketBuffer buffer = this.connectionHandler.getData().poll();
+
+                if ( packetBuffers == null ) {
+                    packetBuffers = new ArrayList<>();
+                }
+
+                packetBuffers.add( buffer );
+            }
+        }
+
+        if ( packetBuffers != null ) {
+            for ( PacketBuffer buffer : packetBuffers ) {
                 // CHECKSTYLE:OFF
                 try {
                     this.handleSocketData( currentMillis, buffer );

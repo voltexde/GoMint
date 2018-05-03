@@ -475,7 +475,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
 
         // Look around
-        Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
+        Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this, null );
         if ( nearbyEntities != null ) {
             for ( Entity nearbyEntity : nearbyEntities ) {
                 io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) nearbyEntity;

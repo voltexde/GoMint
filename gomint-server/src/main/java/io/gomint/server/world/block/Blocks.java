@@ -6,6 +6,7 @@ import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
+import io.gomint.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.Registry;
@@ -14,6 +15,10 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.generator.BlockGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author geNAZt
@@ -96,9 +101,11 @@ public class Blocks {
         // Check only solid blocks for bounding box intersects
         if ( newBlock.isSolid() ) {
             newBlock.setLocation( block.location ); // Temp setting, needed for getting bounding boxes
+
             for ( AxisAlignedBB bb : newBlock.getBoundingBox() ) {
                 // Check other entities in the bounding box
-                if ( adapter.getNearbyEntities( bb, null ) != null ) {
+                Collection<Entity> collidedWith = adapter.getNearbyEntities( bb, null, null );
+                if ( collidedWith != null ) {
                     return false;
                 }
             }

@@ -12,12 +12,15 @@ import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.ContainerInventory;
 import io.gomint.server.inventory.Inventory;
+import io.gomint.server.inventory.WindowMagicNumbers;
 import io.gomint.server.inventory.item.ItemBow;
 import io.gomint.server.inventory.item.category.ItemConsumable;
 import io.gomint.server.inventory.transaction.DropItemTransaction;
 import io.gomint.server.inventory.transaction.InventoryTransaction;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketInventorySetSlot;
 import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.world.Gamemode;
 import io.gomint.world.block.BlockAir;
@@ -26,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -224,7 +228,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                 connection.getEntity().setUsingItem( false );
 
-                if ( !connection.getEntity().getWorld().useItemOn( itemInHand, packet.getBlockPosition(), packet.getFace(), packet.getClickPosition(), connection.getEntity() ) ) {
+                if ( !connection.getEntity().getWorld().useItemOn( itemInHand, packet.getBlockPosition(), packet.getFace(),
+                    packet.getClickPosition(), connection.getEntity() ) ) {
                     reset( packet, connection );
                     return;
                 }
@@ -476,8 +481,16 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
     }
 
     private void reset( PacketInventoryTransaction packet, PlayerConnection connection ) {
-        connection.getEntity().getInventory().sendContents( connection );
+        // LOGGER.info( "Reset for {}", packet.getBlockPosition(), new Exception(  )  );
 
+        // Reset item in hand
+        PacketInventorySetSlot packetInventorySetSlot = new PacketInventorySetSlot();
+        packetInventorySetSlot.setWindowId( WindowMagicNumbers.PLAYER.getId() );
+        packetInventorySetSlot.setSlot( connection.getEntity().getInventory().getItemInHandSlot() );
+        packetInventorySetSlot.setItemStack( connection.getEntity().getInventory().getItemInHand() );
+        connection.addToSendQueue( packetInventorySetSlot );
+
+        // Now check if we need to reset blocks
         if ( packet.getBlockPosition() != null ) {
             io.gomint.server.world.block.Block blockClicked = connection.getEntity().getWorld().getBlockAt( packet.getBlockPosition() );
             blockClicked.send( connection );

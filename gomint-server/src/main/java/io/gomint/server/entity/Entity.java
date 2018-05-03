@@ -75,7 +75,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Getter
     private float width;
     @Getter
-    private float height;
+    protected float height;
 
     /**
      * How high can this entity "climb" in one movement?
