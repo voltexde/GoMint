@@ -343,12 +343,6 @@ public class AxisAlignedBB implements Cloneable {
         return false;
     }
 
-    public void debug( AxisAlignedBB bb ) {
-        LOGGER.info( "Failed on X axis: {} / {}", bb.maxX - this.minX, this.maxX - bb.minX );
-        LOGGER.info( "Failed on Y axis: {} / {}", bb.maxY - this.minY, this.maxY - bb.minY );
-        LOGGER.info( "Failed on Z axis: {} / {}", bb.maxZ - this.minZ, this.maxZ - bb.minZ );
-    }
-
     /**
      * Check if the given Vector lies within this Bounding Box
      *

@@ -1105,8 +1105,8 @@ public abstract class WorldAdapter implements World {
         if ( block.onBreak() ) {
             if ( !drops.isEmpty() ) {
                 for ( ItemStack itemStack : drops ) {
-                    EntityItem item = this.createItemDrop( block.getLocation(), itemStack );
-                    item.setVelocity( new Vector( 0.1f, 0.3f, 0.1f ) );
+                    EntityItem item = this.createItemDrop( block.getLocation().add( 0.5f, 0.5f, 0.5f ), itemStack );
+                    item.setVelocity( new Vector( FastRandom.current().nextFloat() * 0.2f - 0.1f, 0.2f, FastRandom.current().nextFloat() * 0.2f - 0.1f ) );
                 }
             }
 

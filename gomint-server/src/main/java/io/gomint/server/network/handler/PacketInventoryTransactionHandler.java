@@ -481,8 +481,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
     }
 
     private void reset( PacketInventoryTransaction packet, PlayerConnection connection ) {
-        // LOGGER.info( "Reset for {}", packet.getBlockPosition(), new Exception(  )  );
-
         // Reset item in hand
         PacketInventorySetSlot packetInventorySetSlot = new PacketInventorySetSlot();
         packetInventorySetSlot.setWindowId( WindowMagicNumbers.PLAYER.getId() );
