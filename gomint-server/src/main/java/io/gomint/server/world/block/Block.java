@@ -535,7 +535,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         // Instant break
         if ( base <= 0 ) {
-            return 0;
+            return 50;
         }
 
         // Check if we need a tool
@@ -611,7 +611,12 @@ public abstract class Block implements io.gomint.world.block.Block {
             result = toolStrength / base / 30F;
         }
 
-        return (long) ( ( 1F / result ) * 50F );
+        long time = (long) ( ( 1F / result ) * 50F );
+        if ( time < 50 ) {
+            time = 50;
+        }
+
+        return time;
     }
 
     public Class<? extends ItemStack>[] getToolInterfaces() {

@@ -41,4 +41,9 @@ public class Torch extends Block implements io.gomint.world.block.BlockTorch {
         return true;
     }
 
+    @Override
+    public long getBreakTime() {
+        return 0;
+    }
+
 }
