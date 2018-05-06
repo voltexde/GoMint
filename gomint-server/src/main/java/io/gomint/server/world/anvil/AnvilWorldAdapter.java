@@ -493,6 +493,8 @@ public final class AnvilWorldAdapter extends WorldAdapter {
 
                 return chunk;
             } catch ( IOException | ExecutionException e ) {
+                logger.error( "Could not load chunk {}, {}", x, z, e );
+
                 if ( generate ) {
                     return this.generate( x, z );
                 } else {

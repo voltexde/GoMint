@@ -5,7 +5,6 @@ import io.gomint.config.InvalidConfigurationException;
 import io.gomint.plugin.config.Config;
 import io.gomint.plugin.generator.PlotChunkGenerator;
 import io.gomint.plugin.listener.BlockBreakListener;
-import io.gomint.plugin.listener.PlayerInteractListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerMoveListener;
 import io.gomint.world.generator.CreateOptions;
@@ -60,10 +59,9 @@ public class TestPlugin extends Plugin {
 
 
         // We want to shutdown because of some error
-        this.getServer().shutdown();
+        //this.getServer().shutdown();
 
         // Register listener
-        registerListener( new PlayerInteractListener() );
         registerListener( new PlayerMoveListener( this ) );
         registerListener( new PlayerJoinListener( this ) );
         registerListener( new BlockBreakListener() );
