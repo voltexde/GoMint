@@ -55,7 +55,7 @@ public class NumberArray {
      * @param index of the number
      * @param value which is the number
      */
-    public void add( short index, int value ) {
+    public void add( int index, int value ) {
         // We only support unsigned values
         if ( value < 0 || index < 0 || index > 4095 ) {
             return;
@@ -149,7 +149,7 @@ public class NumberArray {
      * @param index which has this value stored
      * @return number or 0 when not found
      */
-    public int get( short index ) {
+    public int get( int index ) {
         // Get index first
         short indexVal = this.indexes[index];
         if ( indexVal == 0 ) {
@@ -157,8 +157,8 @@ public class NumberArray {
         }
 
         // Select storage
-        byte storageNumber = (byte) ( ( indexVal >> 12 ) & 15 );
-        short storageIndex = (short) ( indexVal & 4095 );
+        int storageNumber = ( ( indexVal >> 12 ) & 15 );
+        int storageIndex = ( indexVal & 4095 );
 
         // Check storage
         switch ( storageNumber ) {
@@ -186,7 +186,7 @@ public class NumberArray {
         this.ints[index] = value;
     }
 
-    private int getInt( short index ) {
+    private int getInt( int index ) {
         return this.ints[index];
     }
 
@@ -201,7 +201,7 @@ public class NumberArray {
         this.shorts[index] = value;
     }
 
-    private short getShort( short index ) {
+    private short getShort( int index ) {
         return this.shorts[index];
     }
 
@@ -216,7 +216,7 @@ public class NumberArray {
         this.bytes[index] = value;
     }
 
-    private byte getByte( short index ) {
+    private byte getByte( int index ) {
         return this.bytes[index];
     }
 
@@ -237,7 +237,7 @@ public class NumberArray {
         this.nibbleLength = index;
     }
 
-    private byte getNibble( short index ) {
+    private byte getNibble( int index ) {
         return (byte) ( this.nibble[index / 2] >> ( ( index & 1 ) << 2 ) & 0xF );
     }
 

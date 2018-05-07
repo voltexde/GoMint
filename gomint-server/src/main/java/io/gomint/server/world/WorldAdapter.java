@@ -1330,4 +1330,12 @@ public abstract class WorldAdapter implements World {
         }
     }
 
+    public void flagNeedsPersistance( BlockPosition pos ) {
+        int xChunk = CoordinateUtils.fromBlockToChunk( pos.getX() );
+        int zChunk = CoordinateUtils.fromBlockToChunk( pos.getZ() );
+
+        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
+        chunk.flagNeedsPersistance();
+    }
+
 }

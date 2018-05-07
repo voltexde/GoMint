@@ -15,7 +15,6 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -23,7 +22,7 @@ import java.util.Collection;
  * @version 1.0
  */
 @RequiredArgsConstructor
-class ChunkSlice {
+public class ChunkSlice {
 
     @Getter
     private final ChunkAdapter chunk;
@@ -65,7 +64,7 @@ class ChunkSlice {
      * @param index which should be looked up
      * @return block id of the index
      */
-    int getBlockInternal( int layer, short index ) {
+    public int getBlockInternal( int layer, int index ) {
         if ( this.isAllAir ) {
             return 0;
         }
@@ -97,16 +96,23 @@ class ChunkSlice {
     }
 
     Collection<TileEntity> getTileEntities() {
-        return new ArrayList<>( this.tileEntities.values() );
+        return this.tileEntities.values();
     }
 
     void addTileEntity( int x, int y, int z, TileEntity tileEntity ) {
-        this.tileEntities.put( getIndex( x, y, z ), tileEntity );
+        this.addTileEntityInternal( getIndex( x, y, z ), tileEntity );
+    }
+
+    public void addTileEntityInternal( short index, TileEntity tileEntity ) {
+        this.tileEntities.put( index, tileEntity );
     }
 
     void setBlock( int x, int y, int z, int layer, int blockId ) {
         short index = getIndex( x, y, z );
+        this.setBlockInternal( index, layer, blockId );
+    }
 
+    public void setBlockInternal( short index, int layer, int blockId ) {
         if ( blockId != 0 && this.blocks[layer] == null ) {
             this.blocks[layer] = new NumberArray();
             this.isAllAir = false;
@@ -119,7 +125,10 @@ class ChunkSlice {
 
     void setData( int x, int y, int z, int layer, byte data ) {
         short index = getIndex( x, y, z );
+        this.setDataInternal( index, layer, data );
+    }
 
+    public void setDataInternal( short index, int layer, byte data ) {
         // Check if we need to set new nibble array
         if ( !this.isAllAir && this.data[layer] == null ) {
             this.data[layer] = new NibbleArray( (short) 4096 );
@@ -134,11 +143,15 @@ class ChunkSlice {
     }
 
     byte getData( int x, int y, int z, int layer ) {
+        return this.getDataInternal( layer, getIndex( x, y, z ) );
+    }
+
+    public byte getDataInternal( int layer, short index ) {
         if ( this.data[layer] == null ) {
             return 0;
         }
 
-        return this.data[layer].get( getIndex( x, y, z ) );
+        return this.data[layer].get( index );
     }
 
     boolean isAllAir() {
@@ -254,6 +267,10 @@ class ChunkSlice {
 
         short index = getIndex( x, y, z );
         storage.remove( index );
+    }
+
+    public TileEntity getTileInternal( short i ) {
+        return this.tileEntities.get( i );
     }
 
 }

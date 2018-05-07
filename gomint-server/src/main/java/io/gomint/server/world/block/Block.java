@@ -214,6 +214,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         BlockPosition pos = this.location.toBlockPosition();
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
         worldAdapter.updateBlock( pos );
+        worldAdapter.flagNeedsPersistance( pos );
     }
 
     @Override

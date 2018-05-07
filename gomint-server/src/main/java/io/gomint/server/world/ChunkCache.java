@@ -78,19 +78,14 @@ public class ChunkCache {
             }
 
             boolean checkChunkSave = this.isAutosaveEnabled() &&
-                this.autoSaveInterval > 0 &&
-                currentTimeMS - this.lastSaveCheck > 500;
-
-            if ( checkChunkSave ) {
-                this.lastSaveCheck = currentTimeMS;
-            }
+                this.autoSaveInterval > 0;
 
             for ( long l : this.cachedChunks.keySet() ) {
                 ChunkAdapter chunk = null;
                 if ( checkChunkSave ) {
                     chunk = this.cachedChunks.get( l );
 
-                    if ( currentTimeMS - chunk.getLastSavedTimestamp() >= this.autoSaveInterval ) {
+                    if ( chunk.isNeedsPersistance() && currentTimeMS - chunk.getLastSavedTimestamp() >= this.autoSaveInterval ) {
                         chunk.setLastSavedTimestamp( currentTimeMS );
                         this.world.saveChunkAsynchronously( chunk );
                     }
@@ -200,7 +195,7 @@ public class ChunkCache {
             this.lastFullTickDT += dT;
             if ( this.lastFullTickDT >= Values.CLIENT_TICK_RATE ) {
                 // We need to tick all chunks which haven't been ticked until now
-                long[] returnVal = new long[this.cachedChunks.size()];
+                long[] returnVal = new long[this.cachedChunks.size() - this.alreadyTicked.size()];
                 int index = 0;
 
                 Long2ObjectMap.FastEntrySet<ChunkAdapter> set = (Long2ObjectMap.FastEntrySet<ChunkAdapter>) this.cachedChunks.long2ObjectEntrySet();
@@ -218,16 +213,19 @@ public class ChunkCache {
             } else {
                 // Check how many chunks we need to tick
                 int max = this.cachedChunks.size();
-
-                float currentTPS = 1 / dT;
-                int needCurrent = MathUtils.fastFloor( max * ( 20F / currentTPS ) );
-
-                // This only happens on first tick though
-                if ( needCurrent == 0 ) {
+                if ( max == 0 ) {
                     return new long[0];
                 }
 
-                long[] returnVal = new long[needCurrent];
+                int needCurrent = MathUtils.fastFloor( max * ( this.lastFullTickDT / Values.CLIENT_TICK_RATE ) );
+
+                // This only happens on first tick though
+                if ( this.alreadyTicked.size() == needCurrent ) {
+                    return new long[0];
+                }
+
+                int needed = needCurrent - this.alreadyTicked.size();
+                long[] returnVal = new long[needed];
                 int index = 0;
 
                 Long2ObjectMap.FastEntrySet<ChunkAdapter> set = (Long2ObjectMap.FastEntrySet<ChunkAdapter>) this.cachedChunks.long2ObjectEntrySet();
@@ -238,13 +236,13 @@ public class ChunkCache {
                         returnVal[index++] = l;
                         this.alreadyTicked.add( l );
 
-                        if ( index == needCurrent ) {
+                        if ( index == needed ) {
                             break;
                         }
                     }
                 }
 
-                if ( index == needCurrent ) {
+                if ( index == needed ) {
                     return returnVal;
                 }
 

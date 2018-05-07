@@ -7,6 +7,7 @@ import io.gomint.plugin.generator.PlotChunkGenerator;
 import io.gomint.plugin.listener.BlockBreakListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerMoveListener;
+import io.gomint.world.WorldType;
 import io.gomint.world.generator.CreateOptions;
 import lombok.Getter;
 
@@ -18,7 +19,7 @@ import java.io.File;
  */
 @PluginName( "TestPlugin" )
 @Version( major = 1, minor = 0 )
-@Startup( StartupPriority.LOAD )
+@Startup( StartupPriority.STARTUP )
 public class TestPlugin extends Plugin {
 
     @Getter
@@ -44,7 +45,7 @@ public class TestPlugin extends Plugin {
 
         // Check if we need to test chunk generation
         if ( this.config.isEnableChunkGeneration() ) {
-            GoMint.instance().createWorld( "test_plot", new CreateOptions().generator( PlotChunkGenerator.class ) );
+            GoMint.instance().createWorld( "test_plot", new CreateOptions().generator( PlotChunkGenerator.class ).worldType( WorldType.GOMINT ) );
         }
     }
 

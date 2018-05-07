@@ -91,6 +91,9 @@ public class ChunkAdapter implements Chunk {
     // Post loading processing
     protected Queue<PostProcessor> postProcessors = new LinkedList<>();
 
+    // State saving flag
+    @Getter private boolean needsPersistance;
+
     // CHECKSTYLE:ON
 
     /**
@@ -113,17 +116,17 @@ public class ChunkAdapter implements Chunk {
 
             this.world.randomUpdateNumber = ( ( this.world.randomUpdateNumber << 2 ) - this.world.randomUpdateNumber ) + 1013904223;
             int blockHash = this.world.randomUpdateNumber >> 2;
-            for ( int i = 0; i < 3; ++i, blockHash >>= 10 ) {
-                short index = (short) ( blockHash & 0xfff );
+            for ( int i = 0; i < this.world.getConfig().getRandomUpdatesPerTick(); ++i, blockHash >>= 10 ) {
+                int index = blockHash & 0xfff;
                 int blockId = chunkSlice.getBlockInternal( 0, index );
                 switch ( blockId ) {
-                    case (byte) 244:    // Beetroot
+                    case 244:           // Beetroot
                     case 2:             // Grass
                     case 60:            // Farmland
                     case 110:           // Mycelium
                     case 6:             // Sapling
                     case 16:            // Leaves
-                    case (byte) 161:    // Acacia leaves
+                    case 161:           // Acacia leaves
                     case 78:            // Top snow
                     case 79:            // Ice
                         int blockX = ( blockHash >> 8 ) & 0x0f;
@@ -251,6 +254,7 @@ public class ChunkAdapter implements Chunk {
      */
     void setLastSavedTimestamp( long timestamp ) {
         this.lastSavedTimestamp = timestamp;
+        this.needsPersistance = false;
     }
 
     // ==================================== MANIPULATION ==================================== //
@@ -349,6 +353,7 @@ public class ChunkAdapter implements Chunk {
         ChunkSlice slice = ensureSlice( ySection );
         slice.setBlock( x, y - 16 * ySection, z, layer, id );
         this.dirty = true;
+        this.needsPersistance = true;
     }
 
     /**
@@ -378,6 +383,7 @@ public class ChunkAdapter implements Chunk {
         ChunkSlice slice = ensureSlice( y >> 4 );
         slice.setData( x, y - 16 * ( y >> 4 ), z, layer, data );
         this.dirty = true;
+        this.needsPersistance = true;
     }
 
     /**
@@ -665,6 +671,7 @@ public class ChunkAdapter implements Chunk {
         ChunkSlice slice = ensureSlice( y >> 4 );
         slice.addTileEntity( x, y - 16 * ( y >> 4 ), z, tileEntity );
         this.dirty = true;
+        this.needsPersistance = true;
     }
 
     public void runPostProcessors() {
@@ -686,9 +693,17 @@ public class ChunkAdapter implements Chunk {
             if ( chunkSlice != null ) {
                 for ( TileEntity tileEntity : chunkSlice.getTileEntities() ) {
                     tileEntity.update( currentTimeMS, dT );
+
+                    if ( tileEntity.isNeedsPersistance() ) {
+                        this.needsPersistance = true;
+                    }
                 }
             }
         }
+    }
+
+    public void flagNeedsPersistance() {
+        this.needsPersistance = true;
     }
 
 }
