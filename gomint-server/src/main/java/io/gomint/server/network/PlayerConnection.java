@@ -610,13 +610,22 @@ public class PlayerConnection {
 
             if ( !this.playerChunks.contains( hash ) && !this.loadingChunks.contains( hash ) ) {
                 this.loadingChunks.add( hash );
+
                 LOGGER.debug( "Requesting chunk {} {} for {}", chunk.getFirst(), chunk.getSecond(), this.entity );
                 worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity,
-                    false, ( chunkHash, loadedChunk ) -> this.entity.getChunkSendQueue().offer( loadedChunk ) );
-            } else if ( forceResendEntities ){
+                    false, ( chunkHash, loadedChunk ) -> {
+                        if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
+                            this.entity.getChunkSendQueue().offer( loadedChunk );
+                        }
+                    } );
+            } else if ( forceResendEntities ) {
                 // We already know this chunk but maybe forceResend is enabled
                 worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity,
-                    false, ( chunkHash, loadedChunk ) -> this.entity.getEntityVisibilityManager().updateAddedChunk( loadedChunk ) );
+                    false, ( chunkHash, loadedChunk ) -> {
+                        if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
+                            this.entity.getEntityVisibilityManager().updateAddedChunk( loadedChunk );
+                        }
+                    } );
             }
         }
 
