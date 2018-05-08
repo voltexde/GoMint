@@ -16,6 +16,7 @@ import io.gomint.server.world.gomint.io.SectionFile;
 import io.gomint.taglib.NBTTagCompound;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
@@ -49,22 +50,21 @@ public class GomintChunkAdapter extends ChunkAdapter {
         int currentSection = 0;
         while ( currentSection < 16 ) {
             try ( Section section = file.getSection() ) {
-                DataInputStream in = section.getInput();
-                if ( in.available() == 0 ) {
+                ByteBuffer in = section.getInput();
+                if ( in.capacity() == 0 ) {
                     return;
                 }
 
-
                 ChunkSlice slice = new ChunkSlice( this, currentSection );
                 for ( short i = 0; i < 4096; i++ ) {
-                    slice.setBlockInternal( i, 0, in.readInt() );
-                    slice.setDataInternal( i, 0, (byte) in.readInt() );
+                    slice.setBlockInternal( i, 0, in.getInt() );
+                    slice.setDataInternal( i, 0, (byte) in.getInt() );
 
                     // Read NBT if needed
-                    int nbtLength = in.readInt();
+                    int nbtLength = in.getInt();
                     if ( nbtLength > 0 ) {
                         byte[] nbtData = new byte[nbtLength];
-                        in.read( nbtData );
+                        in.get( nbtData );
                         NBTTagCompound compound = NBTTagCompound.readFrom( new ByteArrayInputStream( nbtData ), false, ByteOrder.BIG_ENDIAN );
                         TileEntity tileEntity = TileEntities.construct( compound, this.world );
                         slice.addTileEntityInternal( i, tileEntity );

@@ -27,6 +27,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * @author geNAZt
@@ -66,24 +67,37 @@ public final class GomintWorldAdapter extends WorldAdapter {
         try ( SectionFile file = new SectionFile( new File( worldDir, "world.index" ) ) ) {
             String generatorClass = "";
             try ( Section section = file.getSection() ) {
-                DataInputStream in = section.getInput();
+                ByteBuffer in = section.getInput();
 
                 // Read level name
-                this.levelName = in.readUTF();
+                short strLength = in.getShort();
+                byte[] strContent = new byte[strLength];
+                in.get( strContent );
+
+                this.levelName = new String( strContent );
 
                 // Read spawn location
-                int x = in.readInt();
-                int y = in.readInt();
-                int z = in.readInt();
+                int x = in.getInt();
+                int y = in.getInt();
+                int z = in.getInt();
                 
                 this.spawn = new Location( this, x, y, z, 0, 0 );
 
                 // Read gamerule
-                in.readInt();
+                in.getInt();
 
                 // Get chunk generator
-                generatorClass = in.readUTF();
-                String generatorContext = in.readUTF();
+                strLength = in.getShort();
+                strContent = new byte[strLength];
+                in.get( strContent );
+
+                generatorClass = new String( strContent );
+
+                strLength = in.getShort();
+                strContent = new byte[strLength];
+                in.get( strContent );
+
+                String generatorContext = new String( strContent );
 
                 JSONParser parser = new JSONParser();
                 JSONObject contextData = (JSONObject) parser.parse( generatorContext );

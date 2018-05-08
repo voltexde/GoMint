@@ -8,6 +8,7 @@
 package io.gomint.server.world.gomint.io;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 
 /**
  * @author geNAZt
@@ -17,7 +18,7 @@ public class Section implements AutoCloseable {
 
     private SectionFile file;
 
-    private DataInputStream in;
+    private ByteBuffer in;
     private DataOutputStream out;
 
     private ByteArrayOutputStream bOut;
@@ -29,15 +30,17 @@ public class Section implements AutoCloseable {
             case SKIP:
             case READ:
                 // We need to read the section length
-                DataInputStream in = file.getInputStream();
-                int sectionLength = in.readInt();
+                ByteBuffer in = file.getReadBuffer();
+                int sectionLength = in.getInt();
 
                 if ( mode == SectionMode.SKIP ) {
-                    in.skipBytes( sectionLength );
+                    in.position( in.position() + sectionLength );
                 } else {
                     byte[] readData = new byte[sectionLength];
-                    in.read( readData );
-                    this.in = new DataInputStream( new ByteArrayInputStream( readData ) );
+                    in.get( readData );
+                    this.in = ByteBuffer.allocateDirect( readData.length );
+                    this.in.put( readData );
+                    this.in.position( 0 );
                 }
 
                 break;
@@ -56,7 +59,7 @@ public class Section implements AutoCloseable {
         return this.out;
     }
 
-    public DataInputStream getInput() {
+    public ByteBuffer getInput() {
         return this.in;
     }
 
@@ -70,10 +73,6 @@ public class Section implements AutoCloseable {
             DataOutputStream out = this.file.getOutputStream();
             out.writeInt( this.bOut.size() );
             out.write( this.bOut.toByteArray() );
-        }
-
-        if ( this.in != null ) {
-            this.in.close();
         }
     }
 
