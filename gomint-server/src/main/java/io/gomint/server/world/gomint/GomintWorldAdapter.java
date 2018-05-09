@@ -180,6 +180,7 @@ public final class GomintWorldAdapter extends WorldAdapter {
             GomintChunkAdapter chunkAdapter = new GomintChunkAdapter( this, x, z, System.currentTimeMillis() );
             chunkAdapter.loadFromSection( file );
             this.chunkCache.putChunk( chunkAdapter );
+            return chunkAdapter;
         } catch ( IOException e ) {
             this.logger.warn( "Could not read chunk {} / {}", x, z, e );
         }

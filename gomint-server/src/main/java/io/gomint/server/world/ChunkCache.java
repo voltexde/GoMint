@@ -195,7 +195,7 @@ public class ChunkCache {
             this.lastFullTickDT += dT;
             if ( this.lastFullTickDT >= Values.CLIENT_TICK_RATE ) {
                 // We need to tick all chunks which haven't been ticked until now
-                long[] returnVal = new long[this.cachedChunks.size() - this.alreadyTicked.size()];
+                long[] returnVal = new long[this.cachedChunks.size()];
                 int index = 0;
 
                 Long2ObjectMap.FastEntrySet<ChunkAdapter> set = (Long2ObjectMap.FastEntrySet<ChunkAdapter>) this.cachedChunks.long2ObjectEntrySet();
