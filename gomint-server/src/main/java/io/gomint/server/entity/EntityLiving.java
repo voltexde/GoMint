@@ -18,12 +18,14 @@ import io.gomint.server.player.EffectManager;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,6 +38,8 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class EntityLiving extends Entity implements InventoryHolder, io.gomint.entity.EntityLiving {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( EntityLiving.class );
+
     // AI of the entity:
     protected AIBehaviourComponent behaviour;
     // Pathfinding engine of the entity:
@@ -45,7 +49,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
     private float lastUpdateDT = 0;
     @Getter
-    private ObjectSet<io.gomint.entity.Entity> attachedEntities = new ObjectOpenHashSet<>();
+    private final Set<io.gomint.entity.Entity> attachedEntities = new HashSet<>();
 
     private byte attackCoolDown = 0;
 

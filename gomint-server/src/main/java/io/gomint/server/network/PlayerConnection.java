@@ -109,6 +109,7 @@ public class PlayerConnection {
     private long tcpId;
     @Setter
     private int tcpPing;
+    private PostProcessExecutor postProcessorExecutor;
 
     // World data
     @Getter
@@ -164,6 +165,7 @@ public class PlayerConnection {
 
         // Attach data processor if needed
         if ( this.connection != null ) {
+            this.postProcessorExecutor = networkManager.getPostProcessService().getExecutor();
             this.connection.addDataProcessor( packetData -> {
                 PacketBuffer buffer = new PacketBuffer( packetData.getPacketData(), 0 );
                 if ( buffer.getRemaining() <= 0 ) {
@@ -290,7 +292,7 @@ public class PlayerConnection {
             if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
                 Packet[] packets = new Packet[this.sendQueue.size()];
                 this.sendQueue.toArray( packets );
-                this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, packets ) );
+                this.postProcessorExecutor.addWork( this, packets );
                 this.sendQueue.clear();
             }
         } else {
@@ -345,7 +347,7 @@ public class PlayerConnection {
     public void send( Packet packet ) {
         if ( this.connection != null ) {
             if ( !( packet instanceof PacketBatch ) ) {
-                this.networkManager.getPostProcessService().execute( new PostProcessWorker( this, new Packet[]{ packet } ) );
+                this.postProcessorExecutor.addWork( this, new Packet[]{ packet } );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
                 buffer.writeByte( packet.getId() );
@@ -808,6 +810,10 @@ public class PlayerConnection {
             this.entity.setDead( true );
             this.networkManager.getServer().getPluginManager().callEvent( new PlayerCleanedupEvent( this.entity ) );
             this.entity = null;
+        }
+
+        if ( this.postProcessorExecutor != null ) {
+            this.networkManager.getPostProcessService().releaseExecutor( this.postProcessorExecutor );
         }
     }
 

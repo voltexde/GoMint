@@ -1225,7 +1225,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void despawn() {
-        for ( Entity entity : this.getAttachedEntities() ) {
+        for ( Entity entity : new HashSet<>( this.getAttachedEntities() ) ) {
             if ( entity instanceof EntityPlayer ) {
                 ( (EntityPlayer) entity ).getEntityVisibilityManager().removeEntity( this );
             }
