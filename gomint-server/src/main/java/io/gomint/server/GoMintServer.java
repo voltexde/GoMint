@@ -194,27 +194,49 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         List<ListenableFuture<?>> registryLoader = new ArrayList<>();
         registryLoader.add( this.executorService.submit( () -> {
-            this.blocks = new Blocks( this );
+            try {
+                this.blocks = new Blocks( this );
+            } catch ( Throwable t ) {
+                t.printStackTrace();
+            }
         } ) );
         registryLoader.add( this.executorService.submit( () -> {
-            this.items = new Items( this );
+            try {
+                this.items = new Items( this );
+            } catch ( Throwable t ) {
+                t.printStackTrace();
+            }
         } ) );
-        registryLoader.add( this.executorService.submit( () -> {
-            this.entities = new Entities( this );
-            this.effects = new Effects( this );
-            this.enchantments = new Enchantments( this );
+        registryLoader.add( this.executorService.submit( () ->
+
+        {
+            try {
+                this.entities = new Entities( this );
+                this.effects = new Effects( this );
+                this.enchantments = new Enchantments( this );
+            } catch ( Throwable t ) {
+                t.printStackTrace();
+            }
         } ) );
 
         SettableFuture<Void> completed = SettableFuture.create();
-        Futures.whenAllSucceed( registryLoader ).run( () -> completed.set( null ), MoreExecutors.directExecutor() );
+        Futures.whenAllSucceed( registryLoader ).
 
-        try {
+            run( () -> completed.set( null ), MoreExecutors.directExecutor() );
+
+        try
+
+        {
             completed.get();
-        } catch ( InterruptedException | ExecutionException e ) {
+        } catch ( InterruptedException |
+            ExecutionException e )
+
+        {
             // There is no timeout
         }
 
         startAfterRegistryInit( args, start );
+
     }
 
     private void startAfterRegistryInit( OptionSet args, long start ) {

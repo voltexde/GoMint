@@ -295,7 +295,7 @@ public class Blocks {
             return instance.generate( blockId, blockData, skyLightLevel, blockLightLevel, tileEntity, location, layer );
         }
 
-        LOGGER.warn( "Unknown block {}", blockId );
+        // LOGGER.warn( "Unknown block {}", blockId );
         return null;
     }
 

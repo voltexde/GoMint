@@ -8,6 +8,7 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.util.Palette;
 import io.gomint.server.util.collection.NumberArray;
 import io.gomint.server.world.storage.TemporaryStorage;
+import io.gomint.world.block.Block;
 import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -98,11 +99,15 @@ public class ChunkSlice {
         NibbleArray dataStorage = this.data[layer];
 
         if ( this.isAllAir || blockStorage == null ) {
-            return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, blockLocation, layer );
+            return this.getAirBlockInstance( blockLocation );
         }
 
         return (T) this.chunk.getWorld().getServer().getBlocks().get( blockStorage.get( index ), dataStorage == null ? 0 : dataStorage.get( index ), this.skyLight.get( index ),
             this.blockLight.get( index ), this.tileEntities.get( index ), blockLocation, layer );
+    }
+
+    private <T extends Block> T getAirBlockInstance( Location location ) {
+        return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, (byte) 15, (byte) 15, null, location, 0 );
     }
 
     private Location getBlockLocation( int x, int y, int z ) {
