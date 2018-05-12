@@ -114,8 +114,7 @@ public class ChunkAdapter implements Chunk {
                 continue;
             }
 
-            this.world.randomUpdateNumber = ( ( this.world.randomUpdateNumber << 2 ) - this.world.randomUpdateNumber ) + 1013904223;
-            int blockHash = this.world.randomUpdateNumber >> 2;
+            int blockHash = this.getRandomBlockHash();
             for ( int i = 0; i < this.world.getConfig().getRandomUpdatesPerTick(); ++i, blockHash >>= 10 ) {
                 int index = blockHash & 0xfff;
                 int blockId = chunkSlice.getBlockInternal( 0, index );
@@ -150,6 +149,11 @@ public class ChunkAdapter implements Chunk {
                 }
             }
         }
+    }
+
+    private int getRandomBlockHash() {
+        this.world.randomUpdateNumber = ( ( this.world.randomUpdateNumber << 2 ) - this.world.randomUpdateNumber ) + 1013904223;
+        return this.world.randomUpdateNumber >> 2;
     }
 
     private ChunkSlice ensureSlice( int y ) {
@@ -507,7 +511,7 @@ public class ChunkAdapter implements Chunk {
         PacketBuffer buffer = new PacketBuffer( 512 );
 
         // Detect how much data we can skip
-        int topEmpty = 16;
+        int topEmpty = 15;
         for ( int i = 15; i >= 0; i-- ) {
             ChunkSlice slice = chunkSlices[i];
             if ( slice == null || slice.isAllAir() ) {
@@ -517,7 +521,7 @@ public class ChunkAdapter implements Chunk {
             }
         }
 
-        buffer.writeByte( (byte) topEmpty );
+        buffer.writeByte( (byte) 16 );
         for ( int i = 0; i < topEmpty; i++ ) {
             buffer.writeByte( protocolId == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ? (byte) 8 : (byte) 1 );
             buffer.writeBytes( ensureSlice( i ).getBytes( protocolId ) );

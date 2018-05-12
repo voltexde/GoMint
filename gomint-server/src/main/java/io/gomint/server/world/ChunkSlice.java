@@ -21,13 +21,15 @@ import java.util.Collection;
  * @author geNAZt
  * @version 1.0
  */
-@RequiredArgsConstructor
 public class ChunkSlice {
 
-    @Getter
-    private final ChunkAdapter chunk;
-    @Getter
-    private final int sectionY;
+    @Getter private final ChunkAdapter chunk;
+    @Getter private final int sectionY;
+
+    // Cache
+    private int shiftedMinX;
+    private int shiftedMinY;
+    private int shiftedMinZ;
 
     private boolean isAllAir = true;
 
@@ -39,6 +41,16 @@ public class ChunkSlice {
 
     private Short2ObjectOpenHashMap<TileEntity> tileEntities = new Short2ObjectOpenHashMap<>();
     private Short2ObjectOpenHashMap[] temporaryStorages = new Short2ObjectOpenHashMap[2];   // MC currently supports two layers, we init them as we need
+
+    public ChunkSlice( ChunkAdapter chunkAdapter, int sectionY ) {
+        this.chunk = chunkAdapter;
+        this.sectionY = sectionY;
+
+        // Calc shifted values for inline getter
+        this.shiftedMinX = this.chunk.x << 4;
+        this.shiftedMinY = this.sectionY << 4;
+        this.shiftedMinZ = this.chunk.z << 4;
+    }
 
     private short getIndex( int x, int y, int z ) {
         return (short) ( ( x << 8 ) + ( z << 4 ) + y );
@@ -80,19 +92,21 @@ public class ChunkSlice {
     <T extends io.gomint.world.block.Block> T getBlockInstance( int x, int y, int z, int layer ) {
         short index = getIndex( x, y, z );
 
-        int fullX = CoordinateUtils.getChunkMin( this.chunk.getX() ) + x;
-        int fullY = CoordinateUtils.getChunkMin( this.sectionY ) + y;
-        int fullZ = CoordinateUtils.getChunkMin( this.chunk.getZ() ) + z;
+        Location blockLocation = this.getBlockLocation( x, y, z );
 
         NumberArray blockStorage = this.blocks[layer];
         NibbleArray dataStorage = this.data[layer];
 
         if ( this.isAllAir || blockStorage == null ) {
-            return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, new Location( this.chunk.world, fullX, fullY, fullZ ), layer );
+            return (T) this.chunk.getWorld().getServer().getBlocks().get( 0, (byte) 0, this.skyLight.get( index ), this.blockLight.get( index ), null, blockLocation, layer );
         }
 
         return (T) this.chunk.getWorld().getServer().getBlocks().get( blockStorage.get( index ), dataStorage == null ? 0 : dataStorage.get( index ), this.skyLight.get( index ),
-            this.blockLight.get( index ), this.tileEntities.get( index ), new Location( this.chunk.world, fullX, fullY, fullZ ), layer );
+            this.blockLight.get( index ), this.tileEntities.get( index ), blockLocation, layer );
+    }
+
+    private Location getBlockLocation( int x, int y, int z ) {
+        return new Location( this.chunk.world, this.shiftedMinX + x, this.shiftedMinY + y, this.shiftedMinZ + z );
     }
 
     Collection<TileEntity> getTileEntities() {

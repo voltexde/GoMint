@@ -41,12 +41,12 @@ public class Location extends Vector implements Cloneable {
 
     public Location( World world, float x, float y, float z ) {
         super( x, y, z );
-        this.setWorld( world );
+        this.world = world;
     }
 
     public Location( World world, Vector vector ) {
         super( vector.getX(), vector.getY(), vector.getZ() );
-        this.setWorld( world );
+        this.world = world;
     }
 
     public Location( World world, float x, float y, float z, float yaw, float pitch ) {
