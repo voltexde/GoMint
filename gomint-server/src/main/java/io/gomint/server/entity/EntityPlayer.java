@@ -40,7 +40,7 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
-import io.gomint.server.performance.LoginPerformance;
+import io.gomint.server.maintenance.performance.LoginPerformance;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.util.EnumConnectors;

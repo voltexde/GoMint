@@ -521,7 +521,7 @@ public class ChunkAdapter implements Chunk {
             }
         }
 
-        buffer.writeByte( (byte) 16 );
+        buffer.writeByte( (byte) topEmpty );
         for ( int i = 0; i < topEmpty; i++ ) {
             buffer.writeByte( protocolId == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ? (byte) 8 : (byte) 1 );
             buffer.writeBytes( ensureSlice( i ).getBytes( protocolId ) );
