@@ -374,7 +374,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         String host = args.has( "lh" ) ? (String) args.valueOf( "lh" ) : this.serverConfig.getListener().getIp();
 
         this.networkManager = new NetworkManager( this );
-        if ( !this.initNetworking( host, port ) ) return;
+        if ( !this.initNetworking( host, port ) ) {
+            this.internalShutdown();
+            return;
+        }
+
         setMotd( this.getServerConfig().getMotd() );
 
         // ------------------------------------ //
@@ -561,7 +565,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 this.networkManager.setDumpingEnabled( true );
                 this.networkManager.setDumpDirectory( dumpDirectory );
             }
-        } catch ( SocketException e ) {
+        } catch ( Exception e ) {
             LOGGER.error( "Failed to initialize networking", e );
             return false;
         }

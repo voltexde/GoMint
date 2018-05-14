@@ -11,6 +11,7 @@ import io.gomint.config.Comment;
 import io.gomint.config.YamlConfig;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.List;
  */
 @NoArgsConstructor
 @Getter
+@ToString
 public class ServerConfig extends YamlConfig {
 
     // ------------------------ General
