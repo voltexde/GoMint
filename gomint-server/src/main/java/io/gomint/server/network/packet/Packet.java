@@ -276,21 +276,12 @@ public abstract class Packet {
 
     CommandOrigin readCommandOrigin( PacketBuffer buffer ) {
         // Seems to be 0, request uuid, 0, type (0 for player, 3 for server)
-        if ( buffer.getRemaining() > 3 ) { // 141 / 140 change
-            return new CommandOrigin( buffer.readByte(), buffer.readUUID(), buffer.readByte(), buffer.readByte() );
-        } else {
-            return new CommandOrigin( buffer.readByte(), null, buffer.readByte(), buffer.readByte() );
-        }
+        return new CommandOrigin( buffer.readByte(), buffer.readUUID(), buffer.readByte(), buffer.readByte() );
     }
 
     void writeCommandOrigin( CommandOrigin commandOrigin, PacketBuffer buffer ) {
         buffer.writeByte( commandOrigin.getUnknown1() );
-
-        // 141 / 140 change
-        if ( commandOrigin.getUuid() != null ) {
-            buffer.writeUUID( commandOrigin.getUuid() );
-        }
-
+        buffer.writeUUID( commandOrigin.getUuid() );
         buffer.writeByte( commandOrigin.getUnknown2() );
         buffer.writeByte( commandOrigin.getType() );
     }
