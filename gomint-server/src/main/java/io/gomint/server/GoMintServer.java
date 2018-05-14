@@ -362,6 +362,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
         } catch ( WorldLoadException e ) {
             LOGGER.error( "Failed to load default world", e );
+            this.internalShutdown();
             return;
         }
         // CHECKSTYLE:ON
@@ -467,9 +468,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.worldManager.close();
         }
 
-        int wait = 500;
+        int wait = 50;
         this.executorService.shutdown();
-        while ( !this.executorService.isShutdown() && wait-- > 0 ) {
+        while ( !this.executorService.isTerminated() && wait-- > 0 ) {
             try {
                 this.executorService.awaitTermination( 10, TimeUnit.MILLISECONDS );
             } catch ( InterruptedException e ) {
@@ -477,18 +478,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         }
 
-        if ( !this.executorService.isShutdown() ) {
+        if ( !this.executorService.isTerminated() ) {
             List<Runnable> running = this.executorService.shutdownNow();
             for ( Runnable runnable : running ) {
                 LOGGER.warn( "Runnable " + runnable.getClass().getName() + " has been terminated due to shutdown" );
-            }
-        }
-
-        while ( !this.executorService.isTerminated() ) {
-            try {
-                Thread.sleep( 1 );
-            } catch ( InterruptedException e ) {
-                e.printStackTrace();
             }
         }
 
@@ -510,7 +503,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         LOGGER.info( "Shutdown completed" );
 
-        // Wait up to 5 seconds
+        // Wait up to 10 seconds
         if ( this.announceThreads() ) {
             long start = System.currentTimeMillis();
             while ( ( System.currentTimeMillis() - start ) < TimeUnit.SECONDS.toMillis( 10 ) ) {
