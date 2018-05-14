@@ -81,16 +81,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Check if in hand item is in sync
                 ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
                 ItemStack packetItemInHand = packet.getItemInHand();
-                if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
-                    // For for mojang duplicate interaction bug
-                    if ( connection.getLastInteraction() != null ) {
-                        if ( !checkInteraction( packetItemInHand, connection ) &&
-                            ( connection.getLastInteraction().getAmount() + 1 == packetItemInHand.getAmount() ||
-                                Math.abs( connection.getLastInteraction().getData() - packetItemInHand.getData() ) <= 2 ) ) { // We already removed one but the client sends the old stack from click on block interaction
-                            return;
-                        }
-                    }
-
+                if ( itemInHand.getType() != packetItemInHand.getType() ) {
                     LOGGER.warn( "{} item in hand does not match: {} / {}", connection.getEntity().getName(), itemInHand, packetItemInHand );
                     reset( packet, connection );
                     return;
@@ -107,7 +98,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 // Check item in hand
                 itemInHand = connection.getEntity().getInventory().getItemInHand();
                 packetItemInHand = packet.getItemInHand();
-                if ( !itemInHand.equals( packetItemInHand ) || itemInHand.getAmount() != packetItemInHand.getAmount() ) {
+                if ( itemInHand.getType() != packetItemInHand.getType() ) {
                     LOGGER.warn( "{} item in hand does not match (X): {} / {}", connection.getEntity().getName(), itemInHand, packetItemInHand );
                     reset( packet, connection );
                     return;
