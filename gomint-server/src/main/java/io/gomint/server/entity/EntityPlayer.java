@@ -1597,4 +1597,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
     }
 
+    @Override
+    protected void checkBlockCollisions() {
+        List<io.gomint.world.block.Block> blockList = this.world.getCollisionBlocks( this, true );
+        if ( blockList != null ) {
+            for ( io.gomint.world.block.Block block : blockList ) {
+                io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
+                implBlock.onEntityCollision( this );
+            }
+        }
+    }
 }

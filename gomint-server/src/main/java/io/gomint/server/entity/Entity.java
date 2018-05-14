@@ -267,23 +267,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
 
             // Check for block collision
-            List<io.gomint.world.block.Block> blockList = this.world.getCollisionBlocks( this, true );
-            if ( blockList != null ) {
-                Vector pushedByBlocks = new Vector( 0, 0, 0 );
-
-                for ( io.gomint.world.block.Block block : blockList ) {
-                    io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
-                    implBlock.onEntityCollision( this );
-                    implBlock.addVelocity( this, pushedByBlocks );
-                }
-
-                if ( pushedByBlocks.length() > 0 ) {
-                    pushedByBlocks.normalize().multiply( 0.014f );
-                    Vector newMotion = this.transform.getMotion().add( pushedByBlocks );
-                    this.transform.setMotion( newMotion.getX(), newMotion.getY(), newMotion.getZ() );
-                    this.broadCastMotion();
-                }
-            }
+            this.checkBlockCollisions();
 
             // Check for void damage
             if ( this.getPositionY() < -16.0f ) {
@@ -305,6 +289,26 @@ public abstract class Entity implements io.gomint.entity.Entity {
             );
 
             this.transform.move( 0, 0, 0 );
+        }
+    }
+
+    protected void checkBlockCollisions() {
+        List<io.gomint.world.block.Block> blockList = this.world.getCollisionBlocks( this, true );
+        if ( blockList != null ) {
+            Vector pushedByBlocks = new Vector( 0, 0, 0 );
+
+            for ( io.gomint.world.block.Block block : blockList ) {
+                io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
+                implBlock.onEntityCollision( this );
+                implBlock.addVelocity( this, pushedByBlocks );
+            }
+
+            if ( pushedByBlocks.length() > 0 ) {
+                pushedByBlocks.normalize().multiply( 0.014f );
+                Vector newMotion = this.transform.getMotion().add( pushedByBlocks );
+                this.transform.setMotion( newMotion.getX(), newMotion.getY(), newMotion.getZ() );
+                this.broadCastMotion();
+            }
         }
     }
 
