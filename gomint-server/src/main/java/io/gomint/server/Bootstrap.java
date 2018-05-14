@@ -8,10 +8,10 @@
 package io.gomint.server;
 
 import io.gomint.server.maintenance.ReportUploader;
-import io.gomint.server.network.Protocol;
-import io.gomint.server.world.BlockRuntimeIDs;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,10 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
-        BlockRuntimeIDs.fromLegacy( 0, (byte) 0, Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION );
+        // Setup additional debug
+        if ( "true".equals( System.getProperty( "gomint.debug_events" ) ) ) {
+            Configurator.setLevel( "io.gomint.server.event.EventHandlerList", Level.DEBUG );
+        }
 
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
