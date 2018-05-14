@@ -1,26 +1,24 @@
 package io.gomint.server.world.block;
 
+import io.gomint.entity.Entity;
 import io.gomint.event.world.BlockPlaceEvent;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
-import io.gomint.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.registry.Registry;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.block.generator.BlockGenerator;
+import io.gomint.server.world.block.generator.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
-
-import io.gomint.server.world.block.generator.*;
 
 /**
  * @author geNAZt
@@ -39,7 +37,7 @@ public class Blocks {
      */
     public Blocks( GoMintServer server ) {
         this.generators = new Registry<>( server, clazz -> {
-            System.out.println( "this.generators.register( " + clazz.getSimpleName() + ".class, new " + clazz.getSimpleName() + "Generator() );");
+            System.out.println( "this.generators.register( " + clazz.getSimpleName() + ".class, new " + clazz.getSimpleName() + "Generator() );" );
 
             try {
                 // Use the same code source as the Gomint JAR
@@ -289,7 +287,7 @@ public class Blocks {
     }
 
     public <T extends Block> T get( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel,
-                                           TileEntity tileEntity, Location location, int layer ) {
+                                    TileEntity tileEntity, Location location, int layer ) {
         BlockGenerator instance = this.generators.getGenerator( blockId );
         if ( instance != null ) {
             if ( location == null ) {
@@ -342,10 +340,13 @@ public class Blocks {
         }
 
         WorldAdapter adapter = (WorldAdapter) block.location.getWorld();
+        PlacementData data = newBlock.calculatePlacementData( entity, item, clickVector );
 
         // Check only solid blocks for bounding box intersects
         if ( newBlock.isSolid() ) {
             newBlock.setLocation( block.location ); // Temp setting, needed for getting bounding boxes
+            newBlock.setBlockData( data.getMetaData() );
+            newBlock.generateBlockStates();
 
             for ( AxisAlignedBB bb : newBlock.getBoundingBox() ) {
                 // Check other entities in the bounding box
@@ -364,7 +365,7 @@ public class Blocks {
             return false;
         }
 
-        PlacementData data = newBlock.calculatePlacementData( entity, item, clickVector );
+
         block = block.setBlockFromPlacementData( data );
         block.afterPlacement( data );
         return true;
