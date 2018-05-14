@@ -92,7 +92,8 @@ public class ChunkAdapter implements Chunk {
     protected Queue<PostProcessor> postProcessors = new LinkedList<>();
 
     // State saving flag
-    @Getter private boolean needsPersistance;
+    @Getter
+    private boolean needsPersistance;
 
     // CHECKSTYLE:ON
 
@@ -102,51 +103,60 @@ public class ChunkAdapter implements Chunk {
      * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
      * @param dT            The delta from the full second which has been calculated in the last tick
      */
-    public void tickRandomBlocks( long currentTimeMS, float dT ) {
+    final void tickRandomBlocks( long currentTimeMS, float dT ) {
         for ( ChunkSlice chunkSlice : this.chunkSlices ) {
-            // When we hit a nulled slice there is only air left
-            if ( chunkSlice == null ) {
+            if ( chunkSlice != null && !chunkSlice.isAllAir() ) {
+                this.tickRandomBlocksForSlice( chunkSlice, currentTimeMS, dT );
+            }
+        }
+    }
+
+    private void tickRandomBlocksForSlice( ChunkSlice chunkSlice, long currentTimeMS, float dT ) {
+        int blockHash = this.getRandomBlockHash();
+        this.iterateRandomBlocks( chunkSlice, currentTimeMS, dT, blockHash, 0, this.world.getConfig().getRandomUpdatesPerTick() );
+    }
+
+    private void iterateRandomBlocks( ChunkSlice chunkSlice, long currentTimeMS, float dT, int blockHash, int i, int randomUpdatesPerTick ) {
+        if ( i < randomUpdatesPerTick ) {
+            blockHash >>= 10;
+            int index = blockHash & 0xfff;
+            int blockId = chunkSlice.getBlockInternal( 0, index );
+            this.tickRandomBlock( blockHash, blockId, chunkSlice, currentTimeMS, dT );
+            this.iterateRandomBlocks( chunkSlice, currentTimeMS, dT, blockHash, i + 1, randomUpdatesPerTick );
+        }
+    }
+
+    private void tickRandomBlock( int blockHash, int blockId, ChunkSlice chunkSlice, long currentTimeMS, float dT ) {
+        switch ( blockId ) {
+            case 244:           // Beetroot
+            case 2:             // Grass
+            case 60:            // Farmland
+            case 110:           // Mycelium
+            case 6:             // Sapling
+            case 16:            // Leaves
+            case 161:           // Acacia leaves
+            case 78:            // Top snow
+            case 79:            // Ice
+                this.updateRandomBlock( chunkSlice, blockHash, currentTimeMS, dT );
                 break;
-            }
 
-            // Skip for only air chunk slices
-            if ( chunkSlice.isAllAir() ) {
-                continue;
-            }
+            default:
+                break;
+        }
+    }
 
-            int blockHash = this.getRandomBlockHash();
-            for ( int i = 0; i < this.world.getConfig().getRandomUpdatesPerTick(); ++i, blockHash >>= 10 ) {
-                int index = blockHash & 0xfff;
-                int blockId = chunkSlice.getBlockInternal( 0, index );
-                switch ( blockId ) {
-                    case 244:           // Beetroot
-                    case 2:             // Grass
-                    case 60:            // Farmland
-                    case 110:           // Mycelium
-                    case 6:             // Sapling
-                    case 16:            // Leaves
-                    case 161:           // Acacia leaves
-                    case 78:            // Top snow
-                    case 79:            // Ice
-                        int blockX = ( blockHash >> 8 ) & 0x0f;
-                        int blockY = ( blockHash ) & 0x0f;
-                        int blockZ = ( blockHash >> 4 ) & 0x0f;
+    private void updateRandomBlock( ChunkSlice chunkSlice, int blockHash, long currentTimeMS, float dT ) {
+        int blockX = ( blockHash >> 8 ) & 0x0f;
+        int blockY = ( blockHash ) & 0x0f;
+        int blockZ = ( blockHash >> 4 ) & 0x0f;
 
-                        Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ, 0 );
-                        if ( block instanceof io.gomint.server.world.block.Block ) {
-                            long next = ( (io.gomint.server.world.block.Block) block )
-                                .update( UpdateReason.RANDOM, currentTimeMS, dT );
+        Block block = chunkSlice.getBlockInstance( blockX, blockY, blockZ, 0 );
+        if ( block instanceof io.gomint.server.world.block.Block ) {
+            long next = ( (io.gomint.server.world.block.Block) block )
+                .update( UpdateReason.RANDOM, currentTimeMS, dT );
 
-                            if ( next > currentTimeMS ) {
-                                this.world.addTickingBlock( next, block.getLocation().toBlockPosition() );
-                            }
-                        }
-
-                        break;
-
-                    default:
-                        break;
-                }
+            if ( next > currentTimeMS ) {
+                this.world.addTickingBlock( next, block.getLocation().toBlockPosition() );
             }
         }
     }

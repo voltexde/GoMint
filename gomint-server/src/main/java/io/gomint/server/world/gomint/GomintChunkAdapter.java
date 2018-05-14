@@ -102,7 +102,7 @@ public class GomintChunkAdapter extends ChunkAdapter {
                         out.writeInt( nbtData.length );
                         out.write( nbtData );
                     } else {
-                        out.writeInt( 0 );
+                       out.writeInt( 0 );
                     }
                 }
             }

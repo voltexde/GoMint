@@ -6,7 +6,6 @@ import io.gomint.math.MathUtils;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.util.Palette;
-import io.gomint.server.util.collection.NumberArray;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.world.block.Block;
 import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
@@ -14,7 +13,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 
@@ -24,8 +22,10 @@ import java.util.Collection;
  */
 public class ChunkSlice {
 
-    @Getter private final ChunkAdapter chunk;
-    @Getter private final int sectionY;
+    @Getter
+    private final ChunkAdapter chunk;
+    @Getter
+    private final int sectionY;
 
     // Cache
     private int shiftedMinX;
@@ -34,7 +34,7 @@ public class ChunkSlice {
 
     private boolean isAllAir = true;
 
-    private NumberArray[] blocks = new NumberArray[2]; // MC currently supports two layers, we init them as we need
+    private short[][] blocks = new short[2][]; // MC currently supports two layers, we init them as we need
     private NibbleArray[] data = new NibbleArray[2]; // MC currently supports two layers, we init them as we need
 
     private NibbleArray blockLight = new NibbleArray( (short) 4096 );
@@ -82,12 +82,12 @@ public class ChunkSlice {
             return 0;
         }
 
-        NumberArray blockStorage = this.blocks[layer];
+        short[] blockStorage = this.blocks[layer];
         if ( blockStorage == null ) {
             return 0;
         }
 
-        return blockStorage.get( index );
+        return blockStorage[index];
     }
 
     <T extends io.gomint.world.block.Block> T getBlockInstance( int x, int y, int z, int layer ) {
@@ -95,14 +95,14 @@ public class ChunkSlice {
 
         Location blockLocation = this.getBlockLocation( x, y, z );
 
-        NumberArray blockStorage = this.blocks[layer];
+        short[] blockStorage = this.blocks[layer];
         NibbleArray dataStorage = this.data[layer];
 
         if ( this.isAllAir || blockStorage == null ) {
             return this.getAirBlockInstance( blockLocation );
         }
 
-        return (T) this.chunk.getWorld().getServer().getBlocks().get( blockStorage.get( index ), dataStorage == null ? 0 : dataStorage.get( index ), this.skyLight.get( index ),
+        return (T) this.chunk.getWorld().getServer().getBlocks().get( blockStorage[index], dataStorage == null ? 0 : dataStorage.get( index ), this.skyLight.get( index ),
             this.blockLight.get( index ), this.tileEntities.get( index ), blockLocation, layer );
     }
 
@@ -133,12 +133,12 @@ public class ChunkSlice {
 
     public void setBlockInternal( short index, int layer, int blockId ) {
         if ( blockId != 0 && this.blocks[layer] == null ) {
-            this.blocks[layer] = new NumberArray();
+            this.blocks[layer] = new short[4096];
             this.isAllAir = false;
         }
 
         if ( this.blocks[layer] != null ) {
-            this.blocks[layer].add( index, blockId );
+            this.blocks[layer][index] = (short) blockId;
         }
     }
 
@@ -202,7 +202,7 @@ public class ChunkSlice {
                 for ( int z = 0; z < 16; z++ ) {
                     for ( int y = 0; y < 16; y++ ) {
                         short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
-                        int blockId = this.blocks[i] == null ? 0 : this.blocks[i].get( blockIndex );
+                        int blockId = this.blocks[i] == null ? 0 : this.blocks[i][blockIndex];
                         byte blockData = this.data[i] == null ? 0 : this.data[i].get( blockIndex );
 
                         long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
