@@ -222,17 +222,27 @@ public abstract class WorldAdapter implements World {
      * @param extraData any data which should be send to the client to identify the sound
      */
     public void playSound( EntityPlayer player, Vector vector, Sound sound, byte pitch, int extraData ) {
-        PacketWorldSoundEvent soundPacket = new PacketWorldSoundEvent();
-        soundPacket.setType( EnumConnectors.SOUND_CONNECTOR.convert( sound ) );
-        soundPacket.setPitch( pitch );
-        soundPacket.setExtraData( extraData );
-        soundPacket.setPosition( vector );
+        // There are sounds which don't work but have level event counterparts so we use them for now
+        switch ( sound ) {
+            case IMITATE_GHAST:
+                this.sendLevelEvent( player, vector, LevelEvent.SOUND_GHAST, pitch );
 
-        if ( player == null ) {
-            sendToVisible( vector.toBlockPosition(), soundPacket, entity -> true );
-        } else {
-            io.gomint.server.entity.EntityPlayer implPlayer = (io.gomint.server.entity.EntityPlayer) player;
-            implPlayer.getConnection().addToSendQueue( soundPacket );
+                break;
+            default:
+                PacketWorldSoundEvent soundPacket = new PacketWorldSoundEvent();
+                soundPacket.setType( EnumConnectors.SOUND_CONNECTOR.convert( sound ) );
+                soundPacket.setPitch( pitch );
+                soundPacket.setExtraData( extraData );
+                soundPacket.setPosition( vector );
+
+                if ( player == null ) {
+                    sendToVisible( vector.toBlockPosition(), soundPacket, entity -> true );
+                } else {
+                    io.gomint.server.entity.EntityPlayer implPlayer = (io.gomint.server.entity.EntityPlayer) player;
+                    implPlayer.getConnection().addToSendQueue( soundPacket );
+                }
+
+                break;
         }
     }
 
