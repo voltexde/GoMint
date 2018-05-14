@@ -9,6 +9,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.registry.Registry;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.WorldAdapter;
@@ -17,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+
 import io.gomint.server.world.block.generator.*;
 
 /**
@@ -26,6 +29,7 @@ import io.gomint.server.world.block.generator.*;
 public class Blocks {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Blocks.class );
+    private static long lastReport = 0;
     private final Registry<BlockGenerator> generators;
 
     /**
@@ -293,6 +297,12 @@ public class Blocks {
             }
 
             return instance.generate( blockId, blockData, skyLightLevel, blockLightLevel, tileEntity, location, layer );
+        }
+
+        // Don't spam the report server pls
+        if ( System.currentTimeMillis() - lastReport > TimeUnit.SECONDS.toSeconds( 10 ) ) {
+            ReportUploader.create().includeWorlds().property( "missing_block", String.valueOf( blockId ) ).upload();
+            lastReport = System.currentTimeMillis();
         }
 
         LOGGER.warn( "Unknown block {}", blockId );

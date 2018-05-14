@@ -69,6 +69,9 @@ public class ServerConfig extends YamlConfig {
     @Comment( "Amount of Ticks per second which should be used to drive this server. 20 TPS is recommended for normal Servers. If you want PvP or Minigames you can set it higher but be sure to disable entities to have a stable TPS." )
     private int targetTPS = 20;
 
+    @Comment( "Gomint has a automatic report system for bugs. This system collects data like player names and world names, cpu information and memory usage. You can disable collecting this data with this config")
+    private boolean disableGomintReports = false;
+
     @Comment( "Control whether we want to load chunks when entities step over borders or not." )
     private boolean loadChunksForEntities = true;
 

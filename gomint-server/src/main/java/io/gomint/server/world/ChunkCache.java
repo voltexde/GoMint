@@ -272,4 +272,8 @@ public class ChunkCache {
         }
     }
 
+    public int size() {
+        return this.cachedChunks.size();
+    }
+
 }

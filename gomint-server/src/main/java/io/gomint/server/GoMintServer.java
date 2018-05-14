@@ -32,6 +32,7 @@ import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.logging.TerminalConsoleAppender;
+import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
@@ -131,6 +132,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Getter
     private Effects effects;
 
+    private String gitHash;
+
     /**
      * Starts the GoMint server
      *
@@ -159,14 +162,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
             // Ignored .-.
         }
 
+        this.gitHash = buildVersion;
+
         LOGGER.info( "Starting {} {}", getVersion(), buildVersion );
         Thread.currentThread().setName( "GoMint Main Thread" );
-
-        /*try {
-            this.classPath = ClassPath.from( ClassLoader.getSystemClassLoader() );
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }*/ // TODO: Enable when adding new registry values
 
         // ------------------------------------ //
         // Executor Initialization
@@ -669,7 +668,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
      * @return the version of gomint
      */
     public String getVersion() {
-        return "GoMint 1.0.0 (MC:PE " + Protocol.MINECRAFT_PE_NETWORK_VERSION + ")";
+        return "GoMint 1.0.0 (MC:PE " + Protocol.MINECRAFT_PE_NETWORK_VERSION + ") - " + this.gitHash;
     }
 
     /**

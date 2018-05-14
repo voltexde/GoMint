@@ -1338,4 +1338,8 @@ public abstract class WorldAdapter implements World {
         chunk.flagNeedsPersistance();
     }
 
+    public ChunkCache getChunkCache() {
+        return this.chunkCache;
+    }
+
 }

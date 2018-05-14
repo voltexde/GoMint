@@ -7,6 +7,7 @@
 
 package io.gomint.server;
 
+import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.world.BlockRuntimeIDs;
 import joptsimple.OptionParser;
@@ -99,6 +100,7 @@ public class Bootstrap {
             Constructor constructor = coreClass.getDeclaredConstructor( OptionSet.class );
             constructor.newInstance( new Object[]{ options } );
         } catch ( Throwable t ) {
+            ReportUploader.create().exception( t ).property( "crash", "true" ).upload();
             LOGGER.error( "GoMint crashed: ", t );
         }
     }
