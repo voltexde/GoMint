@@ -246,8 +246,8 @@ public class PlayerConnection {
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
             // Check if we need to send chunks
             if ( this.entity != null && !this.entity.getChunkSendQueue().isEmpty() ) {
-                int maximumInClientTick = 4;    // Everything oer this seems to cause issues in all clients like not displaying
-                int currentChunks = 0;          // the chunks correctly or even crashing the client
+                int maximumInClientTick = this.server.getServerConfig().getSendChunksPerTick();
+                int currentChunks = 0;
 
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );
                 int currentZ = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionZ() );

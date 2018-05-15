@@ -470,12 +470,15 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
     }
 
     private void reset( PacketInventoryTransaction packet, PlayerConnection connection ) {
-        // Reset item in hand
-        PacketInventorySetSlot packetInventorySetSlot = new PacketInventorySetSlot();
-        packetInventorySetSlot.setWindowId( WindowMagicNumbers.PLAYER.getId() );
-        packetInventorySetSlot.setSlot( connection.getEntity().getInventory().getItemInHandSlot() );
-        packetInventorySetSlot.setItemStack( connection.getEntity().getInventory().getItemInHand() );
-        connection.addToSendQueue( packetInventorySetSlot );
+        // Reset whole inventory
+        connection.getEntity().getInventory().sendContents( connection );
+        connection.getEntity().getOffhandInventory().sendContents( connection );
+        connection.getEntity().getArmorInventory().sendContents( connection );
+
+        // Does the viewer currently see any additional inventory?
+        for ( ContainerInventory inventory : connection.getEntity().getOpenInventories() ) {
+            inventory.sendContents( connection );
+        }
 
         // Now check if we need to reset blocks
         if ( packet.getBlockPosition() != null ) {

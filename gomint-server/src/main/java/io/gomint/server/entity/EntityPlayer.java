@@ -1607,4 +1607,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             }
         }
     }
+
+    public Collection<ContainerInventory> getOpenInventories() {
+        return this.windowIds.values();
+    }
+
 }
