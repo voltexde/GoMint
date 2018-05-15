@@ -303,7 +303,7 @@ public class Blocks {
             lastReport = System.currentTimeMillis();
         }
 
-        LOGGER.warn( "Unknown block {}", blockId );
+        LOGGER.warn( "Unknown block {} @ {}", blockId, location );
         return null;
     }
 
