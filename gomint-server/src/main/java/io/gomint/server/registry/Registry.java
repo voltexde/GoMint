@@ -146,6 +146,23 @@ public class Registry<R> {
             }
 
             this.apiReferences.put( clazz, id );
+        } else {
+            RegisterInfos infos = clazz.getAnnotation( RegisterInfos.class );
+            int lastId = -1;
+            for ( RegisterInfo info : infos.value() ) {
+                int id = info.id();
+                this.storeGeneratorForId( id, generator );
+                lastId = id;
+            }
+
+            if ( lastId > -1 ) {
+                // Check for API interfaces
+                for ( Class<?> apiInter : clazz.getInterfaces() ) {
+                    this.apiReferences.put( apiInter, lastId );
+                }
+
+                this.apiReferences.put( clazz, lastId );
+            }
         }
     }
 
