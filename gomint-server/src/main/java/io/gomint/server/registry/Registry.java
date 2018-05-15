@@ -121,8 +121,12 @@ public class Registry<R> {
     }
 
     public final R getGenerator( int id ) {
-        if ( id < 0 ) return this.negativeGenerators[id * -1];
-        return this.generators[id];
+        if ( id < 0 ) {
+            id *= -1;
+            return this.negativeGenerators.length < id ? null : this.negativeGenerators[id];
+        }
+
+        return this.generators.length < id ? null : this.generators[id];
     }
 
     public int getId( Class<?> clazz ) {
