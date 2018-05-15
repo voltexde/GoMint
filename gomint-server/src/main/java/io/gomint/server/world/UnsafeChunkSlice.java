@@ -45,7 +45,8 @@ public class UnsafeChunkSlice extends ChunkSlice {
 
     public void setBlockInternal( short index, int layer, int blockId ) {
         if ( blockId != 0 && this.blockStorages[layer] == 0 ) {
-            this.blockStorages[layer] = unsafe.allocateMemory( 4096 * 2 ); // we store 4096 shorts
+            this.blockStorages[layer] = unsafe.allocateMemory( 8192L ); // we store 4096 shorts
+            unsafe.setMemory( this.blockStorages[layer], 8192L, (byte) 0 );
             this.isAllAir = false;
         }
 
@@ -57,7 +58,5 @@ public class UnsafeChunkSlice extends ChunkSlice {
     protected int getAmountOfLayers() {
         return this.blockStorages[1] != 0 ? 2 : 1;
     }
-
-
 
 }

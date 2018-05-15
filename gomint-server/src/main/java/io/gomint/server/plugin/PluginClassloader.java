@@ -33,7 +33,7 @@ public class PluginClassloader extends URLClassLoader {
             try {
                 return loader.loadClass( name, true );
             } catch ( ClassNotFoundException e ) {
-                LOGGER.info( "Could not find class in plugin", e );
+                LOGGER.info( "Could not find class in plugin" );
             }
         }
 
