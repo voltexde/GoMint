@@ -1,7 +1,11 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.state.BooleanBlockState;
 import io.gomint.server.world.block.state.FacingBlockState;
 import io.gomint.world.block.BlockType;
@@ -30,6 +34,11 @@ public class Trapdoor extends Block implements io.gomint.world.block.BlockTrapdo
 
         // Open
         this.opened.fromData( (byte) ( ( this.getBlockData() >> 3 ) & 0x01 ) );
+    }
+
+    @Override
+    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
+        return super.calculatePlacementData( entity, item, clickVector );
     }
 
     @Override

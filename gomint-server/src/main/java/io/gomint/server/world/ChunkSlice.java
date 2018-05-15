@@ -32,7 +32,7 @@ public class ChunkSlice {
     private int shiftedMinY;
     private int shiftedMinZ;
 
-    private boolean isAllAir = true;
+    protected boolean isAllAir = true;
 
     private short[][] blocks = new short[2][]; // MC currently supports two layers, we init them as we need
     private NibbleArray[] data = new NibbleArray[2]; // MC currently supports two layers, we init them as we need
@@ -94,15 +94,14 @@ public class ChunkSlice {
         short index = getIndex( x, y, z );
 
         Location blockLocation = this.getBlockLocation( x, y, z );
-
-        short[] blockStorage = this.blocks[layer];
         NibbleArray dataStorage = this.data[layer];
 
-        if ( this.isAllAir || blockStorage == null ) {
+        int blockId = this.getBlockInternal( layer, index );
+        if ( this.isAllAir || blockId == 0 ) {
             return this.getAirBlockInstance( blockLocation );
         }
 
-        return (T) this.chunk.getWorld().getServer().getBlocks().get( blockStorage[index], dataStorage == null ? 0 : dataStorage.get( index ), this.skyLight.get( index ),
+        return (T) this.chunk.getWorld().getServer().getBlocks().get( blockId, dataStorage == null ? 0 : dataStorage.get( index ), this.skyLight.get( index ),
             this.blockLight.get( index ), this.tileEntities.get( index ), blockLocation, layer );
     }
 
@@ -182,7 +181,7 @@ public class ChunkSlice {
         boolean isBeta = protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION;
         int amountOfLayers = 1;
         if ( isBeta ) {
-            amountOfLayers = this.blocks[1] != null ? 2 : 1;
+            amountOfLayers = this.getAmountOfLayers();
         }
 
         PacketBuffer buffer = new PacketBuffer( Short.MAX_VALUE );
@@ -202,7 +201,7 @@ public class ChunkSlice {
                 for ( int z = 0; z < 16; z++ ) {
                     for ( int y = 0; y < 16; y++ ) {
                         short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
-                        int blockId = this.blocks[i] == null ? 0 : this.blocks[i][blockIndex];
+                        int blockId = this.getBlockInternal( i, blockIndex );
                         byte blockData = this.data[i] == null ? 0 : this.data[i].get( blockIndex );
 
                         long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
@@ -252,6 +251,10 @@ public class ChunkSlice {
         byte[] outputData = new byte[buffer.getPosition()];
         System.arraycopy( buffer.getBuffer(), buffer.getBufferOffset(), outputData, 0, buffer.getPosition() );
         return outputData;
+    }
+
+    protected int getAmountOfLayers() {
+        return this.blocks[1] != null ? 2 : 1;
     }
 
     private int log2( int n ) {

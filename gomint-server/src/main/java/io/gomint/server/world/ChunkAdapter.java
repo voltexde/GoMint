@@ -17,6 +17,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketWorldChunk;
+import io.gomint.server.util.PerformanceHacks;
 import io.gomint.server.world.postprocessor.PostProcessor;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
@@ -171,7 +172,7 @@ public class ChunkAdapter implements Chunk {
         if ( slice != null ) {
             return slice;
         } else {
-            this.chunkSlices[y] = new ChunkSlice( this, y );
+            this.chunkSlices[y] = PerformanceHacks.isUnsafeEnabled() ? new UnsafeChunkSlice( this, y ) : new ChunkSlice( this, y );
             return this.chunkSlices[y];
         }
     }
