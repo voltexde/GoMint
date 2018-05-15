@@ -12,15 +12,14 @@ import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.ContainerInventory;
 import io.gomint.server.inventory.Inventory;
-import io.gomint.server.inventory.WindowMagicNumbers;
 import io.gomint.server.inventory.item.ItemBow;
 import io.gomint.server.inventory.item.category.ItemConsumable;
 import io.gomint.server.inventory.transaction.DropItemTransaction;
 import io.gomint.server.inventory.transaction.InventoryTransaction;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.packet.PacketInventorySetSlot;
 import io.gomint.server.network.packet.PacketInventoryTransaction;
+import io.gomint.server.world.block.Block;
 import io.gomint.world.Gamemode;
 import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.BlockFace;
@@ -61,7 +60,8 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 double distance = packetPosition.distanceSquared( playerPosition );
                 double offsetLimit = 0.5;
                 if ( distance > offsetLimit ) {
-                    LOGGER.warn( "Mismatching position: {} -> {}", distance, playerPosition );
+                    Block block = connection.getEntity().getWorld().getBlockAt( playerPosition.toBlockPosition() );
+                    LOGGER.warn( "Mismatching position: {} -> {} / {}", distance, playerPosition, block.getClass().getSimpleName() );
                     reset( packet, connection );
                     return;
                 }
