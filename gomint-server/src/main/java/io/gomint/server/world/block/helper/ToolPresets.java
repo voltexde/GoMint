@@ -32,4 +32,11 @@ public class ToolPresets {
         ItemStoneShovel.class
     };
 
+    public static final Class[] SWORD = new Class[]{
+        ItemDiamondSword.class,
+        ItemIronSword.class,
+        ItemGoldenSword.class,
+        ItemStoneSword.class,
+        ItemWoodenSword.class
+    };
 }
