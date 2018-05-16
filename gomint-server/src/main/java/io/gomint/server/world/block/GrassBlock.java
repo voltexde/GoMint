@@ -1,6 +1,7 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemDirt;
+import io.gomint.inventory.item.ItemShears;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.world.block.BlockType;
 
@@ -60,5 +61,12 @@ public class GrassBlock extends Block implements io.gomint.world.block.BlockGras
         return new ArrayList<ItemStack>(){{
             add( ItemDirt.create( 1 ) );
         }};
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return new Class[]{
+            ItemShears.class
+        };
     }
 }

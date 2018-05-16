@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.*;
@@ -29,15 +30,8 @@ public class Sand extends Block implements io.gomint.world.block.BlockSand {
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[] {
-            ItemIronShovel.class,
-            ItemWoodenShovel.class,
-            ItemDiamondShovel.class,
-            ItemGoldenShovel.class,
-            ItemStoneShovel.class
-        };
+        return ToolPresets.SHOVEL;
     }
-
     @Override
     public float getBlastResistance() {
         return 2.5f;

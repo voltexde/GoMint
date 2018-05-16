@@ -1,6 +1,7 @@
 package io.gomint.server.world.block;
 
 import io.gomint.server.entity.Entity;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.*;
@@ -39,13 +40,7 @@ public class Cobweb extends Block implements BlockCobweb {
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemDiamondSword.class,
-            ItemStoneSword.class,
-            ItemGoldenSword.class,
-            ItemIronSword.class,
-            ItemWoodenSword.class,
-        };
+        return ToolPresets.SWORD;
     }
 
     @Override

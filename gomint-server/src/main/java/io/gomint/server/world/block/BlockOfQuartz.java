@@ -7,6 +7,7 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.inventory.item.ItemStonePickaxe;
 import io.gomint.inventory.item.ItemWoodenPickaxe;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import java.util.ArrayList;
@@ -79,13 +80,7 @@ public class BlockOfQuartz extends Block implements io.gomint.world.block.BlockB
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemWoodenPickaxe.class,
-            ItemStonePickaxe.class,
-            ItemGoldenPickaxe.class,
-            ItemIronPickaxe.class,
-            ItemDiamondPickaxe.class,
-        };
+        return ToolPresets.PICKAXE;
     }
 
     @Override

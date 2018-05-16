@@ -1,7 +1,9 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.tileentity.DispenserTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockType;
 
@@ -47,6 +49,11 @@ public class Dispenser extends Block implements io.gomint.world.block.BlockDispe
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         return new DispenserTileEntity( null, this.location );
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.PICKAXE;
     }
 
 }

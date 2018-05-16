@@ -7,7 +7,9 @@
 
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 /**
@@ -40,6 +42,11 @@ public class ConcretePowder extends Block implements io.gomint.world.block.Block
     @Override
     public BlockType getType() {
         return BlockType.CONCRETE_POWDER;
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.PICKAXE;
     }
 
 }

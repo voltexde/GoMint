@@ -7,13 +7,9 @@
 
 package io.gomint.server.world.block;
 
-import io.gomint.inventory.item.ItemDiamondAxe;
-import io.gomint.inventory.item.ItemGoldenAxe;
-import io.gomint.inventory.item.ItemIronAxe;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.inventory.item.ItemStoneAxe;
-import io.gomint.inventory.item.ItemWoodenAxe;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 import io.gomint.world.block.BlockWoodenDoor;
 
@@ -34,13 +30,7 @@ public class WoodenDoor extends Door implements BlockWoodenDoor {
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemWoodenAxe.class,
-            ItemIronAxe.class,
-            ItemDiamondAxe.class,
-            ItemGoldenAxe.class,
-            ItemStoneAxe.class
-        };
+        return ToolPresets.AXE;
     }
 
     @Override

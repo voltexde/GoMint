@@ -6,6 +6,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.PlacementData;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.server.world.block.state.BooleanBlockState;
 import io.gomint.server.world.block.state.FacingBlockState;
 import io.gomint.world.block.BlockType;
@@ -155,4 +156,8 @@ public class Trapdoor extends Block implements io.gomint.world.block.BlockTrapdo
         return Collections.singletonList( bb );
     }
 
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.AXE;
+    }
 }

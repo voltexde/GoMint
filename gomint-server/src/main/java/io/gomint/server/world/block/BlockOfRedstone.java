@@ -2,6 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import java.util.ArrayList;
@@ -36,13 +37,7 @@ public class BlockOfRedstone extends Block implements io.gomint.world.block.Bloc
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemWoodenPickaxe.class,
-            ItemStonePickaxe.class,
-            ItemGoldenPickaxe.class,
-            ItemIronPickaxe.class,
-            ItemDiamondPickaxe.class,
-        };
+        return ToolPresets.PICKAXE;
     }
 
     @Override

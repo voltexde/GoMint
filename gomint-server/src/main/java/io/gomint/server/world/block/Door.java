@@ -7,6 +7,7 @@ import io.gomint.math.Vector;
 import io.gomint.math.Vector2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.world.PlacementData;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.BlockFace;
 
@@ -120,5 +121,10 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
 
         Block above = this.location.getWorld().getBlockAt( this.location.toBlockPosition().add( BlockPosition.UP ) );
         above.setBlockFromPlacementData( data );
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.AXE;
     }
 }
