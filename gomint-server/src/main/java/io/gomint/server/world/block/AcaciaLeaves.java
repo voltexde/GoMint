@@ -1,8 +1,8 @@
 package io.gomint.server.world.block;
 
-import io.gomint.world.block.BlockType;
-
+import io.gomint.inventory.item.*;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.world.block.BlockType;
 
 /**
  * @author geNAZt
@@ -41,4 +41,10 @@ public class AcaciaLeaves extends Block implements io.gomint.world.block.BlockAc
         return BlockType.ACACIA_LEAVES;
     }
 
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return new Class[]{
+            ItemShears.class
+        };
+    }
 }

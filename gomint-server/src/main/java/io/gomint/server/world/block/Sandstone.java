@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.*;
@@ -24,13 +25,7 @@ public class Sandstone extends Block implements io.gomint.world.block.BlockSands
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemWoodenPickaxe.class,
-            ItemStonePickaxe.class,
-            ItemGoldenPickaxe.class,
-            ItemIronPickaxe.class,
-            ItemDiamondPickaxe.class
-        };
+        return ToolPresets.PICKAXE;
     }
 
     @Override

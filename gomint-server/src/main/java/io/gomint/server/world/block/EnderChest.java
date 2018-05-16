@@ -2,6 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.Inventory;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
@@ -76,4 +77,8 @@ public class EnderChest extends ContainerBlock implements io.gomint.world.block.
         return chestTileEntity.getInventory();
     }
 
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.PICKAXE;
+    }
 }

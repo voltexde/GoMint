@@ -1,5 +1,7 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.registry.RegisterInfo;
@@ -40,5 +42,11 @@ public class RedSandstoneSlab extends Block implements io.gomint.world.block.Blo
     public boolean canBeBrokenWithHand() {
         return true;
     }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.PICKAXE;
+    }
+
 
 }

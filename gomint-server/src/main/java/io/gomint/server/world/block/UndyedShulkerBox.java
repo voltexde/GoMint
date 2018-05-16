@@ -13,6 +13,7 @@ import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.ShulkerBoxTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
@@ -41,13 +42,7 @@ public class UndyedShulkerBox extends Block implements BlockUndyedShulkerBox {
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemWoodenPickaxe.class,
-            ItemStonePickaxe.class,
-            ItemGoldenPickaxe.class,
-            ItemIronPickaxe.class,
-            ItemDiamondPickaxe.class
-        };
+        return ToolPresets.PICKAXE;
     }
 
     @Override

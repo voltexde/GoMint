@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.*;
@@ -34,13 +35,7 @@ public class ChorusPlant extends Block implements io.gomint.world.block.BlockCho
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemWoodenAxe.class,
-            ItemStoneAxe.class,
-            ItemGoldenAxe.class,
-            ItemIronAxe.class,
-            ItemDiamondAxe.class
-        };
+        return ToolPresets.AXE;
     }
 
     @Override

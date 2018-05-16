@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
@@ -58,6 +59,11 @@ public class NoteBlock extends Block implements BlockNoteblock {
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.PICKAXE;
     }
 
 }
