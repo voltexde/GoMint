@@ -32,7 +32,6 @@ import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.logging.TerminalConsoleAppender;
-import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
@@ -57,7 +56,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.SocketException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
@@ -206,9 +204,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 t.printStackTrace();
             }
         } ) );
-        registryLoader.add( this.executorService.submit( () ->
-
-        {
+        registryLoader.add( this.executorService.submit( () -> {
             try {
                 this.entities = new Entities( this );
                 this.effects = new Effects( this );
@@ -219,23 +215,15 @@ public class GoMintServer implements GoMint, InventoryHolder {
         } ) );
 
         SettableFuture<Void> completed = SettableFuture.create();
-        Futures.whenAllSucceed( registryLoader ).
+        Futures.whenAllSucceed( registryLoader ).run( () -> completed.set( null ), MoreExecutors.directExecutor() );
 
-            run( () -> completed.set( null ), MoreExecutors.directExecutor() );
-
-        try
-
-        {
+        try {
             completed.get();
-        } catch ( InterruptedException |
-            ExecutionException e )
-
-        {
+        } catch ( InterruptedException | ExecutionException e ) {
             // There is no timeout
         }
 
         startAfterRegistryInit( args, start );
-
     }
 
     private void startAfterRegistryInit( OptionSet args, long start ) {
