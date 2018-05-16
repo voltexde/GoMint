@@ -1,6 +1,7 @@
 package io.gomint.server.inventory;
 
 import io.gomint.entity.Entity;
+import io.gomint.inventory.InventoryType;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
@@ -214,5 +215,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
 
         return viewers;
     }
+
+    public abstract InventoryType getInventoryType();
 
 }
