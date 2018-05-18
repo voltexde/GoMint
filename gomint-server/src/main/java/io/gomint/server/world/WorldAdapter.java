@@ -598,8 +598,7 @@ public abstract class WorldAdapter implements World {
             this.getOrLoadChunk( x, z, true, chunk -> chunk.packageChunk( player, sendDelegate ) );
         } else {
             ChunkAdapter chunkAdapter = this.loadChunk( x, z, true );
-            if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ||
-                chunkAdapter.cachedPacketBeta == null || chunkAdapter.cachedPacketBeta.get() == null ) {
+            if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ) {
                 packageChunk( chunkAdapter, sendDelegate );
             } else {
                 sendDelegate.invoke( CoordinateUtils.toLong( x, z ), chunkAdapter );
