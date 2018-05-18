@@ -699,8 +699,7 @@ public abstract class WorldAdapter implements World {
      */
     private void packageChunk( ChunkAdapter chunk, Delegate2<Long, ChunkAdapter> callback ) {
         PacketWorldChunk packet = chunk.createPackagedData( Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
-        PacketWorldChunk betaPacket = chunk.createPackagedData( Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION );
-        chunk.setCachedPacket( packet, betaPacket );
+        chunk.setCachedPacket( packet );
         callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk );
     }
 

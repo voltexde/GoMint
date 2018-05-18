@@ -35,10 +35,7 @@ public class PacketUpdateBlock extends Packet {
         writeBlockPosition( this.position, buffer );
         buffer.writeUnsignedVarInt( this.blockId );
         buffer.writeUnsignedVarInt( this.flags );
-
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            buffer.writeUnsignedVarInt( this.layer );
-        }
+        buffer.writeUnsignedVarInt( this.layer );
     }
 
     @Override

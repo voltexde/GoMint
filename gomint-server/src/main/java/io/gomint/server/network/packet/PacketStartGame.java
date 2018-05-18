@@ -92,6 +92,7 @@ public class PacketStartGame extends Packet {
         buffer.writeBoolean( this.hasAchievementsDisabled );
         buffer.writeSignedVarInt( this.dayCycleStopTime );
         buffer.writeBoolean( this.eduMode );
+        buffer.writeBoolean( false ); // This is hasEduModeEnabled, we default to false until we have all EDU stuff in
         buffer.writeLFloat( this.rainLevel );
         buffer.writeLFloat( this.lightningLevel );
         buffer.writeBoolean( this.isMultiplayerGame );
@@ -107,15 +108,18 @@ public class PacketStartGame extends Packet {
         buffer.writeSignedVarInt( this.xboxLiveBroadcastMode );
         buffer.writeInt( 32 );
         buffer.writeBoolean( this.hasPlatformBroadcast );
-        buffer.writeUnsignedVarInt( this.platformBroadcastMode );
+        buffer.writeSignedVarInt( this.platformBroadcastMode );
         buffer.writeBoolean( this.xboxLiveBroadcastIntent );
+        buffer.writeBoolean( false );
+        buffer.writeBoolean( false );
+        buffer.writeBoolean( false );
 
         buffer.writeString( this.levelId );
         buffer.writeString( this.worldName );
         buffer.writeString( this.templateName );
         buffer.writeBoolean( this.unknown1 );
         buffer.writeLLong( this.currentTick );
-        buffer.writeSignedVarInt( 11 );
+        buffer.writeSignedVarInt( this.enchantmentSeed );
     }
 
     @Override

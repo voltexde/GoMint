@@ -4,7 +4,6 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.network.Protocol;
 import io.gomint.server.util.Palette;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.world.block.Block;
@@ -178,16 +177,10 @@ public class ChunkSlice {
 
     byte[] getBytes( int protocolID ) {
         // Check how many layers we have
-        boolean isBeta = protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION;
-        int amountOfLayers = 1;
-        if ( isBeta ) {
-            amountOfLayers = this.getAmountOfLayers();
-        }
+        int amountOfLayers = this.getAmountOfLayers();
 
         PacketBuffer buffer = new PacketBuffer( Short.MAX_VALUE );
-        if ( isBeta ) {
-            buffer.writeByte( (byte) amountOfLayers );
-        }
+        buffer.writeByte( (byte) amountOfLayers );
 
         for ( int i = 0; i < amountOfLayers; i++ ) {
             // Count how many unique blocks we have in this chunk
