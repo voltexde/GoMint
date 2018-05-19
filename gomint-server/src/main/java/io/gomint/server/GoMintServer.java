@@ -162,7 +162,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         this.gitHash = buildVersion;
 
-        LOGGER.info( "Starting {} {}", getVersion(), buildVersion );
+        LOGGER.info( "Starting {}", getVersion() );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
         // ------------------------------------ //

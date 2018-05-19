@@ -92,7 +92,7 @@ public class PacketStartGame extends Packet {
         buffer.writeBoolean( this.hasAchievementsDisabled );
         buffer.writeSignedVarInt( this.dayCycleStopTime );
         buffer.writeBoolean( this.eduMode );
-        buffer.writeBoolean( false ); // This is hasEduModeEnabled, we default to false until we have all EDU stuff in
+        buffer.writeBoolean( true ); // This is hasEduModeEnabled, we default to false until we have all EDU stuff in
         buffer.writeLFloat( this.rainLevel );
         buffer.writeLFloat( this.lightningLevel );
         buffer.writeBoolean( this.isMultiplayerGame );

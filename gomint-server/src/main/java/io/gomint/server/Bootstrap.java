@@ -8,6 +8,7 @@
 package io.gomint.server;
 
 import io.gomint.server.maintenance.ReportUploader;
+import io.gomint.server.world.BlockRuntimeIDs;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.apache.logging.log4j.Level;
@@ -53,6 +54,8 @@ public class Bootstrap {
         if ( "true".equals( System.getProperty( "gomint.debug_events" ) ) ) {
             Configurator.setLevel( "io.gomint.server.event.EventHandlerList", Level.DEBUG );
         }
+
+        BlockRuntimeIDs.fromLegacy( 0, (byte) 0, 261 );
 
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
