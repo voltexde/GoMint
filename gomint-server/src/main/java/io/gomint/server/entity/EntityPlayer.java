@@ -381,6 +381,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     public void teleport( Location to, EntityTeleportEvent.Cause cause ) {
+        // Only teleport when online
+        if ( !isOnline() ) {
+            return;
+        }
+
         EntityTeleportEvent entityTeleportEvent = new EntityTeleportEvent( this, this.getLocation(), to, cause );
         this.world.getServer().getPluginManager().callEvent( entityTeleportEvent );
         if ( entityTeleportEvent.isCancelled() ) {
@@ -1109,7 +1114,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public boolean isOnline() {
-        return this.equals( this.connection.getServer().findPlayerByUUID( this.getUUID() ) );
+        return this.connection.getEntity() != null;
     }
 
     @Override
