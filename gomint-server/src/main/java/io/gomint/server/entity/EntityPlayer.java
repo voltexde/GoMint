@@ -409,6 +409,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
             // Be sure to get rid of all loaded chunks
             this.connection.resetPlayerChunks();
+
+            // Send all packets needed for a world switch
+            this.world.playerSwitched( this );
         }
 
         // Check for attached entities

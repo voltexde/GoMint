@@ -1350,4 +1350,11 @@ public abstract class WorldAdapter implements World {
         return this.chunkCache;
     }
 
+    public void playerSwitched( io.gomint.server.entity.EntityPlayer player ) {
+        // Set difficulty
+        PacketSetDifficulty difficulty = new PacketSetDifficulty();
+        difficulty.setDifficulty( this.difficulty.getDifficultyDegree() );
+        player.getConnection().addToSendQueue( difficulty );
+    }
+
 }
