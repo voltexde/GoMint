@@ -197,7 +197,7 @@ public final class Protocol {
                 return new PacketSetChunkRadius();
 
             default:
-                LOGGER.warn( "Unknown client side packetId: {}", Integer.toHexString( id & 0xFF ) );
+                // LOGGER.warn( "Unknown client side packetId: {}", Integer.toHexString( id & 0xFF ) );
                 return null;
         }
     }

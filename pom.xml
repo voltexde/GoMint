@@ -32,6 +32,7 @@
         <module>gomint-testplugin</module>
         <module>gomint-performanceviewer</module>
         <module>gomint-native</module>
+        <module>gomint-emulator</module>
     </modules>
 
     <properties>

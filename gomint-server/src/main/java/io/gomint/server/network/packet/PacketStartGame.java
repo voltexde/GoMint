@@ -124,6 +124,14 @@ public class PacketStartGame extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
+        this.entityId = buffer.readSignedVarLong().longValue();
+        this.runtimeEntityId = buffer.readUnsignedVarLong();
+        buffer.readSignedVarInt();
 
+        this.spawn = new Location( null, buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat() );
+
+        // Skip the rest for now
+        buffer.skip( buffer.getRemaining() );
     }
+
 }

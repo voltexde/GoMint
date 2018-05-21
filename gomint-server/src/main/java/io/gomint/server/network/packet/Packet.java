@@ -125,7 +125,7 @@ public abstract class Packet {
             buffer.readString();    // TODO: Implement proper support once we know the string values
         }
 
-        return ( (GoMintServer) GoMint.instance() ).getItems().create( id, data, amount, nbt );
+        return GoMint.instance() == null ? null : ( (GoMintServer) GoMint.instance() ).getItems().create( id, data, amount, nbt );
     }
 
     /**

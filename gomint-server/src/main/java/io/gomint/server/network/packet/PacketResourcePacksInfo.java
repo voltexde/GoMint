@@ -51,7 +51,25 @@ public class PacketResourcePacksInfo extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
+        this.mustAccept = buffer.readBoolean();
 
+        short behaviourAmount = buffer.readLShort();
+        for ( short i = 0; i < behaviourAmount; i++ ) {
+            buffer.readString();
+            buffer.readString();
+            buffer.readLLong();
+            buffer.readString();
+            buffer.readString();
+        }
+
+        behaviourAmount = buffer.readLShort();
+        for ( short i = 0; i < behaviourAmount; i++ ) {
+            buffer.readString();
+            buffer.readString();
+            buffer.readLLong();
+            buffer.readString();
+            buffer.readString();
+        }
     }
 
 }
