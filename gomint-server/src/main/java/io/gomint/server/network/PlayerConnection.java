@@ -194,24 +194,12 @@ public class PlayerConnection {
      * @param packet The packet which should be queued
      */
     public void addToSendQueue( Packet packet ) {
-        // We send directly to the proxy if needed
-        if ( this.connectionHandler != null ) {
-            PacketBuffer buffer = new PacketBuffer( 2 );
-            buffer.writeByte( packet.getId() );
-            buffer.writeShort( (short) 0 );
-            packet.serialize( buffer, this.protocolID );
+        if ( this.sendQueue == null ) {
+            this.sendQueue = new LinkedBlockingQueue<>();
+        }
 
-            WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
-            mcpePacket.setBuffer( buffer );
-            this.connectionHandler.send( mcpePacket );
-        } else {
-            if ( this.sendQueue == null ) {
-                this.sendQueue = new LinkedBlockingQueue<>();
-            }
-
-            if ( !this.sendQueue.offer( packet ) ) {
-                LOGGER.warn( "Could not add packet {} to the send queue", packet );
-            }
+        if ( !this.sendQueue.offer( packet ) ) {
+            LOGGER.warn( "Could not add packet {} to the send queue", packet );
         }
     }
 
@@ -296,7 +284,27 @@ public class PlayerConnection {
                 this.sendQueue.clear();
             }
         } else {
-            this.connectionHandler.send( new FlushTickPacket() ); // Tell proxprox to flush this tick
+            if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
+                Packet[] packets = new Packet[this.sendQueue.size()];
+                this.sendQueue.toArray( packets );
+                this.sendQueue.clear();
+
+                PacketBuffer[] packetBuffers = new PacketBuffer[packets.length];
+                for ( int i = 0; i < packets.length; i++ ) {
+                    packetBuffers[i] = new PacketBuffer( 2 );
+                    packetBuffers[i].writeByte( packets[i].getId() );
+                    packetBuffers[i].writeShort( (short) 0 );
+                    packets[i].serialize( packetBuffers[i], this.protocolID );
+                }
+
+                WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+                mcpePacket.setBuffer( packetBuffers );
+                this.connectionHandler.send( mcpePacket );
+
+                this.postProcessorExecutor.addWork( this, packets );
+            }
+
+            this.connectionHandler.send( new FlushTickPacket() );
         }
     }
 
@@ -358,13 +366,13 @@ public class PlayerConnection {
         } else {
             LOGGER.debug( "Writing packet {} to client", Integer.toHexString( packet.getId() & 0xFF ) );
 
-            PacketBuffer buffer = new PacketBuffer( 64 );
+            PacketBuffer buffer = new PacketBuffer( 2 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
             packet.serialize( buffer, this.protocolID );
 
             WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
-            mcpePacket.setBuffer( buffer );
+            mcpePacket.setBuffer( new PacketBuffer[]{ buffer } );
             this.connectionHandler.send( mcpePacket );
         }
     }

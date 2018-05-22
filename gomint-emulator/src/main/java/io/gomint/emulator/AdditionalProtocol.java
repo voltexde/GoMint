@@ -12,8 +12,9 @@ import io.gomint.server.network.packet.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.gomint.server.network.Protocol.PACKET_START_GAME;
-import static io.gomint.server.network.Protocol.PACKET_WORLD_TIME;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static io.gomint.server.network.Protocol.*;
 
 /**
  * @author geNAZt
@@ -22,6 +23,7 @@ import static io.gomint.server.network.Protocol.PACKET_WORLD_TIME;
 public class AdditionalProtocol {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Protocol.class );
+    private static final AtomicInteger ENTITY_COUNT = new AtomicInteger( 0 );
 
     /**
      * Creates a new packet instance given the packet ID found inside the first byte of any
@@ -37,6 +39,20 @@ public class AdditionalProtocol {
 
             case PACKET_WORLD_TIME:
                 return new PacketWorldTime();
+
+            case PACKET_ENTITY_METADATA:
+                return new PacketEntityMetadata();
+
+            case PACKET_TILE_ENTITY_DATA:
+                return new PacketTileEntityData();
+
+            case PACKET_SPAWN_PLAYER:
+                LOGGER.warn( "Entity count: {}", ENTITY_COUNT.incrementAndGet() );
+                return null;
+
+            case PACKET_SPAWN_ENTITY:
+                LOGGER.warn( "Entity count: {}", ENTITY_COUNT.incrementAndGet() );
+                return new PacketSpawnEntity();
 
             default:
                 // LOGGER.warn( "Unknown client side packetId: {}", Integer.toHexString( id & 0xFF ) );

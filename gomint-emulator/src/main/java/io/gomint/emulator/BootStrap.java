@@ -19,7 +19,7 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 public class BootStrap {
 
-    private static final int AMOUNT_OF_BOTS = 50;
+    private static final int AMOUNT_OF_BOTS = 1;
 
     public static void main( String[] args ) throws InterruptedException {
         Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
@@ -32,7 +32,7 @@ public class BootStrap {
                 @Override
                 public void run() {
                     Client client = new Client( service, postProcessExecutorService.getExecutor() );
-                    client.connect( "192.168.1.147", 19132 );
+                    client.connect( "multilabs.net", 19133 );
                 }
             } );
 

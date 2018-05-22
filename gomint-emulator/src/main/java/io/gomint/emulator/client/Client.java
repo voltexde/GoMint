@@ -409,6 +409,11 @@ public class Client {
             PacketMovePlayer player = (PacketMovePlayer) packet;
             Location location = new Location( null, player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch() );
             this.move( location );
+        } else if ( packet.getId() == PACKET_ENTITY_METADATA ) {
+            LOGGER.info( "Entity metadata: {}", packet );
+        } else if ( packet.getId() == PACKET_SPAWN_ENTITY ) {
+            PacketSpawnEntity entity = (PacketSpawnEntity) packet;
+            LOGGER.info( "Spawning entity: {}", entity.getEntityType().name() );
         }
     }
 

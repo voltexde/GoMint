@@ -87,7 +87,9 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
     @Override
     protected void channelRead0( ChannelHandlerContext channelHandlerContext, final Packet packet ) throws Exception {
         if ( packet instanceof WrappedMCPEPacket ) {
-            this.data.add( ( (WrappedMCPEPacket) packet ).getBuffer() );
+            for ( PacketBuffer buffer : ( (WrappedMCPEPacket) packet ).getBuffer() ) {
+                this.data.offer( buffer );
+            }
         } else if ( packet instanceof UpdatePingPacket ) {
             this.pingCallback.accept( ( (UpdatePingPacket) packet ).getPing() );
         }
