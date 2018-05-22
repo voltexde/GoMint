@@ -74,6 +74,18 @@ public class PacketSpawnEntity extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
+        this.entityId = buffer.readSignedVarLong().longValue();
+        buffer.readUnsignedVarLong();
 
+        int typeId = buffer.readUnsignedVarInt();
+        for ( EntityType type : EntityType.values() ) {
+            if ( typeId == type.getId() ) {
+                this.entityType = type;
+                break;
+            }
+        }
+
+        buffer.skip( buffer.getRemaining() );
     }
+
 }

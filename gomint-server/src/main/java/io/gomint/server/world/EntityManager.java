@@ -10,6 +10,7 @@ package io.gomint.server.world;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.server.entity.passive.EntityHuman;
+import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketEntityMovement;
 import io.gomint.server.network.packet.PacketPlayerlist;
@@ -219,8 +220,9 @@ public class EntityManager {
 
                 // Check which player we need to inform about this movement
                 for ( io.gomint.server.entity.EntityPlayer player : this.world.getPlayers0().keySet() ) {
-                    if ( movedEntity instanceof io.gomint.server.entity.EntityPlayer &&
-                        ( player.isHidden( (EntityPlayer) movedEntity ) || player.equals( movedEntity ) ) ) {
+                    if ( player.getConnection().getState() != PlayerConnectionState.PLAYING ||
+                        ( movedEntity instanceof io.gomint.server.entity.EntityPlayer &&
+                        ( player.isHidden( (EntityPlayer) movedEntity ) || player.equals( movedEntity ) ) ) ) {
                         continue;
                     }
 
@@ -246,7 +248,8 @@ public class EntityManager {
 
                 // Send to all players
                 for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-                    if ( entity instanceof io.gomint.server.entity.EntityPlayer && entityPlayer.isHidden( (EntityPlayer) entity ) ) {
+                    if ( entityPlayer.getConnection().getState() != PlayerConnectionState.PLAYING ||
+                        ( entity instanceof io.gomint.server.entity.EntityPlayer && entityPlayer.isHidden( (EntityPlayer) entity ) ) ) {
                         continue;
                     }
 
