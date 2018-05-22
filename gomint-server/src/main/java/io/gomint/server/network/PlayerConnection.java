@@ -300,8 +300,6 @@ public class PlayerConnection {
                 WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
                 mcpePacket.setBuffer( packetBuffers );
                 this.connectionHandler.send( mcpePacket );
-
-                this.postProcessorExecutor.addWork( this, packets );
             }
 
             this.connectionHandler.send( new FlushTickPacket() );
