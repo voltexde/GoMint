@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
@@ -10,23 +17,18 @@ import lombok.Data;
  * @version 1.0
  */
 @Data
-public class PacketUpdateBlock extends Packet {
-
-    public static final int FLAG_NONE = 0b0000;
-    public static final int FLAG_NEIGHBORS = 0b0001;
-    public static final int FLAG_NETWORK = 0b0010;
-    public static final int FLAG_NOGRAPHIC = 0b0100;
-    public static final int FLAG_PRIORITY = 0b1000;
-    public static final int FLAG_ALL = PacketUpdateBlock.FLAG_NEIGHBORS | PacketUpdateBlock.FLAG_NETWORK;
-    public static final int FLAG_ALL_PRIORITY = PacketUpdateBlock.FLAG_ALL | PacketUpdateBlock.FLAG_PRIORITY;
+public class PacketUpdateBlockSynched extends Packet {
 
     private BlockPosition position;
     private int blockId;
     private int flags;
     private int layer;
 
-    public PacketUpdateBlock() {
-        super( Protocol.PACKET_UPDATE_BLOCK );
+    private long entityId;
+    private long action;
+
+    public PacketUpdateBlockSynched() {
+        super( Protocol.PACKET_UPDATE_BLOCK_SYNCHED );
     }
 
     @Override
@@ -35,11 +37,13 @@ public class PacketUpdateBlock extends Packet {
         buffer.writeUnsignedVarInt( this.blockId );
         buffer.writeUnsignedVarInt( this.flags );
         buffer.writeUnsignedVarInt( this.layer );
+
+        buffer.writeUnsignedVarLong( this.entityId );
+        buffer.writeUnsignedVarLong( this.action );
     }
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
 
     }
-
 }

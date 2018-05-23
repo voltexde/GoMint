@@ -65,7 +65,7 @@ public class TestPlugin extends Plugin {
         // Register listener
         registerListener( new PlayerMoveListener( this ) );
         registerListener( new PlayerJoinListener( this ) );
-        registerListener( new BlockBreakListener() );
+        registerListener( new BlockBreakListener( this ) );
     }
 
     @Override

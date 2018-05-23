@@ -95,6 +95,7 @@ public final class Protocol {
     public static final byte PACKET_REMOVE_OBJECTIVE = (byte) 0x6a;
     public static final byte PACKET_SET_OBJECTIVE = (byte) 0x6b;
     public static final byte PACKET_SET_SCORE = (byte) 0x6c;
+    public static final byte PACKET_UPDATE_BLOCK_SYNCHED = (byte) 0x6e;
     public static final byte PACKET_SET_TITLE = (byte) 0x58;
 
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
