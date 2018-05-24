@@ -2,6 +2,8 @@ package io.gomint.server.inventory;
 
 import io.gomint.inventory.InventoryType;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.network.packet.PacketInventoryContent;
+import io.gomint.server.network.packet.PacketInventorySetSlot;
 
 /**
  * @author geNAZt
@@ -14,13 +16,20 @@ public class CursorInventory extends Inventory {
     }
 
     @Override
-    public void sendContents( PlayerConnection playerConnection ) {
-
+    public void sendContents( int slot, PlayerConnection playerConnection ) {
+        PacketInventorySetSlot setSlot = new PacketInventorySetSlot();
+        setSlot.setSlot( slot );
+        setSlot.setWindowId( WindowMagicNumbers.CURSOR.getId() );
+        setSlot.setItemStack( this.contents[slot] );
+        playerConnection.addToSendQueue( setSlot );
     }
 
     @Override
-    public void sendContents( int slot, PlayerConnection playerConnection ) {
-
+    public void sendContents( PlayerConnection playerConnection ) {
+        PacketInventoryContent inventory = new PacketInventoryContent();
+        inventory.setWindowId( WindowMagicNumbers.CURSOR.getId() );
+        inventory.setItems( getContents() );
+        playerConnection.addToSendQueue( inventory );
     }
 
     @Override

@@ -631,9 +631,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.craftingInventory = new CraftingInputInventory( this );
         this.craftingInputInventory = new CraftingInputInventory( this );
-        this.craftingResultInventory = new CursorInventory( this );
+        this.craftingResultInventory = new OneSlotInventory( this );
 
-        this.enchantmentOutputInventory = new CursorInventory( this );
+        this.enchantmentOutputInventory = new OneSlotInventory( this );
 
         this.windowIds = new Byte2ObjectOpenHashMap<>();
         this.containerIds = new Object2ByteOpenHashMap<>();
