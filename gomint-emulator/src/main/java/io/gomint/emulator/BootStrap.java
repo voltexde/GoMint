@@ -32,7 +32,7 @@ public class BootStrap {
                 @Override
                 public void run() {
                     Client client = new Client( service, postProcessExecutorService.getExecutor() );
-                    client.connect( "multilabs.net", 19133 );
+                    client.connect( "192.168.1.144", 19132 );
                 }
             } );
 

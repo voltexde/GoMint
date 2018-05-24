@@ -1238,14 +1238,18 @@ public abstract class WorldAdapter implements World {
         }
 
         // Unload all players via API
-        Set<EntityPlayer> playerCopy = new HashSet<>( this.players.keySet() );
-        playerCopy.forEach( playerConsumer );
+        if ( playerConsumer != null ) {
+            Set<EntityPlayer> playerCopy = new HashSet<>( this.players.keySet() );
+            playerCopy.forEach( playerConsumer );
+        }
 
         // Stop this world
         this.close();
 
-        // Save this world
-        this.chunkCache.saveAll();
+        if ( this.config.isSaveOnUnload() ) {
+            // Save this world
+            this.chunkCache.saveAll();
+        }
 
         // Drop all FDs
         this.closeFDs();

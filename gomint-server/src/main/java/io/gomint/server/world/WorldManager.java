@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -185,8 +186,8 @@ public class WorldManager {
             LOGGER.warn( "Closing worlds from an async thread. This is not safe and can lead to CME", new Exception() );
         }
 
-        for ( WorldAdapter loadedWorld : this.getWorlds() ) {
-            loadedWorld.close();
+        for ( WorldAdapter loadedWorld : new ArrayList<>( this.getWorlds() ) ) {
+            loadedWorld.unload( null );
         }
     }
 

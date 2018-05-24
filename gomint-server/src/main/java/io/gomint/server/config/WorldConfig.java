@@ -40,6 +40,9 @@ public class WorldConfig extends YamlConfig {
     @Comment( "Whether or not the world should be saved automatically on a regular basis" )
     private boolean autoSave = true;
 
+    @Comment( "Save the world when it gets unloaded or the server shuts down?")
+    private boolean saveOnUnload = true;
+
     @Comment( "The auto-save interval in which chunks should be saved automatically in milliseconds" )
     private int autoSaveInterval = 600000;
 

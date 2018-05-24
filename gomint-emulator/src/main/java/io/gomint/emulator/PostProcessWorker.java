@@ -64,7 +64,7 @@ public class PostProcessWorker implements Runnable {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
             buffer.writeShort( (short) 0 );
-            packet.serialize( buffer, 261 );
+            packet.serialize( buffer, 273 );
 
             writeVarInt( buffer.getPosition(), inBuf );
             inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );

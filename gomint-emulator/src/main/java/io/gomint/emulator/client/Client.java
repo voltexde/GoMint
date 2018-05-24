@@ -18,6 +18,7 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.resource.ResourceResponseStatus;
 import io.gomint.server.scheduler.AsyncScheduledTask;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.util.random.FastRandom;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
@@ -163,12 +164,14 @@ public class Client {
     }
 
     public void send( Packet packet ) {
+        LOGGER.info( "Sending packet {}", Integer.toHexString( packet.getId() & 0xff ) );
+
         if ( !( packet instanceof PacketBatch ) ) {
             this.postProcessExecutor.addWork( this, new Packet[]{ packet } );
         } else {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
-            packet.serialize( buffer, 261 );
+            packet.serialize( buffer, 273 );
 
             this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
         }
@@ -221,7 +224,7 @@ public class Client {
             }, 50, 50, TimeUnit.MILLISECONDS );
 
             PacketLogin login = new PacketLogin();
-            login.setProtocol( 261 ); // 1.4.x.x
+            login.setProtocol( 273 ); // 1.4.x.x
 
             // Send our handshake to the server -> this will trigger it to respond with a 0x03 ServerHandshake packet:
             MojangLoginForger mojangLoginForger = new MojangLoginForger();
@@ -305,16 +308,18 @@ public class Client {
         if ( this.state == PlayerConnectionState.LOGIN ) {
             if ( packetId == PACKET_PLAY_STATE ) {
                 PacketPlayState packetPlayState = new PacketPlayState();
-                packetPlayState.deserialize( buffer, 261 );
+                packetPlayState.deserialize( buffer, 273 );
 
                 if ( packetPlayState.getState() != PacketPlayState.PlayState.LOGIN_SUCCESS ) {
                     this.destroy( "Server responded with " + packetPlayState.getState().name() );
                 }
 
+                this.state = PlayerConnectionState.RESOURCE_PACK;
+
                 return;
             } else if ( packetId == PACKET_ENCRYPTION_REQUEST ) {
                 PacketEncryptionRequest packet = new PacketEncryptionRequest();
-                packet.deserialize( buffer, 261 );
+                packet.deserialize( buffer, 273 );
 
                 // We need to verify the JWT request
                 JwtToken token = JwtToken.parse( packet.getJwt() );
@@ -332,7 +337,6 @@ public class Client {
                 this.encryptionHandler = new EncryptionHandler();
                 this.encryptionHandler.setServerPublicKey( keyDataBase64 );
                 this.encryptionHandler.beginServersideEncryption( Base64.getDecoder().decode( (String) token.getClaim( "salt" ) ) );
-                this.state = PlayerConnectionState.RESOURCE_PACK;
 
                 // Tell the server that we are ready to receive encrypted packets from now on:
                 PacketEncryptionResponse response = new PacketEncryptionResponse();
@@ -358,7 +362,7 @@ public class Client {
 
             } else if ( packetId == PACKET_RESOURCEPACK_STACK ) {
                 PacketResourcePackStack stack = new PacketResourcePackStack();
-                stack.deserialize( buffer, 261 );
+                stack.deserialize( buffer, 273 );
 
                // LOGGER.info( "Got resource packet stack" );
 
@@ -379,6 +383,11 @@ public class Client {
         if ( packet == null ) {
             packet = AdditionalProtocol.createPacket( packetId );
             if ( packet == null ) {
+                if ( packetId == 0x6f ) {
+                    PacketEntityRelativeMovement relativeMovement = new PacketEntityRelativeMovement();
+                    relativeMovement.deserialize( buffer, 273 );
+                }
+
                 // Got to skip
                 buffer.skip( buffer.getRemaining() );
                 return;
