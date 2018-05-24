@@ -9,6 +9,7 @@ package io.gomint.server.world;
 
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
+import io.gomint.event.entity.EntitySpawnEvent;
 import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.PacketEntityMetadata;
@@ -311,7 +312,11 @@ public class EntityManager {
      * @param pitch     The pitch value of the entity
      */
     public synchronized void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
-        // TODO: Entity spawn event
+        // Give a entity spawn event around
+        EntitySpawnEvent event = this.world.getServer().getPluginManager().callEvent( new EntitySpawnEvent( entity ) );
+        if ( event.isCancelled() ) {
+            return;
+        }
 
         // Only allow server implementations
         if ( !( entity instanceof io.gomint.server.entity.Entity ) ) {
