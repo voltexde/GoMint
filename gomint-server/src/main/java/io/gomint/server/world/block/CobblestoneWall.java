@@ -1,10 +1,14 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.AxisAlignedBB;
 import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.registry.RegisterInfo;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -46,6 +50,18 @@ public class CobblestoneWall extends Block implements io.gomint.world.block.Bloc
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.PICKAXE;
+    }
+
+    @Override
+    public List<AxisAlignedBB> getBoundingBox() {
+        return Collections.singletonList( new AxisAlignedBB(
+            this.location.getX() + 0.25f,
+            this.location.getY(),
+            this.location.getZ() + 0.25f ,
+            this.location.getX() + 0.75f,
+            this.location.getY() + 1,
+            this.location.getZ() + 0.75f
+        ) );
     }
 
 }

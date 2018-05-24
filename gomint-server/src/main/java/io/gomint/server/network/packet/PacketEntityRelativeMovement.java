@@ -26,9 +26,9 @@ public class PacketEntityRelativeMovement extends Packet {
     private float y;
     private float z;
 
-    private byte pitch;
-    private byte yaw;
-    private byte headYaw;
+    private float pitch;
+    private float yaw;
+    private float headYaw;
 
     /**
      * Construct a new packet
@@ -60,15 +60,15 @@ public class PacketEntityRelativeMovement extends Packet {
         }
 
         if ( ( this.flags & 8 ) != 0 ) {
-            this.pitch = buffer.readByte();
+            this.pitch = ( buffer.readByte() * 360 ) / 256f;
         }
 
         if ( ( this.flags & 16 ) != 0 ) {
-            this.yaw = buffer.readByte();
+            this.yaw = ( buffer.readByte() * 360 ) / 256f;
         }
 
         if ( ( this.flags & 32 ) != 0 ) {
-            this.headYaw = buffer.readByte();
+            this.headYaw = ( buffer.readByte() * 360 ) / 256f;
         }
 
         System.out.println( this.flags );
