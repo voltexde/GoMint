@@ -8,6 +8,7 @@
 package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.math.MathUtils;
 import io.gomint.server.network.Protocol;
 
 /**
@@ -39,7 +40,46 @@ public class PacketEntityRelativeMovement extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer, int protocolID ) {
+        buffer.writeUnsignedVarLong( this.entityId );
 
+        short flags = 0;
+        if ( this.x != 0 ) {
+            flags |= 1;
+        }
+
+        if ( this.y != 0 ) {
+            flags |= 2;
+        }
+
+        if ( this.z != 0 ) {
+            flags |= 4;
+        }
+
+        if ( this.pitch != 0 ) {
+            flags |= 8;
+        }
+
+        if ( this.headYaw != 0 ) {
+            flags |= 16;
+        }
+
+        if ( this.yaw != 0 ) {
+            flags |= 32;
+        }
+
+        buffer.writeLShort( flags );
+
+        if ( this.x != 0 ) {
+            buffer.writeSignedVarInt( Float.floatToIntBits( DEFAULT_ADD_VALUE + this.x ) - FLOAT_INT_BITS );
+        }
+
+        if ( this.y != 0 ) {
+            buffer.writeSignedVarInt( Float.floatToIntBits( DEFAULT_ADD_VALUE + this.y ) - FLOAT_INT_BITS );
+        }
+
+        if ( this.z != 0 ) {
+            buffer.writeSignedVarInt( Float.floatToIntBits( DEFAULT_ADD_VALUE + this.z ) - FLOAT_INT_BITS );
+        }
     }
 
     @Override
@@ -64,14 +104,12 @@ public class PacketEntityRelativeMovement extends Packet {
         }
 
         if ( ( this.flags & 16 ) != 0 ) {
-            this.yaw = ( buffer.readByte() * 360 ) / 256f;
-        }
-
-        if ( ( this.flags & 32 ) != 0 ) {
             this.headYaw = ( buffer.readByte() * 360 ) / 256f;
         }
 
-        System.out.println( this.flags );
+        if ( ( this.flags & 32 ) != 0 ) {
+            this.yaw = ( buffer.readByte() * 360 ) / 256f;
+        }
     }
 
 }
