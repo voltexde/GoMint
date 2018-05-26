@@ -11,6 +11,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.Data;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
@@ -30,7 +31,7 @@ public class SendPlayerToServerPacket extends Packet {
     @Override
     public void write( ByteBuf buf ) {
         buf.writeInt( this.host.length() );
-        buf.writeBytes( this.host.getBytes( Charset.forName( "UTF-8" ) ) );
+        buf.writeBytes( this.host.getBytes( StandardCharsets.UTF_8 ) );
         buf.writeInt( this.port );
     }
 
@@ -39,7 +40,7 @@ public class SendPlayerToServerPacket extends Packet {
         int hostLength = buf.readInt();
         byte[] hostData = new byte[hostLength];
         buf.readBytes( hostData );
-        this.host = new String( hostData );
+        this.host = new String( hostData, StandardCharsets.UTF_8 );
         this.port = buf.readInt();
     }
 
