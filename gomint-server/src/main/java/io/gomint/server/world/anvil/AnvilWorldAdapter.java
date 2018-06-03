@@ -71,12 +71,9 @@ public final class AnvilWorldAdapter extends WorldAdapter {
     // Cache
     private LoadingCache<Pair<Integer, Integer>, RegionFile> openFileCache = CacheBuilder.newBuilder()
         .expireAfterAccess( 10, TimeUnit.MINUTES )
-        .removalListener( new RemovalListener<Pair<Integer, Integer>, RegionFile>() {
-            @Override
-            public void onRemoval( RemovalNotification<Pair<Integer, Integer>, RegionFile> removalNotification ) {
-                if ( removalNotification.wasEvicted() ) {
-                    removalNotification.getValue().closeFDs();
-                }
+        .removalListener( (RemovalListener<Pair<Integer, Integer>, RegionFile>) removalNotification -> {
+            if ( removalNotification.wasEvicted() ) {
+                removalNotification.getValue().closeFDs();
             }
         } )
         .build( new CacheLoader<Pair<Integer, Integer>, RegionFile>() {

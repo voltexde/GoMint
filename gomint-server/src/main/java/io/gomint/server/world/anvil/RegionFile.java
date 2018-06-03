@@ -71,8 +71,10 @@ class RegionFile {
         }
 
         // Read timestamps
-        for ( int i = 0; i < 1024; i++ ) {
-            this.lastSaveTimes[i] = randomFile.readInt();
+        if ( randomFile.length() > 8192 ) { // Files without any chunks don't include timestamps
+            for ( int i = 0; i < 1024; i++ ) {
+                this.lastSaveTimes[i] = randomFile.readInt();
+            }
         }
     }
 
