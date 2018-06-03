@@ -56,7 +56,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
 
     private void initEntity() {
         this.setSize( 0.25f, 0.25f );
-        setPickupDelay( 1250, TimeUnit.MILLISECONDS );
+        setPickupDelay( 1000, TimeUnit.MILLISECONDS );
 
 
         GRAVITY = 0.04f;
