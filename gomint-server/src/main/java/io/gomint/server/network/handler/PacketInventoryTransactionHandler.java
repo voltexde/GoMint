@@ -400,7 +400,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     connection.getServer().getPluginManager().callEvent( playerDropItemEvent );
                     if ( !playerDropItemEvent.isCancelled() ) {
                         DropItemTransaction dropItemTransaction = new DropItemTransaction(
-                            connection.getEntity().getLocation().add( 0, 1.3f, 0 ),
+                            connection.getEntity().getLocation().add( 0, connection.getEntity().getEyeHeight(), 0 ),
                             connection.getEntity().getDirection().normalize().multiply( 0.4f ),
                             transaction.getNewItem() );
                         transactionGroup.addTransaction( dropItemTransaction );

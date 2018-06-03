@@ -57,7 +57,9 @@ public class EntityItem extends Entity implements EntityItemDrop {
     private void initEntity() {
         this.setSize( 0.25f, 0.25f );
         setPickupDelay( 1250, TimeUnit.MILLISECONDS );
-        this.setHasCollision( false );
+
+
+        GRAVITY = 0.04f;
         this.offsetY = 0.125f;
     }
 
@@ -85,7 +87,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
 
         this.lastUpdateDt += dT;
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
-            if ( this.isCollided && !this.isReset && this.getVelocity().length() < 0.0025 ) {
+            if ( this.isCollided && !this.isReset && this.getVelocity().length() < 0.01f ) {
                 this.setVelocity( Vector.ZERO ); // Reset velocity
                 this.isReset = true;
             }
@@ -163,6 +165,11 @@ public class EntityItem extends Entity implements EntityItemDrop {
                 this.despawn();
             }
         }
+    }
+
+    @Override
+    public boolean isMotionSendingEnabled() {
+        return true;
     }
 
 }

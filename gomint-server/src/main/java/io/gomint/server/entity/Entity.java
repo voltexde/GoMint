@@ -219,7 +219,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
             this.age++;
 
-            if ( !isImmobile() ) {
+           // if ( !isImmobile() ) {
                 float movX = this.getMotionX();
                 float movY = this.getMotionY();
                 float movZ = this.getMotionZ();
@@ -264,7 +264,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
                         this.transform.setMotionZ( 0 );
                     }
                 }
-            }
+            // }
 
             // Check for block collision
             this.checkBlockCollisions();
@@ -1287,6 +1287,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
             this.setYaw( yaw );
             this.setPitch( pitch );
         }
+    }
+
+    public boolean isMotionSendingEnabled() {
+        return false;
     }
 
 }

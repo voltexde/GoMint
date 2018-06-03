@@ -13,6 +13,7 @@ import io.gomint.event.entity.EntitySpawnEvent;
 import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.PacketEntityMetadata;
+import io.gomint.server.network.packet.PacketEntityMotion;
 import io.gomint.server.network.packet.PacketEntityMovement;
 import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.world.Chunk;
@@ -219,6 +220,13 @@ public class EntityManager {
                 packetEntityMovement.setHeadYaw( movedEntity.getHeadYaw() );
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
 
+                PacketEntityMotion entityMotion = null;
+                if ( movedEntity.isMotionSendingEnabled() ) {
+                    entityMotion = new PacketEntityMotion();
+                    entityMotion.setEntityId( movedEntity.getEntityId() );
+                    entityMotion.setVelocity( movedEntity.getVelocity() );
+                }
+
                 // Check which player we need to inform about this movement
                 for ( io.gomint.server.entity.EntityPlayer player : this.world.getPlayers0().keySet() ) {
                     if ( player.getConnection().getState() != PlayerConnectionState.PLAYING ||
@@ -230,6 +238,10 @@ public class EntityManager {
                     player.getEntityVisibilityManager().updateEntity( movedEntity, chunk );
                     if ( player.getEntityVisibilityManager().isVisible( movedEntity ) ) {
                         player.getConnection().addToSendQueue( packetEntityMovement );
+
+                        if ( entityMotion != null ) {
+                            player.getConnection().addToSendQueue( entityMotion );
+                        }
                     }
                 }
             }
