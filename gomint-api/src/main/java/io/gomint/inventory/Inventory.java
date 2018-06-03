@@ -68,4 +68,11 @@ public interface Inventory {
      */
     InventoryType getInventoryType();
 
+    /**
+     * Get the contents of this inventory
+     *
+     * @return array copy of item stacks, none of which can be null
+     */
+    ItemStack[] getContents();
+
 }

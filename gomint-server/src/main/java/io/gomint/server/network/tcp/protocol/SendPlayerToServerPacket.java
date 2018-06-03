@@ -10,9 +10,7 @@ package io.gomint.server.network.tcp.protocol;
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 /**
  * @author geNAZt

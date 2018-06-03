@@ -94,7 +94,7 @@ public class Chest extends ContainerBlock implements BlockChest {
 
         // We also drop the inventory
         ChestTileEntity chestTileEntity = this.getTileEntity();
-        for ( ItemStack itemStack : chestTileEntity.getInventory().getContents() ) {
+        for ( ItemStack itemStack : chestTileEntity.getInventory().getContentsArray() ) {
             if ( itemStack != null ) {
                 items.add( itemStack );
             }

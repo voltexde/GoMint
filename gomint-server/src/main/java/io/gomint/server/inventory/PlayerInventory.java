@@ -68,7 +68,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
     public void sendContents( PlayerConnection playerConnection ) {
         PacketInventoryContent inventory = new PacketInventoryContent();
         inventory.setWindowId( WindowMagicNumbers.PLAYER.getId() );
-        inventory.setItems( getContents() );
+        inventory.setItems( getContentsArray() );
         playerConnection.addToSendQueue( inventory );
     }
 

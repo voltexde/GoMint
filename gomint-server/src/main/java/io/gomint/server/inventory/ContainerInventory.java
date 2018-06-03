@@ -96,7 +96,7 @@ public abstract class ContainerInventory extends Inventory implements io.gomint.
 
         PacketInventoryContent inventoryContent = new PacketInventoryContent();
         inventoryContent.setWindowId( windowId );
-        inventoryContent.setItems( this.getContents() );
+        inventoryContent.setItems( this.getContentsArray() );
         playerConnection.addToSendQueue( inventoryContent );
     }
 

@@ -23,7 +23,7 @@ public class CreativeInventory extends Inventory {
     @Override
     public void sendContents( PlayerConnection playerConnection ) {
         PacketInventoryContent inventoryContent = new PacketInventoryContent();
-        inventoryContent.setItems( getContents() );
+        inventoryContent.setItems( getContentsArray() );
         inventoryContent.setWindowId( WindowMagicNumbers.CREATIVE.getId() );
         playerConnection.addToSendQueue( inventoryContent );
     }

@@ -25,7 +25,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         Recipe recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packet.getRecipeId() );
         if ( recipe == null ) {
             // Resend inventory and call it a day
-            for ( ItemStack itemStack : connection.getEntity().getCraftingInputInventory().getContents() ) {
+            for ( ItemStack itemStack : connection.getEntity().getCraftingInputInventory().getContentsArray() ) {
                 connection.getEntity().getInventory().addItem( itemStack );
             }
 
@@ -75,7 +75,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         boolean craftable = consumeSlots != null;
         if ( !craftable ) {
             // We can't craft => reset inventory
-            for ( ItemStack inputItem : connection.getEntity().getCraftingInputInventory().getContents() ) {
+            for ( ItemStack inputItem : connection.getEntity().getCraftingInputInventory().getContentsArray() ) {
                 connection.getEntity().getInventory().addItem( inputItem );
             }
 
@@ -89,7 +89,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
 
         if ( event.isCancelled() ) {
             // We can't craft => reset inventory
-            for ( ItemStack inputItem : connection.getEntity().getCraftingInputInventory().getContents() ) {
+            for ( ItemStack inputItem : connection.getEntity().getCraftingInputInventory().getContentsArray() ) {
                 connection.getEntity().getInventory().addItem( inputItem );
             }
 

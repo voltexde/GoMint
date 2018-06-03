@@ -1080,19 +1080,19 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private List<io.gomint.inventory.item.ItemStack> getDrops() {
         List<io.gomint.inventory.item.ItemStack> drops = new ArrayList<>();
 
-        for ( io.gomint.inventory.item.ItemStack itemStack : this.inventory.getContents() ) {
+        for ( io.gomint.inventory.item.ItemStack itemStack : this.inventory.getContentsArray() ) {
             if ( !( itemStack instanceof ItemAir ) ) {
                 drops.add( itemStack );
             }
         }
 
-        for ( io.gomint.inventory.item.ItemStack itemStack : this.offhandInventory.getContents() ) {
+        for ( io.gomint.inventory.item.ItemStack itemStack : this.offhandInventory.getContentsArray() ) {
             if ( !( itemStack instanceof ItemAir ) ) {
                 drops.add( itemStack );
             }
         }
 
-        for ( io.gomint.inventory.item.ItemStack itemStack : this.armorInventory.getContents() ) {
+        for ( io.gomint.inventory.item.ItemStack itemStack : this.armorInventory.getContentsArray() ) {
             if ( !( itemStack instanceof ItemAir ) ) {
                 drops.add( itemStack );
             }

@@ -26,7 +26,7 @@ public class OffhandInventory extends Inventory {
     public void sendContents( PlayerConnection playerConnection ) {
         PacketInventoryContent inventory = new PacketInventoryContent();
         inventory.setWindowId( WindowMagicNumbers.OFFHAND.getId() );
-        inventory.setItems( getContents() );
+        inventory.setItems( getContentsArray() );
         playerConnection.addToSendQueue( inventory );
     }
 

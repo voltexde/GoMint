@@ -59,7 +59,7 @@ public class ShapelessRecipe extends CraftingRecipe {
 
     @Override
     public int[] isCraftable( Inventory inputInventory ) {
-        ItemStack[] inputItems = inputInventory.getContents();
+        ItemStack[] inputItems = inputInventory.getContentsArray();
         ItemStack[] ingredients = getIngredients();
         int[] consumeSlots = new int[ingredients.length];
         Arrays.fill( consumeSlots, -1 );

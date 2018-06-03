@@ -63,7 +63,18 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         }
     }
 
+    @Override
     public ItemStack[] getContents() {
+        return Arrays.copyOf( this.contents, this.contents.length );
+    }
+
+    /**
+     * Basically the same as {@link #getContents()} only without the copy and direct access to the
+     * array.
+     *
+     * @return the contents array
+     */
+    public ItemStack[] getContentsArray() {
         return this.contents;
     }
 

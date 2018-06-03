@@ -28,7 +28,7 @@ public class CursorInventory extends Inventory {
     public void sendContents( PlayerConnection playerConnection ) {
         PacketInventoryContent inventory = new PacketInventoryContent();
         inventory.setWindowId( WindowMagicNumbers.CURSOR.getId() );
-        inventory.setItems( getContents() );
+        inventory.setItems( getContentsArray() );
         playerConnection.addToSendQueue( inventory );
     }
 
