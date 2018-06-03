@@ -34,7 +34,7 @@ public class Air extends Block implements BlockAir {
     }
 
     @Override
-    public boolean onBreak() {
+    public boolean onBreak( boolean creative ) {
         return false;
     }
 

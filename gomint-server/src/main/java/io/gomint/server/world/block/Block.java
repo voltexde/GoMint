@@ -624,7 +624,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         return null;
     }
 
-    public boolean onBreak() {
+    public boolean onBreak( boolean creative ) {
         return true;
     }
 

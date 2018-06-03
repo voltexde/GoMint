@@ -1,6 +1,5 @@
 package io.gomint.server.world.block;
 
-import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
@@ -47,7 +46,7 @@ public abstract class Growable extends Block {
         if ( updateReason == UpdateReason.NEIGHBOUR_UPDATE ) {
             // Check if farmland is still under us
             if ( !( this.world.getBlockAt( this.location.toBlockPosition().add( BlockPosition.DOWN ) ).getType() == BlockType.FARMLAND ) ) {
-                this.world.breakBlock( this.location.toBlockPosition(), new ArrayList<>() );
+                this.world.breakBlock( this.location.toBlockPosition(), new ArrayList<>(), false );
             }
         } else if ( updateReason == UpdateReason.RANDOM ) {
             // Check for growth state

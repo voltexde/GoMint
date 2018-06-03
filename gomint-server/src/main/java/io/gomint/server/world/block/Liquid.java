@@ -353,7 +353,7 @@ public abstract class Liquid extends Block implements BlockLiquid {
     protected void flowIntoBlock( Block block, int newFlowDecay ) {
         if ( this.canFlowInto( block ) && !( block instanceof Liquid ) ) {
             if ( block.getBlockId() > 0 ) {
-                this.world.breakBlock( block.getLocation().toBlockPosition(), block.getDrops( ItemAir.create( 0 ) ) );
+                this.world.breakBlock( block.getLocation().toBlockPosition(), block.getDrops( ItemAir.create( 0 ) ), false );
             }
 
             PlacementData data = new PlacementData( this.getBlockId(), (byte) newFlowDecay, null );

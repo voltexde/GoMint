@@ -304,7 +304,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                     // Check for special break rights (creative)
                     if ( connection.getEntity().getGamemode() == Gamemode.CREATIVE ) {
-                        if ( connection.getEntity().getWorld().breakBlock( packet.getBlockPosition(), blockBreakEvent.getDrops() ) ) {
+                        if ( connection.getEntity().getWorld().breakBlock( packet.getBlockPosition(), blockBreakEvent.getDrops(), true ) ) {
                             block.setType( BlockAir.class );
                             connection.getEntity().setBreakVector( null );
                         } else {
@@ -323,7 +323,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                         reset( packet, connection );
                         connection.getEntity().setBreakVector( null );
                     } else {
-                        if ( connection.getEntity().getWorld().breakBlock( connection.getEntity().getBreakVector(), blockBreakEvent.getDrops() ) ) {
+                        if ( connection.getEntity().getWorld().breakBlock( connection.getEntity().getBreakVector(), blockBreakEvent.getDrops(), false ) ) {
                             // Add exhaustion
                             connection.getEntity().exhaust( 0.025f, PlayerExhaustEvent.Cause.MINING );
 

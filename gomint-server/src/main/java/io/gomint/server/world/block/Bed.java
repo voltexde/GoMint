@@ -56,7 +56,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
     }
 
     @Override
-    public boolean onBreak() {
+    public boolean onBreak( boolean creative ) {
         Bed otherHalf = (Bed) this.getOtherHalf();
         if ( otherHalf != null ) {
             otherHalf.setType( Air.class );

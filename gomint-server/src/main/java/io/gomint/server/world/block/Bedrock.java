@@ -22,8 +22,8 @@ public class Bedrock extends Block implements io.gomint.world.block.BlockBedrock
     }
 
     @Override
-    public boolean onBreak() {
-        return false;
+    public boolean onBreak( boolean creative ) {
+        return creative;
     }
 
     @Override

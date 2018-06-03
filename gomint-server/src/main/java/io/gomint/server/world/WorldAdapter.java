@@ -1108,9 +1108,9 @@ public abstract class WorldAdapter implements World {
         chunk.setTileEntity( x & 0xF, y, z & 0xF, tileEntity );
     }
 
-    public boolean breakBlock( BlockPosition position, List<ItemStack> drops ) {
+    public boolean breakBlock( BlockPosition position, List<ItemStack> drops, boolean creative ) {
         io.gomint.server.world.block.Block block = getBlockAt( position );
-        if ( block.onBreak() ) {
+        if ( block.onBreak( creative ) ) {
             if ( !drops.isEmpty() ) {
                 for ( ItemStack itemStack : drops ) {
                     EntityItem item = this.createItemDrop( block.getLocation().add( 0.5f, 0.5f, 0.5f ), itemStack );

@@ -93,7 +93,7 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
     }
 
     @Override
-    public boolean onBreak() {
+    public boolean onBreak( boolean creative ) {
         if ( isTop() ) {
             Block otherPart = getLocation().getWorld().getBlockAt( getLocation().toBlockPosition().add( BlockPosition.DOWN ) );
             otherPart.setType( BlockAir.class );
