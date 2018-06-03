@@ -154,6 +154,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Setter
     private EntityFishingHook fishingHook;
     private long lastPickupXP;
+    @Getter private Location spawnLocation;
 
     // Item usage ticking
     @Getter
@@ -1008,7 +1009,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.resetAttributes();
         this.resendAttributes();
 
-        // TODO: Remove effects
+        // Remove all effects
+        this.removeAllEffects();
 
         // Check for new chunks
         this.teleport( event.getRespawnLocation() );
@@ -1460,6 +1462,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public CommandOutput dispatchCommand( String command ) {
         return this.getConnection().getServer().getPluginManager().getCommandManager().dispatchCommand( this, command );
+    }
+
+    @Override
+    public void setSpawnLocation( Location spawnLocation ) {
+        this.spawnLocation = spawnLocation;
+        this.connection.sendPlayerSpawnPosition();
     }
 
     public void setUsingItem( boolean value ) {

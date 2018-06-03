@@ -782,10 +782,19 @@ public class PlayerConnection {
         packet.setEntityId( this.entity.getEntityId() );
         packet.setRuntimeEntityId( this.entity.getEntityId() );
         packet.setGamemode( EnumConnectors.GAMEMODE_CONNECTOR.convert( this.entity.getGamemode() ).getMagicNumber() );
-        packet.setSpawn( world.getSpawnLocation().add( 0, 1.62f, 0 ) );
-        packet.setX( (int) world.getSpawnLocation().getX() );
-        packet.setY( (int) ( world.getSpawnLocation().getY() + this.entity.getOffsetY() ) );
-        packet.setZ( (int) world.getSpawnLocation().getZ() );
+
+        if ( this.entity.getSpawnLocation() != null ) {
+            packet.setSpawn( this.entity.getSpawnLocation().add( 0, this.entity.getOffsetY(), 0 ) );
+            packet.setX( (int) this.entity.getSpawnLocation().getX() );
+            packet.setY( (int) ( this.entity.getSpawnLocation().getY() + this.entity.getOffsetY() ) );
+            packet.setZ( (int) this.entity.getSpawnLocation().getZ() );
+        } else {
+            packet.setSpawn( world.getSpawnLocation().add( 0, this.entity.getOffsetY(), 0 ) );
+            packet.setX( (int) world.getSpawnLocation().getX() );
+            packet.setY( (int) ( world.getSpawnLocation().getY() + this.entity.getOffsetY() ) );
+            packet.setZ( (int) world.getSpawnLocation().getZ() );
+        }
+
         packet.setWorldGamemode( 0 );
         packet.setDimension( 0 );
         packet.setSeed( 12345 );
@@ -799,7 +808,7 @@ public class PlayerConnection {
         packet.setCommandsEnabled( true );
         packet.setEnchantmentSeed( FastRandom.current().nextInt() );
 
-        this.entity.setPosition( world.getSpawnLocation() );
+        this.entity.setPosition( this.entity.getSpawnLocation() != null ? this.entity.getSpawnLocation() : world.getSpawnLocation() );
         this.addToSendQueue( packet );
     }
 
@@ -849,9 +858,17 @@ public class PlayerConnection {
         return this.entity != null ? this.entity.getName() : ( this.connection != null ) ? String.valueOf( this.connection.getGuid() ) : "unknown";
     }
 
+    public void sendPlayerSpawnPosition() {
+        PacketSetSpawnPosition spawnPosition = new PacketSetSpawnPosition();
+        spawnPosition.setSpawnType( PacketSetSpawnPosition.SpawnType.PLAYER );
+        spawnPosition.setForce( false );
+        spawnPosition.setPosition( this.getEntity().getSpawnLocation().toBlockPosition() );
+        addToSendQueue( spawnPosition );
+    }
+
     public void sendSpawnPosition() {
         PacketSetSpawnPosition spawnPosition = new PacketSetSpawnPosition();
-        spawnPosition.setSpawnType( 1 );
+        spawnPosition.setSpawnType( PacketSetSpawnPosition.SpawnType.WORLD );
         spawnPosition.setForce( false );
         spawnPosition.setPosition( this.getEntity().getWorld().getSpawnLocation().toBlockPosition() );
         addToSendQueue( spawnPosition );

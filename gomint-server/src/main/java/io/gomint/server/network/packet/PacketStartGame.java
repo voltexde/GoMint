@@ -2,6 +2,7 @@ package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
+import io.gomint.math.Vector;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.player.PlayerPermission;
 import io.gomint.server.util.DumpUtil;

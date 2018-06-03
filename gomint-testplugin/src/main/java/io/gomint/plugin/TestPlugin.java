@@ -4,10 +4,7 @@ import io.gomint.GoMint;
 import io.gomint.config.InvalidConfigurationException;
 import io.gomint.plugin.config.Config;
 import io.gomint.plugin.generator.PlotChunkGenerator;
-import io.gomint.plugin.listener.BlockBreakListener;
-import io.gomint.plugin.listener.InventoryTransactionListener;
-import io.gomint.plugin.listener.PlayerJoinListener;
-import io.gomint.plugin.listener.PlayerMoveListener;
+import io.gomint.plugin.listener.*;
 import io.gomint.world.WorldType;
 import io.gomint.world.generator.CreateOptions;
 import lombok.Getter;
@@ -68,6 +65,7 @@ public class TestPlugin extends Plugin {
         registerListener( new PlayerJoinListener( this ) );
         registerListener( new BlockBreakListener( this ) );
         registerListener( new InventoryTransactionListener() );
+        registerListener( new PlayerPreJoinListener() );
     }
 
     @Override
