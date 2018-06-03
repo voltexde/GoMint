@@ -7,10 +7,7 @@
 
 package io.gomint.server.command;
 
-import io.gomint.command.Command;
-import io.gomint.command.CommandOutput;
-import io.gomint.command.CommandOverload;
-import io.gomint.command.ParamValidator;
+import io.gomint.command.*;
 import io.gomint.command.validator.CommandValidator;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.plugin.Plugin;
@@ -59,7 +56,7 @@ public class SubCommand extends Command {
                         Map<String, Object> arg = new HashMap<>( arguments );
                         arg.remove( entry.getKey() );
 
-                        return commandHolder.getExecutor().execute( player, alias + " " + entry.getValue(), arg );
+                        return commandHolder.getExecutor().execute( (CommandSender) player, alias + " " + entry.getValue(), arg );
                     } else {
                         CommandOutput commandOutput = new CommandOutput();
                         commandOutput.fail( "No permission for this command" );

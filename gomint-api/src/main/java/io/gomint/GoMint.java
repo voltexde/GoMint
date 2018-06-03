@@ -232,4 +232,11 @@ public interface GoMint {
      */
     String getVersion();
 
+    /**
+     * Dispatch a command as console
+     *
+     * @param line which should be executed (without the /)
+     */
+    void dispatchCommand( String line );
+
 }

@@ -240,7 +240,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 .completer( ( lineReader, parsedLine, list ) -> {
                     List<String> suggestions = pluginManager.getCommandManager().completeSystem( parsedLine.line() );
                     for ( String suggestion : suggestions ) {
-                        list.add( new Candidate( suggestion ) );
+                        LOGGER.info( suggestion );
                     }
                 } )
                 .build();
@@ -654,6 +654,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
      */
     public String getVersion() {
         return "GoMint 1.0.0 (MC:PE " + Protocol.MINECRAFT_PE_NETWORK_VERSION + ") - " + this.gitHash;
+    }
+
+    @Override
+    public void dispatchCommand( String line ) {
+        this.pluginManager.getCommandManager().executeSystem( line );
     }
 
     /**

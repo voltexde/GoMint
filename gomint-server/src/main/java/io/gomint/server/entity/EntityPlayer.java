@@ -8,9 +8,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.GoMint;
-import io.gomint.command.CommandOutput;
-import io.gomint.command.CommandOverload;
-import io.gomint.command.ParamValidator;
+import io.gomint.command.*;
 import io.gomint.enchant.EnchantmentKnockback;
 import io.gomint.enchant.EnchantmentSharpness;
 import io.gomint.entity.ChatType;
@@ -74,7 +72,7 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
-public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder {
+public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder, PlayerCommandSender {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
 
@@ -1461,138 +1459,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public CommandOutput dispatchCommand( String command ) {
-        // Search for correct command holder
-        String[] commandParts = command.substring( 1 ).split( " " );
-        int consumed = 0;
-
-        StringBuilder commandName = new StringBuilder( commandParts[consumed] );
-
-        CommandHolder selected = null;
-        while ( selected == null ) {
-            for ( CommandHolder commandHolder : this.connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
-                if ( commandName.toString().equalsIgnoreCase( commandHolder.getName() ) ) {
-                    selected = commandHolder;
-                    break;
-                }
-            }
-
-            consumed++;
-            if ( selected == null ) {
-                if ( commandParts.length == consumed ) {
-                    break;
-                }
-
-                commandName.append( " " ).append( commandParts[consumed] );
-            }
-        }
-
-        // Check if we selected a command
-        if ( selected == null ) {
-            // Send CommandOutput with failure
-            return new CommandOutput().fail( "Command for input '%%s' could not be found", command );
-        } else {
-            // Check for permission
-            if ( selected.getPermission() != null && !this.hasPermission( selected.getPermission() ) ) {
-                return new CommandOutput().fail( "No permission for this command" );
-            } else {
-                // Now we need to parse all additional parameters
-                String[] params;
-                if ( commandParts.length > consumed ) {
-                    params = new String[commandParts.length - consumed];
-                    System.arraycopy( commandParts, consumed, params, 0, commandParts.length - consumed );
-                } else {
-                    params = new String[0];
-                }
-
-                if ( selected.getOverload() != null && params.length > 0 ) {
-                    List<CommandCanidate> commandCanidates = new ArrayList<>();
-                    for ( CommandOverload overload : selected.getOverload() ) {
-                        Iterator<String> paramIterator = Arrays.asList( params ).iterator();
-
-                        if ( !paramIterator.hasNext() && overload.getParameters() == null ) {
-                            commandCanidates.add( new CommandCanidate( overload, new HashMap<>(), true, true ) );
-                        } else {
-                            Map<String, Object> commandInput = new HashMap<>();
-
-                            boolean completed = true;
-                            boolean completedOptionals = true;
-
-                            for ( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
-                                List<String> input = new ArrayList<>();
-                                ParamValidator validator = entry.getValue();
-
-                                if ( validator.consumesParts() > 0 ) {
-                                    for ( int i = 0; i < validator.consumesParts(); i++ ) {
-                                        if ( !paramIterator.hasNext() ) {
-                                            if ( !validator.isOptional() ) {
-                                                completed = false;
-                                                break;
-                                            } else {
-                                                completedOptionals = false;
-                                            }
-                                        } else {
-                                            input.add( paramIterator.next() );
-                                        }
-                                    }
-                                } else {
-                                    // Consume as much as possible for thing like TEXT, RAWTEXT
-                                    while ( paramIterator.hasNext() ) {
-                                        input.add( paramIterator.next() );
-                                    }
-                                }
-
-                                if ( input.size() == validator.consumesParts() || validator.consumesParts() < 0 ) {
-                                    Object result = validator.validate( input, this );
-                                    if ( result == null ) {
-                                        completed = false;
-                                    }
-
-                                    commandInput.put( entry.getKey(), result );
-                                }
-                            }
-
-                            if ( completed ) {
-                                commandCanidates.add( new CommandCanidate( overload, commandInput, completedOptionals, !paramIterator.hasNext() && completedOptionals ) );
-                            }
-                        }
-                    }
-
-                    if ( !commandCanidates.isEmpty() ) {
-                        // Select best canidate
-                        commandCanidates.sort( new Comparator<CommandCanidate>() {
-                            @Override
-                            public int compare( CommandCanidate o1, CommandCanidate o2 ) {
-                                if ( o1.isReadCompleted() && !o2.isReadCompleted() ) {
-                                    return -1;
-                                } else if ( !o1.isReadCompleted() && o2.isReadCompleted() ) {
-                                    return 1;
-                                }
-
-                                return 0;
-                            }
-                        } );
-
-                        CommandCanidate canidate = commandCanidates.get( 0 );
-                        return tryCommandDispatch( selected, canidate.getArguments() );
-                    }
-
-                    return new CommandOutput().fail( "Command for input '%%s' could not be found", command );
-                } else {
-                    return tryCommandDispatch( selected, new HashMap<>() );
-                }
-            }
-        }
-    }
-
-    private CommandOutput tryCommandDispatch( CommandHolder command, Map<String, Object> arguments ) {
-        // CHECKSTYLE:OFF
-        try {
-            return command.getExecutor().execute( this, command.getName(), arguments );
-        } catch ( Exception e ) {
-            LOGGER.warn( "Command '{}' failed", command.getName(), e );
-            return new CommandOutput().fail( "Command has thrown an error. Please check the logs" );
-        }
-        // CHECKSTYLE:ON
+        return this.getConnection().getServer().getPluginManager().getCommandManager().dispatchCommand( this, command );
     }
 
     public void setUsingItem( boolean value ) {

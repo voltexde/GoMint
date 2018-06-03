@@ -1,7 +1,7 @@
 package io.gomint.command.validator;
 
+import io.gomint.command.CommandSender;
 import io.gomint.command.ParamType;
-import io.gomint.entity.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class BooleanValidator extends EnumValidator {
 
-    private static final List<String> ENUM_VALUES =  new ArrayList<>();
+    private static final List<String> ENUM_VALUES = new ArrayList<>();
 
     static {
         ENUM_VALUES.add( "true" );
@@ -32,8 +32,8 @@ public class BooleanValidator extends EnumValidator {
     }
 
     @Override
-    public Object validate( List<String> input, Entity entity ) {
-        String values = (String) super.validate( input, entity );
+    public Object validate( List<String> input, CommandSender commandSender ) {
+        String values = (String) super.validate( input, commandSender );
         if ( values == null ) {
             return null;
         }

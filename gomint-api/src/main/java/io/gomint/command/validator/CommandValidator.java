@@ -7,8 +7,8 @@
 
 package io.gomint.command.validator;
 
+import io.gomint.command.CommandSender;
 import io.gomint.command.ParamType;
-import io.gomint.entity.Entity;
 
 import java.util.List;
 
@@ -28,13 +28,18 @@ public class CommandValidator extends EnumValidator {
     }
 
     @Override
-    public Object validate( List<String> input, Entity entity ) {
+    public Object validate( List<String> input, CommandSender commandSender ) {
         return input.get( 0 ).equals( values().get( 0 ) ) ? true : null;
     }
 
     @Override
     public int consumesParts() {
         return 1;
+    }
+
+    @Override
+    public String getHelpText() {
+        return "commandName";
     }
 
 }
