@@ -29,9 +29,9 @@ public class InventoryTransaction implements Transaction {
 
     @Override
     public void commit() {
-        this.inventory.removeViewer( this.owner );
+        this.inventory.removeViewerWithoutAction( this.owner );
         this.inventory.setItem( this.slot, this.targetItem );
-        this.inventory.addViewerWithoutSend( this.owner );
+        this.inventory.addViewerWithoutAction( this.owner );
     }
 
     @Override

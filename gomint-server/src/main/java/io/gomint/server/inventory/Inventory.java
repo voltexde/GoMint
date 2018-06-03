@@ -41,8 +41,12 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         this.viewer.add( player.getConnection() );
     }
 
-    public void addViewerWithoutSend( EntityPlayer player ) {
+    public void addViewerWithoutAction( EntityPlayer player ) {
         this.viewer.add( player.getConnection() );
+    }
+
+    public void removeViewerWithoutAction( EntityPlayer player ) {
+        this.viewer.remove( player.getConnection() );
     }
 
     public void removeViewer( EntityPlayer player ) {
