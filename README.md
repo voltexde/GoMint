@@ -13,7 +13,7 @@ Build Version | Build Result
 Feature Build 1.2 | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=1.2)](https://travis-ci.org/GoMint/GoMint)
 Master Build | [![Build Status](https://travis-ci.org/GoMint/GoMint.svg?branch=master)](https://travis-ci.org/GoMint/GoMint)
 
-GoMint is a Minecraft PocketEdition server implementation that is still work in progress.
+GoMint is a Minecraft Bedrock Edition server software implementation that is still work in progress.
 The goal is to provide a full, modifiable server with plugin support for Java.
 The project is divided into four modules:
 
