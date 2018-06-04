@@ -39,12 +39,8 @@ public abstract class ItemColoredArmor extends ItemArmor implements io.gomint.in
 
     @Override
     public void setColor( Color color ) {
+        this.enforceNBTData();
         int rgb = color.getRed() << 16 | color.getGreen() << 8 | color.getBlue();
-
-        if ( this.getNbtData() == null ) {
-            this.setNbtData( new NBTTagCompound( "" ) );
-        }
-
         this.getNbtData().addValue( NBT_CUSTOM_COLOR_TAG, rgb );
     }
 

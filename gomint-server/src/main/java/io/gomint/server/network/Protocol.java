@@ -88,6 +88,7 @@ public final class Protocol {
     public static final byte PACKET_COMMAND_REQUEST = (byte) 0x4d;
     public static final byte PACKET_COMMAND_OUTPUT = (byte) 0x4f;
     public static final byte PACKET_TRANSFER = (byte) 0x55;
+    public static final byte PACKET_BOOK_EDIT = (byte) 0x61;
     public static final byte PACKET_MODAL_REQUEST = (byte) 0x64;
     public static final byte PACKET_MODAL_RESPONSE = (byte) 0x65;
     public static final byte PACKET_SERVER_SETTINGS_REQUEST = (byte) 0x66;
@@ -117,6 +118,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_BOOK_EDIT:
+                return new PacketBookEdit();
+
             case PACKET_ENTITY_FALL:
                 return new PacketEntityFall();
 

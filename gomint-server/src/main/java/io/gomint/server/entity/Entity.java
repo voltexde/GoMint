@@ -159,8 +159,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.setHasCollision( true );
         this.setAffectedByGravity( true );
         this.setNameTagVisible( true );
-
-        LOGGER.info( "Spawned {} with ID {}", this.getClass().getName(), this.id );
     }
 
     // ==================================== ACCESSORS ==================================== //

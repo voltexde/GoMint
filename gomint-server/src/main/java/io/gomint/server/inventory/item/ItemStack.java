@@ -442,4 +442,10 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         return 0;
     }
 
+    protected void enforceNBTData() {
+        if ( this.nbt == null ) {
+            this.nbt = new NBTTagCompound( "" );
+        }
+    }
+
 }
