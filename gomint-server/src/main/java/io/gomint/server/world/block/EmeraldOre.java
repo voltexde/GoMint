@@ -42,10 +42,7 @@ public class EmeraldOre extends Block implements io.gomint.world.block.BlockEmer
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemDiamondSword.class,
-            ItemIronSword.class
-        };
+        return ToolPresets.PICKAXE;
     }
 
 }

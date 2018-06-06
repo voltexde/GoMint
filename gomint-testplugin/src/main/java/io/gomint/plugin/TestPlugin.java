@@ -64,7 +64,7 @@ public class TestPlugin extends Plugin {
         registerListener( new PlayerMoveListener( this ) );
         registerListener( new PlayerJoinListener( this ) );
         registerListener( new BlockBreakListener( this ) );
-        registerListener( new InventoryTransactionListener() );
+        // registerListener( new InventoryTransactionListener() );
         registerListener( new PlayerPreJoinListener() );
     }
 

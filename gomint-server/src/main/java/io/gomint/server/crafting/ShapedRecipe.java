@@ -142,7 +142,7 @@ public class ShapedRecipe extends CraftingRecipe {
                 }
             }
 
-            if ( !freeX ) {
+            if ( freeX ) {
                 break;
             } else {
                 xSpace++;
@@ -159,7 +159,7 @@ public class ShapedRecipe extends CraftingRecipe {
                 }
             }
 
-            if ( !freeZ ) {
+            if ( freeZ ) {
                 break;
             } else {
                 zSpace++;
