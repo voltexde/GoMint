@@ -134,10 +134,14 @@ public class EnchantmentProcessor {
 
                     // Enchant the start item
                     for ( Enchantment enchantment : this.enchantments ) {
+                        LOGGER.debug( "Adding enchant: {} lvl: {} to item", enchantment.getClass().getName(), enchantment.getLevel() );
                         this.startItem.addEnchantment( enchantment.getClass(), enchantment.getLevel() );
                     }
 
-                    this.player.getEnchantmentOutputInventory().setItem( 0, this.startItem );
+                    this.player.getEnchantmentInputInventory().setItem( 0, this.startItem );
+
+                    // Remove the processor
+                    this.player.setEnchantmentProcessor( null );
                 }
             }
         }

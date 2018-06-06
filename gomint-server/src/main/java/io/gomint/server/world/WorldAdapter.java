@@ -1017,13 +1017,21 @@ public abstract class WorldAdapter implements World {
 
                     // Schedule neighbour updates
                     scheduleNeighbourUpdates( newBlock );
+
+                    if ( entity.getGamemode() != Gamemode.CREATIVE ) {
+                        if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).afterPlacement() ) {
+                            entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
+                        } else {
+                            entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), itemInHand );
+                        }
+                    }
                 }
 
                 return success;
             }
         }
 
-        return false;
+        return interacted || itemInteracted;
     }
 
     private void scheduleNeighbourUpdates( Block block ) {

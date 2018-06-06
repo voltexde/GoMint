@@ -17,6 +17,8 @@ import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockFace;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +37,8 @@ import java.util.Objects;
 @ToString
 @EqualsAndHashCode
 public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( ItemStack.class );
 
     private int material;
     private short data;
@@ -272,6 +276,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     public void addEnchantment( Class<? extends Enchantment> clazz, short level ) {
         short id = ( (GoMintServer) GoMint.instance() ).getEnchantments().getId( clazz );
         if ( id == -1 ) {
+            LOGGER.warn( "Unknown enchantment:{}", clazz.getName() );
             return;
         }
 

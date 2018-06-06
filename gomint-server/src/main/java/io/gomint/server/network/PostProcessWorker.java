@@ -62,6 +62,8 @@ public class PostProcessWorker implements Runnable {
             buffer.writeShort( (short) 0 );
             packet.serialize( buffer, this.connection.getProtocolID() );
 
+            LOGGER.debug( "Writing packet {} to client: {}", Integer.toHexString( packet.getId() & 0xFF ), packet );
+
             writeVarInt( buffer.getPosition(), inBuf );
             inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
         }

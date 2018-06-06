@@ -223,14 +223,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                     return;
                 }
 
-                if ( connection.getEntity().getGamemode() != Gamemode.CREATIVE ) {
-                    if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).afterPlacement() ) {
-                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                    } else {
-                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
-                    }
-                }
-
                 break;
             case 1: // Click in air
                 // Only accept valid interactions
@@ -436,9 +428,6 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             case -16:   // Lapis input
                 inventory = entity.getEnchantmentInputInventory();
                 transaction.setSlot( 1 );
-                break;
-            case -17:   // Enchanted item output
-                inventory = entity.getEnchantmentOutputInventory();
                 break;
             case -100:  // Crafting container dropped contents
                 inventory = entity.getCraftingInventory();

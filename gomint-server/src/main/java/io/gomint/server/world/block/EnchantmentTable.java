@@ -65,16 +65,7 @@ public class EnchantmentTable extends Block implements io.gomint.world.block.Blo
     @Override
     public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         EnchantTableTileEntity tileEntity = this.getTileEntity();
-        if ( tileEntity != null ) {
-            tileEntity.interact( entity, face, facePos, item );
-        } else {
-            LOGGER.warn( "EnchantmentTable @ {} has no tile entity. Generating new tile entity", this.location );
-            tileEntity = (EnchantTableTileEntity) this.createTileEntity( new NBTTagCompound( "" ) );
-            this.setTileEntity( tileEntity );
-            this.world.storeTileEntity( this.location.toBlockPosition(), tileEntity );
-            tileEntity.interact( entity, face, facePos, item );
-        }
-
+        tileEntity.interact( entity, face, facePos, item );
         return true;
     }
 
