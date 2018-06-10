@@ -5,6 +5,7 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.entity.EntityLink;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.Protocol;
+import io.gomint.server.util.DumpUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -70,7 +71,7 @@ public class PacketSpawnPlayer extends Packet {
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.runtimeEntityId );
 
-        buffer.writeString( this.unknown );
+        buffer.writeString( this.uuid.toString() );
 
         buffer.writeLFloat( this.x );
         buffer.writeLFloat( this.y );
@@ -100,7 +101,8 @@ public class PacketSpawnPlayer extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
-
+        System.out.println( buffer.readUnsignedVarLong() );
+        System.out.println( buffer.readUnsignedVarLong() );
     }
 
 }

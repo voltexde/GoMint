@@ -42,7 +42,7 @@ public class PacketEntityRelativeMovement extends Packet {
     public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeUnsignedVarLong( this.entityId );
 
-        short flags = 0;
+        byte flags = 0;
         if ( this.x != 0 ) {
             flags |= 1;
         }
@@ -67,7 +67,7 @@ public class PacketEntityRelativeMovement extends Packet {
             flags |= 32;
         }
 
-        buffer.writeLShort( flags );
+        buffer.writeByte( flags );
 
         if ( this.x != 0 ) {
             buffer.writeSignedVarInt( Float.floatToIntBits( DEFAULT_ADD_VALUE + this.x ) - FLOAT_INT_BITS );
@@ -85,7 +85,7 @@ public class PacketEntityRelativeMovement extends Packet {
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.entityId = buffer.readUnsignedVarLong();
-        this.flags = buffer.readLShort();
+        this.flags = buffer.readByte();
 
         if ( ( this.flags & 1 ) != 0 ) {
             this.x = Float.intBitsToFloat( FLOAT_INT_BITS + buffer.readSignedVarInt() ) - DEFAULT_ADD_VALUE;

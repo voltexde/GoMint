@@ -212,13 +212,14 @@ public class EntityManager {
                 packetEntityMovement.setEntityId( movedEntity.getEntityId() );
 
                 packetEntityMovement.setX( movedEntity.getPositionX() );
-                // Only players are offset measured with eye position locations (don't ask me why)
                 packetEntityMovement.setY( movedEntity.getPositionY() + movedEntity.getOffsetY() );
                 packetEntityMovement.setZ( movedEntity.getPositionZ() );
 
                 packetEntityMovement.setYaw( movedEntity.getYaw() );
                 packetEntityMovement.setHeadYaw( movedEntity.getHeadYaw() );
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
+
+                packetEntityMovement.setOnGround( movedEntity.isOnGround() );
 
                 PacketEntityMotion entityMotion = null;
                 if ( movedEntity.isMotionSendingEnabled() ) {
@@ -384,22 +385,6 @@ public class EntityManager {
 
                     ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().send( playerlist );
                 }
-
-                if ( !entityPlayer.isHidden( player ) && !entityPlayer.equals( player ) ) {
-                    if ( listEntry == null ) {
-                        listEntry = new ArrayList<>();
-                    }
-
-                    listEntry.add( new PacketPlayerlist.Entry( (EntityHuman) player ) );
-                }
-            }
-
-            if ( listEntry != null ) {
-                // Send player list
-                PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
-                packetPlayerlist.setMode( (byte) 0 );
-                packetPlayerlist.setEntries( listEntry );
-                entityPlayer.getConnection().send( packetPlayerlist );
             }
         }
 

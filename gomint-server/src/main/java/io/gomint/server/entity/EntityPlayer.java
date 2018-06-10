@@ -643,6 +643,34 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // Send entity metadata
         this.sendData( this );
+
+        // Send player list for yourself
+        PacketPlayerlist playerlist = new PacketPlayerlist();
+        playerlist.setMode( (byte) 0 );
+        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+            add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
+        }} );
+        this.getConnection().addToSendQueue( playerlist );
+
+        // Send player list for all online players
+        List<PacketPlayerlist.Entry> listEntry = null;
+        for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
+            if ( !this.isHidden( player ) && !this.equals( player ) ) {
+                if ( listEntry == null ) {
+                    listEntry = new ArrayList<>();
+                }
+
+                listEntry.add( new PacketPlayerlist.Entry( (EntityHuman) player ) );
+            }
+        }
+
+        if ( listEntry != null ) {
+            // Send player list
+            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+            packetPlayerlist.setMode( (byte) 0 );
+            packetPlayerlist.setEntries( listEntry );
+            this.getConnection().send( packetPlayerlist );
+        }
     }
 
     @Override
@@ -1389,14 +1417,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void firstSpawn() {
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
         this.getConnection().sendMovePlayer( this.getLocation() );
-
-        // Update player list
-        PacketPlayerlist playerlist = new PacketPlayerlist();
-        playerlist.setMode( (byte) 0 );
-        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
-        }} );
-        this.getConnection().addToSendQueue( playerlist );
 
         // Spawn for others
         this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );

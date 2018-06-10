@@ -35,6 +35,8 @@ import java.util.Map;
  */
 public abstract class Packet {
 
+    private static final float BYTE_ROTATION_DIVIDOR = 360f / 256f;
+
     /**
      * Internal MC:PE id of this packet
      */
@@ -289,6 +291,14 @@ public abstract class Packet {
     BlockFace readBlockFace( PacketBuffer buffer ) {
         int value = buffer.readSignedVarInt();
         return Things.convertFromDataToBlockFace( (byte) value );
+    }
+
+    void writeByteRotation( float rotation, PacketBuffer buffer ) {
+        buffer.writeByte( (byte) ( rotation / BYTE_ROTATION_DIVIDOR ) );
+    }
+
+    float readByteRotation( PacketBuffer buffer ) {
+        return buffer.readByte() * BYTE_ROTATION_DIVIDOR;
     }
 
 }

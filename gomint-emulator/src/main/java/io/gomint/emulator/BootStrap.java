@@ -8,6 +8,8 @@
 package io.gomint.emulator;
 
 import io.gomint.emulator.client.Client;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 
 import java.security.Security;
 import java.util.concurrent.Executors;
@@ -19,7 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 public class BootStrap {
 
-    private static final int AMOUNT_OF_BOTS = 200;
+    private static final int AMOUNT_OF_BOTS = 1;
 
     public static void main( String[] args ) throws InterruptedException {
         Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
@@ -30,7 +32,7 @@ public class BootStrap {
         for ( int i = 0; i < AMOUNT_OF_BOTS; i++ ) {
             service.execute( () -> {
                 Client client = new Client( service, postProcessExecutorService.getExecutor() );
-                client.connect( "192.168.1.147", 19132 );
+                client.connect( "192.168.178.106", 19132 );
             } );
 
             Thread.sleep( 500 );

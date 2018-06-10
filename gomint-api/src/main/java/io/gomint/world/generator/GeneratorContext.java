@@ -1,7 +1,6 @@
 package io.gomint.world.generator;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class GeneratorContext {
     /**
      * Put a new data to key assoc into the context
      *
-     * @param key of the data
+     * @param key   of the data
      * @param value of the data assoc
      */
     public void put( String key, Object value ) {

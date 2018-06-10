@@ -87,6 +87,7 @@ public class PlayerConnection {
         PACKET_HANDLERS[Protocol.PACKET_SERVER_SETTINGS_REQUEST & 0xFF] = new PacketServerSettingsRequestHandler();
         PACKET_HANDLERS[Protocol.PACKET_ENTITY_FALL & 0xFF] = new PacketEntityFallHandler();
         PACKET_HANDLERS[Protocol.PACKET_BOOK_EDIT & 0xFF] = new PacketBookEditHandler();
+        PACKET_HANDLERS[Protocol.PACKET_SET_LOCAL_PLAYER_INITIALIZED & 0xff] = new PacketSetLocalPlayerAsInitializedHandler();
     }
 
     // Network manager that created this connection:
@@ -896,6 +897,10 @@ public class PlayerConnection {
         }
 
         this.entity.getChunkSendQueue().clear();
+    }
+
+    public void spawnPlayerEntities() {
+
     }
 
 }
