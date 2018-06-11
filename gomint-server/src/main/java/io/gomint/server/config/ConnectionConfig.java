@@ -23,7 +23,4 @@ public class ConnectionConfig extends YamlConfig {
     @Comment("Level of compression used for packets. Lower = less CPU / higher traffic; Higher = more CPU / lower traffic")
     private int compressionLevel = 7;
 
-    @Comment("Amount of bytes which will be used as threshold to not get compressed. This must be under 1024 bytes, otherwise Gomint will fail")
-    private int compressionThreshold = 256;
-
 }

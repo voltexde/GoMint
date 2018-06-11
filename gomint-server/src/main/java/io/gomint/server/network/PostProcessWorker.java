@@ -67,53 +67,24 @@ public class PostProcessWorker implements Runnable {
             inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
         }
 
-        LOGGER.debug( "Compressing {} bytes, threshold is {}", inBuf.readableBytes(), this.connection.getServer().getServerConfig().getConnection().getCompressionThreshold() );
+        LOGGER.debug( "Compressing {} bytes", inBuf.readableBytes() );
 
         ZLib compressor = this.getCompressor();
-        ByteBuf outBuf = null;
-        byte[] data = null;
+        ByteBuf outBuf = PooledByteBufAllocator.DEFAULT.directBuffer( 8192 ); // We will write at least once so ensureWrite will realloc to 8192 so or so
 
         try {
-            // Only compress when useful (> threshold)
-            if ( inBuf.readableBytes() > this.connection.getServer().getServerConfig().getConnection().getCompressionThreshold() ) {
-                outBuf = PooledByteBufAllocator.DEFAULT.directBuffer( 8192 ); // We will write at least once so ensureWrite will realloc to 8192 so or so
-                compressor.process( inBuf, outBuf );
-            } else {
-                data = new byte[inBuf.readableBytes() + 7 + 4];
-                data[0] = 0x78;
-                data[1] = 0x01;
-                data[2] = 0x01;
-
-                // Write data length
-                int length = inBuf.readableBytes();
-                data[3] = (byte) length;
-                data[4] = (byte) ( length >>> 8 );
-                length = ~length;
-                data[5] = (byte) length;
-                data[6] = (byte) ( length >>> 8 );
-
-                // Write data
-                inBuf.readBytes( data, 7, inBuf.readableBytes() );
-
-                int adler = adler( data, 7, data.length - 11 );
-                data[data.length - 4] = (byte)(adler >>> 24);
-                data[data.length - 3] = (byte)(adler >>> 16);
-                data[data.length - 2] = (byte)(adler >>> 8);
-                data[data.length - 1] = (byte)adler;                                                                     // Write adler32 value
-            }
+            compressor.process( inBuf, outBuf );
         } catch ( Exception e ) {
             LOGGER.error( "Could not compress data for network", e );
-            if ( outBuf != null ) outBuf.release();
+            outBuf.release();
             return;
         } finally {
             inBuf.release();
         }
 
-        if ( outBuf != null ) {
-            data = new byte[outBuf.readableBytes()];
-            outBuf.readBytes( data );
-            outBuf.release();
-        }
+        byte[] data = new byte[outBuf.readableBytes()];
+        outBuf.readBytes( data );
+        outBuf.release();
 
         PacketBatch batch = new PacketBatch();
         batch.setPayload( data );
