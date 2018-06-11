@@ -34,7 +34,7 @@ public class CommandSpawn extends Command {
     @Override
     public CommandOutput execute( EntityPlayer player, String alias, Map<String, Object> arguments ) {
         Location spawn = player.getWorld().getSpawnLocation();
-        Location test = spawn.clone().add( new Vector( 900, 0, 900 ) );
+        Location test = spawn.add( new Vector( 900, 0, 900 ) );
 
         for ( EntityPlayer entityPlayer : GoMint.instance().getPlayers() ) {
             entityPlayer.teleport( test );
