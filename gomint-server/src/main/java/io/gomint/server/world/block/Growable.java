@@ -75,7 +75,7 @@ public abstract class Growable extends Block {
             for ( int z = -1; z <= 1; ++z ) {
                 float currentBlockDivider = 0f;
 
-                Block block = this.world.getBlockAt( underCrops.clone().add( new BlockPosition( x, 0, z ) ) );
+                Block block = this.world.getBlockAt( underCrops.add( new BlockPosition( x, 0, z ) ) );
                 if ( block instanceof Farmland ) {
                     currentBlockDivider = 1f;
 

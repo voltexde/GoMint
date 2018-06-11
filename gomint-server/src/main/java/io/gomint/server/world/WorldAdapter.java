@@ -258,7 +258,7 @@ public abstract class WorldAdapter implements World {
 
     @Override
     public Location getSpawnLocation() {
-        return this.spawn.clone();
+        return this.spawn;
     }
 
     @Override

@@ -138,6 +138,12 @@ public abstract class Entity implements io.gomint.entity.Entity {
     private Set<EntityPlayer> shownFor;
 
     /**
+     * Movement status
+     */
+    private int nextFullMovement = 20;
+    @Getter private Location oldPosition;
+
+    /**
      * Construct a new Entity
      *
      * @param type  The type of the Entity
@@ -217,7 +223,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
             this.age++;
 
-           // if ( !isImmobile() ) {
+            if ( !isImmobile() ) {
                 float movX = this.getMotionX();
                 float movY = this.getMotionY();
                 float movZ = this.getMotionZ();
@@ -262,7 +268,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
                         this.transform.setMotionZ( 0 );
                     }
                 }
-            // }
+            }
 
             // Check for block collision
             this.checkBlockCollisions();
@@ -343,7 +349,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         // Check if we collide with some blocks when we would move that fast
         List<AxisAlignedBB> collisionList = this.world.getCollisionCubes( this, this.boundingBox.getOffsetBoundingBox( dX, dY, dZ ), false );
-        if ( collisionList != null && !this.stuckInBlock) {
+        if ( collisionList != null && !this.stuckInBlock ) {
             // Check if we would hit a y border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
@@ -507,7 +513,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
 
             LOGGER.debug( "Entity {}({}) [{}] @ {} is stuck in a block {} @ {} -> {}",
-                this.getClass().getSimpleName(), this.getEntityId(), this.stuckInBlockTicks, this.getLocation().toVector(), block.getClass().getSimpleName(), block.getLocation().toVector(), block.getBoundingBox() );
+                this.getClass().getSimpleName(), this.getEntityId(), this.stuckInBlockTicks, this.getLocation(), block.getClass().getSimpleName(), block.getLocation(), block.getBoundingBox() );
 
             // Calc with how much force we can get out of here, this depends on how far we are in
             float diffX = this.transform.getPositionX() - fullBlockX;
@@ -1022,7 +1028,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     public boolean isInsideLiquid() {
-        Location eyeLocation = this.getLocation().clone().add( 0, this.eyeHeight, 0 );
+        Location eyeLocation = this.getLocation().add( 0, this.eyeHeight, 0 );
         Block block = eyeLocation.getWorld().getBlockAt( eyeLocation.toBlockPosition() );
         if ( block instanceof StationaryWater || block instanceof FlowingWater ) {
             float yLiquid = (float) ( block.getLocation().getY() + 1 + ( ( ( (Liquid) block ).getFillHeight() - 0.12 ) ) );
@@ -1289,6 +1295,20 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     public boolean isMotionSendingEnabled() {
         return false;
+    }
+
+    public boolean needsFullMovement() {
+        if ( this.nextFullMovement-- == 0 || this.oldPosition == null ||
+            this.oldPosition.subtract( this.getPosition() ).length() > 20 ) {
+            this.nextFullMovement = 20;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void updateOldPosition() {
+        this.oldPosition = this.getLocation();
     }
 
 }

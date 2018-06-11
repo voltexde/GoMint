@@ -86,7 +86,14 @@ public class EncryptionHandler {
         }
 
         // Generate a random salt:
-        SecureRandom secureRandom = new SecureRandom();
+        SecureRandom secureRandom = null;
+        try {
+            secureRandom = SecureRandom.getInstance( "SHA1PRNG" );
+        } catch ( NoSuchAlgorithmException e ) {
+            LOGGER.warn( "Could not get secure random instance", e );
+            return false;
+        }
+
         this.clientSalt = secureRandom.generateSeed( 16 );
 
         // Generate shared secret from ECDH keys:

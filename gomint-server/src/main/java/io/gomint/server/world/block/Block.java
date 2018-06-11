@@ -264,7 +264,7 @@ public abstract class Block implements io.gomint.world.block.Block {
             instance = this.world.getBlockAt( pos );
             long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
             if ( next > this.world.getServer().getCurrentTickTime() ) {
-                this.world.addTickingBlock( next, pos.clone() );
+                this.world.addTickingBlock( next, pos );
             }
 
             worldAdapter.updateBlock( pos );

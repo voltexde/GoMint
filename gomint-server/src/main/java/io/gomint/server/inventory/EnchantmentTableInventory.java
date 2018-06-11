@@ -40,7 +40,7 @@ public class EnchantmentTableInventory extends ContainerInventory {
         // Drop the players items
         for ( ItemStack content : this.contents ) {
             if ( content.getType() != ItemType.AIR ) {
-                enchanter.getWorld().createItemDrop( enchanter.clone().add( 0, .5f, 0 ), content );
+                enchanter.getWorld().createItemDrop( enchanter.add( 0, .5f, 0 ), content );
             }
         }
 

@@ -64,8 +64,8 @@ public final class MathUtils {
         return in * in;
     }
 
-    public static final int fastFloor( float x ) {
-        return (int) ( x + BIG_ENOUGH_FLOOR ) - BIG_ENOUGH_INT;
+    public static final int fastFloor( float val ) {
+        return (int) ( val + BIG_ENOUGH_FLOOR ) - BIG_ENOUGH_INT;
     }
 
     public static int fastRound( float x ) {

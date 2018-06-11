@@ -61,7 +61,7 @@ public abstract class Liquid extends Block implements BlockLiquid {
     @Override
     public Vector getFlowVector() {
         // Create a new vector and get the capped flow decay of this block
-        Vector vector = Vector.ZERO.clone();
+        Vector vector = Vector.ZERO;
         byte decay = this.getEffectiveFlowDecay( this );
 
         // Check all 4 sides if we can flow into that
@@ -95,14 +95,14 @@ public abstract class Liquid extends Block implements BlockLiquid {
 
         if ( this.getBlockData() >= 8 ) {
             BlockPosition pos = this.getLocation().toBlockPosition();
-            if ( !this.canFlowInto( this.world.getBlockAt( pos.clone().add( 0, 0, -1 ) ) ) ||
-                !this.canFlowInto( this.world.getBlockAt( pos.clone().add( 0, 0, 1 ) ) ) ||
-                !this.canFlowInto( this.world.getBlockAt( pos.clone().add( -1, 0, 0 ) ) ) ||
-                !this.canFlowInto( this.world.getBlockAt( pos.clone().add( 1, 0, 0 ) ) ) ||
-                !this.canFlowInto( this.world.getBlockAt( pos.clone().add( 0, 1, -1 ) ) ) ||
-                !this.canFlowInto( this.world.getBlockAt( pos.clone().add( 0, 1, 1 ) ) ) ||
-                !this.canFlowInto( this.world.getBlockAt( pos.clone().add( -1, 1, 0 ) ) ) ||
-                !this.canFlowInto( this.world.getBlockAt( pos.clone().add( 1, 1, 0 ) ) ) ) {
+            if ( !this.canFlowInto( this.world.getBlockAt( pos.add( 0, 0, -1 ) ) ) ||
+                !this.canFlowInto( this.world.getBlockAt( pos.add( 0, 0, 1 ) ) ) ||
+                !this.canFlowInto( this.world.getBlockAt( pos.add( -1, 0, 0 ) ) ) ||
+                !this.canFlowInto( this.world.getBlockAt( pos.add( 1, 0, 0 ) ) ) ||
+                !this.canFlowInto( this.world.getBlockAt( pos.add( 0, 1, -1 ) ) ) ||
+                !this.canFlowInto( this.world.getBlockAt( pos.add( 0, 1, 1 ) ) ) ||
+                !this.canFlowInto( this.world.getBlockAt( pos.add( -1, 1, 0 ) ) ) ||
+                !this.canFlowInto( this.world.getBlockAt( pos.add( 1, 1, 0 ) ) ) ) {
                 vector = vector.normalize().add( 0, -6, 0 );
             }
         }
@@ -171,7 +171,7 @@ public abstract class Liquid extends Block implements BlockLiquid {
 
     private void checkSpread( BlockPosition pos, int decay ) {
         if ( decay >= 0 && pos.getY() > 0 ) {
-            Block bottomBlock = this.world.getBlockAt( pos.clone().add( BlockPosition.DOWN ) );
+            Block bottomBlock = this.world.getBlockAt( pos.add( BlockPosition.DOWN ) );
             this.flowIntoBlock( bottomBlock, decay | 0x08 );
             if ( decay == 0 || !bottomBlock.canBeFlowedInto() ) {
                 int adjacentDecay;
@@ -184,19 +184,19 @@ public abstract class Liquid extends Block implements BlockLiquid {
                 if ( adjacentDecay < 8 ) {
                     boolean[] flags = this.getOptimalFlowDirections();
                     if ( flags[0] ) {
-                        this.flowIntoBlock( this.world.getBlockAt( pos.clone().add( BlockPosition.WEST ) ), adjacentDecay );
+                        this.flowIntoBlock( this.world.getBlockAt( pos.add( BlockPosition.WEST ) ), adjacentDecay );
                     }
 
                     if ( flags[1] ) {
-                        this.flowIntoBlock( this.world.getBlockAt( pos.clone().add( BlockPosition.EAST ) ), adjacentDecay );
+                        this.flowIntoBlock( this.world.getBlockAt( pos.add( BlockPosition.EAST ) ), adjacentDecay );
                     }
 
                     if ( flags[2] ) {
-                        this.flowIntoBlock( this.world.getBlockAt( pos.clone().add( BlockPosition.NORTH ) ), adjacentDecay );
+                        this.flowIntoBlock( this.world.getBlockAt( pos.add( BlockPosition.NORTH ) ), adjacentDecay );
                     }
 
                     if ( flags[3] ) {
-                        this.flowIntoBlock( this.world.getBlockAt( pos.clone().add( BlockPosition.SOUTH ) ), adjacentDecay );
+                        this.flowIntoBlock( this.world.getBlockAt( pos.add( BlockPosition.SOUTH ) ), adjacentDecay );
                     }
                 }
             }
@@ -218,10 +218,10 @@ public abstract class Liquid extends Block implements BlockLiquid {
             this.adjacentSources = 0;
 
             // Check for neighbour decay
-            smallestFlowDecay = this.getSmallestFlowDecay( this.world.getBlockAt( pos.clone().add( BlockPosition.NORTH ) ), smallestFlowDecay );
-            smallestFlowDecay = this.getSmallestFlowDecay( this.world.getBlockAt( pos.clone().add( BlockPosition.SOUTH ) ), smallestFlowDecay );
-            smallestFlowDecay = this.getSmallestFlowDecay( this.world.getBlockAt( pos.clone().add( BlockPosition.WEST ) ), smallestFlowDecay );
-            smallestFlowDecay = this.getSmallestFlowDecay( this.world.getBlockAt( pos.clone().add( BlockPosition.EAST ) ), smallestFlowDecay );
+            smallestFlowDecay = this.getSmallestFlowDecay( this.world.getBlockAt( pos.add( BlockPosition.NORTH ) ), smallestFlowDecay );
+            smallestFlowDecay = this.getSmallestFlowDecay( this.world.getBlockAt( pos.add( BlockPosition.SOUTH ) ), smallestFlowDecay );
+            smallestFlowDecay = this.getSmallestFlowDecay( this.world.getBlockAt( pos.add( BlockPosition.WEST ) ), smallestFlowDecay );
+            smallestFlowDecay = this.getSmallestFlowDecay( this.world.getBlockAt( pos.add( BlockPosition.EAST ) ), smallestFlowDecay );
 
             int newDecay = smallestFlowDecay + this.getFlowDecayPerBlock();
             if ( newDecay >= 8 || smallestFlowDecay < 0 ) { // There is no neighbour?
@@ -230,14 +230,14 @@ public abstract class Liquid extends Block implements BlockLiquid {
             }
 
             // Check if there is a block on top (flowing from top downwards)
-            int topFlowDecay = this.getFlowDecay( this.world.getBlockAt( pos.clone().add( BlockPosition.UP ) ) );
+            int topFlowDecay = this.getFlowDecay( this.world.getBlockAt( pos.add( BlockPosition.UP ) ) );
             if ( topFlowDecay >= 0 ) {
                 newDecay = topFlowDecay | 0x08;
             }
 
             // Did we hit a bottom block and are surrounded by other source blocks? -> convert to source block
             if ( this.adjacentSources >= 2 && this instanceof FlowingWater ) {
-                Block bottomBlock = this.world.getBlockAt( pos.clone().add( BlockPosition.DOWN ) );
+                Block bottomBlock = this.world.getBlockAt( pos.add( BlockPosition.DOWN ) );
                 if ( bottomBlock.isSolid() || ( bottomBlock instanceof FlowingWater && bottomBlock.getBlockData() == 0 ) ) {
                     newDecay = 0;
                 }
@@ -273,7 +273,7 @@ public abstract class Liquid extends Block implements BlockLiquid {
             if ( !this.flowCostVisited.containsKey( checkingPos ) ) {
                 if ( !this.canFlowInto( sideBock ) ) {
                     this.flowCostVisited.put( checkingPos, FlowState.BLOCKED );
-                } else if ( ( (Block) this.world.getBlockAt( checkingPos.clone().add( BlockPosition.DOWN ) ) ).canBeFlowedInto() ) {
+                } else if ( ( (Block) this.world.getBlockAt( checkingPos.add( BlockPosition.DOWN ) ) ).canBeFlowedInto() ) {
                     this.flowCostVisited.put( checkingPos, FlowState.CAN_FLOW_DOWN );
                 } else {
                     this.flowCostVisited.put( checkingPos, FlowState.CAN_FLOW );
@@ -409,7 +409,7 @@ public abstract class Liquid extends Block implements BlockLiquid {
      */
     protected void liquidCollide( Block colliding, Class<? extends Block> result ) {
         this.setType( result );
-        this.world.playSound( this.location.clone().add( 0.5f, 0.5f, 0.5f ), Sound.FIZZ, (byte) 0 );
+        this.world.playSound( this.location.add( 0.5f, 0.5f, 0.5f ), Sound.FIZZ, (byte) 0 );
     }
 
 }

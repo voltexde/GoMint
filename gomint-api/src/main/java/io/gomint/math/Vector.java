@@ -4,7 +4,6 @@
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
 package io.gomint.math;
 
 
@@ -14,19 +13,19 @@ import lombok.ToString;
 
 /**
  * <p>
- * A mutable class representing a triple of float values resembling
+ * A immutable class representing a triple of float values resembling
  * the x, y and z coordinates of a point respectively.
  * </p>
  *
  * @author Digot
  * @author geNAZt
  * @author BlackyPaw
- * @version 1.2
+ * @version 2.0
  */
 @EqualsAndHashCode
 @ToString
 @Data
-public class Vector implements Cloneable {
+public class Vector {
 
     public static final Vector ZERO = new Vector( 0, 0, 0 );
 
@@ -53,75 +52,39 @@ public class Vector implements Cloneable {
     }
 
     public Vector add( float x, float y, float z ) {
-        this.x += x;
-        this.y += y;
-        this.z += z;
-
-        return this;
+        return new Vector( this.x + x, this.y + y, this.z + z );
     }
 
     public Vector add( Vector v ) {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-
-        return this;
+        return this.add( v.x, v.y, v.z );
     }
 
     public Vector subtract( float x, float y, float z ) {
-        this.x -= x;
-        this.y -= y;
-        this.z -= z;
-
-        return this;
+        return new Vector( this.x - x, this.y - y, this.z - z );
     }
 
     public Vector subtract( Vector v ) {
-        this.x -= v.x;
-        this.y -= v.y;
-        this.z -= v.z;
-
-        return this;
+        return this.subtract( v.x, v.y, v.z );
     }
 
     public Vector multiply( float x, float y, float z ) {
-        this.x *= x;
-        this.y *= y;
-        this.z *= z;
-
-        return this;
+        return new Vector( this.x * x, this.y * y, this.z * z );
     }
 
     public Vector multiply( Vector v ) {
-        this.x *= v.x;
-        this.y *= v.y;
-        this.z *= v.z;
-
-        return this;
+        return this.multiply( v.x, v.y, v.z );
     }
 
     public Vector divide( float x, float y, float z ) {
-        this.x /= x;
-        this.y /= y;
-        this.z /= z;
-
-        return this;
+        return new Vector( this.x / x, this.y / y, this.z / z );
     }
 
     public Vector divide( Vector v ) {
-        this.x /= v.x;
-        this.y /= v.y;
-        this.z /= v.z;
-
-        return this;
+        return this.divide( v.x, v.y, v.z );
     }
 
     public Vector multiply( float value ) {
-        this.x *= value;
-        this.y *= value;
-        this.z *= value;
-
-        return this;
+        return this.multiply( value, value, value );
     }
 
     public float length() {
@@ -131,27 +94,10 @@ public class Vector implements Cloneable {
     public Vector normalize() {
         float mag = this.length();
         if ( mag == 0.0 ) {
-            return this;
+            return new Vector( this.x, this.y, this.z );
         }
 
-        this.x /= mag;
-        this.y /= mag;
-        this.z /= mag;
-
-        return this;
-    }
-
-    @Override
-    public Vector clone() {
-        try {
-            Vector vector = (Vector) super.clone();
-            vector.x = this.x;
-            vector.y = this.y;
-            vector.z = this.z;
-            return vector;
-        } catch ( CloneNotSupportedException e ) {
-            throw new AssertionError( "Failed to clone vector!" );
-        }
+        return new Vector( this.x / mag, this.y / mag, this.x / mag );
     }
 
     public float distanceSquared( Vector position ) {
