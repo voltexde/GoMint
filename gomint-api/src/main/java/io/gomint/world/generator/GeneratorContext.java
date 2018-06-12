@@ -1,5 +1,7 @@
 package io.gomint.world.generator;
 
+import org.json.simple.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +37,7 @@ public class GeneratorContext {
     /**
      * Put a new data to key assoc into the context
      *
-     * @param key of the data
+     * @param key   of the data
      * @param value of the data assoc
      */
     public void put( String key, Object value ) {
@@ -50,4 +52,10 @@ public class GeneratorContext {
     public Map<String, Object> asMap() {
         return new HashMap<>( this.contextData );
     }
+
+    @Override
+    public String toString() {
+        return JSONObject.toJSONString( this.contextData );
+    }
+
 }

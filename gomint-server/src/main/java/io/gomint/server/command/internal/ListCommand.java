@@ -3,6 +3,7 @@ package io.gomint.server.command.internal;
 import io.gomint.GoMint;
 import io.gomint.command.Command;
 import io.gomint.command.CommandOutput;
+import io.gomint.command.CommandSender;
 import io.gomint.command.annotation.*;
 import io.gomint.command.validator.StringValidator;
 import io.gomint.entity.EntityPlayer;
@@ -25,7 +26,7 @@ import java.util.Map;
 public class ListCommand extends Command {
 
     @Override
-    public CommandOutput execute( EntityPlayer player, String alias, Map<String, Object> arguments ) {
+    public CommandOutput execute( CommandSender player, String alias, Map<String, Object> arguments ) {
         CommandOutput output = new CommandOutput();
 
         Collection<EntityPlayer> players = GoMint.instance().getPlayers();

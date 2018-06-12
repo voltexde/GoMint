@@ -4,9 +4,8 @@ import io.gomint.GoMint;
 import io.gomint.config.InvalidConfigurationException;
 import io.gomint.plugin.config.Config;
 import io.gomint.plugin.generator.PlotChunkGenerator;
-import io.gomint.plugin.listener.BlockBreakListener;
-import io.gomint.plugin.listener.PlayerJoinListener;
-import io.gomint.plugin.listener.PlayerMoveListener;
+import io.gomint.plugin.listener.*;
+import io.gomint.world.WorldType;
 import io.gomint.world.generator.CreateOptions;
 import lombok.Getter;
 
@@ -44,7 +43,7 @@ public class TestPlugin extends Plugin {
 
         // Check if we need to test chunk generation
         if ( this.config.isEnableChunkGeneration() ) {
-            GoMint.instance().createWorld( "test_plot", new CreateOptions().generator( PlotChunkGenerator.class ) );
+            GoMint.instance().createWorld( "test_plot", new CreateOptions().generator( PlotChunkGenerator.class ).worldType( WorldType.GOMINT ) );
         }
     }
 
@@ -57,10 +56,16 @@ public class TestPlugin extends Plugin {
         floatingText.setNameTag( "Test123" );
         floatingText.spawn( new Location( GoMint.instance().getWorld( "test_plot" ), 12, 83, 12 ) );*/
 
+
+        // We want to shutdown because of some error
+        //this.getServer().shutdown();
+
         // Register listener
         registerListener( new PlayerMoveListener( this ) );
         registerListener( new PlayerJoinListener( this ) );
-        registerListener( new BlockBreakListener() );
+        // registerListener( new BlockBreakListener( this ) );
+        // registerListener( new InventoryTransactionListener() );
+        // registerListener( new PlayerPreJoinListener() );
     }
 
     @Override

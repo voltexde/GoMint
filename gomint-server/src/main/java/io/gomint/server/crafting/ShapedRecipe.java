@@ -89,7 +89,7 @@ public class ShapedRecipe extends CraftingRecipe {
             }
         }
 
-        return (ItemStack[]) this.ingredients.toArray();
+        return this.ingredients.toArray( new ItemStack[0] );
     }
 
     @Override

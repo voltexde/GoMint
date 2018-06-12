@@ -24,4 +24,6 @@ public interface ItemWritableBook extends ItemStack {
         return GoMint.instance().createItemStack( ItemWritableBook.class, amount );
     }
 
+
+
 }

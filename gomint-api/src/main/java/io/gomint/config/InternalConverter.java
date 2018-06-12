@@ -34,6 +34,8 @@ public class InternalConverter {
             addConverter( io.gomint.config.converter.Map.class );
             addConverter( io.gomint.config.converter.Array.class );
             addConverter( io.gomint.config.converter.Set.class );
+            addConverter( io.gomint.config.converter.Location.class );
+            addConverter( io.gomint.config.converter.BlockPosition.class );
         } catch ( InvalidConverterException e ) {
             throw new IllegalStateException( e );
         }
@@ -77,6 +79,8 @@ public class InternalConverter {
             converter = getConverter( obj.getClass() );
 
             if ( converter != null ) {
+                Object val = converter.fromConfig( obj.getClass(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null );
+
 				/*
 					If we're trying to assign a value to a static variable
                     then assure there's the "PreserveStatic" annotation on there!
@@ -91,15 +95,25 @@ public class InternalConverter {
                         return;
                     }
 
-                    field.set( null, converter.fromConfig( field.getType(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null ) );
+                    if ( converter instanceof Primitive && val == null ) {
+                        return;
+                    }
+
+                    field.set( null, val );
                     return;
                 }
 
-                field.set( config, converter.fromConfig( obj.getClass(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null ) );
+                if ( converter instanceof Primitive && val == null ) {
+                    return;
+                }
+
+                field.set( config, val );
                 return;
             } else {
                 converter = getConverter( field.getType() );
                 if ( converter != null ) {
+                    Object val = converter.fromConfig( field.getType(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null );
+
 					/*
 					If we're trying to assign a value to a static variable
                     then assure there's the "PreserveStatic" annotation on there!
@@ -114,10 +128,19 @@ public class InternalConverter {
                             return;
                         }
 
-                        field.set( null, converter.fromConfig( field.getType(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null ) );
+                        if ( converter instanceof Primitive && val == null ) {
+                            return;
+                        }
+
+                        field.set( null, val );
                         return;
                     }
-                    field.set( config, converter.fromConfig( field.getType(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null ) );
+
+                    if ( converter instanceof Primitive && val == null ) {
+                        return;
+                    }
+
+                    field.set( config, val );
                     return;
                 }
             }
@@ -125,6 +148,8 @@ public class InternalConverter {
             converter = getConverter( field.getType() );
 
             if ( converter != null ) {
+                Object val = converter.fromConfig( field.getType(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null );
+
 				/*
 					If we're trying to assign a value to a static variable
                     then assure there's the "PreserveStatic" annotation on there!
@@ -139,11 +164,19 @@ public class InternalConverter {
                         return;
                     }
 
-                    field.set( null, converter.fromConfig( field.getType(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null ) );
+                    if ( converter instanceof Primitive && val == null ) {
+                        return;
+                    }
+
+                    field.set( null, val );
                     return;
                 }
 
-                field.set( config, converter.fromConfig( field.getType(), root.get( path ), ( field.getGenericType() instanceof ParameterizedType ) ? (ParameterizedType) field.getGenericType() : null ) );
+                if ( converter instanceof Primitive && val == null ) {
+                    return;
+                }
+
+                field.set( config, val );
                 return;
             }
         }

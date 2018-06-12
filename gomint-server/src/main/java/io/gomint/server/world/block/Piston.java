@@ -1,12 +1,12 @@
 package io.gomint.server.world.block;
 
-import io.gomint.world.block.BlockType;
-
-import io.gomint.math.BlockPosition;
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.tileentity.PistonArmTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockType;
 
 /**
  * @author geNAZt
@@ -29,7 +29,6 @@ public class Piston extends Block implements io.gomint.world.block.BlockPiston {
     public boolean isTransparent() {
         return true;
     }
-
 
     @Override
     public boolean needsTileEntity() {
@@ -55,6 +54,11 @@ public class Piston extends Block implements io.gomint.world.block.BlockPiston {
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.PICKAXE;
     }
 
 }

@@ -8,9 +8,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.GoMint;
-import io.gomint.command.CommandOutput;
-import io.gomint.command.CommandOverload;
-import io.gomint.command.ParamValidator;
+import io.gomint.command.*;
 import io.gomint.enchant.EnchantmentKnockback;
 import io.gomint.enchant.EnchantmentSharpness;
 import io.gomint.entity.ChatType;
@@ -40,7 +38,7 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
-import io.gomint.server.performance.LoginPerformance;
+import io.gomint.server.maintenance.performance.LoginPerformance;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.util.EnumConnectors;
@@ -54,6 +52,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -73,7 +72,7 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
-public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder {
+public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder, PlayerCommandSender {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
 
@@ -155,6 +154,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Setter
     private EntityFishingHook fishingHook;
     private long lastPickupXP;
+    @Getter private Location spawnLocation;
 
     // Item usage ticking
     @Getter
@@ -331,10 +331,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.hiddenPlayers.add( other.getEntityId() );
 
+        LOGGER.debug( "Player {} hides {} from now on", this.getName(), player.getName() );
+
         // Remove the entity clientside
-        PacketDespawnEntity packetDespawnEntity = new PacketDespawnEntity();
-        packetDespawnEntity.setEntityId( other.getEntityId() );
-        getConnection().addToSendQueue( packetDespawnEntity );
+        this.entityVisibilityManager.removeEntity( other );
 
         // Remove from player list
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
@@ -352,6 +352,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
 
         if ( this.hiddenPlayers.remove( player.getEntityId() ) ) {
+            LOGGER.debug( "Player {} shows {} from now on", this.getName(), player.getName() );
+
             EntityPlayer other = (EntityPlayer) player;
 
             // Send tablist and spawn packet
@@ -361,7 +363,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                 add( new PacketPlayerlist.Entry( other ) );
             }} );
             getConnection().addToSendQueue( packetPlayerlist );
-            getConnection().addToSendQueue( other.createSpawnPacket() );
+
+            // Check bounds
+            Chunk playerChunk = this.getChunk();
+            Chunk chunk = other.getChunk();
+            if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= this.getViewDistance() &&
+                Math.abs( playerChunk.getZ() - chunk.getZ() ) <= this.getViewDistance() ) {
+                this.entityVisibilityManager.addEntity( other );
+            }
         }
     }
 
@@ -371,6 +380,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     public void teleport( Location to, EntityTeleportEvent.Cause cause ) {
+        // Only teleport when online
+        if ( !isOnline() ) {
+            return;
+        }
+
         EntityTeleportEvent entityTeleportEvent = new EntityTeleportEvent( this, this.getLocation(), to, cause );
         this.world.getServer().getPluginManager().callEvent( entityTeleportEvent );
         if ( entityTeleportEvent.isCancelled() ) {
@@ -394,6 +408,24 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
             // Be sure to get rid of all loaded chunks
             this.connection.resetPlayerChunks();
+
+            // Send all packets needed for a world switch
+            this.world.playerSwitched( this );
+        }
+
+        // Check for attached entities
+        if ( !this.getAttachedEntities().isEmpty() ) {
+            Chunk chunk = this.getChunk();
+            for ( Entity entity : new ObjectOpenHashSet<>( this.getAttachedEntities() ) ) {
+                if ( entity instanceof EntityPlayer ) {
+                    EntityPlayer player = (EntityPlayer) entity;
+                    Chunk playerChunk = player.getChunk();
+                    if ( Math.abs( playerChunk.getX() - chunk.getX() ) > player.getViewDistance() &&
+                        Math.abs( playerChunk.getZ() - chunk.getZ() ) > player.getViewDistance() ) {
+                        player.getEntityVisibilityManager().removeEntity( this );
+                    }
+                }
+            }
         }
 
         // Set the new location
@@ -406,7 +438,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.connection.sendMovePlayer( to );
 
         // Send chunks to the client
-        this.connection.checkForNewChunks( from );
+        this.connection.checkForNewChunks( from, true );
         this.fallDistance = 0;
 
         // Tell the movement handler to force this position to the client
@@ -450,7 +482,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         }
 
         // Look around
-        Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this );
+        Collection<Entity> nearbyEntities = this.world.getNearbyEntities( this.boundingBox.grow( 1, 0.5f, 1 ), this, null );
         if ( nearbyEntities != null ) {
             for ( Entity nearbyEntity : nearbyEntities ) {
                 io.gomint.server.entity.Entity implEntity = (io.gomint.server.entity.Entity) nearbyEntity;
@@ -598,9 +630,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.craftingInventory = new CraftingInputInventory( this );
         this.craftingInputInventory = new CraftingInputInventory( this );
-        this.craftingResultInventory = new CursorInventory( this );
+        this.craftingResultInventory = new OneSlotInventory( this );
 
-        this.enchantmentOutputInventory = new CursorInventory( this );
+        this.enchantmentOutputInventory = new OneSlotInventory( this );
 
         this.windowIds = new Byte2ObjectOpenHashMap<>();
         this.containerIds = new Object2ByteOpenHashMap<>();
@@ -611,6 +643,34 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         // Send entity metadata
         this.sendData( this );
+
+        // Send player list for yourself
+        PacketPlayerlist playerlist = new PacketPlayerlist();
+        playerlist.setMode( (byte) 0 );
+        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
+            add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
+        }} );
+        this.getConnection().addToSendQueue( playerlist );
+
+        // Send player list for all online players
+        List<PacketPlayerlist.Entry> listEntry = null;
+        for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
+            if ( !this.isHidden( player ) && !this.equals( player ) ) {
+                if ( listEntry == null ) {
+                    listEntry = new ArrayList<>();
+                }
+
+                listEntry.add( new PacketPlayerlist.Entry( (EntityHuman) player ) );
+            }
+        }
+
+        if ( listEntry != null ) {
+            // Send player list
+            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+            packetPlayerlist.setMode( (byte) 0 );
+            packetPlayerlist.setEntries( listEntry );
+            this.getConnection().send( packetPlayerlist );
+        }
     }
 
     @Override
@@ -872,7 +932,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                             ownVelo.setX( ownVelo.getX() * 0.6F );
                             ownVelo.setZ( ownVelo.getZ() * 0.6F );
                             this.setVelocity( ownVelo );
-                            this.setSprinting( false );
+
+                            if ( !this.world.getServer().getServerConfig().getVanilla().isDisableSprintReset() ) {
+                                this.setSprinting( false );
+                            }
                         }
 
                         targetEntity.broadCastMotion();
@@ -974,7 +1037,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.resetAttributes();
         this.resendAttributes();
 
-        // TODO: Remove effects
+        // Remove all effects
+        this.removeAllEffects();
 
         // Check for new chunks
         this.teleport( event.getRespawnLocation() );
@@ -1044,19 +1108,19 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private List<io.gomint.inventory.item.ItemStack> getDrops() {
         List<io.gomint.inventory.item.ItemStack> drops = new ArrayList<>();
 
-        for ( io.gomint.inventory.item.ItemStack itemStack : this.inventory.getContents() ) {
+        for ( io.gomint.inventory.item.ItemStack itemStack : this.inventory.getContentsArray() ) {
             if ( !( itemStack instanceof ItemAir ) ) {
                 drops.add( itemStack );
             }
         }
 
-        for ( io.gomint.inventory.item.ItemStack itemStack : this.offhandInventory.getContents() ) {
+        for ( io.gomint.inventory.item.ItemStack itemStack : this.offhandInventory.getContentsArray() ) {
             if ( !( itemStack instanceof ItemAir ) ) {
                 drops.add( itemStack );
             }
         }
 
-        for ( io.gomint.inventory.item.ItemStack itemStack : this.armorInventory.getContents() ) {
+        for ( io.gomint.inventory.item.ItemStack itemStack : this.armorInventory.getContentsArray() ) {
             if ( !( itemStack instanceof ItemAir ) ) {
                 drops.add( itemStack );
             }
@@ -1081,7 +1145,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public boolean isOnline() {
-        return this.equals( this.connection.getServer().findPlayerByUUID( this.getUUID() ) );
+        return this.connection.getEntity() != null;
     }
 
     @Override
@@ -1197,7 +1261,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void despawn() {
-        for ( Entity entity : this.getAttachedEntities() ) {
+        for ( Entity entity : new HashSet<>( this.getAttachedEntities() ) ) {
             if ( entity instanceof EntityPlayer ) {
                 ( (EntityPlayer) entity ).getEntityVisibilityManager().removeEntity( this );
             }
@@ -1316,7 +1380,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void sendTitle( String title, String subtitle, long fadein, long duration, long fadeout, TimeUnit unit ) {
-        if ( !subtitle.equals( "" ) ) {
+        // NPE check
+        if ( title == null ) {
+            title = "";
+        }
+
+        if ( subtitle != null && !Objects.equals( subtitle, "" ) ) {
             PacketSetTitle subtitlePacket = new PacketSetTitle();
             subtitlePacket.setType( PacketSetTitle.TitleType.TYPE_SUBTITLE.getId() );
             subtitlePacket.setText( subtitle );
@@ -1348,14 +1417,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void firstSpawn() {
         this.connection.sendPlayState( PacketPlayState.PlayState.SPAWN );
         this.getConnection().sendMovePlayer( this.getLocation() );
-
-        // Update player list
-        PacketPlayerlist playerlist = new PacketPlayerlist();
-        playerlist.setMode( (byte) 0 );
-        playerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
-        }} );
-        this.getConnection().addToSendQueue( playerlist );
 
         // Spawn for others
         this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );
@@ -1420,138 +1481,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public CommandOutput dispatchCommand( String command ) {
-        // Search for correct command holder
-        String[] commandParts = command.substring( 1 ).split( " " );
-        int consumed = 0;
-
-        StringBuilder commandName = new StringBuilder( commandParts[consumed] );
-
-        CommandHolder selected = null;
-        while ( selected == null ) {
-            for ( CommandHolder commandHolder : this.connection.getServer().getPluginManager().getCommandManager().getCommands() ) {
-                if ( commandName.toString().equalsIgnoreCase( commandHolder.getName() ) ) {
-                    selected = commandHolder;
-                    break;
-                }
-            }
-
-            consumed++;
-            if ( selected == null ) {
-                if ( commandParts.length == consumed ) {
-                    break;
-                }
-
-                commandName.append( " " ).append( commandParts[consumed] );
-            }
-        }
-
-        // Check if we selected a command
-        if ( selected == null ) {
-            // Send CommandOutput with failure
-            return new CommandOutput().fail( "Command for input '%%s' could not be found", command );
-        } else {
-            // Check for permission
-            if ( selected.getPermission() != null && !this.hasPermission( selected.getPermission() ) ) {
-                return new CommandOutput().fail( "No permission for this command" );
-            } else {
-                // Now we need to parse all additional parameters
-                String[] params;
-                if ( commandParts.length > consumed ) {
-                    params = new String[commandParts.length - consumed];
-                    System.arraycopy( commandParts, consumed, params, 0, commandParts.length - consumed );
-                } else {
-                    params = new String[0];
-                }
-
-                if ( selected.getOverload() != null && params.length > 0 ) {
-                    List<CommandCanidate> commandCanidates = new ArrayList<>();
-                    for ( CommandOverload overload : selected.getOverload() ) {
-                        Iterator<String> paramIterator = Arrays.asList( params ).iterator();
-
-                        if ( !paramIterator.hasNext() && overload.getParameters() == null ) {
-                            commandCanidates.add( new CommandCanidate( overload, new HashMap<>(), true, true ) );
-                        } else {
-                            Map<String, Object> commandInput = new HashMap<>();
-
-                            boolean completed = true;
-                            boolean completedOptionals = true;
-
-                            for ( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
-                                List<String> input = new ArrayList<>();
-                                ParamValidator validator = entry.getValue();
-
-                                if ( validator.consumesParts() > 0 ) {
-                                    for ( int i = 0; i < validator.consumesParts(); i++ ) {
-                                        if ( !paramIterator.hasNext() ) {
-                                            if ( !validator.isOptional() ) {
-                                                completed = false;
-                                                break;
-                                            } else {
-                                                completedOptionals = false;
-                                            }
-                                        } else {
-                                            input.add( paramIterator.next() );
-                                        }
-                                    }
-                                } else {
-                                    // Consume as much as possible for thing like TEXT, RAWTEXT
-                                    while ( paramIterator.hasNext() ) {
-                                        input.add( paramIterator.next() );
-                                    }
-                                }
-
-                                if ( input.size() == validator.consumesParts() || validator.consumesParts() < 0 ) {
-                                    Object result = validator.validate( input, this );
-                                    if ( result == null ) {
-                                        completed = false;
-                                    }
-
-                                    commandInput.put( entry.getKey(), result );
-                                }
-                            }
-
-                            if ( completed ) {
-                                commandCanidates.add( new CommandCanidate( overload, commandInput, completedOptionals, !paramIterator.hasNext() && completedOptionals ) );
-                            }
-                        }
-                    }
-
-                    if ( !commandCanidates.isEmpty() ) {
-                        // Select best canidate
-                        commandCanidates.sort( new Comparator<CommandCanidate>() {
-                            @Override
-                            public int compare( CommandCanidate o1, CommandCanidate o2 ) {
-                                if ( o1.isReadCompleted() && !o2.isReadCompleted() ) {
-                                    return -1;
-                                } else if ( !o1.isReadCompleted() && o2.isReadCompleted() ) {
-                                    return 1;
-                                }
-
-                                return 0;
-                            }
-                        } );
-
-                        CommandCanidate canidate = commandCanidates.get( 0 );
-                        return tryCommandDispatch( selected, canidate.getArguments() );
-                    }
-
-                    return new CommandOutput().fail( "Command for input '%%s' could not be found", command );
-                } else {
-                    return tryCommandDispatch( selected, new HashMap<>() );
-                }
-            }
-        }
+        return this.getConnection().getServer().getPluginManager().getCommandManager().dispatchCommand( this, command );
     }
 
-    private CommandOutput tryCommandDispatch( CommandHolder command, Map<String, Object> arguments ) {
-        // CHECKSTYLE:OFF
-        try {
-            return command.getExecutor().execute( this, command.getName(), arguments );
-        } catch ( Exception e ) {
-            LOGGER.warn( "Command '{}' failed", command.getName(), e );
-            return new CommandOutput().fail( "Command has thrown an error. Please check the logs" );
-        }
-        // CHECKSTYLE:ON
+    @Override
+    public void setSpawnLocation( Location spawnLocation ) {
+        this.spawnLocation = spawnLocation;
+        this.connection.sendPlayerSpawnPosition();
     }
 
     public void setUsingItem( boolean value ) {
@@ -1562,6 +1498,21 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             this.actionStart = -1;
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ACTION, false );
         }
+    }
+
+    @Override
+    protected void checkBlockCollisions() {
+        List<io.gomint.world.block.Block> blockList = this.world.getCollisionBlocks( this, true );
+        if ( blockList != null ) {
+            for ( io.gomint.world.block.Block block : blockList ) {
+                io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
+                implBlock.onEntityCollision( this );
+            }
+        }
+    }
+
+    public Collection<ContainerInventory> getOpenInventories() {
+        return this.windowIds.values();
     }
 
 }

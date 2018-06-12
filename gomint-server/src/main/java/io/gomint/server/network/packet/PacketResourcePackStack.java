@@ -47,7 +47,21 @@ public class PacketResourcePackStack extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
+        buffer.readBoolean();
 
+        int amount = buffer.readUnsignedVarInt();
+        for ( int i = 0; i < amount; i++ ) {
+            buffer.readString();
+            buffer.readString();
+            buffer.readString();
+        }
+
+        amount = buffer.readUnsignedVarInt();
+        for ( int i = 0; i < amount; i++ ) {
+            buffer.readString();
+            buffer.readString();
+            buffer.readString();
+        }
     }
 
 }

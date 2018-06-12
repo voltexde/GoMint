@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.*;
@@ -24,13 +25,7 @@ public class AcaciaFenceGate extends Block implements io.gomint.world.block.Bloc
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemWoodenAxe.class,
-            ItemIronAxe.class,
-            ItemDiamondAxe.class,
-            ItemGoldenAxe.class,
-            ItemStoneAxe.class
-        };
+        return ToolPresets.AXE;
     }
 
     @Override

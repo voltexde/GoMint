@@ -63,7 +63,7 @@ public class PacketPlayerlist extends Packet {
                 buffer.writeString( entry.xboxId );
 
                 // TODO: Is this the same as the unknown one in SpawnPlayer?
-                buffer.writeString( "" );
+                buffer.writeString( entry.uuid.toString() );
             }
         } else {
             for ( Entry entry : this.entries ) {
@@ -89,7 +89,7 @@ public class PacketPlayerlist extends Packet {
         private PlayerSkin skin;
 
         public Entry( EntityHuman human ) {
-            this( human.getUUID(), human.getEntityId(), human.getName(), human.getDisplayName(), 0, human.getXboxID(), human.getSkin() );
+            this( human.getUUID(), human.getEntityId(), human.getName(), human.getDisplayName(), 0xFFFFFFFF, human.getXboxID(), human.getSkin() );
         }
     }
 

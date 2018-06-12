@@ -131,18 +131,6 @@ public class PacketCraftingRecipes extends Packet {
                     break;
             }
         }
-
-        for ( Recipe recipe : this.recipes ) {
-            System.out.println( "Input" );
-            for ( ItemStack itemStack : recipe.getIngredients() ) {
-                System.out.println( itemStack );
-            }
-
-            System.out.println( "Output" );
-            for ( ItemStack itemStack : recipe.createResult() ) {
-                System.out.println( itemStack );
-            }
-        }
     }
 
 }

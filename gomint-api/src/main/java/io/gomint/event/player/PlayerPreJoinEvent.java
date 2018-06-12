@@ -16,7 +16,7 @@ import lombok.ToString;
  * @version 1.0
  *
  * This event gets called when the login has been completed and the server decides to start loading world data
- * into the client. This event can be used when you need to be sure the play status has been reched (like redirecting
+ * into the client. This event can be used when you need to be sure the play status has been reached (like redirecting
  * a player to another server without ever touching this one)
  */
 @EqualsAndHashCode( callSuper = false )

@@ -5,6 +5,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.UpdateReason;
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
@@ -83,6 +84,11 @@ public class WoodenButton extends Block implements io.gomint.world.block.BlockWo
     @Override
     public BlockType getType() {
         return BlockType.WOODEN_BUTTON;
+    }
+
+    @Override
+    public Class<? extends ItemStack>[] getToolInterfaces() {
+        return ToolPresets.AXE;
     }
 
 }

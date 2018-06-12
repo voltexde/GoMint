@@ -19,7 +19,12 @@ import lombok.Data;
 @Data
 public class PacketSetSpawnPosition extends Packet {
 
-    private int spawnType;
+    public enum SpawnType {
+        PLAYER,
+        WORLD
+    }
+
+    private SpawnType spawnType;
     private BlockPosition position;
     private boolean force;
 
@@ -32,7 +37,7 @@ public class PacketSetSpawnPosition extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer, int protocolID ) {
-        buffer.writeSignedVarInt( this.spawnType );
+        buffer.writeSignedVarInt( this.spawnType.ordinal() );
         writeBlockPosition( this.position, buffer );
         buffer.writeBoolean( this.force );
     }

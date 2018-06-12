@@ -298,4 +298,18 @@ public interface Entity {
      */
     boolean isOnFire();
 
+    /**
+     * Is this entity affected by gravity?
+     *
+     * @param value true for yes, false for no
+     */
+    void setAffectedByGravity( boolean value );
+
+    /**
+     * Is this entity affected by gravity?
+     *
+     * @return true for yes, false for no
+     */
+    boolean isAffectedByGravity();
+
 }

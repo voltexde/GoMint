@@ -7,8 +7,20 @@
 
 package io.gomint.server;
 
+import io.gomint.server.jni.NativeCode;
+import io.gomint.server.jni.zlib.JavaZLib;
+import io.gomint.server.jni.zlib.NativeZLib;
+import io.gomint.server.jni.zlib.ZLib;
+import io.gomint.server.maintenance.ReportUploader;
+import io.gomint.server.util.DumpUtil;
+import io.gomint.server.world.BlockRuntimeIDs;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +37,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.zip.Adler32;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
 
 /**
  * This Bootstrap downloads all Libraries given inside of the "libs.dep" File in the Root
@@ -46,6 +61,13 @@ public class Bootstrap {
      * @param args The command-line arguments to be passed to the entryClass
      */
     public static void main( String[] args ) {
+        // Setup additional debug
+        if ( "true".equals( System.getProperty( "gomint.debug_events" ) ) ) {
+            Configurator.setLevel( "io.gomint.server.event.EventHandlerList", Level.DEBUG );
+        }
+
+        BlockRuntimeIDs.fromLegacy( 0, (byte) 0, 261 );
+
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
 
@@ -95,6 +117,7 @@ public class Bootstrap {
             Constructor constructor = coreClass.getDeclaredConstructor( OptionSet.class );
             constructor.newInstance( new Object[]{ options } );
         } catch ( Throwable t ) {
+            ReportUploader.create().exception( t ).property( "crash", "true" ).upload();
             LOGGER.error( "GoMint crashed: ", t );
         }
     }

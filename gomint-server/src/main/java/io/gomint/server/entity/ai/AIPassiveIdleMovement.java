@@ -90,7 +90,7 @@ public class AIPassiveIdleMovement extends AIState {
         double x = r * Math.cos( t );
         double z = r * Math.sin( t );
 
-        Vector position = this.pathfinding.getTransform().getPosition().clone();
+        Vector position = this.pathfinding.getTransform().getPosition();
         position.add( (float) x, 0.0F, (float) z );
 
         return new Location( this.world, position );

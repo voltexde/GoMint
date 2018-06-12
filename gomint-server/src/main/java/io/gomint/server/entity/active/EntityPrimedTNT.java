@@ -59,7 +59,6 @@ public class EntityPrimedTNT extends Entity implements io.gomint.entity.active.E
 
     private void initEntity() {
         this.setSize( 0.98f, 0.98f );
-        this.setHasCollision( false );
 
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.IGNITED, true );
         this.metadataContainer.putInt( MetadataContainer.DATA_FUSE_LENGTH, this.fuse );
@@ -125,4 +124,5 @@ public class EntityPrimedTNT extends Entity implements io.gomint.entity.active.E
 
         this.world.sendLevelEvent( location, LevelEvent.SOUND_IGNITE, 0 );
     }
+
 }

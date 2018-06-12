@@ -61,4 +61,18 @@ public interface Inventory {
      */
     Collection<Entity> getViewers();
 
+    /**
+     * Get the type of this inventory
+     *
+     * @return type of inventory
+     */
+    InventoryType getInventoryType();
+
+    /**
+     * Get the contents of this inventory
+     *
+     * @return array copy of item stacks, none of which can be null
+     */
+    ItemStack[] getContents();
+
 }

@@ -1,5 +1,6 @@
 package io.gomint.server.inventory;
 
+import io.gomint.inventory.InventoryType;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -95,7 +96,7 @@ public abstract class ContainerInventory extends Inventory implements io.gomint.
 
         PacketInventoryContent inventoryContent = new PacketInventoryContent();
         inventoryContent.setWindowId( windowId );
-        inventoryContent.setItems( this.getContents() );
+        inventoryContent.setItems( this.getContentsArray() );
         playerConnection.addToSendQueue( inventoryContent );
     }
 
@@ -108,6 +109,11 @@ public abstract class ContainerInventory extends Inventory implements io.gomint.
         inventorySetSlot.setSlot( slot );
         inventorySetSlot.setItemStack( this.getItem( slot ) );
         playerConnection.addToSendQueue( inventorySetSlot );
+    }
+
+    @Override
+    public InventoryType getInventoryType() {
+        return InventoryType.CONTAINER;
     }
 
 }

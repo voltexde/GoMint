@@ -25,7 +25,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         Recipe recipe = connection.getEntity().getWorld().getServer().getRecipeManager().getRecipe( packet.getRecipeId() );
         if ( recipe == null ) {
             // Resend inventory and call it a day
-            for ( ItemStack itemStack : connection.getEntity().getCraftingInputInventory().getContents() ) {
+            for ( ItemStack itemStack : connection.getEntity().getCraftingInputInventory().getContentsArray() ) {
                 connection.getEntity().getInventory().addItem( itemStack );
             }
 
@@ -67,6 +67,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         if ( packet.getRecipeType() == 0 && connection.getEntity().getCraftingInputInventory().size() > 4 ) {
             // Resend inventory and call it a day
             connection.getEntity().getInventory().sendContents( connection );
+            LOGGER.debug( "Did not craft due to wrong inventory size" );
             return;
         }
 
@@ -75,12 +76,14 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         boolean craftable = consumeSlots != null;
         if ( !craftable ) {
             // We can't craft => reset inventory
-            for ( ItemStack inputItem : connection.getEntity().getCraftingInputInventory().getContents() ) {
+            for ( ItemStack inputItem : connection.getEntity().getCraftingInputInventory().getContentsArray() ) {
                 connection.getEntity().getInventory().addItem( inputItem );
             }
 
             connection.getEntity().getInventory().sendContents( connection );
             connection.getEntity().getCraftingInputInventory().clear();
+
+            LOGGER.debug( "Could not craft, recipe denied: {} -> {}", recipe.getClass().getName(), recipe.getIngredients() );
             return;
         }
 
@@ -89,7 +92,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
 
         if ( event.isCancelled() ) {
             // We can't craft => reset inventory
-            for ( ItemStack inputItem : connection.getEntity().getCraftingInputInventory().getContents() ) {
+            for ( ItemStack inputItem : connection.getEntity().getCraftingInputInventory().getContentsArray() ) {
                 connection.getEntity().getInventory().addItem( inputItem );
             }
 

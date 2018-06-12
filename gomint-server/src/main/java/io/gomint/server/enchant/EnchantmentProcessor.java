@@ -134,10 +134,14 @@ public class EnchantmentProcessor {
 
                     // Enchant the start item
                     for ( Enchantment enchantment : this.enchantments ) {
+                        LOGGER.debug( "Adding enchant: {} lvl: {} to item", enchantment.getClass().getName(), enchantment.getLevel() );
                         this.startItem.addEnchantment( enchantment.getClass(), enchantment.getLevel() );
                     }
 
-                    this.player.getEnchantmentOutputInventory().setItem( 0, this.startItem );
+                    this.player.getEnchantmentInputInventory().setItem( 0, this.startItem );
+
+                    // Remove the processor
+                    this.player.setEnchantmentProcessor( null );
                 }
             }
         }
@@ -150,30 +154,30 @@ public class EnchantmentProcessor {
         for ( int z = -1; z <= 1; ++z ) {
             for ( int x = -1; x <= 1; ++x ) {
                 if ( ( z != 0 || x != 0 ) &&
-                    world.getBlockAt( position.clone().add( x, 0, z ) ).getType() == BlockType.AIR &&
-                    world.getBlockAt( position.clone().add( x, 1, z ) ).getType() == BlockType.AIR ) {
-                    if ( world.getBlockAt( position.clone().add( x * 2, 0, z * 2 ) ).getType() == BlockType.BOOKSHELF ) {
+                    world.getBlockAt( position.add( x, 0, z ) ).getType() == BlockType.AIR &&
+                    world.getBlockAt( position.add( x, 1, z ) ).getType() == BlockType.AIR ) {
+                    if ( world.getBlockAt( position.add( x * 2, 0, z * 2 ) ).getType() == BlockType.BOOKSHELF ) {
                         foundShelves++;
                     }
 
-                    if ( world.getBlockAt( position.clone().add( x * 2, 1, z * 2 ) ).getType() == BlockType.BOOKSHELF ) {
+                    if ( world.getBlockAt( position.add( x * 2, 1, z * 2 ) ).getType() == BlockType.BOOKSHELF ) {
                         foundShelves++;
                     }
 
                     if ( x != 0 && z != 0 ) {
-                        if ( world.getBlockAt( position.clone().add( x * 2, 0, z ) ).getType() == BlockType.BOOKSHELF ) {
+                        if ( world.getBlockAt( position.add( x * 2, 0, z ) ).getType() == BlockType.BOOKSHELF ) {
                             foundShelves++;
                         }
 
-                        if ( world.getBlockAt( position.clone().add( x * 2, 1, z ) ).getType() == BlockType.BOOKSHELF ) {
+                        if ( world.getBlockAt( position.add( x * 2, 1, z ) ).getType() == BlockType.BOOKSHELF ) {
                             foundShelves++;
                         }
 
-                        if ( world.getBlockAt( position.clone().add( x, 0, z * 2 ) ).getType() == BlockType.BOOKSHELF ) {
+                        if ( world.getBlockAt( position.add( x, 0, z * 2 ) ).getType() == BlockType.BOOKSHELF ) {
                             foundShelves++;
                         }
 
-                        if ( world.getBlockAt( position.clone().add( x, 1, z * 2 ) ).getType() == BlockType.BOOKSHELF ) {
+                        if ( world.getBlockAt( position.add( x, 1, z * 2 ) ).getType() == BlockType.BOOKSHELF ) {
                             foundShelves++;
                         }
                     }

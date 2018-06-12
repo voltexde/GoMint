@@ -2,8 +2,10 @@ package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
+import io.gomint.math.Vector;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.player.PlayerPermission;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.world.Gamerule;
 import lombok.Data;
 
@@ -86,11 +88,12 @@ public class PacketStartGame extends Packet {
         buffer.writeSignedVarInt( this.worldGamemode );
         buffer.writeSignedVarInt( this.difficulty );
         buffer.writeSignedVarInt( (int) this.spawn.getX() );
-        buffer.writeSignedVarInt( (int) this.spawn.getY() );
+        buffer.writeUnsignedVarInt( (int) this.spawn.getY() );
         buffer.writeSignedVarInt( (int) this.spawn.getZ() );
         buffer.writeBoolean( this.hasAchievementsDisabled );
         buffer.writeSignedVarInt( this.dayCycleStopTime );
         buffer.writeBoolean( this.eduMode );
+        buffer.writeBoolean( true ); // This is hasEduModeEnabled, we default to false until we have all EDU stuff in
         buffer.writeLFloat( this.rainLevel );
         buffer.writeLFloat( this.lightningLevel );
         buffer.writeBoolean( this.isMultiplayerGame );
@@ -104,9 +107,13 @@ public class PacketStartGame extends Packet {
         buffer.writeBoolean( this.hasTrustPlayersEnabled );
         buffer.writeSignedVarInt( this.defaultPlayerPermission );
         buffer.writeSignedVarInt( this.xboxLiveBroadcastMode );
+        buffer.writeInt( 32 );
         buffer.writeBoolean( this.hasPlatformBroadcast );
-        buffer.writeUnsignedVarInt( this.platformBroadcastMode );
+        buffer.writeSignedVarInt( this.platformBroadcastMode );
         buffer.writeBoolean( this.xboxLiveBroadcastIntent );
+        buffer.writeBoolean( false );
+        buffer.writeBoolean( false );
+        buffer.writeBoolean( false );
 
         buffer.writeString( this.levelId );
         buffer.writeString( this.worldName );
@@ -118,6 +125,14 @@ public class PacketStartGame extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
+        this.entityId = buffer.readSignedVarLong().longValue();
+        this.runtimeEntityId = buffer.readUnsignedVarLong();
+        buffer.readSignedVarInt();
 
+        this.spawn = new Location( null, buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat() );
+
+        // Skip the rest for now
+        buffer.skip( buffer.getRemaining() );
     }
+
 }

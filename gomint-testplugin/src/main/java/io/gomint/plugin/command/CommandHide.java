@@ -15,6 +15,9 @@ import io.gomint.command.annotation.Overload;
 import io.gomint.command.annotation.Parameter;
 import io.gomint.command.validator.TargetValidator;
 import io.gomint.entity.EntityPlayer;
+import io.gomint.entity.passive.EntityHuman;
+import io.gomint.math.Vector;
+import io.gomint.player.PlayerSkin;
 
 import java.util.Map;
 
@@ -33,13 +36,15 @@ public class CommandHide extends Command {
     public CommandOutput execute( EntityPlayer player, String alias, Map<String, Object> arguments ) {
         CommandOutput output = new CommandOutput();
 
-        EntityPlayer hide = (EntityPlayer) arguments.get( "target" );
-        if ( !player.equals( hide ) ) {
-            player.hidePlayer( hide );
-            output.success( "EntityPlayer %%s has been hidden", hide.getName() );
-        } else {
-            output.fail( "You can't hide yourself" );
-        }
+        EntityHuman floatingText = EntityHuman.create();
+        floatingText.setHiddenByDefault( true );
+        floatingText.setSkin( PlayerSkin.empty() );
+        floatingText.setScale( 0f );
+        floatingText.setTicking( false );
+        floatingText.setNameTag( "Test" );
+        floatingText.spawn( player.getLocation().add( new Vector( 0, 1, 0 ) ) );
+
+        output.success( "Spawned new invis entity" );
 
         return output;
     }

@@ -1,6 +1,7 @@
 package io.gomint.server.inventory;
 
 import io.gomint.entity.Entity;
+import io.gomint.inventory.InventoryType;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.passive.EntityHuman;
@@ -67,7 +68,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
     public void sendContents( PlayerConnection playerConnection ) {
         PacketInventoryContent inventory = new PacketInventoryContent();
         inventory.setWindowId( WindowMagicNumbers.PLAYER.getId() );
-        inventory.setItems( getContents() );
+        inventory.setItems( getContentsArray() );
         playerConnection.addToSendQueue( inventory );
     }
 
@@ -90,6 +91,8 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
         PacketMobEquipment packet = new PacketMobEquipment();
         packet.setEntityId( player.getEntityId() );
         packet.setStack( this.getItemInHand() );
+        packet.setWindowId( (byte) 0 );
+        packet.setSelectedSlot( this.itemInHandSlot );
         packet.setSlot( this.itemInHandSlot );
 
         // Relay packet
@@ -116,20 +119,7 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
         }
 
         this.itemInHandSlot = slot;
-
-        PacketMobEquipment packetMobEquipment = new PacketMobEquipment();
-        packetMobEquipment.setEntityId( ( (EntityPlayer) this.owner ).getEntityId() );
-        packetMobEquipment.setSelectedSlot( slot );
-        packetMobEquipment.setWindowId( (byte) 0 );
-        packetMobEquipment.setSlot( (byte) ( slot + 9 ) );
-        packetMobEquipment.setStack( this.getItemInHand() );
-
-        // Relay packet
-        for ( Entity entity : ( (EntityPlayer) this.owner ).getAttachedEntities() ) {
-            if ( entity instanceof EntityPlayer ) {
-                ( (EntityPlayer) entity ).getConnection().addToSendQueue( packetMobEquipment );
-            }
-        }
+        this.updateItemInHand();
     }
 
     public void updateItemInHandWithItem( byte slot ) {
@@ -153,6 +143,11 @@ public class PlayerInventory extends Inventory implements io.gomint.inventory.Pl
             io.gomint.server.inventory.item.ItemStack oldItemInHand = (io.gomint.server.inventory.item.ItemStack) this.getItem( slot );
             oldItemInHand.removeFromHand( (EntityPlayer) this.owner );
         }
+    }
+
+    @Override
+    public InventoryType getInventoryType() {
+        return InventoryType.PLAYER;
     }
 
 }

@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.*;
@@ -29,13 +30,7 @@ public class Anvil extends Block implements io.gomint.world.block.BlockAnvil {
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
-        return new Class[]{
-            ItemWoodenPickaxe.class,
-            ItemIronPickaxe.class,
-            ItemDiamondPickaxe.class,
-            ItemGoldenPickaxe.class,
-            ItemStonePickaxe.class
-        };
+        return ToolPresets.PICKAXE;
     }
 
     @Override

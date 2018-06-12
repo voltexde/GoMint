@@ -54,8 +54,6 @@ public abstract class FileResourceLoader {
                 URL resourceUrl = classLoader.getResource( path );
 
                 if ( resourceUrl != null ) {
-                    System.out.println( resourceUrl.getPath() );
-
                     //If the file is not on the Disk read it from the JAR
                     return new InputStreamReader( resourceUrl.openStream(), "UTF8" );
                 }

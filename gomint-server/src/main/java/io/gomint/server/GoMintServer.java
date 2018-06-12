@@ -7,9 +7,7 @@
 
 package io.gomint.server;
 
-import com.google.common.reflect.ClassPath;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
 import io.gomint.config.InvalidConfigurationException;
@@ -48,6 +46,7 @@ import io.gomint.server.world.block.Blocks;
 import io.gomint.world.World;
 import io.gomint.world.block.Block;
 import io.gomint.world.generator.CreateOptions;
+import io.gomint.world.generator.integrated.LayeredGenerator;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import org.jline.reader.*;
@@ -58,7 +57,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.SocketException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
@@ -123,8 +121,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     // Core utils
     @Getter
-    private ClassPath classPath;
-    @Getter
     private Blocks blocks;
     @Getter
     private Items items;
@@ -134,6 +130,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private Entities entities;
     @Getter
     private Effects effects;
+
+    private String gitHash;
 
     /**
      * Starts the GoMint server
@@ -163,14 +161,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
             // Ignored .-.
         }
 
-        LOGGER.info( "Starting {} {}", getVersion(), buildVersion );
-        Thread.currentThread().setName( "GoMint Main Thread" );
+        this.gitHash = buildVersion;
 
-        try {
-            this.classPath = ClassPath.from( ClassLoader.getSystemClassLoader() );
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
+        LOGGER.info( "Starting {}", getVersion() );
+        Thread.currentThread().setName( "GoMint Main Thread" );
 
         // ------------------------------------ //
         // Executor Initialization
@@ -186,20 +180,54 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         };
 
-        this.executorService = MoreExecutors.listeningDecorator( new ThreadPoolExecutor( 0, 512, 60L,
+        this.executorService = MoreExecutors.listeningDecorator( new ThreadPoolExecutor( 3, 512, 60L,
             TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory ) );
 
         this.watchdog = new Watchdog( this );
 
+        LOGGER.info( "Loading block, item and entity registers" );
+
         // ------------------------------------ //
         // Build up registries
         // ------------------------------------ //
-        this.blocks = new Blocks( this );
-        this.items = new Items( this );
-        this.enchantments = new Enchantments( this );
-        this.entities = new Entities( this );
-        this.effects = new Effects( this );
+        List<ListenableFuture<?>> registryLoader = new ArrayList<>();
+        registryLoader.add( this.executorService.submit( () -> {
+            try {
+                this.blocks = new Blocks( this );
+            } catch ( Throwable t ) {
+                t.printStackTrace();
+            }
+        } ) );
+        registryLoader.add( this.executorService.submit( () -> {
+            try {
+                this.items = new Items( this );
+            } catch ( Throwable t ) {
+                t.printStackTrace();
+            }
+        } ) );
+        registryLoader.add( this.executorService.submit( () -> {
+            try {
+                this.entities = new Entities( this );
+                this.effects = new Effects( this );
+                this.enchantments = new Enchantments( this );
+            } catch ( Throwable t ) {
+                t.printStackTrace();
+            }
+        } ) );
 
+        SettableFuture<Void> completed = SettableFuture.create();
+        Futures.whenAllSucceed( registryLoader ).run( () -> completed.set( null ), MoreExecutors.directExecutor() );
+
+        try {
+            completed.get();
+        } catch ( InterruptedException | ExecutionException e ) {
+            // There is no timeout
+        }
+
+        startAfterRegistryInit( args, start );
+    }
+
+    private void startAfterRegistryInit( OptionSet args, long start ) {
         // ------------------------------------ //
         // jLine setup
         // ------------------------------------ //
@@ -213,7 +241,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 .completer( ( lineReader, parsedLine, list ) -> {
                     List<String> suggestions = pluginManager.getCommandManager().completeSystem( parsedLine.line() );
                     for ( String suggestion : suggestions ) {
-                        list.add( new Candidate( suggestion ) );
+                        LOGGER.info( suggestion );
                     }
                 } )
                 .build();
@@ -283,6 +311,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.pluginManager.detectPlugins();
         this.pluginManager.loadPlugins( StartupPriority.STARTUP );
 
+        if ( !this.isRunning() ) {
+            this.internalShutdown();
+            return;
+        }
+
         // ------------------------------------ //
         // Pre World Initialization
         // ------------------------------------ //
@@ -317,8 +350,12 @@ public class GoMintServer implements GoMint, InventoryHolder {
         try {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
         } catch ( WorldLoadException e ) {
-            LOGGER.error( "Failed to load default world", e );
-            return;
+            // Try to generate world
+            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( LayeredGenerator.class ) ) == null ) {
+                LOGGER.error( "Failed to load or generate default world", e );
+                this.internalShutdown();
+                return;
+            }
         }
         // CHECKSTYLE:ON
 
@@ -329,14 +366,28 @@ public class GoMintServer implements GoMint, InventoryHolder {
         String host = args.has( "lh" ) ? (String) args.valueOf( "lh" ) : this.serverConfig.getListener().getIp();
 
         this.networkManager = new NetworkManager( this );
-        if ( !this.initNetworking( host, port ) ) return;
+        if ( !this.initNetworking( host, port ) ) {
+            this.internalShutdown();
+            return;
+        }
+
         setMotd( this.getServerConfig().getMotd() );
 
         // ------------------------------------ //
         // Load plugins with StartupPriority LOAD
         // ------------------------------------ //
         this.pluginManager.loadPlugins( StartupPriority.LOAD );
+        if ( !this.isRunning() ) {
+            this.internalShutdown();
+            return;
+        }
+
         this.pluginManager.installPlugins();
+
+        if ( !this.isRunning() ) {
+            this.internalShutdown();
+            return;
+        }
 
         LOGGER.info( "Done in " + ( System.currentTimeMillis() - start ) + " ms" );
 
@@ -396,16 +447,26 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         }
 
+        this.internalShutdown();
+    }
+
+    private void internalShutdown() {
         LOGGER.info( "Starting shutdown..." );
 
         // Safe shutdown
         this.pluginManager.close();
-        this.networkManager.close();
-        this.worldManager.close();
 
-        int wait = 500;
+        if ( this.networkManager != null ) {
+            this.networkManager.close();
+        }
+
+        if ( this.worldManager != null ) {
+            this.worldManager.close();
+        }
+
+        int wait = 50;
         this.executorService.shutdown();
-        while ( !this.executorService.isShutdown() && wait-- > 0 ) {
+        while ( !this.executorService.isTerminated() && wait-- > 0 ) {
             try {
                 this.executorService.awaitTermination( 10, TimeUnit.MILLISECONDS );
             } catch ( InterruptedException e ) {
@@ -413,18 +474,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         }
 
-        if ( !this.executorService.isShutdown() ) {
+        if ( !this.executorService.isTerminated() ) {
             List<Runnable> running = this.executorService.shutdownNow();
             for ( Runnable runnable : running ) {
                 LOGGER.warn( "Runnable " + runnable.getClass().getName() + " has been terminated due to shutdown" );
-            }
-        }
-
-        while ( !this.executorService.isTerminated() ) {
-            try {
-                Thread.sleep( 1 );
-            } catch ( InterruptedException e ) {
-                e.printStackTrace();
             }
         }
 
@@ -446,10 +499,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         LOGGER.info( "Shutdown completed" );
 
-        // Wait up to 5 seconds
+        // Wait up to 10 seconds
         if ( this.announceThreads() ) {
-            start = System.currentTimeMillis();
-            while ( ( System.currentTimeMillis() - start ) < TimeUnit.SECONDS.toMillis( 5 ) ) {
+            long start = System.currentTimeMillis();
+            while ( ( System.currentTimeMillis() - start ) < TimeUnit.SECONDS.toMillis( 10 ) ) {
                 try {
                     Thread.sleep( 50 );
                 } catch ( InterruptedException e ) {
@@ -504,7 +557,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 this.networkManager.setDumpingEnabled( true );
                 this.networkManager.setDumpDirectory( dumpDirectory );
             }
-        } catch ( SocketException e ) {
+        } catch ( Exception e ) {
             LOGGER.error( "Failed to initialize networking", e );
             return false;
         }
@@ -604,7 +657,12 @@ public class GoMintServer implements GoMint, InventoryHolder {
      * @return the version of gomint
      */
     public String getVersion() {
-        return "GoMint 1.0.0 (MC:PE " + Protocol.MINECRAFT_PE_NETWORK_VERSION + ")";
+        return "GoMint 1.0.0 (MC:PE " + Protocol.MINECRAFT_PE_NETWORK_VERSION + ") - " + this.gitHash;
+    }
+
+    @Override
+    public void dispatchCommand( String line ) {
+        this.pluginManager.getCommandManager().executeSystem( line );
     }
 
     /**

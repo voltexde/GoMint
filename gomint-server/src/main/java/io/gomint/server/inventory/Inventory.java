@@ -1,6 +1,7 @@
 package io.gomint.server.inventory;
 
 import io.gomint.entity.Entity;
+import io.gomint.inventory.InventoryType;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
@@ -40,6 +41,14 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         this.viewer.add( player.getConnection() );
     }
 
+    public void addViewerWithoutAction( EntityPlayer player ) {
+        this.viewer.add( player.getConnection() );
+    }
+
+    public void removeViewerWithoutAction( EntityPlayer player ) {
+        this.viewer.remove( player.getConnection() );
+    }
+
     public void removeViewer( EntityPlayer player ) {
         this.viewer.remove( player.getConnection() );
     }
@@ -58,7 +67,18 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         }
     }
 
+    @Override
     public ItemStack[] getContents() {
+        return Arrays.copyOf( this.contents, this.contents.length );
+    }
+
+    /**
+     * Basically the same as {@link #getContents()} only without the copy and direct access to the
+     * array.
+     *
+     * @return the contents array
+     */
+    public ItemStack[] getContentsArray() {
         return this.contents;
     }
 
@@ -210,5 +230,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
 
         return viewers;
     }
+
+    public abstract InventoryType getInventoryType();
 
 }

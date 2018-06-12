@@ -5,6 +5,8 @@ package io.gomint.server.command.internal;
 import io.gomint.GoMint;
 import io.gomint.command.Command;
 import io.gomint.command.CommandOutput;
+import io.gomint.command.CommandSender;
+import io.gomint.command.PlayerCommandSender;
 import io.gomint.command.annotation.*;
 import io.gomint.command.validator.BlockPositionValidator;
 import io.gomint.command.validator.StringValidator;
@@ -44,13 +46,17 @@ import java.util.Map;
 public class TPCommand extends Command {
 
     @Override
-    public CommandOutput execute( EntityPlayer player, String alias, Map<String, Object> arguments ) {
+    public CommandOutput execute( CommandSender sender, String alias, Map<String, Object> arguments ) {
         CommandOutput output = new CommandOutput();
 
         // Check for source
-        EntityPlayer source = player;
+        EntityPlayer source = ( sender instanceof PlayerCommandSender ) ? (EntityPlayer) sender : null;
         if ( arguments.containsKey( "target" ) ) {
             source = (EntityPlayer) arguments.get( "target" );
+        }
+
+        if ( source == null ) {
+            return new CommandOutput().fail( "No source for teleport given" );
         }
 
         // Check for entity teleportation
@@ -62,7 +68,7 @@ public class TPCommand extends Command {
         }
 
         // Do we have a world given?
-        Location to = new Location( player.getWorld(), 0, 0, 0 );
+        Location to = new Location( source.getWorld(), 0, 0, 0 );
         if ( arguments.containsKey( "world" ) ) {
             World world = GoMint.instance().getWorld( (String) arguments.get( "world" ) );
             if ( world == null ) {

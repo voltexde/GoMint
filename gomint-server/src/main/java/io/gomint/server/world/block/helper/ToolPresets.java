@@ -24,4 +24,19 @@ public class ToolPresets {
         ItemWoodenPickaxe.class
     };
 
+    public static final Class[] SHOVEL = new Class[]{
+        ItemWoodenShovel.class,
+        ItemIronShovel.class,
+        ItemDiamondShovel.class,
+        ItemGoldenShovel.class,
+        ItemStoneShovel.class
+    };
+
+    public static final Class[] SWORD = new Class[]{
+        ItemDiamondSword.class,
+        ItemIronSword.class,
+        ItemGoldenSword.class,
+        ItemStoneSword.class,
+        ItemWoodenSword.class
+    };
 }

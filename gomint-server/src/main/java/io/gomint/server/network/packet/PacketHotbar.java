@@ -32,14 +32,6 @@ public class PacketHotbar extends Packet {
     public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.selectedHotbarSlot = buffer.readUnsignedVarInt();
         this.windowId = buffer.readByte();
-
-        if ( protocolID == 201 ) { // 1.2.13.5 has removed this (220)
-            this.slots = new int[buffer.readUnsignedVarInt()];
-            for ( int i = 0; i < this.slots.length; i++ ) {
-                this.slots[i] = buffer.readUnsignedVarInt();
-            }
-        }
-
         this.selectHotbarSlot = buffer.readBoolean();
     }
 

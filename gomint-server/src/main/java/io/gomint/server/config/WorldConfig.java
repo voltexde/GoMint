@@ -4,6 +4,7 @@ import io.gomint.config.Comment;
 import io.gomint.config.YamlConfig;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * @author geNAZt
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @Getter
+@ToString
 public class WorldConfig extends YamlConfig {
 
     @Comment( "Name of the world this affects" )
@@ -37,6 +39,9 @@ public class WorldConfig extends YamlConfig {
 
     @Comment( "Whether or not the world should be saved automatically on a regular basis" )
     private boolean autoSave = true;
+
+    @Comment( "Save the world when it gets unloaded or the server shuts down?")
+    private boolean saveOnUnload = true;
 
     @Comment( "The auto-save interval in which chunks should be saved automatically in milliseconds" )
     private int autoSaveInterval = 600000;

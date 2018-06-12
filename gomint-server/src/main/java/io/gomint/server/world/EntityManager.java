@@ -7,13 +7,14 @@
 
 package io.gomint.server.world;
 
-import io.gomint.GoMint;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
+import io.gomint.event.entity.EntitySpawnEvent;
+import io.gomint.math.Location;
 import io.gomint.server.entity.passive.EntityHuman;
-import io.gomint.server.network.packet.PacketEntityMetadata;
-import io.gomint.server.network.packet.PacketEntityMovement;
-import io.gomint.server.network.packet.PacketPlayerlist;
+import io.gomint.server.network.PlayerConnectionState;
+import io.gomint.server.network.Protocol;
+import io.gomint.server.network.packet.*;
 import io.gomint.world.Chunk;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -22,8 +23,10 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Helper class that manages all entities inside a world.
@@ -203,12 +206,37 @@ public class EntityManager {
                     }
                 }
 
+                // Check if we need to send a full movement (we send one every second to stop eventual desync)
+                boolean needsFullMovement = movedEntity.needsFullMovement();
+                PacketEntityRelativeMovement relativeMovement = null;
+                if ( !needsFullMovement ) {
+                    Location old = movedEntity.getOldPosition();
+
+                    relativeMovement = new PacketEntityRelativeMovement();
+                    relativeMovement.setEntityId( movedEntity.getEntityId() );
+
+                    relativeMovement.setOldX( old.getX() );
+                    relativeMovement.setOldY( old.getY() );
+                    relativeMovement.setOldZ( old.getZ() );
+                    relativeMovement.setX( movedEntity.getPositionX() );
+                    relativeMovement.setY( movedEntity.getPositionY() );
+                    relativeMovement.setZ( movedEntity.getPositionZ() );
+
+                    relativeMovement.setOldHeadYaw( old.getHeadYaw() );
+                    relativeMovement.setOldYaw( old.getYaw() );
+                    relativeMovement.setOldPitch( old.getPitch() );
+                    relativeMovement.setHeadYaw( movedEntity.getHeadYaw() );
+                    relativeMovement.setYaw( movedEntity.getYaw() );
+                    relativeMovement.setPitch( movedEntity.getPitch() );
+                }
+
+                movedEntity.updateOldPosition();
+
                 // Prepare movement packet
                 PacketEntityMovement packetEntityMovement = new PacketEntityMovement();
                 packetEntityMovement.setEntityId( movedEntity.getEntityId() );
 
                 packetEntityMovement.setX( movedEntity.getPositionX() );
-                // Only players are offset measured with eye position locations (don't ask me why)
                 packetEntityMovement.setY( movedEntity.getPositionY() + movedEntity.getOffsetY() );
                 packetEntityMovement.setZ( movedEntity.getPositionZ() );
 
@@ -216,16 +244,39 @@ public class EntityManager {
                 packetEntityMovement.setHeadYaw( movedEntity.getHeadYaw() );
                 packetEntityMovement.setPitch( movedEntity.getPitch() );
 
+                packetEntityMovement.setOnGround( movedEntity.isOnGround() );
+
+                PacketEntityMotion entityMotion = null;
+                if ( movedEntity.isMotionSendingEnabled() ) {
+                    entityMotion = new PacketEntityMotion();
+                    entityMotion.setEntityId( movedEntity.getEntityId() );
+                    entityMotion.setVelocity( movedEntity.getVelocity() );
+                }
+
                 // Check which player we need to inform about this movement
                 for ( io.gomint.server.entity.EntityPlayer player : this.world.getPlayers0().keySet() ) {
-                    if ( movedEntity instanceof io.gomint.server.entity.EntityPlayer &&
-                        ( player.isHidden( (EntityPlayer) movedEntity ) || player.equals( movedEntity ) ) ) {
+                    if ( player.getConnection().getState() != PlayerConnectionState.PLAYING ||
+                        ( movedEntity instanceof io.gomint.server.entity.EntityPlayer &&
+                        ( player.isHidden( (EntityPlayer) movedEntity ) || player.equals( movedEntity ) ) ) ) {
                         continue;
                     }
 
                     player.getEntityVisibilityManager().updateEntity( movedEntity, chunk );
                     if ( player.getEntityVisibilityManager().isVisible( movedEntity ) ) {
-                        player.getConnection().addToSendQueue( packetEntityMovement );
+                        // TODO: PTRCL 274
+                        if ( player.getConnection().getProtocolID() == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
+                            if ( needsFullMovement ) {
+                                player.getConnection().addToSendQueue( packetEntityMovement );
+                            } else {
+                                player.getConnection().addToSendQueue( relativeMovement );
+                            }
+                        } else {
+                            player.getConnection().addToSendQueue( packetEntityMovement );
+                        }
+
+                        if ( entityMotion != null ) {
+                            player.getConnection().addToSendQueue( entityMotion );
+                        }
                     }
                 }
             }
@@ -245,7 +296,8 @@ public class EntityManager {
 
                 // Send to all players
                 for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
-                    if ( entity instanceof io.gomint.server.entity.EntityPlayer && entityPlayer.isHidden( (EntityPlayer) entity ) ) {
+                    if ( entityPlayer.getConnection().getState() != PlayerConnectionState.PLAYING ||
+                        ( entity instanceof io.gomint.server.entity.EntityPlayer && entityPlayer.isHidden( (EntityPlayer) entity ) ) ) {
                         continue;
                     }
 
@@ -307,7 +359,11 @@ public class EntityManager {
      * @param pitch     The pitch value of the entity
      */
     public synchronized void spawnEntityAt( Entity entity, float positionX, float positionY, float positionZ, float yaw, float pitch ) {
-        // TODO: Entity spawn event
+        // Give a entity spawn event around
+        EntitySpawnEvent event = this.world.getServer().getPluginManager().callEvent( new EntitySpawnEvent( entity ) );
+        if ( event.isCancelled() ) {
+            return;
+        }
 
         // Only allow server implementations
         if ( !( entity instanceof io.gomint.server.entity.Entity ) ) {
@@ -363,34 +419,22 @@ public class EntityManager {
 
                     ( (io.gomint.server.entity.EntityPlayer) player ).getConnection().send( playerlist );
                 }
-
-                if ( !entityPlayer.isHidden( player ) && !entityPlayer.equals( player ) ) {
-                    if ( listEntry == null ) {
-                        listEntry = new ArrayList<>();
-                    }
-
-                    listEntry.add( new PacketPlayerlist.Entry( (EntityHuman) player ) );
-                }
-            }
-
-            if ( listEntry != null ) {
-                // Send player list
-                PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
-                packetPlayerlist.setMode( (byte) 0 );
-                packetPlayerlist.setEntries( listEntry );
-                entityPlayer.getConnection().send( packetPlayerlist );
             }
         }
 
         // Check which player we need to inform about this movement
         for ( io.gomint.server.entity.EntityPlayer entityPlayer : this.world.getPlayers0().keySet() ) {
             if ( entity instanceof io.gomint.server.entity.EntityPlayer && ( entityPlayer.isHidden( (EntityPlayer) entity ) || entityPlayer.equals( entity ) ) ) {
+                LOGGER.debug( "Skipping spawning of {} for {} (is hidden or same entity)", entity, entityPlayer.getName() );
                 continue;
             }
 
             Chunk playerChunk = entityPlayer.getChunk();
             if ( Math.abs( playerChunk.getX() - chunk.getX() ) <= entityPlayer.getViewDistance() &&
                 Math.abs( playerChunk.getZ() - chunk.getZ() ) <= entityPlayer.getViewDistance() ) {
+
+                LOGGER.debug( "Spawning {} would be in distance for {}", entity, entityPlayer.getName() );
+
                 if ( ( (io.gomint.server.entity.Entity) entity ).canSee( entityPlayer ) ) {
                     entityPlayer.getEntityVisibilityManager().addEntity( entity );
                 }

@@ -75,7 +75,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Getter
     private float width;
     @Getter
-    private float height;
+    protected float height;
 
     /**
      * How high can this entity "climb" in one movement?
@@ -136,6 +136,12 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     private boolean hideByDefault;
     private Set<EntityPlayer> shownFor;
+
+    /**
+     * Movement status
+     */
+    private int nextFullMovement = 20;
+    @Getter private Location oldPosition;
 
     /**
      * Construct a new Entity
@@ -265,23 +271,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
             }
 
             // Check for block collision
-            List<io.gomint.world.block.Block> blockList = this.world.getCollisionBlocks( this, true );
-            if ( blockList != null ) {
-                Vector pushedByBlocks = new Vector( 0, 0, 0 );
-
-                for ( io.gomint.world.block.Block block : blockList ) {
-                    io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
-                    implBlock.onEntityCollision( this );
-                    implBlock.addVelocity( this, pushedByBlocks );
-                }
-
-                if ( pushedByBlocks.length() > 0 ) {
-                    pushedByBlocks.normalize().multiply( 0.014f );
-                    Vector newMotion = this.transform.getMotion().add( pushedByBlocks );
-                    this.transform.setMotion( newMotion.getX(), newMotion.getY(), newMotion.getZ() );
-                    this.broadCastMotion();
-                }
-            }
+            this.checkBlockCollisions();
 
             // Check for void damage
             if ( this.getPositionY() < -16.0f ) {
@@ -303,6 +293,26 @@ public abstract class Entity implements io.gomint.entity.Entity {
             );
 
             this.transform.move( 0, 0, 0 );
+        }
+    }
+
+    protected void checkBlockCollisions() {
+        List<io.gomint.world.block.Block> blockList = this.world.getCollisionBlocks( this, true );
+        if ( blockList != null ) {
+            Vector pushedByBlocks = new Vector( 0, 0, 0 );
+
+            for ( io.gomint.world.block.Block block : blockList ) {
+                io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
+                implBlock.onEntityCollision( this );
+                implBlock.addVelocity( this, pushedByBlocks );
+            }
+
+            if ( pushedByBlocks.length() > 0 ) {
+                pushedByBlocks.normalize().multiply( 0.014f );
+                Vector newMotion = this.transform.getMotion().add( pushedByBlocks );
+                this.transform.setMotion( newMotion.getX(), newMotion.getY(), newMotion.getZ() );
+                this.broadCastMotion();
+            }
         }
     }
 
@@ -339,7 +349,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         // Check if we collide with some blocks when we would move that fast
         List<AxisAlignedBB> collisionList = this.world.getCollisionCubes( this, this.boundingBox.getOffsetBoundingBox( dX, dY, dZ ), false );
-        if ( collisionList != null && !this.stuckInBlock) {
+        if ( collisionList != null && !this.stuckInBlock ) {
             // Check if we would hit a y border block
             for ( AxisAlignedBB axisAlignedBB : collisionList ) {
                 dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
@@ -496,14 +506,14 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         // Are we stuck inside a block?
         Block block = this.world.getBlockAt( fullBlockX, fullBlockY, fullBlockZ );
-        if ( block.isSolid() && block.getBoundingBox().intersectsWith( this.boundingBox ) ) {
+        if ( block.isSolid() && block.intersectsWith( this.boundingBox ) ) {
             // We need to check for "smooth" movement when its a player (it climbs .5 steps in .3 -> .420 -> .468 .487 .495 .498 .499 steps
             if ( this instanceof EntityPlayer && ( this.stuckInBlockTicks++ <= 20 || ( (EntityPlayer) this ).getAdventureSettings().isNoClip() ) ) { // Yes we can "smooth" for up to 20 ticks, thanks mojang :D
                 return;
             }
 
             LOGGER.debug( "Entity {}({}) [{}] @ {} is stuck in a block {} @ {} -> {}",
-                this.getClass().getSimpleName(), this.getEntityId(), this.stuckInBlockTicks, this.getLocation().toVector(), block.getClass().getSimpleName(), block.getLocation().toVector(), block.getBoundingBox() );
+                this.getClass().getSimpleName(), this.getEntityId(), this.stuckInBlockTicks, this.getLocation(), block.getClass().getSimpleName(), block.getLocation(), block.getBoundingBox() );
 
             // Calc with how much force we can get out of here, this depends on how far we are in
             float diffX = this.transform.getPositionX() - fullBlockX;
@@ -1018,7 +1028,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     public boolean isInsideLiquid() {
-        Location eyeLocation = this.getLocation().clone().add( 0, this.eyeHeight, 0 );
+        Location eyeLocation = this.getLocation().add( 0, this.eyeHeight, 0 );
         Block block = eyeLocation.getWorld().getBlockAt( eyeLocation.toBlockPosition() );
         if ( block instanceof StationaryWater || block instanceof FlowingWater ) {
             float yLiquid = (float) ( block.getLocation().getY() + 1 + ( ( ( (Liquid) block ).getFillHeight() - 0.12 ) ) );
@@ -1281,6 +1291,24 @@ public abstract class Entity implements io.gomint.entity.Entity {
             this.setYaw( yaw );
             this.setPitch( pitch );
         }
+    }
+
+    public boolean isMotionSendingEnabled() {
+        return false;
+    }
+
+    public boolean needsFullMovement() {
+        if ( this.nextFullMovement-- == 0 || this.oldPosition == null ||
+            this.oldPosition.subtract( this.getPosition() ).length() > 20 ) {
+            this.nextFullMovement = 20;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void updateOldPosition() {
+        this.oldPosition = this.getLocation();
     }
 
 }

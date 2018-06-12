@@ -12,6 +12,7 @@ import io.gomint.entity.passive.EntityHuman;
 import io.gomint.gui.Form;
 import io.gomint.gui.FormListener;
 import io.gomint.inventory.Inventory;
+import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.permission.PermissionManager;
 import io.gomint.player.DeviceInfo;
@@ -336,5 +337,13 @@ public interface EntityPlayer extends EntityHuman {
      * @return the output of this command
      */
     CommandOutput dispatchCommand( String command );
+
+    /**
+     * Update the players spawn position. It will be used in sending first chunks (when set in {@link io.gomint.event.player.PlayerPreJoinEvent}.
+     * The spawn location is always in the world the player currently is in. So when the player changes the world the spawn location stays.
+     *
+     * @param spawnLocation which should be used for this player
+     */
+    void setSpawnLocation( Location spawnLocation );
 
 }

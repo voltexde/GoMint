@@ -13,6 +13,7 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
+@Deprecated
 public interface SystemCommand {
 
     /**
