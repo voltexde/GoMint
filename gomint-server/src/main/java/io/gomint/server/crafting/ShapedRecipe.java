@@ -89,7 +89,7 @@ public class ShapedRecipe extends CraftingRecipe {
             }
         }
 
-        return (ItemStack[]) this.ingredients.toArray();
+        return this.ingredients.toArray( new ItemStack[0] );
     }
 
     @Override
@@ -142,7 +142,7 @@ public class ShapedRecipe extends CraftingRecipe {
                 }
             }
 
-            if ( freeX ) {
+            if ( !freeX ) {
                 break;
             } else {
                 xSpace++;
@@ -159,7 +159,7 @@ public class ShapedRecipe extends CraftingRecipe {
                 }
             }
 
-            if ( freeZ ) {
+            if ( !freeZ ) {
                 break;
             } else {
                 zSpace++;

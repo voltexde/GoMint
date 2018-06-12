@@ -67,6 +67,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
         if ( packet.getRecipeType() == 0 && connection.getEntity().getCraftingInputInventory().size() > 4 ) {
             // Resend inventory and call it a day
             connection.getEntity().getInventory().sendContents( connection );
+            LOGGER.debug( "Did not craft due to wrong inventory size" );
             return;
         }
 
@@ -81,6 +82,8 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
 
             connection.getEntity().getInventory().sendContents( connection );
             connection.getEntity().getCraftingInputInventory().clear();
+
+            LOGGER.debug( "Could not craft, recipe denied: {} -> {}", recipe.getClass().getName(), recipe.getIngredients() );
             return;
         }
 
