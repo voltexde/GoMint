@@ -29,4 +29,19 @@ public abstract class ItemReduceTierWooden extends ItemStack implements ItemRedu
         return 2;
     }
 
+    @Override
+    public boolean useDamageAsData() {
+        return false;
+    }
+
+    @Override
+    public boolean usesDamage() {
+        return true;
+    }
+
+    @Override
+    public short getMaxDamage() {
+        return 60;
+    }
+
 }

@@ -414,13 +414,8 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     public boolean damage( int damage ) {
-        // Do we use damage as data values?
-        if ( useDamageAsData() ) {
-            return false;
-        }
-
         // Default no item uses damage
-        if ( !usesDamage() ) {
+        if ( !usesDamage() || useDamageAsData() ) {
             return false;
         }
 

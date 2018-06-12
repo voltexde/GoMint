@@ -29,4 +29,19 @@ public abstract class ItemReduceTierStone extends ItemStack implements ItemReduc
         return 4;
     }
 
+    @Override
+    public boolean useDamageAsData() {
+        return false;
+    }
+
+    @Override
+    public boolean usesDamage() {
+        return true;
+    }
+
+    @Override
+    public short getMaxDamage() {
+        return 132;
+    }
+
 }

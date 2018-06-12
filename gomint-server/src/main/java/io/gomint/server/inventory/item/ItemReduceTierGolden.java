@@ -29,4 +29,19 @@ public abstract class ItemReduceTierGolden extends ItemStack implements ItemRedu
         return 16;
     }
 
+    @Override
+    public boolean useDamageAsData() {
+        return false;
+    }
+
+    @Override
+    public boolean usesDamage() {
+        return true;
+    }
+
+    @Override
+    public short getMaxDamage() {
+        return 33;
+    }
+
 }

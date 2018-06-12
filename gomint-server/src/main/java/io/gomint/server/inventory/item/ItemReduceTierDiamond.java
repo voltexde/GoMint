@@ -29,4 +29,19 @@ public abstract class ItemReduceTierDiamond extends ItemStack implements ItemRed
         return 8;
     }
 
+    @Override
+    public boolean useDamageAsData() {
+        return false;
+    }
+
+    @Override
+    public boolean usesDamage() {
+        return true;
+    }
+
+    @Override
+    public short getMaxDamage() {
+        return 1562;
+    }
+
 }

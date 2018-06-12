@@ -7,6 +7,7 @@ import io.gomint.event.player.PlayerInteractEvent;
 import io.gomint.event.world.BlockBreakEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.inventory.item.ItemSword;
 import io.gomint.math.Vector;
 import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.entity.EntityPlayer;
@@ -319,22 +320,20 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                             // Add exhaustion
                             connection.getEntity().exhaust( 0.025f, PlayerExhaustEvent.Cause.MINING );
 
-                            // Check if transaction wants to set air
-                            if ( packet.getActions().length > 0 ) {
-                                io.gomint.server.inventory.item.ItemStack target = (io.gomint.server.inventory.item.ItemStack) packet.getActions()[0].getNewItem();
-                                if ( target.getMaterial() == 0 ) {
-                                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), target );
+                            // Damage the target item
+                            if ( breakTime > 50 ) {
+                                int damage = 1;
+
+                                // Swords get 2 damage
+                                if ( itemInHand instanceof ItemSword ) {
+                                    damage = 2;
+                                }
+
+                                io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) itemInHand;
+                                if ( itemStack.damage( damage ) ) {
+                                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
                                 } else {
-                                    // Check if transaction wants to increment data of the item
-
-                                    // When the item was broken with the correct tool it decreases by 1, else it should decrease by 2
-
-
-                                    if ( ( target.getData() == itemInHand.getData() + 1 || target.getData() == itemInHand.getData() + 2 ) &&
-                                        ( ( target.getNbtData() == null && itemInHand.getNbtData() == null ) ||
-                                            target.getNbtData().equals( itemInHand.getNbtData() ) ) ) {
-                                        connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), target );
-                                    }
+                                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemStack );
                                 }
                             }
                         } else {
