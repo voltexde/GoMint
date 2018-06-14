@@ -53,9 +53,9 @@ public class CommandFill extends Command {
                 BlockPosition start = (BlockPosition) arguments.get( "start" );
                 BlockPosition end = (BlockPosition) arguments.get( "end" );
 
-                for ( int x = start.getX(); start.getX() < end.getX(); x++ ) {
-                    for ( int y = start.getY(); start.getY() < end.getY(); y++ ) {
-                        for ( int z = start.getZ(); start.getZ() < end.getZ(); z++ ) {
+                for ( int x = start.getX(); x < end.getX(); x++ ) {
+                    for ( int y = start.getY(); y < end.getY(); y++ ) {
+                        for ( int z = start.getZ(); z < end.getZ(); z++ ) {
                             world.getBlockAt( x, y, z ).copyFromBlock( block );
                         }
                     }
