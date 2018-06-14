@@ -7,19 +7,19 @@
 
 package io.gomint.server.world;
 
-import io.gomint.GoMint;
 import io.gomint.math.MathUtils;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.util.Values;
-import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -34,7 +34,6 @@ public class ChunkCache {
     // ==================================== FIELDS ==================================== //
     private final WorldAdapter world;
     private final Long2ObjectMap<ChunkAdapter> cachedChunks;
-    private final Map<Long, ChunkAdapter> multiChunks;
     private boolean enableAutoSave;
     private long autoSaveInterval;
 
@@ -46,7 +45,6 @@ public class ChunkCache {
     public ChunkCache( WorldAdapter world ) {
         this.world = world;
         this.cachedChunks = new Long2ObjectOpenHashMap<>();
-        this.multiChunks = new ConcurrentHashMap<>();
         this.enableAutoSave = world.getConfig().isAutoSave();
         this.autoSaveInterval = world.getConfig().getAutoSaveInterval();
     }
@@ -57,13 +55,7 @@ public class ChunkCache {
      *
      * @param currentTimeMS The current time in milliseconds. Used to reduce the number of calls to System#currentTimeMillis()
      */
-    public void tick( long currentTimeMS ) {
-        // Merge chunks
-        if ( this.multiChunks.size() > 0 ) {
-            this.multiChunks.forEach( ChunkCache.this.cachedChunks::put );
-            this.multiChunks.clear();
-        }
-
+    public synchronized void tick( long currentTimeMS ) {
         // Check for gc
         int spawnXChunk = CoordinateUtils.fromBlockToChunk( (int) this.world.getSpawnLocation().getX() );
         int spawnZChunk = CoordinateUtils.fromBlockToChunk( (int) this.world.getSpawnLocation().getZ() );
@@ -148,7 +140,7 @@ public class ChunkCache {
      * @param z The z-coordinate of the chunk
      * @return The chunk if it is loaded or null otherwise
      */
-    public ChunkAdapter getChunk( int x, int z ) {
+    public synchronized ChunkAdapter getChunk( int x, int z ) {
         long chunkHash = CoordinateUtils.toLong( x, z );
         return this.getChunkInternal( chunkHash );
     }
@@ -158,13 +150,9 @@ public class ChunkCache {
      *
      * @param chunk The chunk to put into the cache
      */
-    public void putChunk( ChunkAdapter chunk ) {
+    public synchronized void putChunk( ChunkAdapter chunk ) {
         long key = CoordinateUtils.toLong( chunk.getX(), chunk.getZ() );
-        if ( GoMint.instance().isMainThread() ) {
-            this.cachedChunks.put( key, chunk );
-        } else {
-            this.multiChunks.put( key, chunk );
-        }
+        this.cachedChunks.put( key, chunk );
     }
 
     // ==================================== AUTOSAVE ==================================== //
@@ -193,16 +181,11 @@ public class ChunkCache {
      * @param chunkHash which should be get
      * @return chunk adapter for the given hash or null when the hash has no chunk attached
      */
-    ChunkAdapter getChunkInternal( long chunkHash ) {
-        ChunkAdapter adapter = this.cachedChunks.containsKey( chunkHash ) ? this.cachedChunks.get( chunkHash ) : null;
-        if ( adapter == null ) {
-            adapter = this.multiChunks.get( chunkHash );
-        }
-
-        return adapter;
+    synchronized ChunkAdapter getChunkInternal( long chunkHash ) {
+        return this.cachedChunks.get( chunkHash );
     }
 
-    long[] getTickingChunks( float dT ) {
+    synchronized long[] getTickingChunks( float dT ) {
         this.lastFullTickDT += dT;
         if ( this.lastFullTickDT >= Values.CLIENT_TICK_RATE ) {
             // We need to tick all chunks which haven't been ticked until now
@@ -268,7 +251,7 @@ public class ChunkCache {
     /**
      * Save all chunks and persist them to disk
      */
-    void saveAll() {
+    synchronized void saveAll() {
         for ( long l : this.cachedChunks.keySet() ) {
             ChunkAdapter chunkAdapter = this.cachedChunks.get( l );
             this.world.saveChunk( chunkAdapter );
@@ -276,13 +259,13 @@ public class ChunkCache {
         }
     }
 
-    public void iterateAll( Consumer<ChunkAdapter> chunkConsumer ) {
+    public synchronized void iterateAll( Consumer<ChunkAdapter> chunkConsumer ) {
         for ( long l : this.cachedChunks.keySet() ) {
             chunkConsumer.accept( this.cachedChunks.get( l ) );
         }
     }
 
-    public int size() {
+    public synchronized int size() {
         return this.cachedChunks.size();
     }
 
