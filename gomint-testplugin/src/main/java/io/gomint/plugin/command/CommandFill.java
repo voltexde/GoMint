@@ -48,15 +48,13 @@ public class CommandFill extends Command {
 
             try {
                 Class<? extends Block> blockClass = (Class<? extends Block>) CommandFill.class.getClassLoader().loadClass( "io.gomint.world.block.Block" + blockSelected );
-                Block block = GoMint.instance().createBlock( blockClass );
-
                 BlockPosition start = (BlockPosition) arguments.get( "start" );
                 BlockPosition end = (BlockPosition) arguments.get( "end" );
 
                 for ( int x = start.getX(); x < end.getX(); x++ ) {
                     for ( int y = start.getY(); y < end.getY(); y++ ) {
                         for ( int z = start.getZ(); z < end.getZ(); z++ ) {
-                            world.getBlockAt( x, y, z ).copyFromBlock( block );
+                            world.getBlockAt( x, y, z ).setType( blockClass );
                         }
                     }
                 }
@@ -64,7 +62,7 @@ public class CommandFill extends Command {
                 return new CommandOutput().fail( "Could not find block '%%s'", blockSelected );
             }
 
-            new CommandOutput().success( "Filled selected area with block '%%s'", blockSelected );
+            return new CommandOutput().success( "Filled selected area with block '%%s'", blockSelected );
         }
 
         return new CommandOutput().fail( "Command can only be executed as player" );

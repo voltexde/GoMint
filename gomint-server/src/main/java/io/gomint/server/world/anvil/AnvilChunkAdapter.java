@@ -85,7 +85,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
         NBTTagCompound level = new NBTTagCompound( "Level" );
         level.addValue( "LightPopulated", (byte) 1 );
-        level.addValue( "TerrainPopulated", (byte) 1 );
+        level.addValue( "TerrainPopulated", (byte) ( this.isPopulated() ? 1 : 0 ) );
         level.addValue( "V", (byte) 1 );
         level.addValue( "xPos", this.x );
         level.addValue( "zPos", this.z );
@@ -198,8 +198,10 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     break;
                 case ".Level.LastUpdate":
                 case ".Level.LightPopulated":
-                case ".Level.TerrainPopulated":
                 case ".Level.BiomeColors":
+                    break;
+                case ".Level.TerrainPopulated":
+                    this.setPopulated( (byte) object == 1 );
                     break;
                 case ".DataVersion":
                     AnvilChunkAdapter.this.version = (int) object;

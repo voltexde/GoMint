@@ -790,6 +790,7 @@ public abstract class WorldAdapter implements World {
                     case POPULATE:
                         AsyncChunkPopulateTask populateTask = (AsyncChunkPopulateTask) task;
                         this.chunkGenerator.populate( populateTask.getChunk() );
+                        populateTask.getChunk().setPopulated( true );
                         break;
 
                     default:
@@ -1122,12 +1123,16 @@ public abstract class WorldAdapter implements World {
             ChunkAdapter chunk = (ChunkAdapter) this.chunkGenerator.generate( x, z );
             if ( chunk != null ) {
                 this.chunkCache.putChunk( chunk );
-                this.asyncChunkTasks.offer( new AsyncChunkPopulateTask( chunk ) );
+                this.addPopulateTask( chunk );
                 return chunk;
             }
         }
 
         return null;
+    }
+
+    public void addPopulateTask( ChunkAdapter chunk ) {
+        this.asyncChunkTasks.offer( new AsyncChunkPopulateTask( chunk ) );
     }
 
     public void sendLevelEvent( Vector position, int levelEvent, int data ) {

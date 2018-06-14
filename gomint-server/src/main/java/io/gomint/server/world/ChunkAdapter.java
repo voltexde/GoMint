@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +95,8 @@ public class ChunkAdapter implements Chunk {
     // State saving flag
     @Getter
     private boolean needsPersistance;
+    @Getter @Setter
+    private boolean populated;
 
     // CHECKSTYLE:ON
 

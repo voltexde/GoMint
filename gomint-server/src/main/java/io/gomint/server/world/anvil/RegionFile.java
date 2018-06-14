@@ -172,6 +172,11 @@ class RegionFile {
             NBTStream nbtStream = new NBTStream( input, ByteOrder.BIG_ENDIAN );
             AnvilChunkAdapter chunkAdapter = new AnvilChunkAdapter( this.world, x, z, TimeUnit.SECONDS.toMillis( this.lastSaveTimes[chunkIndex] ) );
             chunkAdapter.loadFromNBT( nbtStream );
+
+            if ( !chunkAdapter.isPopulated() ) {
+                this.world.addPopulateTask( chunkAdapter );
+            }
+
             return chunkAdapter;
         } finally {
             this.lock.readLock().unlock();

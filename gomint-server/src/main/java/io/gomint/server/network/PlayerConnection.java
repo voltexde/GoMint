@@ -291,6 +291,8 @@ public class PlayerConnection {
 
                 // Check if we have a slot
                 Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
+                List<ChunkAdapter> recheck = null;
+
                 while ( !queue.isEmpty() ) {
                     ChunkAdapter chunk = queue.poll();
                     if ( chunk == null ||
@@ -301,7 +303,23 @@ public class PlayerConnection {
                         continue;
                     }
 
+                    // Check if chunk has been populated
+                    if ( !chunk.isPopulated() ) {
+                        if ( recheck == null ) {
+                            recheck = new ArrayList<>();
+                        }
+
+                        recheck.add( chunk );
+                        continue;
+                    }
+
                     this.sendWorldChunk( chunk );
+                }
+
+                if ( recheck != null ) {
+                    for ( ChunkAdapter adapter : recheck ) {
+                        queue.offer( adapter );
+                    }
                 }
             }
 
