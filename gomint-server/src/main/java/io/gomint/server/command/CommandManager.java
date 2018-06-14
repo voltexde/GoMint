@@ -366,7 +366,7 @@ public class CommandManager {
             }
         }
 
-        // Normal commands
+        // NormalGenerator commands
         for ( CommandHolder holder : this.commands.values() ) {
             if ( !holder.getName().contains( " " ) &&
                 ( holder.getPermission() == null ||

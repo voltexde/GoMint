@@ -25,6 +25,7 @@ import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.Biome;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.data.Facing;
 import lombok.EqualsAndHashCode;
@@ -211,10 +212,20 @@ public abstract class Block implements io.gomint.world.block.Block {
      * Update the block for the client
      */
     void updateBlock() {
+        this.calculateBlockData();
+
+        if ( this.location == null ) {
+            // No need to update
+            return;
+        }
+
         BlockPosition pos = this.location.toBlockPosition();
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
         worldAdapter.updateBlock( pos );
         worldAdapter.flagNeedsPersistance( pos );
+    }
+
+    public void calculateBlockData() {
     }
 
     @Override
@@ -225,6 +236,16 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
         return worldAdapter.getBlockId( this.location.toBlockPosition(), this.layer ) == this.getBlockId();
+    }
+
+    @Override
+    public Biome getBiome() {
+        if ( this.location == null ) {
+            return null;
+        }
+
+        WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
+        return worldAdapter.getBiome( this.location.toBlockPosition() );
     }
 
     /**

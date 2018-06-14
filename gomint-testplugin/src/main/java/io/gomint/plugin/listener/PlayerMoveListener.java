@@ -26,7 +26,7 @@ public class PlayerMoveListener implements EventListener {
 
             event.getPlayer().sendMessage( ChatType.POPUP,
                 "§fX: §a" + toBlock.getX() + " §e- §fY: §a" + toBlock.getY() + " §e- §fZ: §a" + toBlock.getZ() + " | " + event.getPlayer().getPing() + " ms",
-                "§fWalking on block: §a" + block.getClass() + ":" + ( (io.gomint.server.world.block.Block) block ).getBlockData() );
+                "§fWalking on biome §a: " + block.getBiome() );
         }
     }
 

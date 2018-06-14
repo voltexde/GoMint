@@ -1,4 +1,11 @@
-package io.gomint.server.util.random;
+/*
+ * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+package io.gomint.util.random;
 
 /**
  * @author geNAZt
@@ -13,7 +20,7 @@ public final class FastRandom extends java.util.Random {
     /**
      * Generate a new fast random with System.nanoTime() as seed
      */
-    private FastRandom() {
+    public FastRandom() {
         this( System.nanoTime() );
     }
 
@@ -22,7 +29,16 @@ public final class FastRandom extends java.util.Random {
      *
      * @param seed the initial seed
      */
-    private FastRandom( long seed ) {
+    public FastRandom( long seed ) {
+        this.seed = seed;
+    }
+
+    /**
+     * Set the seed of this random
+     *
+     * @param seed which should be used
+     */
+    public void setSeed( long seed ) {
         this.seed = seed;
     }
 

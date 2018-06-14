@@ -46,10 +46,13 @@ import io.gomint.server.world.block.Blocks;
 import io.gomint.world.World;
 import io.gomint.world.block.Block;
 import io.gomint.world.generator.CreateOptions;
-import io.gomint.world.generator.integrated.LayeredGenerator;
+import io.gomint.world.generator.integrated.NormalGenerator;
 import joptsimple.OptionSet;
 import lombok.Getter;
-import org.jline.reader.*;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,6 +135,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private Effects effects;
 
     private String gitHash;
+
+    private BlockingQueue<Runnable> mainThreadWork = new LinkedBlockingQueue<>();
 
     /**
      * Starts the GoMint server
@@ -351,7 +356,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
         } catch ( WorldLoadException e ) {
             // Try to generate world
-            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( LayeredGenerator.class ) ) == null ) {
+            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ) ) == null ) {
                 LOGGER.error( "Failed to load or generate default world", e );
                 this.internalShutdown();
                 return;
@@ -414,6 +419,16 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 while ( !inputLines.isEmpty() ) {
                     String line = inputLines.take();
                     this.pluginManager.getCommandManager().executeSystem( line );
+                }
+
+                // Tick remaining work
+                if ( !this.mainThreadWork.isEmpty() ) {
+                    Runnable[] work = this.mainThreadWork.toArray( new Runnable[0] );
+                    this.mainThreadWork.clear();
+
+                    for ( Runnable runnable : work ) {
+                        runnable.run();
+                    }
                 }
 
                 // Tick networking at every tick
@@ -787,6 +802,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     public boolean isRunning() {
         return this.running.get();
+    }
+
+    public void addToMainThread( Runnable runnable ) {
+
     }
 
 }

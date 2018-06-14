@@ -60,6 +60,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,10 +79,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     private final PlayerConnection connection;
     private int viewDistance = 4;
-    private Queue<ChunkAdapter> chunkSendQueue = new ConcurrentLinkedQueue<>();
+    private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
 
     // EntityPlayer Information
-    private Gamemode gamemode = Gamemode.SURVIVAL;
+    private Gamemode gamemode = Gamemode.CREATIVE;
     @Getter
     private AdventureSettings adventureSettings;
     @Getter

@@ -406,7 +406,6 @@ public class EntityManager {
             PacketPlayerlist playerlist = null;
 
             // Remap all current living entities
-            List<PacketPlayerlist.Entry> listEntry = null;
             for ( EntityPlayer player : entityPlayer.getWorld().getServer().getPlayers() ) {
                 if ( !player.isHidden( entityPlayer ) && !player.equals( entityPlayer ) ) {
                     if ( playerlist == null ) {

@@ -402,11 +402,11 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     public void removeFromHand( EntityPlayer player ) {
-        // Normal items do nothing
+        // NormalGenerator items do nothing
     }
 
     public void gotInHand( EntityPlayer player ) {
-        // Normal items do nothing
+        // NormalGenerator items do nothing
     }
 
     public boolean interact( EntityPlayer entity, BlockFace face, Vector clickPosition, Block clickedBlock ) {

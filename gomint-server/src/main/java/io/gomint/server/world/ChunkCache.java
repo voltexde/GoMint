@@ -194,7 +194,7 @@ public class ChunkCache {
      * @return chunk adapter for the given hash or null when the hash has no chunk attached
      */
     ChunkAdapter getChunkInternal( long chunkHash ) {
-        ChunkAdapter adapter = this.cachedChunks.get( chunkHash );
+        ChunkAdapter adapter = this.cachedChunks.containsKey( chunkHash ) ? this.cachedChunks.get( chunkHash ) : null;
         if ( adapter == null ) {
             adapter = this.multiChunks.get( chunkHash );
         }
@@ -236,6 +236,10 @@ public class ChunkCache {
             }
 
             int needed = needCurrent - this.alreadyTicked.size();
+            if ( needed <= 0 ) {
+                return new long[0];
+            }
+
             long[] returnVal = new long[needed];
             int index = 0;
 

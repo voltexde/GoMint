@@ -27,9 +27,9 @@ import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.*;
 import io.gomint.server.util.EnumConnectors;
-import io.gomint.server.util.random.FastRandom;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.storage.TemporaryStorage;
+import io.gomint.util.random.FastRandom;
 import io.gomint.world.*;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockAir;
@@ -291,7 +291,11 @@ public abstract class WorldAdapter implements World {
             return (T) this.server.getBlocks().get( 0, (byte) 0, (byte) ( y > 255 ? 15 : 0 ), (byte) 0, null, new Location( this, x, y, z ), layer.ordinal() );
         }
 
-        ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, true );
+        ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, false );
+        if ( chunk == null ) {
+            return (T) this.server.getBlocks().get( 0, (byte) 0, (byte) ( y > 255 ? 15 : 0 ), (byte) 0, null, new Location( this, x, y, z ), layer.ordinal() );
+        }
+
         return chunk.getBlockAt( x & 0xF, y, z & 0xF, layer.ordinal() );
     }
 
@@ -346,6 +350,20 @@ public abstract class WorldAdapter implements World {
 
         final ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
         chunk.setData( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, layer, data );
+    }
+
+    /**
+     * Get the biome of a specific block
+     *
+     * @param position which should be searched
+     * @return biome of the block
+     */
+    public Biome getBiome( BlockPosition position ) {
+        int xChunk = CoordinateUtils.fromBlockToChunk( position.getX() );
+        int zChunk = CoordinateUtils.fromBlockToChunk( position.getZ() );
+
+        final ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
+        return chunk.getBiome( position.getX() & 0xF, position.getZ() & 0xF );
     }
 
     private void initGamerules() {
@@ -769,6 +787,11 @@ public abstract class WorldAdapter implements World {
                         this.saveChunk( chunk );
                         break;
 
+                    case POPULATE:
+                        AsyncChunkPopulateTask populateTask = (AsyncChunkPopulateTask) task;
+                        this.chunkGenerator.populate( populateTask.getChunk() );
+                        break;
+
                     default:
                         // Log some error when this happens
 
@@ -790,15 +813,32 @@ public abstract class WorldAdapter implements World {
      * @param pos The position of the block to update
      */
     public void updateBlock( BlockPosition pos ) {
-        flagChunkDirty( pos );
+        if ( !GoMint.instance().isMainThread() ) {
+            this.server.addToMainThread( new Runnable() {
+                @Override
+                public void run() {
+                    flagChunkDirty( pos );
 
-        sendToVisible( pos, null, entity -> {
-            if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
-                ( (io.gomint.server.entity.EntityPlayer) entity ).getBlockUpdates().add( pos );
-            }
+                    sendToVisible( pos, null, entity -> {
+                        if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
+                            ( (io.gomint.server.entity.EntityPlayer) entity ).getBlockUpdates().add( pos );
+                        }
 
-            return false;
-        } );
+                        return false;
+                    } );
+                }
+            } );
+        } else {
+            flagChunkDirty( pos );
+
+            sendToVisible( pos, null, entity -> {
+                if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
+                    ( (io.gomint.server.entity.EntityPlayer) entity ).getBlockUpdates().add( pos );
+                }
+
+                return false;
+            } );
+        }
     }
 
     private void flagChunkDirty( BlockPosition position ) {
@@ -1082,6 +1122,7 @@ public abstract class WorldAdapter implements World {
             ChunkAdapter chunk = (ChunkAdapter) this.chunkGenerator.generate( x, z );
             if ( chunk != null ) {
                 this.chunkCache.putChunk( chunk );
+                this.asyncChunkTasks.offer( new AsyncChunkPopulateTask( chunk ) );
                 return chunk;
             }
         }

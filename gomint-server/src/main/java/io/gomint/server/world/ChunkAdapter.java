@@ -436,25 +436,13 @@ public class ChunkAdapter implements Chunk {
         return this.height[( z << 4 ) + x];
     }
 
-    /**
-     * Sets a block column's biome.
-     *
-     * @param x     The x-coordinate of the block column
-     * @param z     The z-coordinate of the block column
-     * @param biome The biome to set
-     */
-    protected void setBiome( int x, int z, Biome biome ) {
+    @Override
+    public void setBiome( int x, int z, Biome biome ) {
         this.biomes[( x << 4 ) + z] = (byte) biome.getId();
         this.dirty = true;
     }
 
-    /**
-     * Gets a block column's biome.
-     *
-     * @param x The x-coordinate of the block column
-     * @param z The z-coordinate of the block column
-     * @return The block column's biome
-     */
+    @Override
     public Biome getBiome( int x, int z ) {
         return Biome.getBiomeById( this.biomes[( x << 4 ) + z] );
     }
