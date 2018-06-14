@@ -34,7 +34,7 @@ import java.util.Map;
 @Overload( {
     @Parameter( name = "start", validator = BlockPositionValidator.class ),
     @Parameter( name = "end", validator = BlockPositionValidator.class ),
-    @Parameter( name = "block", validator = StringValidator.class, arguments = { "*." } )
+    @Parameter( name = "block", validator = StringValidator.class, arguments = { ".*" } )
 } )
 public class CommandFill extends Command {
 
