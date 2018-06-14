@@ -88,4 +88,9 @@ public class PlotChunkGenerator extends ChunkGenerator {
         return new BlockPosition( 10, 85, 10 );
     }
 
+    @Override
+    public void populate( Chunk chunk ) {
+
+    }
+
 }
