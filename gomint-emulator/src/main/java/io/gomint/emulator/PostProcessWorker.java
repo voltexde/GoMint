@@ -62,9 +62,8 @@ public class PostProcessWorker implements Runnable {
         // Write all packets into the inBuf for compression
         for ( Packet packet : this.packets ) {
             PacketBuffer buffer = new PacketBuffer( 64 );
-            buffer.writeByte( packet.getId() );
-            buffer.writeShort( (short) 0 );
-            packet.serialize( buffer, 273 );
+            buffer.writeUnsignedVarInt( packet.getId() ); // TODO: Add support for split screen
+            packet.serialize( buffer, 280 );
 
             writeVarInt( buffer.getPosition(), inBuf );
             inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );

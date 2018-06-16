@@ -32,7 +32,7 @@ public class BootStrap {
         for ( int i = 0; i < AMOUNT_OF_BOTS; i++ ) {
             service.execute( () -> {
                 Client client = new Client( service, postProcessExecutorService.getExecutor(), null );
-                client.connect( "192.168.1.147", 19132 );
+                client.connect( "192.168.1.144", 19132 );
             } );
 
             Thread.sleep( 500 );

@@ -58,8 +58,7 @@ public class PostProcessWorker implements Runnable {
         // Write all packets into the inBuf for compression
         for ( Packet packet : this.packets ) {
             PacketBuffer buffer = new PacketBuffer( 64 );
-            buffer.writeByte( packet.getId() );
-            buffer.writeShort( (short) 0 );
+            packet.serializeHeader( buffer );
             packet.serialize( buffer, this.connection.getProtocolID() );
 
             LOGGER.debug( "Writing packet {} to client: {}", Integer.toHexString( packet.getId() & 0xFF ), packet );

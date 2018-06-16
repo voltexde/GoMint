@@ -6,6 +6,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.player.PlayerPermission;
 import io.gomint.server.util.DumpUtil;
+import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.world.Gamerule;
 import lombok.Data;
 
@@ -121,6 +122,10 @@ public class PacketStartGame extends Packet {
         buffer.writeBoolean( this.unknown1 );
         buffer.writeLLong( this.currentTick );
         buffer.writeSignedVarInt( this.enchantmentSeed );
+
+        // Write palette data
+        byte[] data = BlockRuntimeIDs.getPacketCache( protocolID );
+        buffer.writeBytes( data );
     }
 
     @Override

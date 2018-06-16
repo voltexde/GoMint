@@ -7,9 +7,8 @@
 
 package io.gomint.server.world;
 
+import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
-import it.unimi.dsi.fastutil.longs.Long2IntMap;
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -17,9 +16,15 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author geNAZt
@@ -31,18 +36,22 @@ public class BlockRuntimeIDs {
 
     // Release version tables
     private static int[][] BLOCK_DATA_TO_RUNTIME = new int[0][0];
-    // private static final long[] RUNTIME_TO_BLOCK_DATA = new long[0];
 
     // Beta channel tables
     private static int[][] BLOCK_DATA_TO_RUNTIME_BETA = new int[0][0];
 
-    private static final Long2IntMap RUNTIME_IDS = new Long2IntOpenHashMap();       // HashMaps are fine for multithreaded reading
-    private static final Long2IntMap RUNTIME_IDS_BETA = new Long2IntOpenHashMap();  // HashMaps are fine for multithreaded reading
+    //
+    private static AtomicInteger RUNTIME_ID = new AtomicInteger( 0 );
+    private static AtomicInteger RUNTIME_ID_BETA = new AtomicInteger( 0 );
+
+    // Cached packet streams
+    private static byte[] START_GAME_BUFFER;
+    private static byte[] START_GAME_BUFFER_BETA;
 
     static {
         // Get the correct resource
         loadFile( "/temp_runtimeids.json", false );
-        loadFile( "/temp_runtimeids_271.json", true );
+        loadFile( "/temp_runtimeids.json", true );
     }
 
     public static void loadFile( String file, boolean beta ) {
@@ -66,6 +75,8 @@ public class BlockRuntimeIDs {
 
         // Read in json data
         if ( runtimeIDs != null ) {
+            PacketBuffer buffer = new PacketBuffer( 64 );
+
             int highestBlockID = -1;
             Map<Integer, Integer> highestDataValues = new HashMap<>();
 
@@ -87,8 +98,10 @@ public class BlockRuntimeIDs {
             // Init array
             if ( beta ) {
                 BLOCK_DATA_TO_RUNTIME_BETA = new int[highestBlockID + 1][];
+                buffer.writeUnsignedVarInt( runtimeIDs.size() );
             } else {
                 BLOCK_DATA_TO_RUNTIME = new int[highestBlockID + 1][];
+                buffer.writeUnsignedVarInt( runtimeIDs.size() );
             }
 
             for ( Object id : runtimeIDs ) {
@@ -107,15 +120,39 @@ public class BlockRuntimeIDs {
                     dataValues = new int[highestDataValues.get( blockId ) + 1];
                 }
 
-                dataValues[dataValue] = ( (Long) idObj.get( "runtimeID" ) ).intValue();
-
                 if ( beta ) {
+                    dataValues[dataValue] = RUNTIME_ID_BETA.getAndIncrement();
                     BLOCK_DATA_TO_RUNTIME_BETA[blockId] = dataValues;
+                    buffer.writeString( (String) idObj.get( "name" ) );
+                    buffer.writeLShort( (short) dataValue );
                 } else {
+                    dataValues[dataValue] = RUNTIME_ID.getAndIncrement();
                     BLOCK_DATA_TO_RUNTIME[blockId] = dataValues;
+                    buffer.writeString( (String) idObj.get( "name" ) );
+                    buffer.writeLShort( (short) dataValue );
                 }
             }
+
+            if ( !beta ) {
+                START_GAME_BUFFER = Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() );
+            } else {
+                START_GAME_BUFFER_BETA = Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() );
+            }
         }
+    }
+
+    /**
+     * Get the cached view for the start game packet
+     *
+     * @param protocolId of the player getting the packet
+     * @return correct cached view
+     */
+    public static byte[] getPacketCache( int protocolId ) {
+        if ( protocolId == Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {
+            return START_GAME_BUFFER;
+        }
+
+        return START_GAME_BUFFER_BETA;
     }
 
     /**
@@ -129,9 +166,9 @@ public class BlockRuntimeIDs {
     public static int fromLegacy( int blockId, byte dataValue, int protocolID ) {
         // Get lookup array
         int[][] lookup = BLOCK_DATA_TO_RUNTIME;
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
+        /*if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             lookup = BLOCK_DATA_TO_RUNTIME_BETA;
-        }
+        }*/
 
         // We first lookup the wanted values
         int runtimeID = lookup( blockId, dataValue, lookup );
@@ -144,27 +181,6 @@ public class BlockRuntimeIDs {
         }
 
         return runtimeID;
-
-        /*// The nukkit/PC data corruption seems to go further, now single sandstone blocks where found corrupted
-        // I simply assume that every block could be corrupted and try to use data value 0 as fallback when the
-        // original combination could not be found
-        long hashId = ( (long) blockId ) << 32 | ( dataValue & 0xffffffffL );
-
-        Long2IntMap runtimeIDs = RUNTIME_IDS;
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            runtimeIDs = RUNTIME_IDS_BETA;
-        }
-
-        int runtimeId = runtimeIDs.get( hashId );
-        if ( runtimeId == runtimeIDs.defaultReturnValue() ) {
-            hashId = ( (long) blockId ) << 32;
-            runtimeId = runtimeIDs.get( hashId );
-            if ( runtimeId == runtimeIDs.defaultReturnValue() ) {
-                return 0;
-            }
-        }
-
-        return runtimeId;*/
     }
 
     private static int lookup( int blockId, byte dataValue, int[][] lookup ) {

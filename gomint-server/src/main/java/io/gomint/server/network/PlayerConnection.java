@@ -59,7 +59,6 @@ import io.gomint.server.network.packet.PacketSetCommandsEnabled;
 import io.gomint.server.network.packet.PacketSetDifficulty;
 import io.gomint.server.network.packet.PacketSetSpawnPosition;
 import io.gomint.server.network.packet.PacketStartGame;
-import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.network.packet.PacketWorldTime;
 import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.protocol.FlushTickPacket;
@@ -228,6 +227,8 @@ public class PlayerConnection {
                 // Check if packet is batched
                 byte packetId = buffer.readByte();
                 if ( packetId == Protocol.PACKET_BATCH ) {
+                    LOGGER.debug( "Compressed packet" );
+
                     // Decompress and decrypt
                     byte[] pureData = handleBatchPacket( buffer );
                     EncapsulatedPacket newPacket = new EncapsulatedPacket();
@@ -357,8 +358,7 @@ public class PlayerConnection {
                 PacketBuffer[] packetBuffers = new PacketBuffer[drainedQueue.size()];
                 for ( int i = 0; i < drainedQueue.size(); i++ ) {
                     packetBuffers[i] = new PacketBuffer( 2 );
-                    packetBuffers[i].writeByte( drainedQueue.get( i ).getId() );
-                    packetBuffers[i].writeShort( (short) 0 );
+                    drainedQueue.get( i ).serializeHeader( packetBuffers[i] );
                     drainedQueue.get( i ).serialize( packetBuffers[i], this.protocolID );
                 }
 
@@ -421,7 +421,7 @@ public class PlayerConnection {
                 this.postProcessorExecutor.addWork( this, Collections.singletonList( packet ) );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
-                buffer.writeByte( packet.getId() );
+                packet.serializeHeader( buffer );
                 packet.serialize( buffer, this.protocolID );
 
                 this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
@@ -430,8 +430,7 @@ public class PlayerConnection {
             LOGGER.debug( "Writing packet {} to client", Integer.toHexString( packet.getId() & 0xFF ) );
 
             PacketBuffer buffer = new PacketBuffer( 2 );
-            buffer.writeByte( packet.getId() );
-            buffer.writeShort( (short) 0 );
+            packet.serializeHeader( buffer );
             packet.serialize( buffer, this.protocolID );
 
             WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
@@ -506,7 +505,13 @@ public class PlayerConnection {
 
     private void handleBufferData( long currentTimeMillis, PacketBuffer buffer ) {
         // Grab the packet ID from the packet's data
-        byte packetId = buffer.readByte();
+        int rawPacketId = buffer.readUnsignedVarInt();
+        if ( rawPacketId > 256 ) {
+            // This is split screen. GTFO
+            return;
+        }
+
+        byte packetId = (byte) rawPacketId;
 
         // There is some data behind the packet id when non batched packets (2 bytes)
         if ( packetId == PACKET_BATCH ) {
@@ -516,7 +521,7 @@ public class PlayerConnection {
         LOGGER.debug( "Got MCPE packet {}", Integer.toHexString( packetId & 0xFF ) );
 
         // TODO: Proper implement sending subclient and target subclient (two bytes)
-        buffer.readShort();
+        // buffer.readShort();
 
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {

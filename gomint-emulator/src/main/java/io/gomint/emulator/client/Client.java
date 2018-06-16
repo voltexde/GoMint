@@ -117,7 +117,11 @@ public class Client {
             this.socket.initialize();
             this.socket.setMojangModificationEnabled( true );
             this.socket.setEventHandler( ( socket, socketEvent ) -> {
-                //LOGGER.info( "Socket event: {}", socketEvent.getType() );
+                LOGGER.info( "Socket event: {}", socketEvent.getType() );
+
+                if ( socketEvent.getType() == SocketEvent.Type.CONNECTION_CLOSED ) {
+                    LOGGER.warn( socketEvent.getReason() );
+                }
 
                 if ( socketEvent.getType() == SocketEvent.Type.CONNECTION_ATTEMPT_SUCCEEDED ) {
                     Client.this.connection = socketEvent.getConnection();
@@ -200,14 +204,14 @@ public class Client {
     }
 
     public void send( Packet packet ) {
-        //LOGGER.info( "Sending packet {}", Integer.toHexString( packet.getId() & 0xff ) );
+        LOGGER.info( "Sending packet {}", Integer.toHexString( packet.getId() & 0xff ) );
 
         if ( !( packet instanceof PacketBatch ) ) {
             this.postProcessExecutor.addWork( this, new Packet[]{ packet } );
         } else {
             PacketBuffer buffer = new PacketBuffer( 64 );
             buffer.writeByte( packet.getId() );
-            packet.serialize( buffer, 274 );
+            packet.serialize( buffer, 280 );
 
             this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
         }
@@ -260,7 +264,7 @@ public class Client {
             }, 50, 50, TimeUnit.MILLISECONDS );
 
             PacketLogin login = new PacketLogin();
-            login.setProtocol( 274 ); // 1.4.x.x
+            login.setProtocol( 280 ); // 1.4.x.x
 
             // Send our handshake to the server -> this will trigger it to respond with a 0x03 ServerHandshake packet:
             MojangLoginForger mojangLoginForger = new MojangLoginForger();
@@ -273,7 +277,7 @@ public class Client {
                 put( "DefaultInputMode", 1 );
                 put( "ClientRandomId", FastRandom.current().nextInt() );
                 put( "GuiScale", 0 );
-                put( "GameVersion", "1.5.0.10" );
+                put( "GameVersion", "1.6.0.1" );
                 put( "ThirdPartyName", name );
                 put( "DeviceModel", "GoMintEmulator" );
                 put( "DeviceOS", 7 );
@@ -357,7 +361,7 @@ public class Client {
         if ( this.state == PlayerConnectionState.LOGIN ) {
             if ( packetId == PACKET_PLAY_STATE ) {
                 PacketPlayState packetPlayState = new PacketPlayState();
-                packetPlayState.deserialize( buffer, 274 );
+                packetPlayState.deserialize( buffer, 280 );
 
                 if ( packetPlayState.getState() != PacketPlayState.PlayState.LOGIN_SUCCESS ) {
                     this.destroy( "Server responded with " + packetPlayState.getState().name() );
@@ -368,7 +372,7 @@ public class Client {
                 return;
             } else if ( packetId == PACKET_ENCRYPTION_REQUEST ) {
                 PacketEncryptionRequest packet = new PacketEncryptionRequest();
-                packet.deserialize( buffer, 274 );
+                packet.deserialize( buffer, 280 );
 
                 // We need to verify the JWT request
                 JwtToken token = JwtToken.parse( packet.getJwt() );
@@ -399,7 +403,7 @@ public class Client {
         if ( this.state == PlayerConnectionState.RESOURCE_PACK ) {
             if ( packetId == PACKET_RESOURCEPACK_INFO ) {
                 PacketResourcePacksInfo packet = new PacketResourcePacksInfo();
-                packet.deserialize( buffer, 274 );
+                packet.deserialize( buffer, 280 );
 
                 //LOGGER.info( "Got resource packet info" );
 
@@ -409,7 +413,7 @@ public class Client {
 
             } else if ( packetId == PACKET_RESOURCEPACK_STACK ) {
                 PacketResourcePackStack stack = new PacketResourcePackStack();
-                stack.deserialize( buffer, 274 );
+                stack.deserialize( buffer, 280 );
 
                 // LOGGER.info( "Got resource packet stack" );
 
@@ -430,7 +434,7 @@ public class Client {
                 if ( packet == null ) {
                     if ( packetId == 0x6f ) {
                         PacketEntityRelativeMovement relativeMovement = new PacketEntityRelativeMovement();
-                        relativeMovement.deserialize( buffer, 274 );
+                        relativeMovement.deserialize( buffer, 280 );
                     }
 
                     // Got to skip
@@ -439,7 +443,7 @@ public class Client {
                 }
             }
 
-            packet.deserialize( buffer, 274 );
+            packet.deserialize( buffer, 280 );
             this.handlePacket( currentTimeMillis, packet );
         }
     }

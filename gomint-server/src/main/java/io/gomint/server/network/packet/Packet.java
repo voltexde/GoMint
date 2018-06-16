@@ -301,4 +301,8 @@ public abstract class Packet {
         return buffer.readByte() * BYTE_ROTATION_DIVIDOR;
     }
 
+    public void serializeHeader( PacketBuffer buffer ) {
+        buffer.writeUnsignedVarInt( this.getId() );
+    }
+
 }
