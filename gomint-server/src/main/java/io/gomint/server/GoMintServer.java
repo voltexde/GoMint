@@ -805,7 +805,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     }
 
     public void addToMainThread( Runnable runnable ) {
-
+        this.mainThreadWork.offer( runnable );
     }
 
 }
