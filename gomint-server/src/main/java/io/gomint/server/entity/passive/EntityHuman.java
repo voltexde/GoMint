@@ -22,7 +22,7 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.server.network.packet.PacketSpawnPlayer;
-import io.gomint.server.player.PlayerSkin;
+import io.gomint.player.PlayerSkin;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
@@ -415,12 +415,12 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     }
 
     @Override
-    public void setSkin( io.gomint.player.PlayerSkin skin ) {
+    public void setSkin( PlayerSkin skin ) {
         if ( this.skin != null ) {
-            this.skin = (PlayerSkin) skin;
+            this.skin = skin;
             this.updatePlayerList();
         } else {
-            this.skin = (PlayerSkin) skin;
+            this.skin = skin;
         }
     }
 
