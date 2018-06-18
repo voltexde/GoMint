@@ -822,7 +822,7 @@ public class PlayerConnection {
         move.setX( location.getX() );
         move.setY( (float) ( location.getY() + 1.62 ) );
         move.setZ( location.getZ() );
-        move.setHeadYaw( location.getYaw() );
+        move.setHeadYaw( location.getHeadYaw() );
         move.setYaw( location.getYaw() );
         move.setPitch( location.getPitch() );
         move.setMode( (byte) 2 );
@@ -881,7 +881,8 @@ public class PlayerConnection {
         packet.setCommandsEnabled( true );
         packet.setEnchantmentSeed( FastRandom.current().nextInt() );
 
-        this.entity.setPosition( this.entity.getSpawnLocation() != null ? this.entity.getSpawnLocation() : world.getSpawnLocation() );
+        // Set the new location
+        this.entity.setAndRecalcPosition( this.entity.getSpawnLocation() != null ? this.entity.getSpawnLocation() : world.getSpawnLocation() );
         this.addToSendQueue( packet );
     }
 

@@ -58,10 +58,16 @@ public class Location implements Converter {
             world = GoMint.instance().getWorld( (String) locationMap.get( "world" ) );
         }
 
+        Float headYaw = null;
+        if ( locationMap.containsKey( "headYaw" ) ) {
+            world = GoMint.instance().getWorld( (String) locationMap.get( "headYaw" ) );
+        }
+
         return new io.gomint.math.Location( world,
             getFloat( locationMap.get( "x" ) ),
             getFloat( locationMap.get( "y" ) ),
             getFloat( locationMap.get( "z" ) ),
+            headYaw == null ? yaw : headYaw,
             yaw,
             pitch );
     }

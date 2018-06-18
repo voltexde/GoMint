@@ -26,6 +26,10 @@ import io.gomint.world.Biome;
 import io.gomint.world.Chunk;
 import io.gomint.world.WorldLayer;
 import io.gomint.world.block.Block;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.PooledByteBufAllocator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.EqualsAndHashCode;
@@ -534,7 +538,8 @@ public class ChunkAdapter implements Chunk {
         // Write tile entity data
         Collection<TileEntity> tileEntities = this.getTileEntities();
         if ( !tileEntities.isEmpty() ) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ByteBuf buf = PooledByteBufAllocator.DEFAULT.ioBuffer();
+            ByteBufOutputStream baos = new ByteBufOutputStream( buf );
             NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
             nbtWriter.setUseVarint( true );
 
@@ -549,7 +554,10 @@ public class ChunkAdapter implements Chunk {
                 }
             }
 
-            buffer.writeBytes( baos.toByteArray() );
+            byte[] data = new byte[baos.writtenBytes()];
+            baos.buffer().readBytes( data );
+
+            buffer.writeBytes( data );
         }
 
         PacketWorldChunk packet = new PacketWorldChunk();
