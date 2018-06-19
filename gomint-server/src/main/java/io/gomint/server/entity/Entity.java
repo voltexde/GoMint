@@ -304,11 +304,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
             for ( io.gomint.world.block.Block block : blockList ) {
                 io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
                 implBlock.onEntityCollision( this );
-                implBlock.addVelocity( this, pushedByBlocks );
+                pushedByBlocks = implBlock.addVelocity( this, pushedByBlocks );
             }
 
             if ( pushedByBlocks.length() > 0 ) {
-                pushedByBlocks.normalize().multiply( 0.014f );
+                pushedByBlocks = pushedByBlocks.normalize().multiply( 0.014f );
                 Vector newMotion = this.transform.getMotion().add( pushedByBlocks );
                 this.transform.setMotion( newMotion.getX(), newMotion.getY(), newMotion.getZ() );
                 this.broadCastMotion();

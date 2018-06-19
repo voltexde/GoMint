@@ -710,8 +710,8 @@ public abstract class Block implements io.gomint.world.block.Block {
         return false;
     }
 
-    public void addVelocity( Entity entity, Vector pushedByBlocks ) {
-
+    public Vector addVelocity( Entity entity, Vector pushedByBlocks ) {
+        return pushedByBlocks;
     }
 
     public boolean intersectsWith( AxisAlignedBB boundingBox ) {

@@ -397,8 +397,8 @@ public abstract class Liquid extends Block implements BlockLiquid {
     }
 
     @Override
-    public void addVelocity( Entity entity, Vector pushedByBlocks ) {
-        pushedByBlocks.add( this.getFlowVector() );
+    public Vector addVelocity( Entity entity, Vector pushedByBlocks ) {
+        return pushedByBlocks.add( this.getFlowVector() );
     }
 
     /**
