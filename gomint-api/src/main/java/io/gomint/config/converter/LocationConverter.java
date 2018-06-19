@@ -19,9 +19,9 @@ import java.util.HashMap;
  * @author geNAZt
  * @version 1.0
  */
-public class Location implements Converter {
+public class LocationConverter implements Converter {
 
-    public Location( InternalConverter converter ) {
+    public LocationConverter( InternalConverter converter ) {
     }
 
     @Override
@@ -60,7 +60,7 @@ public class Location implements Converter {
 
         Float headYaw = null;
         if ( locationMap.containsKey( "headYaw" ) ) {
-            world = GoMint.instance().getWorld( (String) locationMap.get( "headYaw" ) );
+            headYaw = (Float) locationMap.get( "headYaw" );
         }
 
         return new io.gomint.math.Location( world,

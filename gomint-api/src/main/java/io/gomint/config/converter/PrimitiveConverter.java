@@ -9,7 +9,7 @@ import java.util.HashSet;
  * @author geNAZt
  * @version 1.0
  */
-public class Primitive implements Converter {
+public class PrimitiveConverter implements Converter {
     private HashSet<String> types = new HashSet<String>() {{
         add( "boolean" );
         add( "char" );
@@ -23,7 +23,7 @@ public class Primitive implements Converter {
 
     private InternalConverter internalConverter;
 
-    public Primitive( InternalConverter internalConverter ) {
+    public PrimitiveConverter( InternalConverter internalConverter ) {
         this.internalConverter = internalConverter;
     }
 

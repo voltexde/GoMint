@@ -9,11 +9,11 @@ import java.util.HashMap;
 /**
  * @author geNAZt (fabian.fassbender42@googlemail.com)
  */
-public class Map implements Converter {
+public class MapConverter implements Converter {
 
     private InternalConverter internalConverter;
 
-    public Map( InternalConverter internalConverter ) {
+    public MapConverter( InternalConverter internalConverter ) {
         this.internalConverter = internalConverter;
     }
 

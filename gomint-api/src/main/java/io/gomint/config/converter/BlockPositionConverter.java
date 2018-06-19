@@ -17,9 +17,9 @@ import java.util.HashMap;
  * @author geNAZt
  * @version 1.0
  */
-public class BlockPosition implements Converter {
+public class BlockPositionConverter implements Converter {
 
-    public BlockPosition( InternalConverter converter ) {
+    public BlockPositionConverter( InternalConverter converter ) {
     }
 
     @Override

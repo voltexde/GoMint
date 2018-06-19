@@ -12,11 +12,11 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
-public class Config implements Converter {
+public class ConfigConverter implements Converter {
 
     private InternalConverter internalConverter;
 
-    public Config( InternalConverter internalConverter ) {
+    public ConfigConverter( InternalConverter internalConverter ) {
         this.internalConverter = internalConverter;
     }
 

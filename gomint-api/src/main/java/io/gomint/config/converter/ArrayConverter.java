@@ -12,11 +12,11 @@ import java.util.Collections;
  * @author bibo38
  * @version 1.1
  */
-public class Array implements Converter {
+public class ArrayConverter implements Converter {
 
     private InternalConverter internalConverter;
 
-    public Array( InternalConverter internalConverter ) {
+    public ArrayConverter( InternalConverter internalConverter ) {
         this.internalConverter = internalConverter;
     }
 
