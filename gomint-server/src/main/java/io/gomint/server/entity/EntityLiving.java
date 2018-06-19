@@ -352,8 +352,8 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
                 distance = 1 / distance;
 
                 Vector motion = this.getVelocity();
-                motion.divide( 2f, 2f, 2f );
-                motion.add(
+                motion = motion.divide( 2f, 2f, 2f );
+                motion = motion.add(
                     ( diffX * distance * baseModifier ),
                     baseModifier,
                     ( diffZ * distance * baseModifier )
