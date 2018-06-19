@@ -922,11 +922,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                         if ( knockbackLevel > 0 ) {
                             // Modify target velocity
                             Vector targetVelo = targetEntity.getVelocity();
-                            targetVelo.add(
+                            targetEntity.setVelocity( targetVelo.add(
                                 (float) ( -Math.sin( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ),
                                 0.1f,
-                                (float) ( Math.cos( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ) );
-                            targetEntity.setVelocity( targetVelo );
+                                (float) ( Math.cos( this.getYaw() * (float) Math.PI / 180.0F ) * (float) knockbackLevel * 0.5F ) ) );
 
                             // Modify our velocity / movement
                             Vector ownVelo = this.getVelocity();
