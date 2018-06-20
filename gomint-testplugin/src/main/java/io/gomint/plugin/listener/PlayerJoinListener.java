@@ -5,8 +5,11 @@ import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.*;
 import io.gomint.inventory.item.data.DyeType;
+import io.gomint.math.Vector;
 import io.gomint.plugin.TestPlugin;
 import lombok.RequiredArgsConstructor;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
@@ -30,6 +33,15 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().setLevel( 60 );
 
         event.getPlayer().getInventory().setItem( 2, ItemDiamondSword.create( 1 ) );
+
+        this.plugin.getScheduler().schedule( new Runnable() {
+            @Override
+            public void run() {
+                if ( event.getPlayer().isOnline() ) {
+                    event.getPlayer().setVelocity( new Vector( 0.2f, 0.6f, 0.2f ) );
+                }
+            }
+        }, 5, TimeUnit.SECONDS );
     }
 
 }
