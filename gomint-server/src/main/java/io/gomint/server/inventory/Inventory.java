@@ -62,7 +62,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
 
         this.contents[index] = item;
 
-        for ( PlayerConnection playerConnection : this.viewer ) {
+        for ( PlayerConnection playerConnection: this.viewer ) {
             this.sendContents( index, playerConnection );
         }
     }
@@ -118,7 +118,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
             io.gomint.server.inventory.item.ItemStack serverItemStack = (io.gomint.server.inventory.item.ItemStack) itemStack;
             ItemStack clone = serverItemStack.clone();
 
-            for ( ItemStack content : this.contents ) {
+            for ( ItemStack content: this.contents ) {
                 if ( content instanceof ItemAir ) {
                     return true;
                 } else if ( content.equals( clone ) &&
@@ -197,7 +197,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         if ( this.contents != null ) {
             for ( int i = 0; i < this.contents.length; i++ ) {
                 if ( this.contents[i] != null ) {
-                     onRemove( i );
+                    onRemove( i );
                 }
             }
         }
@@ -206,7 +206,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         Arrays.fill( this.contents, ItemAir.create( 0 ) );
 
         // Inform all viewers
-        for ( PlayerConnection playerConnection : this.viewer ) {
+        for ( PlayerConnection playerConnection: this.viewer ) {
             sendContents( playerConnection );
         }
     }
@@ -224,11 +224,26 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
     public Collection<Entity> getViewers() {
         Set<Entity> viewers = new HashSet<>();
 
-        for ( PlayerConnection playerConnection : this.viewer ) {
+        for ( PlayerConnection playerConnection: this.viewer ) {
             viewers.add( playerConnection.getEntity() );
         }
 
         return viewers;
+    }
+
+    @Override
+    public boolean contains( ItemStack itemStack ) {
+        if ( itemStack == null ) {
+            return false;
+        }
+
+        for ( ItemStack content: this.contents ) {
+            if ( itemStack.equals( content ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public abstract InventoryType getInventoryType();
