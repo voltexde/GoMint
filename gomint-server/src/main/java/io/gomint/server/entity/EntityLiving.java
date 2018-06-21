@@ -18,6 +18,7 @@ import io.gomint.server.player.EffectManager;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +38,6 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  */
 public abstract class EntityLiving extends Entity implements InventoryHolder, io.gomint.entity.EntityLiving {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger( EntityLiving.class );
 
     // AI of the entity:
     protected AIBehaviourComponent behaviour;
@@ -509,6 +508,26 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
     @Override
     public void setMovementSpeed( float value ) {
         this.setAttribute( Attribute.MOVEMENT_SPEED, value );
+    }
+
+    @Override
+    public void initFromNBT( NBTTagCompound compound ) {
+        super.initFromNBT( compound );
+
+        if ( compound.containsKey( "AbsorptionAmount" ) ) {
+            this.setAbsorptionHearts( compound.getFloat( "AbsorptionAmount", 0.0f ) );
+        }
+    }
+
+    @Override
+    public NBTTagCompound persistToNBT() {
+        NBTTagCompound compound = super.persistToNBT();
+
+        if ( this.getAbsorptionHearts() > 0 ) {
+            compound.addValue( "AbsorptionAmount", this.getAbsorptionHearts() );
+        }
+
+        return compound;
     }
 
 }

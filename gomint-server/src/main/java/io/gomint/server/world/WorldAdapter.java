@@ -1415,4 +1415,6 @@ public abstract class WorldAdapter implements World {
         player.getConnection().addToSendQueue( difficulty );
     }
 
+    public abstract boolean persistPlayer( io.gomint.server.entity.EntityPlayer player );
+
 }

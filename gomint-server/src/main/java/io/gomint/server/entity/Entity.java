@@ -29,6 +29,7 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -1291,6 +1292,32 @@ public abstract class Entity implements io.gomint.entity.Entity {
             this.setYaw( yaw );
             this.setPitch( pitch );
         }
+    }
+
+    public NBTTagCompound persistToNBT() {
+        NBTTagCompound compound = new NBTTagCompound( "" );
+
+        // Store position
+        List<Float> pos = new ArrayList<>();
+        pos.add( this.getPositionX() );
+        pos.add( this.getPositionY() );
+        pos.add( this.getPositionZ() );
+        compound.addValue( "Pos", pos );
+
+        // Store motion
+        List<Float> motion = new ArrayList<>();
+        motion.add( this.getMotionX() );
+        motion.add( this.getMotionY() );
+        motion.add( this.getMotionZ() );
+        compound.addValue( "Motion", motion );
+
+        // Store rotation
+        List<Float> rotation = new ArrayList<>();
+        rotation.add( this.getYaw() );
+        rotation.add( this.getPitch() );
+        compound.addValue( "Rotation", rotation );
+
+        return compound;
     }
 
     public boolean isMotionSendingEnabled() {
