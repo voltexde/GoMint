@@ -7,12 +7,16 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.entity.Entity;
+import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemAir;
+import io.gomint.math.Vector;
 import io.gomint.server.inventory.FurnaceInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockFace;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +59,13 @@ public class FurnaceTileEntity extends TileEntity implements InventoryHolder {
     @Override
     public void update( long currentMillis, float dF ) {
 
+    }
+
+    @Override
+    public void interact( Entity entity, BlockFace face, Vector facePos, io.gomint.inventory.item.ItemStack item ) {
+        if ( entity instanceof EntityPlayer ) {
+            ( (EntityPlayer) entity ).openInventory( this.inventory );
+        }
     }
 
     @Override

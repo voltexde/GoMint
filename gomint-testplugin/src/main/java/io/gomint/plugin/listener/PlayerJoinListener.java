@@ -3,7 +3,11 @@ package io.gomint.plugin.listener;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.player.PlayerJoinEvent;
-import io.gomint.inventory.item.*;
+import io.gomint.inventory.item.ItemDiamondSword;
+import io.gomint.inventory.item.ItemDye;
+import io.gomint.inventory.item.ItemEnchantmentTable;
+import io.gomint.inventory.item.ItemEnderChest;
+import io.gomint.inventory.item.ItemFurnace;
 import io.gomint.inventory.item.data.DyeType;
 import io.gomint.math.Vector;
 import io.gomint.plugin.TestPlugin;
@@ -33,6 +37,7 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().setLevel( 60 );
 
         event.getPlayer().getInventory().setItem( 2, ItemDiamondSword.create( 1 ) );
+        event.getPlayer().getInventory().setItem( 3, ItemFurnace.create( 1 ) );
 
         this.plugin.getScheduler().schedule( new Runnable() {
             @Override
