@@ -47,6 +47,7 @@ import io.gomint.world.World;
 import io.gomint.world.block.Block;
 import io.gomint.world.generator.CreateOptions;
 import io.gomint.world.generator.integrated.NormalGenerator;
+import io.netty.util.ResourceLeakDetector;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import org.jline.reader.EndOfFileException;
@@ -404,6 +405,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
         float lastTickTime = Float.MIN_NORMAL;
         ReentrantLock tickLock = new ReentrantLock( true );
         Condition tickCondition = tickLock.newCondition();
+
+        ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.PARANOID );
 
         while ( this.running.get() ) {
             tickLock.lock();

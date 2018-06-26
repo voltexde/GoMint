@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.ref.SoftReference;
 import java.nio.ByteOrder;
 import java.text.NumberFormat;
@@ -99,7 +100,8 @@ public class ChunkAdapter implements Chunk {
     // State saving flag
     @Getter
     private boolean needsPersistance;
-    @Getter @Setter
+    @Getter
+    @Setter
     private boolean populated;
 
     // CHECKSTYLE:ON
@@ -111,7 +113,7 @@ public class ChunkAdapter implements Chunk {
      * @param dT            The delta from the full second which has been calculated in the last tick
      */
     final void tickRandomBlocks( long currentTimeMS, float dT ) {
-        for ( ChunkSlice chunkSlice : this.chunkSlices ) {
+        for ( ChunkSlice chunkSlice: this.chunkSlices ) {
             if ( chunkSlice != null && !chunkSlice.isAllAir() ) {
                 this.tickRandomBlocksForSlice( chunkSlice, currentTimeMS, dT );
             }
@@ -250,7 +252,7 @@ public class ChunkAdapter implements Chunk {
      * Remove the dirty state for the chunk and set the batched packet to the
      * cache.
      *
-     * @param batch     The batch which has been generated to be sent to the clients
+     * @param batch The batch which has been generated to be sent to the clients
      */
     void setCachedPacket( PacketWorldChunk batch ) {
         this.dirty = false;
@@ -511,12 +513,13 @@ public class ChunkAdapter implements Chunk {
      * @return The world chunk packet that is to be sent
      */
     PacketWorldChunk createPackagedData( int protocolId ) {
+        long start = System.nanoTime();
         PacketBuffer buffer = new PacketBuffer( 512 );
 
         // Detect how much data we can skip
         int topEmpty = 15;
         for ( int i = 15; i >= 0; i-- ) {
-            ChunkSlice slice = chunkSlices[i];
+            ChunkSlice slice = this.chunkSlices[i];
             if ( slice == null || slice.isAllAir() ) {
                 topEmpty = i;
             } else {
@@ -526,8 +529,7 @@ public class ChunkAdapter implements Chunk {
 
         buffer.writeByte( (byte) topEmpty );
         for ( int i = 0; i < topEmpty; i++ ) {
-            buffer.writeByte( (byte) 8 );
-            buffer.writeBytes( ensureSlice( i ).getBytes( protocolId ) );
+            ensureSlice( i ).writeToNetwork( buffer, protocolId );
         }
 
         buffer.writeBytes( this.height );
@@ -538,12 +540,15 @@ public class ChunkAdapter implements Chunk {
         // Write tile entity data
         Collection<TileEntity> tileEntities = this.getTileEntities();
         if ( !tileEntities.isEmpty() ) {
-            ByteBuf buf = PooledByteBufAllocator.DEFAULT.ioBuffer();
-            ByteBufOutputStream baos = new ByteBufOutputStream( buf );
-            NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
+            NBTWriter nbtWriter = new NBTWriter( new OutputStream() {
+                @Override
+                public void write( int b ) throws IOException {
+                    buffer.writeByte( (byte) b );
+                }
+            }, ByteOrder.LITTLE_ENDIAN );
             nbtWriter.setUseVarint( true );
 
-            for ( TileEntity tileEntity : tileEntities ) {
+            for ( TileEntity tileEntity: tileEntities ) {
                 NBTTagCompound compound = new NBTTagCompound( "" );
                 tileEntity.toCompound( compound );
 
@@ -553,17 +558,13 @@ public class ChunkAdapter implements Chunk {
                     e.printStackTrace();
                 }
             }
-
-            byte[] data = new byte[baos.writtenBytes()];
-            baos.buffer().readBytes( data );
-
-            buffer.writeBytes( data );
         }
 
         PacketWorldChunk packet = new PacketWorldChunk();
         packet.setX( this.x );
         packet.setZ( this.z );
         packet.setData( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
+        LOGGER.info( "Benchmark chunk packing: {} ns", ( System.nanoTime() - start ) );
         return packet;
     }
 
@@ -575,9 +576,9 @@ public class ChunkAdapter implements Chunk {
     public Collection<TileEntity> getTileEntities() {
         List<TileEntity> tileEntities = new ArrayList<>();
 
-        for ( ChunkSlice chunkSlice : this.chunkSlices ) {
+        for ( ChunkSlice chunkSlice: this.chunkSlices ) {
             if ( chunkSlice != null ) {
-                tileEntities.addAll( chunkSlice.getTileEntities() );
+                tileEntities.addAll( chunkSlice.getTileEntities().values() );
             }
         }
 
@@ -598,7 +599,7 @@ public class ChunkAdapter implements Chunk {
     public <T extends io.gomint.entity.Entity> void iterateEntities( Class<T> entityClass, Consumer<T> entityConsumer ) {
         // Iterate over all chunks
         if ( this.entities != null ) {
-            for ( Long2ObjectMap.Entry<io.gomint.entity.Entity> entry : this.entities.long2ObjectEntrySet() ) {
+            for ( Long2ObjectMap.Entry<io.gomint.entity.Entity> entry: this.entities.long2ObjectEntrySet() ) {
                 if ( entityClass.isAssignableFrom( entry.getValue().getClass() ) ) {
                     entityConsumer.accept( (T) entry.getValue() );
                 }
@@ -694,15 +695,15 @@ public class ChunkAdapter implements Chunk {
     }
 
     public void tickTiles( long currentTimeMS, float dT ) {
-        for ( ChunkSlice chunkSlice : this.chunkSlices ) {
+        for ( ChunkSlice chunkSlice: this.chunkSlices ) {
             if ( chunkSlice != null ) {
-                for ( TileEntity tileEntity : chunkSlice.getTileEntities() ) {
+                chunkSlice.getTileEntities().values().forEach( tileEntity -> {
                     tileEntity.update( currentTimeMS, dT );
 
                     if ( tileEntity.isNeedsPersistance() ) {
                         this.needsPersistance = true;
                     }
-                }
+                } );
             }
         }
     }

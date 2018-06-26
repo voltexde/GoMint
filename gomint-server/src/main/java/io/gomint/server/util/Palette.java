@@ -10,6 +10,8 @@ package io.gomint.server.util;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.MathUtils;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.BitSet;
 
@@ -68,7 +70,7 @@ public class Palette {
     public Palette( PacketBuffer data, int version, boolean read ) {
         this.data = data;
 
-        for ( PaletteVersion paletteVersionCanidate : PaletteVersion.values() ) {
+        for ( PaletteVersion paletteVersionCanidate: PaletteVersion.values() ) {
             if ( ( !read && paletteVersionCanidate.getAmountOfWords() <= version ) ||
                 ( read && paletteVersionCanidate.getVersionId() == version ) ) {
                 this.paletteVersion = paletteVersionCanidate;
@@ -153,10 +155,6 @@ public class Palette {
         }
 
         return this.output;
-    }
-
-    public boolean isPadded() {
-        return this.paletteVersion.getAmountOfPadding() > 0;
     }
 
     private int convert( BitSet bs ) {
