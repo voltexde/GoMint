@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import com.google.common.collect.Lists;
 import io.gomint.enchant.EnchantmentAquaAffinity;
 import io.gomint.enchant.EnchantmentEfficiency;
 import io.gomint.entity.potion.PotionEffect;
@@ -659,9 +660,8 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @return a list of drops
      */
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
-        return new ArrayList<ItemStack>() {{
-            add( world.getServer().getItems().create( getBlockId() & 0xFF, getBlockData(), (byte) 1, null ) );
-        }};
+        ItemStack drop = this.world.getServer().getItems().create( getBlockId(), getBlockData(), (byte) 1, null );
+        return Lists.newArrayList( drop );
     }
 
     /**
