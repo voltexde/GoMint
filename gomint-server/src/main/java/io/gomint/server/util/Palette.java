@@ -83,39 +83,43 @@ public class Palette {
         }
     }
 
-    public void addIndex( Integer id ) {
-        // Do we need new input?
-        if ( this.input == null ) {
-            this.input = new BitSet( 32 );
-            this.inputIndex = 0;
-        }
+    public void addIndexIDs( int[] indexIDs ) {
+        for ( int i = 0; i < indexIDs.length; i++ ) {
+            int id = indexIDs[i];
 
-        // Check if old input is full and we need a new one
-        if ( this.wordsWritten == this.paletteVersion.getAmountOfWords() ) {
-            // Write to output
-            this.data.writeLInt( this.convert( this.input ) );
-
-            // New input
-            this.input.set( 0, 32, false );
-            this.inputIndex = 0;
-            this.wordsWritten = 0;
-        }
-
-        // Write id
-        while ( id != 0L ) {
-            if ( id % 2L != 0 ) {
-                this.input.set( this.inputIndex );
+            // Do we need new input?
+            if ( this.input == null ) {
+                this.input = new BitSet( 32 );
+                this.inputIndex = 0;
             }
 
-            ++this.inputIndex;
-            id = id >>> 1;
+            // Check if old input is full and we need a new one
+            if ( this.wordsWritten == this.paletteVersion.getAmountOfWords() ) {
+                // Write to output
+                this.data.writeLInt( this.convert( this.input ) );
+
+                // New input
+                this.input.set( 0, 32, false );
+                this.inputIndex = 0;
+                this.wordsWritten = 0;
+            }
+
+            // Write id
+            while ( id != 0L ) {
+                if ( id % 2L != 0 ) {
+                    this.input.set( this.inputIndex );
+                }
+
+                ++this.inputIndex;
+                id = id >>> 1;
+            }
+
+            // Increment written words
+            this.wordsWritten++;
+
+            // Set the index correct
+            this.inputIndex = this.wordsWritten * this.paletteVersion.getVersionId();
         }
-
-        // Increment written words
-        this.wordsWritten++;
-
-        // Set the index correct
-        this.inputIndex = this.wordsWritten * this.paletteVersion.getVersionId();
     }
 
     public void finish() {

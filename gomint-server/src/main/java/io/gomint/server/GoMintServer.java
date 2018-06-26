@@ -46,6 +46,7 @@ import io.gomint.server.world.block.Blocks;
 import io.gomint.world.World;
 import io.gomint.world.block.Block;
 import io.gomint.world.generator.CreateOptions;
+import io.gomint.world.generator.integrated.LayeredGenerator;
 import io.gomint.world.generator.integrated.NormalGenerator;
 import io.netty.util.ResourceLeakDetector;
 import joptsimple.OptionSet;
@@ -357,7 +358,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
         } catch ( WorldLoadException e ) {
             // Try to generate world
-            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ) ) == null ) {
+            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( LayeredGenerator.class ) ) == null ) {
                 LOGGER.error( "Failed to load or generate default world", e );
                 this.internalShutdown();
                 return;

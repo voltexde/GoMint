@@ -17,6 +17,8 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +30,8 @@ import java.util.function.LongConsumer;
  * @version 1.0
  */
 public class ChunkSlice {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( ChunkSlice.class );
 
     @Getter
     private final ChunkAdapter chunk;
@@ -306,21 +310,25 @@ public class ChunkSlice {
             LongList indexList = new LongArrayList();
             IntList runtimeIndex = new IntArrayList();
 
+            int foundIndex = 0;
+            long lastHash = -1;
+
             for ( int x = 0; x < 16; x++ ) {
                 for ( int z = 0; z < 16; z++ ) {
                     for ( int y = 0; y < 16; y++ ) {
                         short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
                         int blockId = this.getBlockInternal( i, blockIndex );
-                        byte blockData = this.data[i] == null ? 0 : this.data[i].get( blockIndex );
+                        byte blockData = blockId == 0 || this.data[i] == null ? 0 : this.data[i].get( blockIndex );
 
                         long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
-
-                        int foundIndex = indexList.indexOf( hashId );
-                        if ( foundIndex == -1 ) {
-                            int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData, protocolID );
-                            runtimeIndex.add( runtimeId );
-                            indexList.add( hashId );
-                            foundIndex = indexList.size() - 1;
+                        if ( hashId != lastHash ) {
+                            foundIndex = indexList.indexOf( hashId );
+                            if ( foundIndex == -1 ) {
+                                int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData, protocolID );
+                                runtimeIndex.add( runtimeId );
+                                indexList.add( hashId );
+                                foundIndex = indexList.size() - 1;
+                            }
                         }
 
                         indexIDs[blockIndex] = foundIndex;
@@ -339,11 +347,7 @@ public class ChunkSlice {
 
             byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );
             buffer.writeByte( paletteWord );
-
-            for ( Integer id: indexIDs ) {
-                palette.addIndex( id );
-            }
-
+            palette.addIndexIDs( indexIDs );
             palette.finish();
 
             // Write runtimeIDs

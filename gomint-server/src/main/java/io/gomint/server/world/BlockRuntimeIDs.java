@@ -144,27 +144,6 @@ public class BlockRuntimeIDs {
         }
 
         return runtimeID;
-
-        /*// The nukkit/PC data corruption seems to go further, now single sandstone blocks where found corrupted
-        // I simply assume that every block could be corrupted and try to use data value 0 as fallback when the
-        // original combination could not be found
-        long hashId = ( (long) blockId ) << 32 | ( dataValue & 0xffffffffL );
-
-        Long2IntMap runtimeIDs = RUNTIME_IDS;
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            runtimeIDs = RUNTIME_IDS_BETA;
-        }
-
-        int runtimeId = runtimeIDs.get( hashId );
-        if ( runtimeId == runtimeIDs.defaultReturnValue() ) {
-            hashId = ( (long) blockId ) << 32;
-            runtimeId = runtimeIDs.get( hashId );
-            if ( runtimeId == runtimeIDs.defaultReturnValue() ) {
-                return 0;
-            }
-        }
-
-        return runtimeId;*/
     }
 
     private static int lookup( int blockId, byte dataValue, int[][] lookup ) {

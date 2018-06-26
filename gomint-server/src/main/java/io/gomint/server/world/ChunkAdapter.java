@@ -513,8 +513,7 @@ public class ChunkAdapter implements Chunk {
      * @return The world chunk packet that is to be sent
      */
     PacketWorldChunk createPackagedData( int protocolId ) {
-        long start = System.nanoTime();
-        PacketBuffer buffer = new PacketBuffer( 512 );
+        PacketBuffer buffer = new PacketBuffer( 16 );
 
         // Detect how much data we can skip
         int topEmpty = 15;
@@ -564,7 +563,6 @@ public class ChunkAdapter implements Chunk {
         packet.setX( this.x );
         packet.setZ( this.z );
         packet.setData( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
-        LOGGER.info( "Benchmark chunk packing: {} ns", ( System.nanoTime() - start ) );
         return packet;
     }
 
