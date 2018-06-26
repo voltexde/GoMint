@@ -623,7 +623,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     public void setVelocity( Vector velocity, boolean send ) {
-        LOGGER.info( "New motion for {}: {}", this, velocity );
+        LOGGER.debug( "New motion for {}: {}", this, velocity );
         this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
         this.fallDistance = 0;
 
