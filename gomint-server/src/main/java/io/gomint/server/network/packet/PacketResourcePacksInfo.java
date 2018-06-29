@@ -34,6 +34,7 @@ public class PacketResourcePacksInfo extends Packet {
                 buffer.writeLLong( entry.getSize() );
                 buffer.writeString( "" );
                 buffer.writeString( "" );
+                buffer.writeString( "" );
             }
         }
 
@@ -43,6 +44,7 @@ public class PacketResourcePacksInfo extends Packet {
                 buffer.writeString( entry.getVersion().getId().toString() );
                 buffer.writeString( entry.getVersion().getVersion() );
                 buffer.writeLLong( entry.getSize() );
+                buffer.writeString( "" );
                 buffer.writeString( "" );
                 buffer.writeString( "" );
             }
@@ -60,6 +62,7 @@ public class PacketResourcePacksInfo extends Packet {
             buffer.readLLong();
             buffer.readString();
             buffer.readString();
+            buffer.readString();
         }
 
         behaviourAmount = buffer.readLShort();
@@ -67,6 +70,7 @@ public class PacketResourcePacksInfo extends Packet {
             buffer.readString();
             buffer.readString();
             buffer.readLLong();
+            buffer.readString();
             buffer.readString();
             buffer.readString();
         }

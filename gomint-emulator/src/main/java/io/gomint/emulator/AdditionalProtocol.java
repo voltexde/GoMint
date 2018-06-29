@@ -50,11 +50,9 @@ public class AdditionalProtocol {
                 return new PacketTileEntityData();
 
             case PACKET_SPAWN_PLAYER:
-                LOGGER.warn( "Entity count: {}", ENTITY_COUNT.incrementAndGet() );
                 return null;
 
             case PACKET_SPAWN_ENTITY:
-                LOGGER.warn( "Entity count: {}", ENTITY_COUNT.incrementAndGet() );
                 return new PacketSpawnEntity();
 
             default:

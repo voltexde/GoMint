@@ -80,7 +80,6 @@ public class PacketSpawnEntity extends Packet {
         buffer.readUnsignedVarLong();
 
         int typeId = buffer.readUnsignedVarInt();
-        System.out.println( typeId );
         for ( EntityType type : EntityType.values() ) {
             if ( typeId == type.getId() ) {
                 this.entityType = type;
