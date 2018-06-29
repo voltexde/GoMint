@@ -275,8 +275,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
                         inputLines.offer( line );
                     } catch ( UserInterruptException e ) {
                         GoMintServer.this.shutdown();
-                    } catch ( EndOfFileException e ) {
-                        e.printStackTrace();
+                    } catch ( Exception e ) {
+                        LOGGER.error( "jLine failed with following exception", e );
                     }
                 }
             } );
