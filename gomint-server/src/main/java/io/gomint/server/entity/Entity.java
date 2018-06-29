@@ -1292,6 +1292,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
             this.setYaw( yaw );
             this.setPitch( pitch );
         }
+
+        // Fall distance
+        this.fallDistance = compound.getFloat( "FallDistance", 0f );
+        this.setAffectedByGravity( compound.getByte( "NoGravity", (byte) 0 ) == 0 );
+        this.onGround = compound.getByte( "OnGround", (byte) 1 ) == 1;
     }
 
     public NBTTagCompound persistToNBT() {
@@ -1316,6 +1321,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         rotation.add( this.getYaw() );
         rotation.add( this.getPitch() );
         compound.addValue( "Rotation", rotation );
+
+        // Fall distance
+        compound.addValue( "FallDistance", this.fallDistance );
+        compound.addValue( "NoGravity", (byte) ( this.isAffectedByGravity() ? 0 : 1 ) );
+        compound.addValue( "OnGround", (byte) ( this.isOnGround() ? 1 : 0 ) );
 
         return compound;
     }
