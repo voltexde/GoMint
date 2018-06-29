@@ -358,7 +358,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
         } catch ( WorldLoadException e ) {
             // Try to generate world
-            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( LayeredGenerator.class ) ) == null ) {
+            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ) ) == null ) {
                 LOGGER.error( "Failed to load or generate default world", e );
                 this.internalShutdown();
                 return;
