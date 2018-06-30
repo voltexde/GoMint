@@ -26,6 +26,7 @@ import io.gomint.player.PlayerSkin;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Difficulty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -356,7 +357,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SPRINTING, value );
             AttributeInstance movementSpeed = this.getAttributeInstance( Attribute.MOVEMENT_SPEED );
             if ( value ) {
-                movementSpeed.setMultiplyModifier( AttributeModifier.SPRINT_MULTIPLY, 1.3f );
+                movementSpeed.setMultiplyModifier( AttributeModifier.SPRINT_MULTIPLY, 0.3f );
             } else {
                 movementSpeed.removeMultiplyModifier( AttributeModifier.SPRINT_MULTIPLY );
             }
@@ -509,6 +510,25 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         }} );
 
         connection.addToSendQueue( packetPlayerlist );
+    }
+
+    @Override
+    public void initFromNBT( NBTTagCompound compound ) {
+        super.initFromNBT( compound );
+    }
+
+    @Override
+    public NBTTagCompound persistToNBT() {
+        NBTTagCompound compound = super.persistToNBT();
+
+        // Food
+        compound.addValue( "foodLevel", (int) this.getHunger() );
+        compound.addValue( "foodExhaustionLevel", this.getExhaustion() );
+        compound.addValue( "foodSaturationLevel", this.getSaturation() );
+        compound.addValue( "foodTickTimer", this.foodTicks );
+
+        // Player inventory
+        return compound;
     }
 
 }

@@ -24,4 +24,12 @@ public interface EntityConverters {
      */
     Entity read( NBTTagCompound compound );
 
+    /**
+     *
+     *
+     * @param entity
+     * @return
+     */
+    NBTTagCompound write( Entity entity );
+
 }

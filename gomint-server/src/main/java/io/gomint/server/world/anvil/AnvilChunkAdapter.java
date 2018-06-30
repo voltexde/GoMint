@@ -292,6 +292,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             default:
                 // We assume that the chunk is 1.8
                 this.tileEntityConverters = new io.gomint.server.world.anvil.tileentity.v1_8.TileEntities( this.world );
+                // this.entityConverters = new
         }
     }
 

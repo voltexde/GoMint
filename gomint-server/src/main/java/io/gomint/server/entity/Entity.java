@@ -82,6 +82,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * How high can this entity "climb" in one movement?
      */
     protected float stepHeight = 0;
+    @Setter
     protected boolean onGround;
 
     /**
@@ -98,6 +99,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Fall distance tracking
      */
+    @Getter @Setter
     protected float fallDistance = 0;
 
     /**
