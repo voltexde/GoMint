@@ -684,6 +684,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.pluginManager.getCommandManager().executeSystem( line );
     }
 
+    @Override
+    public Collection<World> getWorlds() {
+        return new ArrayDeque<>( this.worldManager.getWorlds() );
+    }
+
     /**
      * Get all online players
      *
