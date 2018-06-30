@@ -19,6 +19,7 @@ import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
+@EqualsAndHashCode( callSuper = true )
 public abstract class EntityLiving extends Entity implements InventoryHolder, io.gomint.entity.EntityLiving {
 
     // AI of the entity:
@@ -152,9 +154,9 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
             // Calc death stuff
             if ( this.getHealth() <= 0 ) {
-                if ( this.deadTimer != -1 && this.deadTimer++ >= 20 ) {
+                if ( this.deadTimer > 0 && this.deadTimer-- > 1 ) {
                     despawn();
-                    this.deadTimer = -1;
+                    this.deadTimer = 0;
                 }
             } else {
                 this.deadTimer = 0;
@@ -323,6 +325,10 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         float health = MathUtils.fastCeil( this.getHealth() - damageToBeDealt );
 
         // Set health
+        if ( health <= 0 ) {
+            this.deadTimer = 20;
+        }
+
         this.setHealth( health <= 0 ? 0 : health );
 
         // Send animation
@@ -538,6 +544,10 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
                 }
             }
         }
+
+        this.deadTimer = compound.getShort( "DeathTime", (short) 0 );
+        this.setHealth( compound.getFloat( "Health", 20f ) );
+        this.attackCoolDown = compound.getShort( "HurtTime", (short) 0 ).byteValue();
     }
 
     @Override
@@ -558,6 +568,9 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         }
 
         compound.addValue( "Attributes", nbtAttributes );
+        compound.addValue( "DeathTime", (short) this.deadTimer );
+        compound.addValue( "Health", this.getHealth() );
+        compound.addValue( "HurtTime", (short) this.attackCoolDown );
 
         return compound;
     }

@@ -45,6 +45,7 @@ import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.*;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
@@ -1513,6 +1514,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     public Collection<ContainerInventory> getOpenInventories() {
         return this.windowIds.values();
+    }
+
+    @Override
+    public void initFromNBT( NBTTagCompound compound ) {
+        super.initFromNBT( compound );
+    }
+
+    @Override
+    public NBTTagCompound persistToNBT() {
+        NBTTagCompound compound = super.persistToNBT();
+        return compound;
     }
 
 }

@@ -115,6 +115,31 @@ public class AttributeInstance {
         if ( nbtAmplifiers != null ) {
             for ( Object amplifier: nbtAmplifiers ) {
                 NBTTagCompound nbtAmplifier = (NBTTagCompound) amplifier;
+
+                AttributeModifier modifier = null;
+                try {
+                    modifier = AttributeModifier.valueOf( nbtAmplifier.getString( "Name", "" ) );
+                } catch ( Exception e ) {
+                    // Ignored (modified will be null when not known)
+                }
+
+                int operation = nbtAmplifier.getInteger( "Operation", 0 );
+                float amount = nbtAmplifier.getDouble( "Amount", 0D ).floatValue();
+
+                if ( modifier != null && amount != 0 ) {
+                    switch ( operation ) {
+                        case 0:
+                            this.modifiers.put( modifier, amount );
+                            break;
+                        case 1:
+                            this.multiplyModifiers.put( modifier, amount );
+                            break;
+                        default:
+                            break;
+                    }
+
+                    this.recalc();
+                }
             }
         }
     }
