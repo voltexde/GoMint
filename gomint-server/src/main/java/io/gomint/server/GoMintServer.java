@@ -7,6 +7,7 @@
 
 package io.gomint.server;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.*;
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
@@ -682,6 +683,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Override
     public void dispatchCommand( String line ) {
         this.pluginManager.getCommandManager().executeSystem( line );
+    }
+
+    @Override
+    public Collection<World> getWorlds() {
+        return Collections.unmodifiableCollection ( this.worldManager.getWorlds() );
     }
 
     /**

@@ -239,4 +239,10 @@ public interface GoMint {
      */
     void dispatchCommand( String line );
 
+    /**
+     * Get a collection of all worlds on this server
+     *
+     * @return collection of worlds
+     */
+    Collection<World> getWorlds();
 }
