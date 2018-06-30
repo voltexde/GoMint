@@ -28,6 +28,7 @@ import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Difficulty;
+import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -210,11 +211,6 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
             }
 
             this.lastUpdateDT = 0;
-        }
-
-        // Check for sprint
-        if ( this.getHunger() <= 6 && this.isSprinting() ) {
-            this.setSprinting( false );
         }
     }
 
