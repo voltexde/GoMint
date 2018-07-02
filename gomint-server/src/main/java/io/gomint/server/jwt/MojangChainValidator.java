@@ -22,7 +22,7 @@ import java.util.*;
 @Getter
 public class MojangChainValidator {
 
-    private static final boolean NEVER_ENABLE_SELFSIGN_IN_PROD = true;
+    private static final boolean NEVER_ENABLE_SELFSIGN_IN_PROD = false;
 
     private List<JwtToken> chain;
 
