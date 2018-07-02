@@ -169,6 +169,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Getter
     private LoginPerformance loginPerformance;
 
+    // Movement delay
+    @Setter
+    private Location nextMovement;
+
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
      *
@@ -474,6 +478,63 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void update( long currentTimeMS, float dT ) {
+        // Move first
+        if ( this.nextMovement != null ) {
+            Location from = this.getLocation();
+            PlayerMoveEvent playerMoveEvent = this.connection.getNetworkManager().getServer().getPluginManager().callEvent(
+                new PlayerMoveEvent( this, from, this.nextMovement )
+            );
+
+            if ( playerMoveEvent.isCancelled() ) {
+                playerMoveEvent.setTo( playerMoveEvent.getFrom() );
+            }
+
+            Location to = playerMoveEvent.getTo();
+            if ( to.getX() != this.nextMovement.getX() || to.getY() != this.nextMovement.getY() || to.getZ() != this.nextMovement.getZ() ||
+                !to.getWorld().equals( this.nextMovement.getWorld() ) || to.getYaw() != this.nextMovement.getYaw() ||
+                to.getPitch() != this.nextMovement.getPitch() || to.getHeadYaw() != this.nextMovement.getHeadYaw() ) {
+                this.teleport( to );
+            } else {
+                float moveX = to.getX() - from.getX();
+                float moveY = to.getY() - from.getY();
+                float moveZ = to.getZ() - from.getZ();
+
+                // Try to at least move the gravitation down
+                Vector moved = this.safeMove( moveX, moveY, moveZ );
+
+                // Exhaustion
+                double distance = Math.abs( moved.getX() ) + Math.abs( moved.getY() ) + Math.abs( moved.getZ() );
+                if ( this.isSprinting() ) {
+                    this.exhaust( (float) ( 0.1 * distance ), PlayerExhaustEvent.Cause.SPRINTING );
+                } else {
+                    this.exhaust( (float) ( 0.01 * distance ), PlayerExhaustEvent.Cause.WALKING );
+                }
+
+                this.setPitch( to.getPitch() );
+                this.setYaw( to.getYaw() );
+                this.setHeadYaw( to.getHeadYaw() );
+            }
+
+            boolean changeWorld = !to.getWorld().equals( from.getWorld() );
+            boolean changeXZ = (int) from.getX() != (int) to.getX() || (int) from.getZ() != (int) to.getZ();
+            boolean changeY = (int) from.getY() != (int) to.getY();
+
+            if ( changeWorld || changeXZ || changeY ) {
+                if ( changeWorld || changeXZ ) {
+                    this.connection.checkForNewChunks( from, false );
+                }
+
+                // Check for interaction
+                Block block = from.getWorld().getBlockAt( from.toBlockPosition() );
+                block.gotOff( this );
+
+                block = to.getWorld().getBlockAt( to.toBlockPosition() );
+                block.stepOn( this );
+            }
+
+            this.nextMovement = null;
+        }
+
         super.update( currentTimeMS, dT );
 
         // Update permissions

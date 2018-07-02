@@ -13,7 +13,10 @@ import io.gomint.entity.EntityPlayer;
 import io.gomint.event.player.PlayerInteractEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.math.*;
+import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.BlockPosition;
+import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.async.Delegate;
@@ -25,12 +28,28 @@ import io.gomint.server.entity.passive.EntityXPOrb;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.Protocol;
-import io.gomint.server.network.packet.*;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketSetDifficulty;
+import io.gomint.server.network.packet.PacketTileEntityData;
+import io.gomint.server.network.packet.PacketUpdateBlock;
+import io.gomint.server.network.packet.PacketWorldChunk;
+import io.gomint.server.network.packet.PacketWorldEvent;
+import io.gomint.server.network.packet.PacketWorldSoundEvent;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.util.random.FastRandom;
-import io.gomint.world.*;
+import io.gomint.world.Biome;
+import io.gomint.world.Chunk;
+import io.gomint.world.Difficulty;
+import io.gomint.world.Gamemode;
+import io.gomint.world.Gamerule;
+import io.gomint.world.Particle;
+import io.gomint.world.ParticleData;
+import io.gomint.world.Sound;
+import io.gomint.world.SoundData;
+import io.gomint.world.World;
+import io.gomint.world.WorldLayer;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.BlockFace;
@@ -48,8 +67,20 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -70,6 +101,7 @@ public abstract class WorldAdapter implements World {
     protected final Logger logger;
 
     // World properties
+    @Getter
     protected final File worldDir;
     protected String levelName;
     protected Location spawn;
@@ -652,6 +684,8 @@ public abstract class WorldAdapter implements World {
      * Prepares the region surrounding the world's spawn point.
      */
     protected void prepareSpawnRegion() {
+        long start = System.currentTimeMillis();
+
         final int spawnRadius = this.config.getAmountOfChunksForSpawnArea();
         if ( spawnRadius == 0 ) {
             return;
@@ -660,11 +694,15 @@ public abstract class WorldAdapter implements World {
         final int chunkX = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getX() );
         final int chunkZ = CoordinateUtils.fromBlockToChunk( (int) this.spawn.getZ() );
 
+        int amountOfChunksLoaded = 0;
         for ( int i = chunkX - spawnRadius; i <= chunkX + spawnRadius; i++ ) {
             for ( int j = chunkZ - spawnRadius; j <= chunkZ + spawnRadius; j++ ) {
                 this.loadChunk( i, j, true );
+                amountOfChunksLoaded++;
             }
         }
+
+        this.logger.info( "Loaded {} chunks in {} ms", amountOfChunksLoaded, ( System.currentTimeMillis() - start ) );
     }
 
     /**

@@ -19,7 +19,6 @@ import io.gomint.math.Location;
 import io.gomint.player.DeviceInfo;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.handler.PacketAdventureSettingsHandler;
 import io.gomint.server.network.handler.PacketAnimateHandler;
 import io.gomint.server.network.handler.PacketBookEditHandler;
@@ -50,6 +49,7 @@ import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketConfirmChunkRadius;
 import io.gomint.server.network.packet.PacketDisconnect;
 import io.gomint.server.network.packet.PacketEncryptionResponse;
+import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.server.network.packet.PacketLogin;
 import io.gomint.server.network.packet.PacketMovePlayer;
 import io.gomint.server.network.packet.PacketPlayState;
@@ -59,7 +59,6 @@ import io.gomint.server.network.packet.PacketSetCommandsEnabled;
 import io.gomint.server.network.packet.PacketSetDifficulty;
 import io.gomint.server.network.packet.PacketSetSpawnPosition;
 import io.gomint.server.network.packet.PacketStartGame;
-import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.network.packet.PacketWorldTime;
 import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.protocol.FlushTickPacket;
@@ -87,9 +86,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -191,12 +192,12 @@ public class PlayerConnection {
     @Setter
     @Getter
     private boolean startBreakResult;
-    @Setter
     @Getter
-    private ItemStack lastInteraction;
+    private Set<PacketInventoryTransaction> transactionsHandled = new HashSet<>();
 
     // Debug stuff
-    @Getter private AtomicInteger responseChunks = new AtomicInteger( 0 );
+    @Getter
+    private AtomicInteger responseChunks = new AtomicInteger( 0 );
 
     /**
      * Constructs a new player connection.
@@ -279,7 +280,7 @@ public class PlayerConnection {
         // Clear spam stuff
         this.startBreakResult = false;
         this.hadStartBreak = false;
-        this.lastInteraction = null;
+        this.transactionsHandled.clear();
 
         // Reset sentInClientTick
         this.lastUpdateDT += dT;

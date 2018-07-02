@@ -17,6 +17,7 @@ import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.anvil.entity.EntityConverters;
 import io.gomint.server.world.anvil.tileentity.TileEntityConverters;
+import io.gomint.server.world.postprocessor.BedPostProcessor;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTTagCompound;
@@ -292,7 +293,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             default:
                 // We assume that the chunk is 1.8
                 this.tileEntityConverters = new io.gomint.server.world.anvil.tileentity.v1_8.TileEntities( this.world );
-                // this.entityConverters = new
+                this.entityConverters = new io.gomint.server.world.anvil.entity.v1_8.Entities( this.world );
         }
     }
 
@@ -351,9 +352,14 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     }
 
                     switch ( blockId ) {
+                        case 26: // Bed
+                            BlockPosition position = new BlockPosition( ( this.x << 4 ) + i, y, ( this.z << 4 ) + k );
+                            this.postProcessors.offer( new BedPostProcessor( this.world, position ) );
+                            break;
+
                         case 29:
                         case 33: // Piston head
-                            BlockPosition position = new BlockPosition( ( this.x << 4 ) + i, y, ( this.z << 4 ) + k );
+                            position = new BlockPosition( ( this.x << 4 ) + i, y, ( this.z << 4 ) + k );
                             this.postProcessors.offer( new PistonPostProcessor( this.world, position ) );
                             break;
 

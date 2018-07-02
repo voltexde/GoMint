@@ -212,7 +212,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
         switch ( packet.getActionType() ) {
             case 0: // Click on block
                 // Only accept valid interactions
-                if ( !checkInteraction( itemInHand, connection ) ) {
+                if ( !checkInteraction( packet, connection ) ) {
                     return;
                 }
 
@@ -227,7 +227,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 break;
             case 1: // Click in air
                 // Only accept valid interactions
-                if ( !checkInteraction( itemInHand, connection ) ) {
+                if ( !checkInteraction( packet, connection ) ) {
                     return;
                 }
 
@@ -354,20 +354,14 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
         }
     }
 
-    private boolean checkInteraction( ItemStack itemInHand, PlayerConnection connection ) {
-        io.gomint.server.inventory.item.ItemStack lastInteraction = connection.getLastInteraction();
-        if ( lastInteraction == null ) {
-            connection.setLastInteraction( (io.gomint.server.inventory.item.ItemStack) itemInHand );
-            return true;
-        } else {
-            if ( lastInteraction.getType() == itemInHand.getType() &&
-                Objects.equals( lastInteraction.getNbtData(), itemInHand.getNbtData() ) ) {
-                return false;
-            }
-
-            connection.setLastInteraction( (io.gomint.server.inventory.item.ItemStack) itemInHand );
-            return true;
+    private boolean checkInteraction( PacketInventoryTransaction packet, PlayerConnection connection ) {
+        // We cache all packets for this tick so we don't handle one twice, vanilla likes spam (https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Spam_can.png/220px-Spam_can.png)
+        if ( connection.getTransactionsHandled().contains( packet ) ) {
+            return false;
         }
+
+        connection.getTransactionsHandled().add( packet );
+        return true;
     }
 
     private void handleTypeNormal( PlayerConnection connection, PacketInventoryTransaction packet ) {
