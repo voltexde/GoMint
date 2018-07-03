@@ -372,7 +372,7 @@ public class ChunkAdapter implements Chunk {
     public void setBlock( int x, int y, int z, int layer, int id ) {
         int ySection = y >> 4;
         ChunkSlice slice = ensureSlice( ySection );
-        slice.setBlock( x, y - 16 * ySection, z, layer, id );
+        slice.setBlock( x, y - ( ySection << 4 ), z, layer, id );
         this.dirty = true;
         this.needsPersistance = true;
     }

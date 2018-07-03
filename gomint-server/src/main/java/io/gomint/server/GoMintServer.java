@@ -213,39 +213,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // Build up registries
         // ------------------------------------ //
-        List<ListenableFuture<?>> registryLoader = new ArrayList<>();
-        registryLoader.add( this.executorService.submit( () -> {
-            try {
-                this.blocks = new Blocks( this );
-            } catch ( Throwable t ) {
-                t.printStackTrace();
-            }
-        } ) );
-        registryLoader.add( this.executorService.submit( () -> {
-            try {
-                this.items = new Items( this );
-            } catch ( Throwable t ) {
-                t.printStackTrace();
-            }
-        } ) );
-        registryLoader.add( this.executorService.submit( () -> {
-            try {
-                this.entities = new Entities( this );
-                this.effects = new Effects( this );
-                this.enchantments = new Enchantments( this );
-            } catch ( Throwable t ) {
-                t.printStackTrace();
-            }
-        } ) );
-
-        SettableFuture<Void> completed = SettableFuture.create();
-        Futures.whenAllSucceed( registryLoader ).run( () -> completed.set( null ), MoreExecutors.directExecutor() );
-
-        try {
-            completed.get();
-        } catch ( InterruptedException | ExecutionException e ) {
-            // There is no timeout
-        }
+        this.blocks = new Blocks( this );
+        this.items = new Items( this );
+        this.entities = new Entities( this );
+        this.effects = new Effects( this );
+        this.enchantments = new Enchantments( this );
 
         startAfterRegistryInit( args, start );
     }

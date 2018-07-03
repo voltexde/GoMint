@@ -148,7 +148,6 @@ public class AnvilChunkAdapter extends ChunkAdapter {
     void loadFromNBT( NBTStream nbtStream ) throws WorldLoadException {
         // Fill in default values
         this.biomes = new byte[256];
-        Arrays.fill( this.biomes, (byte) -1 );
 
         // Allow for compound return for given paths
         nbtStream.addCompountAcceptor( path -> path.equals( ".Level.Entities" ) ||
