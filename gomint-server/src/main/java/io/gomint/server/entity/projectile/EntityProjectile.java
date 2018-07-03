@@ -138,7 +138,10 @@ public abstract class EntityProjectile extends Entity implements io.gomint.entit
                             }
 
                             EntityDamageByEntityEvent event = new EntityDamageByEntityEvent( hitEntity, this, EntityDamageEvent.DamageSource.PROJECTILE, damage );
-                            hitEntity.damage( event );
+                            if ( hitEntity.damage( event ) ) {
+                                this.applyCustomKnockback( hitEntity );
+                                this.applyCustomDamageEffects( hitEntity );
+                            }
 
                             // Store entity
                             this.hitEntity = hitEntity;
@@ -149,6 +152,24 @@ public abstract class EntityProjectile extends Entity implements io.gomint.entit
 
             this.lastUpdatedT = 0;
         }
+    }
+
+    /**
+     * Apply custom effects for a entity which has been hit by the projectile
+     *
+     * @param hitEntity which has been hit
+     */
+    protected void applyCustomDamageEffects( Entity hitEntity ) {
+
+    }
+
+    /**
+     * This method should be overwritten by projectiles which can alter the hit entities motion (like punch arrows)
+     *
+     * @param hitEntity which has been hit
+     */
+    protected void applyCustomKnockback( Entity hitEntity ) {
+
     }
 
     @Override

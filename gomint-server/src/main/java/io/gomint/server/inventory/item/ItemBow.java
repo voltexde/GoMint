@@ -3,7 +3,10 @@ package io.gomint.server.inventory.item;
 import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemType;
+import io.gomint.server.enchant.EnchantmentFlame;
 import io.gomint.server.enchant.EnchantmentInfinity;
+import io.gomint.server.enchant.EnchantmentPower;
+import io.gomint.server.enchant.EnchantmentPunch;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.projectile.EntityArrow;
 import io.gomint.server.registry.RegisterInfo;
@@ -71,10 +74,13 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
             ItemStack itemStack = (ItemStack) player.getInventory().getItem( i );
             if ( itemStack instanceof ItemArrow ) {
                 foundArrow = true;
-                if ( itemStack.afterPlacement() ) {
-                    player.getInventory().setItem( i, ItemAir.create( 0 ) );
-                } else {
-                    player.getInventory().setItem( i, itemStack );
+
+                if ( this.getEnchantment( EnchantmentInfinity.class ) == null ) {
+                    if ( itemStack.afterPlacement() ) {
+                        player.getInventory().setItem( i, ItemAir.create( 0 ) );
+                    } else {
+                        player.getInventory().setItem( i, itemStack );
+                    }
                 }
             }
         }
@@ -102,8 +108,27 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
             return;
         }
 
+        // Get bow enchantments
+        int powerModifier = 0;
+        EnchantmentPower power = this.getEnchantment( EnchantmentPower.class );
+        if ( power != null ) {
+            powerModifier = power.getLevel();
+        }
+
+        int punchModifier = 0;
+        EnchantmentPunch punch = this.getEnchantment( EnchantmentPunch.class );
+        if ( punch != null ) {
+            punchModifier = punch.getLevel();
+        }
+
+        int flameModifier = 0;
+        EnchantmentFlame flame = this.getEnchantment( EnchantmentFlame.class );
+        if ( flame != null ) {
+            flameModifier = flame.getLevel();
+        }
+
         // Create arrow
-        EntityArrow arrow = new EntityArrow( player, player.getWorld(), force );
+        EntityArrow arrow = new EntityArrow( player, player.getWorld(), force, powerModifier, punchModifier, flameModifier );
         ProjectileLaunchEvent event = new ProjectileLaunchEvent( arrow, ProjectileLaunchEvent.Cause.BOW_SHOT );
         player.getWorld().getServer().getPluginManager().callEvent( event );
         if ( !event.isCancelled() ) {
