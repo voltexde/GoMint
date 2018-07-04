@@ -8,6 +8,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.entity.BossBar;
+import io.gomint.entity.passive.EntityVillager;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityTeleportEvent;
 import io.gomint.math.*;
@@ -24,6 +25,7 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.*;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Chunk;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -44,6 +46,7 @@ import java.util.function.Predicate;
  * @author BlackyPaw
  * @version 1.1
  */
+@EqualsAndHashCode( of = { "id" } )
 public abstract class Entity implements io.gomint.entity.Entity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Entity.class );

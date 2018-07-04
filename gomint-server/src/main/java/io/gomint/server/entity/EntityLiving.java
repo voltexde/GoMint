@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
-@EqualsAndHashCode( callSuper = true )
 public abstract class EntityLiving extends Entity implements InventoryHolder, io.gomint.entity.EntityLiving {
 
     // AI of the entity:
@@ -208,7 +207,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
      *
      * @return the spawn packet of this entity, ready to be sent to the client
      */
-    @Override
+    /*@Override
     public Packet createSpawnPacket() {
         // Broadcast spawn entity packet:
         PacketSpawnEntity packet = new PacketSpawnEntity();
@@ -225,7 +224,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         packet.setAttributes( this.attributes.values() );
         packet.setMetadata( this.getMetadata() );
         return packet;
-    }
+    }*/
 
     @Override
     public void setAbsorptionHearts( float amount ) {
