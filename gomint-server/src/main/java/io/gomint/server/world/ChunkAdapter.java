@@ -32,6 +32,8 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.PooledByteBufAllocator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -695,13 +697,15 @@ public class ChunkAdapter implements Chunk {
     public void tickTiles( long currentTimeMS, float dT ) {
         for ( ChunkSlice chunkSlice: this.chunkSlices ) {
             if ( chunkSlice != null ) {
-                chunkSlice.getTileEntities().values().forEach( tileEntity -> {
+                ObjectIterator<Short2ObjectMap.Entry<TileEntity>> iterator = chunkSlice.getTileEntities().short2ObjectEntrySet().fastIterator();
+                while ( iterator.hasNext() ) {
+                    TileEntity tileEntity = iterator.next().getValue();
                     tileEntity.update( currentTimeMS, dT );
 
                     if ( tileEntity.isNeedsPersistance() ) {
                         this.needsPersistance = true;
                     }
-                } );
+                }
             }
         }
     }
