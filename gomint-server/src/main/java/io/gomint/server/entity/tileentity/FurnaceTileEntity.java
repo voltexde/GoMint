@@ -25,10 +25,9 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-public class FurnaceTileEntity extends TileEntity implements InventoryHolder {
+public class FurnaceTileEntity extends ContainerTileEntity implements InventoryHolder {
 
     private FurnaceInventory inventory;
-    private List<ItemStack> items;
 
     /**
      * Construct new TileEntity from TagCompound
