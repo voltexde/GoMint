@@ -682,6 +682,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.connection.sendDifficulty();
         this.connection.sendCommandsEnabled();
 
+        // Set spawn
+        if ( this.connection.getEntity().getSpawnLocation() == null ) {
+            this.connection.getEntity().setSpawnLocation( this.connection.getEntity().getWorld().getSpawnLocation() );
+        }
+
         // Send adventure settings
         this.sendAdventureSettings();
 
