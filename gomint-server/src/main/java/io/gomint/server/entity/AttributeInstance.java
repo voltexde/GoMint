@@ -109,7 +109,7 @@ public class AttributeInstance {
     }
 
     public void initFromNBT( NBTTagCompound compound ) {
-        this.defaultValue = compound.getDouble( "Base", (double) this.defaultValue ).floatValue();
+        this.defaultValue = compound.getFloat( "Base", this.defaultValue );
 
         List<Object> nbtAmplifiers = compound.getList( "Modifiers", false );
         if ( nbtAmplifiers != null ) {
@@ -124,7 +124,7 @@ public class AttributeInstance {
                 }
 
                 int operation = nbtAmplifier.getInteger( "Operation", 0 );
-                float amount = nbtAmplifier.getDouble( "Amount", 0D ).floatValue();
+                float amount = nbtAmplifier.getFloat( "Amount", 0f );
 
                 if ( modifier != null && amount != 0 ) {
                     switch ( operation ) {
