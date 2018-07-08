@@ -134,6 +134,9 @@ public class MojangChainValidator {
                     hasExtraData = true;
                     this.clientPublicKey = (ECPublicKey) key;
                     this.loadClientInformation( extraData, false );
+                } else if ( extraData != null ) {
+                    // Injected chain element?
+                    return false;
                 }
             }
 
