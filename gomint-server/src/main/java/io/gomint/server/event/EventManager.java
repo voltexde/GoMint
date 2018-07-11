@@ -33,13 +33,19 @@ public class EventManager {
      */
     public void triggerEvent( Event event ) {
         // Assume we already acquired a readLock:
-        int eventHash = event.getClass().getName().hashCode();
-        EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
-        if ( eventHandlerList == null ) {
-            return;
-        }
+        Class<? extends Event> eventClass = event.getClass();
+        Class<?> parent = null;
+        while ( !Object.class.equals( parent = eventClass.getSuperclass() ) ) {
+            int eventHash = eventClass.getName().hashCode();
+            eventClass = (Class<? extends Event>) parent;
 
-        eventHandlerList.triggerEvent( event );
+            EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
+            if ( eventHandlerList == null ) {
+                continue;
+            }
+
+            eventHandlerList.triggerEvent( event );
+        }
     }
 
     /**
