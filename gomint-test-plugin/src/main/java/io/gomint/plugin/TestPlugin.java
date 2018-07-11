@@ -1,5 +1,6 @@
 package io.gomint.plugin;
 
+import io.gomint.plugin.listener.EntityDamageListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
 
 /**
@@ -14,7 +15,8 @@ public class TestPlugin extends Plugin {
     @Override
     public void onInstall() {
         // Register listener
-        registerListener( new PlayerJoinListener( this ) );
+        registerListener( new PlayerJoinListener() );
+        registerListener( new EntityDamageListener() );
     }
 
     @Override

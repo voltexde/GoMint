@@ -21,6 +21,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.handler.PacketAdventureSettingsHandler;
 import io.gomint.server.network.handler.PacketAnimateHandler;
+import io.gomint.server.network.handler.PacketBlockPickRequestHandler;
 import io.gomint.server.network.handler.PacketBookEditHandler;
 import io.gomint.server.network.handler.PacketCommandRequestHandler;
 import io.gomint.server.network.handler.PacketContainerCloseHandler;
@@ -31,7 +32,6 @@ import io.gomint.server.network.handler.PacketEntityFallHandler;
 import io.gomint.server.network.handler.PacketHandler;
 import io.gomint.server.network.handler.PacketHotbarHandler;
 import io.gomint.server.network.handler.PacketInteractHandler;
-import io.gomint.server.network.handler.PacketBlockPickRequestHandler;
 import io.gomint.server.network.handler.PacketInventoryTransactionHandler;
 import io.gomint.server.network.handler.PacketLoginHandler;
 import io.gomint.server.network.handler.PacketMobArmorEquipmentHandler;
@@ -975,7 +975,20 @@ public class PlayerConnection {
     }
 
     public void spawnPlayerEntities() {
+        // Now its ok to send players
+        this.entity.setSpawnPlayers( true );
 
+        // Show all players
+        LongIterator playerChunksIterator = this.playerChunks.iterator();
+        while ( playerChunksIterator.hasNext() ) {
+            long chunkHash = playerChunksIterator.nextLong();
+
+            int currentX = (int) ( chunkHash >> 32 );
+            int currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
+
+            ChunkAdapter chunk = this.entity.getWorld().getChunk( currentX, currentZ );
+            this.entity.getEntityVisibilityManager().updateAddedChunk( chunk );
+        }
     }
 
 }

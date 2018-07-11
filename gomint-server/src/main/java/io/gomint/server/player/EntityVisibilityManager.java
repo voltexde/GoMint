@@ -39,6 +39,8 @@ public class EntityVisibilityManager {
 
         // Check if we should be able to see this entity
         chunk.iterateEntities( Entity.class, entity -> {
+            LOGGER.debug( "Found entity {}", entity );
+
             if ( ( (io.gomint.server.entity.Entity) entity ).shouldBeSeen( EntityVisibilityManager.this.player ) ) {
                 EntityVisibilityManager.this.addEntity( entity );
             }

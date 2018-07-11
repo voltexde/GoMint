@@ -19,12 +19,14 @@ import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -524,13 +526,13 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
         List<Object> nbtAttributes = compound.getList( "Attributes", false );
         if ( nbtAttributes != null ) {
-            for ( Object attribute: nbtAttributes ) {
+            for ( Object attribute : nbtAttributes ) {
                 NBTTagCompound nbtAttribute = (NBTTagCompound) attribute;
                 String name = nbtAttribute.getString( "Name", null );
                 if ( name != null ) {
                     AttributeInstance instance = null;
 
-                    for ( Attribute value: Attribute.values() ) {
+                    for ( Attribute value : Attribute.values() ) {
                         if ( value.getKey().equals( name ) ) {
                             instance = value.create();
                         }
@@ -562,7 +564,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         }
 
         List<NBTTagCompound> nbtAttributes = new ArrayList<>();
-        for ( Map.Entry<String, AttributeInstance> entry: this.attributes.entrySet() ) {
+        for ( Map.Entry<String, AttributeInstance> entry : this.attributes.entrySet() ) {
             nbtAttributes.add( entry.getValue().persistToNBT() );
         }
 

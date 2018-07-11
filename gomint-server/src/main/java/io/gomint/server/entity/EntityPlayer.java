@@ -173,6 +173,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Setter
     private Location nextMovement;
 
+    @Setter @Getter
+    private boolean spawnPlayers;
+
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
      *
@@ -1598,6 +1601,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public NBTTagCompound persistToNBT() {
         NBTTagCompound compound = super.persistToNBT();
         return compound;
+    }
+
+    @Override
+    public boolean shouldBeSeen( EntityPlayer player ) {
+        return player.isSpawnPlayers() && super.shouldBeSeen( player );
     }
 
 }
