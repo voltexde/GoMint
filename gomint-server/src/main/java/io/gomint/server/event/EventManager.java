@@ -34,18 +34,14 @@ public class EventManager {
     public void triggerEvent( Event event ) {
         // Assume we already acquired a readLock:
         Class<? extends Event> eventClass = event.getClass();
-        Class<?> parent = null;
-        while ( !Object.class.equals( parent = eventClass.getSuperclass() ) ) {
-            int eventHash = eventClass.getName().hashCode();
-            eventClass = (Class<? extends Event>) parent;
+        int eventHash = eventClass.getName().hashCode();
 
-            EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
-            if ( eventHandlerList == null ) {
-                continue;
-            }
-
-            eventHandlerList.triggerEvent( event );
+        EventHandlerList eventHandlerList = this.eventHandlers.get( eventHash );
+        if ( eventHandlerList == null ) {
+            return;
         }
+
+        eventHandlerList.triggerEvent( event );
     }
 
     /**
@@ -56,7 +52,7 @@ public class EventManager {
      */
     public <T extends EventListener> void registerListener( T listener ) {
         Class<? extends EventListener> listenerClass = listener.getClass();
-        for ( Method listenerMethod : listenerClass.getDeclaredMethods() ) {
+        for ( Method listenerMethod: listenerClass.getDeclaredMethods() ) {
             if ( !listenerMethod.isAnnotationPresent( EventHandler.class ) ||
                 listenerMethod.getParameterCount() != 1 ||
                 !Event.class.isAssignableFrom( listenerMethod.getParameterTypes()[0] ) ||
@@ -77,7 +73,7 @@ public class EventManager {
      */
     public <T extends EventListener> void unregisterListener( T listener ) {
         Class<? extends EventListener> listenerClass = listener.getClass();
-        for ( Method listenerMethod : listenerClass.getDeclaredMethods() ) {
+        for ( Method listenerMethod: listenerClass.getDeclaredMethods() ) {
             if ( !listenerMethod.isAnnotationPresent( EventHandler.class ) ||
                 listenerMethod.getParameterCount() != 1 ||
                 !Event.class.isAssignableFrom( listenerMethod.getParameterTypes()[0] ) ||
