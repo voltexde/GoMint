@@ -15,7 +15,7 @@ public class TestPlugin extends Plugin {
     @Override
     public void onInstall() {
         // Register listener
-        registerListener( new PlayerJoinListener() );
+        registerListener( new PlayerJoinListener( this ) );
         registerListener( new EntityDamageListener() );
     }
 

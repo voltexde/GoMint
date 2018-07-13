@@ -15,13 +15,16 @@ import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
 import lombok.ToString;
 
+import java.util.Observable;
+import java.util.Observer;
+
 /**
  * @author BlackyPaw
  * @author geNAZt
  * @version 2.0
  */
 @ToString
-public class MetadataContainer {
+public class MetadataContainer extends Observable {
 
     /**
      * Internal byte representation for a byte meta
@@ -153,6 +156,10 @@ public class MetadataContainer {
     public void put( int index, MetadataValue value ) {
         this.entries.put( (byte) index, value );
         this.dirty = true;
+
+        // Trigger observers
+        this.setChanged();
+        this.notifyObservers( index );
     }
 
     /**

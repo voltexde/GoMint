@@ -33,6 +33,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.UUID;
 
 /**
@@ -116,6 +118,26 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
 
         this.setNameTagAlwaysVisible( true );
         this.setCanClimb( true );
+
+        // TODO: MJ BUG / 1.5.0.14 / Nametags don't change according to metadata index 4 (nametag) anymore, the client uses the name set in the spawn player packet
+        this.metadataContainer.addObserver( new Observer() {
+            @Override
+            public void update( Observable o, Object arg ) {
+                if ( arg instanceof Integer ) {
+                    // A key changed
+                    int key = (int) arg;
+                    if ( key == MetadataContainer.DATA_NAMETAG ) {
+                        // We despawn this for everyone and respawn it
+                        for ( io.gomint.entity.Entity entity : getAttachedEntities() ) {
+                            if ( entity instanceof EntityPlayer ) {
+                                ( (EntityPlayer) entity ).getEntityVisibilityManager().removeEntity( EntityHuman.this );
+                                ( (EntityPlayer) entity ).getEntityVisibilityManager().addEntity( EntityHuman.this );
+                            }
+                        }
+                    }
+                }
+            }
+        } );
     }
 
     @Override
@@ -384,7 +406,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
 
     @Override
     public void setSwimming( boolean value ) {
-        if( value != isSwimming() ) {
+        if ( value != isSwimming() ) {
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SWIMMING, value );
         }
     }
@@ -440,7 +462,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
             add( new PacketPlayerlist.Entry( EntityHuman.this ) );
         }} );
 
-        for ( io.gomint.entity.EntityPlayer player : this.world.getServer().getPlayers() ) {
+        for ( io.gomint.entity.EntityPlayer player: this.world.getServer().getPlayers() ) {
             ( (EntityPlayer) player ).getConnection().addToSendQueue( packetPlayerlist );
         }
     }
@@ -471,7 +493,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     public Packet createSpawnPacket() {
         PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
         packetSpawnPlayer.setUuid( this.getUUID() );
-        packetSpawnPlayer.setName( this.getName() );
+        packetSpawnPlayer.setName( this.getNameTag() ); // TODO: MJ BUG / 1.5.0.14 / Nametags don't change according to metadata index 4 (nametag) anymore, the client uses the name set in the spawn player packet
         packetSpawnPlayer.setEntityId( this.getEntityId() );
         packetSpawnPlayer.setRuntimeEntityId( this.getEntityId() );
 

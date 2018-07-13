@@ -7,7 +7,11 @@ import io.gomint.event.EventPriority;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.math.Vector;
 import io.gomint.player.PlayerSkin;
+import io.gomint.plugin.TestPlugin;
+import io.gomint.util.random.FastRandom;
 import lombok.RequiredArgsConstructor;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
@@ -15,6 +19,8 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class PlayerJoinListener implements EventListener {
+
+    private final TestPlugin plugin;
 
     @EventHandler( priority = EventPriority.HIGHEST )
     public void onPlayerJoin( PlayerJoinEvent event ) {
@@ -25,6 +31,13 @@ public class PlayerJoinListener implements EventListener {
         EntityHuman entityHuman = EntityHuman.create();
         entityHuman.setSkin( PlayerSkin.empty() );
         entityHuman.spawn( event.getPlayer().getSpawnLocation().add( new Vector( 2, 0, 2 ) ) );
+
+        this.plugin.getScheduler().schedule( new Runnable() {
+            @Override
+            public void run() {
+                entityHuman.setNameTag( "TEST:" + FastRandom.current().nextInt( 1000 ) );
+            }
+        }, 5, 5, TimeUnit.SECONDS );
     }
 
 }
