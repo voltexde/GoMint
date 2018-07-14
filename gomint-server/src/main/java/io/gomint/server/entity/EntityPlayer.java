@@ -729,26 +729,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
         }} );
         this.getConnection().addToSendQueue( playerlist );
-
-        // Send player list for all online players
-        List<PacketPlayerlist.Entry> listEntry = null;
-        for ( io.gomint.entity.EntityPlayer player : this.connection.getServer().getPlayers() ) {
-            if ( !this.isHidden( player ) && !this.equals( player ) ) {
-                if ( listEntry == null ) {
-                    listEntry = new ArrayList<>();
-                }
-
-                listEntry.add( new PacketPlayerlist.Entry( (EntityHuman) player ) );
-            }
-        }
-
-        if ( listEntry != null ) {
-            // Send player list
-            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
-            packetPlayerlist.setMode( (byte) 0 );
-            packetPlayerlist.setEntries( listEntry );
-            this.getConnection().send( packetPlayerlist );
-        }
     }
 
     @Override

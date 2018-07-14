@@ -30,6 +30,7 @@ public class PlayerJoinListener implements EventListener {
         // Spawn a entity human in front
         EntityHuman entityHuman = EntityHuman.create();
         entityHuman.setSkin( PlayerSkin.empty() );
+        entityHuman.setNameTag("TEST");
         entityHuman.spawn( event.getPlayer().getSpawnLocation().add( new Vector( 2, 0, 2 ) ) );
 
         this.plugin.getScheduler().schedule( new Runnable() {

@@ -19,6 +19,7 @@ import io.gomint.math.Location;
 import io.gomint.player.DeviceInfo;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.network.handler.PacketAdventureSettingsHandler;
 import io.gomint.server.network.handler.PacketAnimateHandler;
 import io.gomint.server.network.handler.PacketBlockPickRequestHandler;
@@ -54,6 +55,7 @@ import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.server.network.packet.PacketLogin;
 import io.gomint.server.network.packet.PacketMovePlayer;
 import io.gomint.server.network.packet.PacketPlayState;
+import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.server.network.packet.PacketResourcePackResponse;
 import io.gomint.server.network.packet.PacketResourcePacksInfo;
 import io.gomint.server.network.packet.PacketSetCommandsEnabled;
@@ -977,6 +979,26 @@ public class PlayerConnection {
     public void spawnPlayerEntities() {
         // Now its ok to send players
         this.entity.setSpawnPlayers( true );
+
+        // Send player list for all online players
+        List<PacketPlayerlist.Entry> listEntry = null;
+        for ( io.gomint.entity.EntityPlayer player : this.getServer().getPlayers() ) {
+            if ( !this.entity.isHidden( player ) && !this.entity.equals( player ) ) {
+                if ( listEntry == null ) {
+                    listEntry = new ArrayList<>();
+                }
+
+                listEntry.add( new PacketPlayerlist.Entry( (EntityHuman) player ) );
+            }
+        }
+
+        if ( listEntry != null ) {
+            // Send player list
+            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+            packetPlayerlist.setMode( (byte) 0 );
+            packetPlayerlist.setEntries( listEntry );
+            this.send( packetPlayerlist );
+        }
 
         // Show all players
         LongIterator playerChunksIterator = this.playerChunks.iterator();
