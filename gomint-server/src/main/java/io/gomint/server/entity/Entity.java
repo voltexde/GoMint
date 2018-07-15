@@ -897,6 +897,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.width = width;
         this.height = height;
         this.eyeHeight = (float) ( height / 2 + 0.1 );
+
+        this.metadataContainer.putFloat( MetadataContainer.DATA_BOUNDINGBOX_WIDTH, width );
+        this.metadataContainer.putFloat( MetadataContainer.DATA_BOUNDINGBOX_HEIGHT, height );
+
         this.recalcBoundingBox();
     }
 

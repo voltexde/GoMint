@@ -13,7 +13,14 @@ import io.gomint.event.entity.EntityHealEvent;
 import io.gomint.event.player.PlayerExhaustEvent;
 import io.gomint.event.player.PlayerFoodLevelChangeEvent;
 import io.gomint.math.MathUtils;
-import io.gomint.server.entity.*;
+import io.gomint.player.PlayerSkin;
+import io.gomint.server.entity.Attribute;
+import io.gomint.server.entity.AttributeInstance;
+import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.EntityCreature;
+import io.gomint.server.entity.EntityFlag;
+import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.EntityType;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.inventory.ArmorInventory;
 import io.gomint.server.inventory.PlayerInventory;
@@ -22,13 +29,11 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.server.network.packet.PacketSpawnPlayer;
-import io.gomint.player.PlayerSkin;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Difficulty;
-import io.gomint.world.Gamemode;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -93,9 +98,14 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
     }
 
+    @Override
+    protected void setSize( float width, float height ) {
+        super.setSize( width, height );
+        this.eyeHeight = 1.62f;
+    }
+
     private void initEntity() {
         this.setSize( 0.6f, 1.8f );
-        this.eyeHeight = 1.62f;
         this.offsetY = this.eyeHeight + 0.0001f;
         this.stepHeight = 0.6f;
 
@@ -407,6 +417,12 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     @Override
     public void setSwimming( boolean value ) {
         if ( value != isSwimming() ) {
+            if ( value ) {
+                this.setSize( 0.6f, 0.6f );
+            } else {
+                this.setSize( 0.6f, 1.8f );
+            }
+
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SWIMMING, value );
         }
     }
@@ -462,7 +478,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
             add( new PacketPlayerlist.Entry( EntityHuman.this ) );
         }} );
 
-        for ( io.gomint.entity.EntityPlayer player: this.world.getServer().getPlayers() ) {
+        for ( io.gomint.entity.EntityPlayer player : this.world.getServer().getPlayers() ) {
             ( (EntityPlayer) player ).getConnection().addToSendQueue( packetPlayerlist );
         }
     }

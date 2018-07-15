@@ -93,6 +93,8 @@ public class MetadataContainer extends Observable {
     public static final int DATA_PLAYER_INDEX = 26;
     public static final int DATA_SCALE = 38;
     public static final int DATA_MAX_AIRDATA_MAX_AIR = 42;
+    public static final int DATA_BOUNDINGBOX_WIDTH = 53;
+    public static final int DATA_BOUNDINGBOX_HEIGHT = 54;
     public static final int DATA_FUSE_LENGTH = 55;
 
     private Byte2ObjectMap<MetadataValue> entries;
