@@ -101,7 +101,10 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     @Override
     protected void setSize( float width, float height ) {
         super.setSize( width, height );
-        this.eyeHeight = 1.62f;
+
+        if ( height > 1.61f ) {
+            this.eyeHeight = 1.62f;
+        }
     }
 
     private void initEntity() {
@@ -402,9 +405,9 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         if ( value != isSneaking() ) {
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SNEAKING, value );
             if ( value ) {
-                this.setSize( this.getWidth(), 1.62f );
+                this.setSize( 0.6f, 1.62f );
             } else {
-                this.setSize( this.getWidth(), 1.8f );
+                this.setSize( 0.6f, 1.8f );
             }
         }
     }
