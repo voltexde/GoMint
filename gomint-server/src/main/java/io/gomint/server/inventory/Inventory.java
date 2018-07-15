@@ -1,7 +1,6 @@
 package io.gomint.server.inventory;
 
 import io.gomint.entity.Entity;
-import io.gomint.inventory.InventoryType;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
@@ -60,9 +59,17 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
             item = ItemAir.create( 0 );
         }
 
-        this.contents[index] = item;
+        // Get old item
+        io.gomint.server.inventory.item.ItemStack oldItemStack = (io.gomint.server.inventory.item.ItemStack) this.contents[index];
+        if ( oldItemStack != null ) {
+            oldItemStack.removePlace( this, index );
+        }
 
-        for ( PlayerConnection playerConnection: this.viewer ) {
+        // Set new item
+        this.contents[index] = item;
+        ( (io.gomint.server.inventory.item.ItemStack) item ).addPlace( this, index );
+
+        for ( PlayerConnection playerConnection : this.viewer ) {
             this.sendContents( index, playerConnection );
         }
     }
@@ -118,7 +125,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
             io.gomint.server.inventory.item.ItemStack serverItemStack = (io.gomint.server.inventory.item.ItemStack) itemStack;
             ItemStack clone = serverItemStack.clone();
 
-            for ( ItemStack content: this.contents ) {
+            for ( ItemStack content : this.contents ) {
                 if ( content instanceof ItemAir ) {
                     return true;
                 } else if ( content.equals( clone ) &&
@@ -206,13 +213,14 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         Arrays.fill( this.contents, ItemAir.create( 0 ) );
 
         // Inform all viewers
-        for ( PlayerConnection playerConnection: this.viewer ) {
+        for ( PlayerConnection playerConnection : this.viewer ) {
             sendContents( playerConnection );
         }
     }
 
     protected void onRemove( int slot ) {
-
+        io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) this.getItem( slot );
+        itemStack.removePlace( this, slot );
     }
 
     public void resizeAndClear( int newSize ) {
@@ -224,7 +232,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
     public Collection<Entity> getViewers() {
         Set<Entity> viewers = new HashSet<>();
 
-        for ( PlayerConnection playerConnection: this.viewer ) {
+        for ( PlayerConnection playerConnection : this.viewer ) {
             viewers.add( playerConnection.getEntity() );
         }
 
@@ -237,7 +245,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
             return false;
         }
 
-        for ( ItemStack content: this.contents ) {
+        for ( ItemStack content : this.contents ) {
             if ( itemStack.equals( content ) ) {
                 return true;
             }
@@ -245,7 +253,5 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
 
         return false;
     }
-
-    public abstract InventoryType getInventoryType();
 
 }

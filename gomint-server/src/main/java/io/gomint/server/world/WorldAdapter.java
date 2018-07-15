@@ -1098,11 +1098,7 @@ public abstract class WorldAdapter implements World {
                     scheduleNeighbourUpdates( newBlock );
 
                     if ( entity.getGamemode() != Gamemode.CREATIVE ) {
-                        if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).afterPlacement() ) {
-                            entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                        } else {
-                            entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), itemInHand );
-                        }
+                        ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).afterPlacement();
                     }
                 }
 

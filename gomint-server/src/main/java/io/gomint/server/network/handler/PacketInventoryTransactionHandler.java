@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 /**
  * @author geNAZt
@@ -146,11 +145,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 if ( connection.getEntity().attackWithItemInHand( target ) ) {
                     if ( connection.getEntity().getGamemode() != Gamemode.CREATIVE ) {
                         ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
-                        if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).damage( 1 ) ) {
-                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                        } else {
-                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
-                        }
+                        ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).calculateUsageAndUpdate( 1 );
                     }
                 } else {
                     reset( packet, connection );
@@ -324,17 +319,13 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                             if ( breakTime > 50 ) {
                                 int damage = 1;
 
-                                // Swords get 2 damage
+                                // Swords get 2 calculateUsage
                                 if ( itemInHand instanceof ItemSword ) {
                                     damage = 2;
                                 }
 
                                 io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) itemInHand;
-                                if ( itemStack.damage( damage ) ) {
-                                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                                } else {
-                                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemStack );
-                                }
+                                itemStack.calculateUsageAndUpdate( damage );
                             }
                         } else {
                             reset( packet, connection );

@@ -1,12 +1,14 @@
 package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemReduceBreaktime;
+import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@UseDataAsDamage
 public abstract class ItemReduceTierWooden extends ItemStack implements ItemReduceBreaktime {
 
     // CHECKSTYLE:OFF
@@ -27,16 +29,6 @@ public abstract class ItemReduceTierWooden extends ItemStack implements ItemRedu
     @Override
     public float getDivisor() {
         return 2;
-    }
-
-    @Override
-    public boolean useDamageAsData() {
-        return false;
-    }
-
-    @Override
-    public boolean usesDamage() {
-        return true;
     }
 
     @Override

@@ -9,6 +9,7 @@ import io.gomint.enchant.EnchantmentPower;
 import io.gomint.enchant.EnchantmentPunch;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.projectile.EntityArrow;
+import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -16,6 +17,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @author geNAZt
  * @version 1.0
  */
+@UseDataAsDamage
 @RegisterInfo( id = 261 )
 public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemBow {
 
@@ -37,16 +39,6 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
     @Override
     public short getMaxDamage() {
         return 360;
-    }
-
-    @Override
-    public boolean useDamageAsData() {
-        return false;
-    }
-
-    @Override
-    public boolean usesDamage() {
-        return true;
     }
 
     /**
@@ -76,11 +68,7 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
                 foundArrow = true;
 
                 if ( this.getEnchantment( EnchantmentInfinity.class ) == null ) {
-                    if ( itemStack.afterPlacement() ) {
-                        player.getInventory().setItem( i, ItemAir.create( 0 ) );
-                    } else {
-                        player.getInventory().setItem( i, itemStack );
-                    }
+                    itemStack.afterPlacement();
                 }
             }
         }
@@ -93,11 +81,7 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
                     foundArrow = true;
 
                     if ( this.getEnchantment( EnchantmentInfinity.class ) == null ) {
-                        if ( itemStack.afterPlacement() ) {
-                            player.getOffhandInventory().setItem( i, ItemAir.create( 0 ) );
-                        } else {
-                            player.getOffhandInventory().setItem( i, itemStack );
-                        }
+                        itemStack.afterPlacement();
                     }
                 }
             }
@@ -133,12 +117,7 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
         player.getWorld().getServer().getPluginManager().callEvent( event );
         if ( !event.isCancelled() ) {
             // Use the bow
-            if ( this.damage( 1 ) ) {
-                player.getInventory().setItem( player.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-            } else {
-                player.getInventory().setItem( player.getInventory().getItemInHandSlot(), this );
-            }
-
+            this.calculateUsageAndUpdate( 1 );
             player.getWorld().spawnEntityAt( arrow, arrow.getPositionX(), arrow.getPositionY(), arrow.getPositionZ(), arrow.getYaw(), arrow.getPitch() );
         }
     }
