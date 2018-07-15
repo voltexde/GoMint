@@ -1,7 +1,6 @@
 package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemType;
-
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
@@ -30,10 +29,11 @@ public class ItemIronShovel extends ItemReduceTierIron implements io.gomint.inve
     }
     // CHECKSTYLE:ON
 
-    public boolean interact ( EntityPlayer entity, BlockFace face, Vector clickPosition, Block clickedBlock ) {
-        if( clickedBlock instanceof GrassBlock ) {
+    @Override
+    public boolean interact( EntityPlayer entity, BlockFace face, Vector clickPosition, Block clickedBlock ) {
+        if ( clickedBlock instanceof GrassBlock ) {
             clickedBlock.setType( GrassPath.class );
-            this.damage( 1 );
+            this.calculateUsageAndUpdate( 1 );
             return true;
         }
 

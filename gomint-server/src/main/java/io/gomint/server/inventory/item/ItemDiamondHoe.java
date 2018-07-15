@@ -1,7 +1,6 @@
 package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemType;
-
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
@@ -31,10 +30,11 @@ public class ItemDiamondHoe extends ItemReduceTierDiamond implements io.gomint.i
     }
     // CHECKSTYLE:ON
 
-    public boolean interact ( EntityPlayer entity, BlockFace face, Vector clickPosition, Block clickedBlock ) {
-        if( clickedBlock instanceof Dirt || clickedBlock instanceof GrassBlock ) {
+    @Override
+    public boolean interact( EntityPlayer entity, BlockFace face, Vector clickPosition, Block clickedBlock ) {
+        if ( clickedBlock instanceof Dirt || clickedBlock instanceof GrassBlock ) {
             clickedBlock.setType( Farmland.class );
-            this.damage( 1 );
+            this.calculateUsageAndUpdate( 1 );
             return true;
         }
 

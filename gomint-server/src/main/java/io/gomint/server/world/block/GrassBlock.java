@@ -68,4 +68,5 @@ public class GrassBlock extends Block implements io.gomint.world.block.BlockGras
             ItemShears.class
         };
     }
+
 }
