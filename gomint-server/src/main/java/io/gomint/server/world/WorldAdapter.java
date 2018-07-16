@@ -1144,12 +1144,8 @@ public abstract class WorldAdapter implements World {
 
     public TemporaryStorage getTemporaryBlockStorage( BlockPosition position, int layer ) {
         // Get chunk
-        int x = position.getX(), y = position.getY(), z = position.getZ();
-        int xChunk = CoordinateUtils.fromBlockToChunk( x );
-        int zChunk = CoordinateUtils.fromBlockToChunk( z );
-
-        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
-        return chunk.getTemporaryStorage( x & 0xF, y, z & 0xF, layer );
+        ChunkAdapter chunk = this.loadChunk( position.getX() >> 4, position.getZ() >> 4, true );
+        return chunk.getTemporaryStorage( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, layer );
     }
 
     public ChunkAdapter generate( int x, int z ) {
@@ -1188,12 +1184,8 @@ public abstract class WorldAdapter implements World {
 
     public void storeTileEntity( BlockPosition position, TileEntity tileEntity ) {
         // Get chunk
-        int x = position.getX(), y = position.getY(), z = position.getZ();
-        int xChunk = CoordinateUtils.fromBlockToChunk( x );
-        int zChunk = CoordinateUtils.fromBlockToChunk( z );
-
-        ChunkAdapter chunk = this.loadChunk( xChunk, zChunk, true );
-        chunk.setTileEntity( x & 0xF, y, z & 0xF, tileEntity );
+        ChunkAdapter chunk = this.loadChunk( position.getX() >> 4, position.getZ() >> 4, true );
+        chunk.setTileEntity( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, tileEntity );
     }
 
     public boolean breakBlock( BlockPosition position, List<ItemStack> drops, boolean creative ) {
@@ -1450,5 +1442,18 @@ public abstract class WorldAdapter implements World {
     }
 
     public abstract boolean persistPlayer( io.gomint.server.entity.EntityPlayer player );
+
+
+    public Block getHighestBlockAt( int x, int z ) {
+        ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, true );
+        int y = chunk.getHeight( x & 0xF, z & 0xF );
+        return chunk.getBlockAt( x & 0xF, y, z & 0xF );
+    }
+
+    public Block getHighestBlockAt( int x, int z, WorldLayer layer ) {
+        ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, true );
+        int y = chunk.getHeight( x & 0xF, z & 0xF );
+        return chunk.getBlockAt( x & 0xF, y, z & 0xF, layer );
+    }
 
 }

@@ -443,8 +443,8 @@ public class ChunkAdapter implements Chunk {
      * @param z The z-coordinate relative to the chunk
      * @return The maximum block height
      */
-    public byte getHeight( int x, int z ) {
-        return this.height[( z << 4 ) + x];
+    public int getHeight( int x, int z ) {
+        return this.height[( z << 4 ) + x] & 0xF;
     }
 
     @Override
