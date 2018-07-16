@@ -425,7 +425,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Check for attached entities
         if ( !this.getAttachedEntities().isEmpty() ) {
             Chunk chunk = this.getChunk();
-            for ( Entity entity : new ObjectOpenHashSet<>( this.getAttachedEntities() ) ) {
+            for ( Entity entity : new HashSet<>( this.getAttachedEntities() ) ) {
                 if ( entity instanceof EntityPlayer ) {
                     EntityPlayer player = (EntityPlayer) entity;
                     Chunk playerChunk = player.getChunk();
