@@ -1,5 +1,6 @@
 package io.gomint.plugin.listener;
 
+import io.gomint.entity.monster.EntityElderGuardian;
 import io.gomint.entity.passive.EntityHuman;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
@@ -39,6 +40,11 @@ public class PlayerJoinListener implements EventListener {
                 entityHuman.setNameTag( "TEST:" + FastRandom.current().nextInt( 1000 ) );
             }
         }, 5, 5, TimeUnit.SECONDS );
+
+        // Spawn elder guardian
+        EntityElderGuardian guardian = EntityElderGuardian.create();
+        guardian.setTarget( event.getPlayer() );
+        guardian.spawn( event.getPlayer().getSpawnLocation().add( new Vector( 80, 20, 80 ) ) );
     }
 
 }
