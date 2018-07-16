@@ -7,19 +7,18 @@
 
 package io.gomint.server.entity.generator;
 
-import io.gomint.entity.Entity;
+import io.gomint.server.entity.Entity;
+import io.gomint.server.entity.passive.EntityItem;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public interface EntityGenerator<E extends io.gomint.server.entity.Entity> {
+public class EntityItemGenerator implements EntityGenerator<Entity> {
 
-    /**
-     * Create a new entity
-     *
-     * @param <T> generic type of entity
-     */
-    <T extends Entity> T generate();
+    @Override
+    public EntityItem generate() {
+        return new EntityItem();
+    }
 
 }
