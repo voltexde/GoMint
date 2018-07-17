@@ -125,7 +125,7 @@ public abstract class WorldAdapter implements World {
 
     // Block ticking
     int randomUpdateNumber = FastRandom.current().nextInt();
-    TickList tickQueue = new TickList();
+    private TickList tickQueue = new TickList();
 
     // I/O
     private AtomicBoolean asyncWorkerRunning;
@@ -888,6 +888,12 @@ public abstract class WorldAdapter implements World {
         }
     }
 
+    /**
+     * Append all packages needed to update a specific block
+     *
+     * @param connection which should get the packets
+     * @param pos of the block which should be updated
+     */
     public void appendUpdatePackets( PlayerConnection connection, BlockPosition pos ) {
         io.gomint.server.world.block.Block block = getBlockAt( pos );
 
@@ -1433,22 +1439,28 @@ public abstract class WorldAdapter implements World {
         return this.chunkCache;
     }
 
+    /**
+     * Gets called when a player gets switched to this world
+     *
+     * @param player which has been switched to this world
+     */
     public void playerSwitched( io.gomint.server.entity.EntityPlayer player ) {
         // Set difficulty
-        PacketSetDifficulty difficulty = new PacketSetDifficulty();
-        difficulty.setDifficulty( this.difficulty.getDifficultyDegree() );
-        player.getConnection().addToSendQueue( difficulty );
+        PacketSetDifficulty packetSetDifficulty = new PacketSetDifficulty();
+        packetSetDifficulty.setDifficulty( this.difficulty.getDifficultyDegree() );
+        player.getConnection().addToSendQueue( packetSetDifficulty );
     }
 
     public abstract boolean persistPlayer( io.gomint.server.entity.EntityPlayer player );
 
-
+    @Override
     public Block getHighestBlockAt( int x, int z ) {
         ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, true );
         int y = chunk.getHeight( x & 0xF, z & 0xF );
         return chunk.getBlockAt( x & 0xF, y, z & 0xF );
     }
 
+    @Override
     public Block getHighestBlockAt( int x, int z, WorldLayer layer ) {
         ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, true );
         int y = chunk.getHeight( x & 0xF, z & 0xF );

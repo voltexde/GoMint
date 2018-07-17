@@ -11,6 +11,7 @@ import io.gomint.GoMint;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
 import io.gomint.server.world.gomint.GomintWorldAdapter;
+import io.gomint.server.world.inmemory.InMemoryWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
 import io.gomint.server.world.leveldb.ZippedLevelDBWorldAdapter;
 import io.gomint.world.World;
@@ -228,6 +229,16 @@ public class WorldManager {
             case GOMINT:
                 try {
                     world = GomintWorldAdapter.create( this.server, name, options.generator() );
+                } catch ( WorldCreateException e ) {
+                    LOGGER.error( "Could not create new world", e );
+                    return null;
+                }
+
+                break;
+
+            case IN_MEMORY:
+                try {
+                    world = InMemoryWorldAdapter.create( this.server, name, options.generator() );
                 } catch ( WorldCreateException e ) {
                     LOGGER.error( "Could not create new world", e );
                     return null;

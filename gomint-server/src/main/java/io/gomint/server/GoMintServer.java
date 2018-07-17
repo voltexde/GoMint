@@ -7,11 +7,8 @@
 
 package io.gomint.server;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.SettableFuture;
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
 import io.gomint.config.InvalidConfigurationException;
@@ -48,6 +45,7 @@ import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.WorldManager;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.world.World;
+import io.gomint.world.WorldType;
 import io.gomint.world.block.Block;
 import io.gomint.world.generator.CreateOptions;
 import io.gomint.world.generator.integrated.NormalGenerator;
@@ -74,7 +72,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
@@ -346,7 +343,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
         } catch ( WorldLoadException e ) {
             // Try to generate world
-            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ) ) == null ) {
+            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ).worldType( WorldType.IN_MEMORY ) ) == null ) {
                 LOGGER.error( "Failed to load or generate default world", e );
                 this.internalShutdown();
                 return;
@@ -384,7 +381,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             return;
         }
 
-        LOGGER.info( "Done in " + ( System.currentTimeMillis() - start ) + " ms" );
+        LOGGER.info( "Done in {} ms", ( System.currentTimeMillis() - start ) );
 
         // ------------------------------------ //
         // Main Loop
