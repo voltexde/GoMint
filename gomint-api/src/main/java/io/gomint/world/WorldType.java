@@ -21,6 +21,7 @@ public enum WorldType {
     /**
      *
      */
+    @Deprecated
     GOMINT,
 
     /**
