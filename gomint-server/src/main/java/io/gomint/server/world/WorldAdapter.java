@@ -806,9 +806,6 @@ public abstract class WorldAdapter implements World {
         while ( this.asyncWorkerRunning.get() ) {
             try {
                 AsyncChunkTask task = this.asyncChunkTasks.take();
-                if ( task == null ) {
-                    continue;
-                }
 
                 ChunkAdapter chunk;
                 switch ( task.getType() ) {
@@ -1153,6 +1150,7 @@ public abstract class WorldAdapter implements World {
         if ( this.chunkGenerator != null ) {
             ChunkAdapter chunk = (ChunkAdapter) this.chunkGenerator.generate( x, z );
             if ( chunk != null ) {
+                chunk.calculateHeightmap( 240 );
                 this.chunkCache.putChunk( chunk );
                 this.addPopulateTask( chunk );
                 return chunk;
