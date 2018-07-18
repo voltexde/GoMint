@@ -39,7 +39,9 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
+import io.gomint.server.util.PerformanceHacks;
 import io.gomint.server.util.Watchdog;
+import io.gomint.server.util.performance.UnsafeAllocator;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.WorldManager;
@@ -49,7 +51,6 @@ import io.gomint.world.WorldType;
 import io.gomint.world.block.Block;
 import io.gomint.world.generator.CreateOptions;
 import io.gomint.world.generator.integrated.NormalGenerator;
-import io.netty.util.ResourceLeakDetector;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import org.jline.reader.LineReader;
@@ -125,6 +126,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Getter
     private SyncTaskManager syncTaskManager;
     private AtomicBoolean running = new AtomicBoolean( true );
+    private AtomicBoolean init = new AtomicBoolean( true );
     @Getter
     private ListeningExecutorService executorService;
     private Thread readerThread;
@@ -202,6 +204,20 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         this.executorService = MoreExecutors.listeningDecorator( new ThreadPoolExecutor( 3, 512, 60L,
             TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory ) );
+
+        if ( PerformanceHacks.isUnsafeEnabled() ) {
+            this.executorService.submit( () -> {
+                while ( init.get() ) {
+                    UnsafeAllocator.printUsage();
+
+                    try {
+                        Thread.sleep( 10000 );
+                    } catch ( InterruptedException e ) {
+                        e.printStackTrace();
+                    }
+                }
+            } );
+        }
 
         this.watchdog = new Watchdog( this );
 
@@ -381,7 +397,12 @@ public class GoMintServer implements GoMint, InventoryHolder {
             return;
         }
 
+        init.set( false );
         LOGGER.info( "Done in {} ms", ( System.currentTimeMillis() - start ) );
+
+        if ( PerformanceHacks.isUnsafeEnabled() ) {
+            UnsafeAllocator.printUsage();
+        }
 
         // ------------------------------------ //
         // Main Loop
@@ -391,8 +412,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
         float lastTickTime = Float.MIN_NORMAL;
         ReentrantLock tickLock = new ReentrantLock( true );
         Condition tickCondition = tickLock.newCondition();
-
-        ResourceLeakDetector.setLevel( ResourceLeakDetector.Level.PARANOID );
 
         while ( this.running.get() ) {
             tickLock.lock();

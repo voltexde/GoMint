@@ -8,7 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.server.util.PerformanceHacks;
-import sun.misc.Cleaner;
+import io.gomint.server.util.performance.UnsafeAllocator;
 import sun.misc.Unsafe;
 
 /**
@@ -22,13 +22,6 @@ public class UnsafeChunkSlice extends ChunkSlice {
 
     public UnsafeChunkSlice( ChunkAdapter chunkAdapter, int sectionY ) {
         super( chunkAdapter, sectionY );
-        Cleaner.create( this, () -> {
-            for ( long blockStorage : blockStorages ) {
-                if ( blockStorage != 0 ) {
-                    UNSAFE.freeMemory( blockStorage );
-                }
-            }
-        } );
     }
 
     /**
@@ -54,7 +47,7 @@ public class UnsafeChunkSlice extends ChunkSlice {
     @Override
     public void setBlockInternal( short index, int layer, int blockId ) {
         if ( blockId != 0 && this.blockStorages[layer] == 0 ) {
-            this.blockStorages[layer] = UNSAFE.allocateMemory( 8192L ); // we store 4096 shorts
+            this.blockStorages[layer] = UnsafeAllocator.allocate( 8192 ); // we store 4096 shorts
             UNSAFE.setMemory( this.blockStorages[layer], 8192L, (byte) 0 );
             this.isAllAir = false;
         }
@@ -67,6 +60,15 @@ public class UnsafeChunkSlice extends ChunkSlice {
     @Override
     protected int getAmountOfLayers() {
         return this.blockStorages[1] != 0 ? 2 : 1;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        for ( long blockStorage : blockStorages ) {
+            if ( blockStorage != 0 ) {
+                UnsafeAllocator.freeMemory( blockStorage );
+            }
+        }
     }
 
 }

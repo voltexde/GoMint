@@ -850,20 +850,23 @@ public abstract class WorldAdapter implements World {
      * @param pos The position of the block to update
      */
     public void updateBlock( BlockPosition pos ) {
+        // Players can't see unpopulated chunks
+        ChunkAdapter adapter = this.getChunk( pos.getX() >> 4, pos.getZ() >> 4 );
+        if ( !adapter.isPopulated() ) {
+            return;
+        }
+
         if ( !GoMint.instance().isMainThread() ) {
-            this.server.addToMainThread( new Runnable() {
-                @Override
-                public void run() {
-                    flagChunkDirty( pos );
+            this.server.addToMainThread( () -> {
+                flagChunkDirty( pos );
 
-                    sendToVisible( pos, null, entity -> {
-                        if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
-                            ( (io.gomint.server.entity.EntityPlayer) entity ).getBlockUpdates().add( pos );
-                        }
+                sendToVisible( pos, null, entity -> {
+                    if ( entity instanceof io.gomint.server.entity.EntityPlayer ) {
+                        ( (io.gomint.server.entity.EntityPlayer) entity ).getBlockUpdates().add( pos );
+                    }
 
-                        return false;
-                    } );
-                }
+                    return false;
+                } );
             } );
         } else {
             flagChunkDirty( pos );

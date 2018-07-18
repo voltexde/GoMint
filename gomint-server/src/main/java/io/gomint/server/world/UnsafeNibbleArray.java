@@ -8,7 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.server.util.PerformanceHacks;
-import sun.misc.Cleaner;
+import io.gomint.server.util.performance.UnsafeAllocator;
 import sun.misc.Unsafe;
 
 /**
@@ -29,8 +29,7 @@ public class UnsafeNibbleArray implements NibbleArray {
      */
     public UnsafeNibbleArray( short length ) {
         this.length = length;
-        this.memoryAddress = UNSAFE.allocateMemory( ( length + 1 ) >> 1 );
-        Cleaner.create( this, () -> UNSAFE.freeMemory( memoryAddress ) );
+        this.memoryAddress = UnsafeAllocator.allocate( ( length + 1 ) >> 1 );
     }
 
     @Override
@@ -64,6 +63,11 @@ public class UnsafeNibbleArray implements NibbleArray {
     @Override
     public int length() {
         return this.length;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        UnsafeAllocator.freeMemory( this.memoryAddress );
     }
 
 }
