@@ -1052,7 +1052,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void detach( EntityPlayer player ) {
-        this.armorInventory.removeViewer( player );
+        if ( this.armorInventory != null ) {
+            this.armorInventory.removeViewer( player );
+        }
+
         super.detach( player );
     }
 
