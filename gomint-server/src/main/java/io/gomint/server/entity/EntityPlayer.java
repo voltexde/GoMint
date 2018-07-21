@@ -788,7 +788,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                     }
 
                     // Check if player did hide this one
-                    if ( entityPlayer.hiddenPlayers != null && entityPlayer.hiddenPlayers.contains( getEntityId() ) ) {
+                    if ( entityPlayer.hiddenPlayers != null ) {
                         entityPlayer.hiddenPlayers.remove( getEntityId() );
                     }
 

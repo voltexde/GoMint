@@ -399,12 +399,12 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     void updateInventories( boolean replaceWithAir ) {
         if ( replaceWithAir ) {
             // Notify all inventories this item is in that it should be replaced with air
-            for ( ItemStackPlace place : this.itemStackPlaces ) {
+            for ( ItemStackPlace place : new HashSet<>( this.itemStackPlaces ) ) {
                 place.getInventory().setItem( place.getSlot(), ItemAir.create( 0 ) );
             }
         } else {
             // Notify all inventories that this item has changed
-            for ( ItemStackPlace place : this.itemStackPlaces ) {
+            for ( ItemStackPlace place : new HashSet<>( this.itemStackPlaces ) ) {
                 place.getInventory().setItem( place.getSlot(), this );
             }
         }
