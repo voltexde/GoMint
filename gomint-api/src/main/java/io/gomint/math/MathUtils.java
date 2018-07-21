@@ -91,4 +91,12 @@ public final class MathUtils {
         return number * y;
     }
 
+    public static float ensureFloat( Object o ) {
+        if ( o instanceof Double ) {
+            return ( (Double) o ).floatValue();
+        }
+
+        return (float) o;
+    }
+
 }

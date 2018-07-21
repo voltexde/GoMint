@@ -1274,9 +1274,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
         List<Object> pos = compound.getList( "Pos", false );
         if ( pos != null ) {
             // Data in the array are three floats (x, y, z)
-            float x = (float) pos.get( 0 );
-            float y = (float) pos.get( 1 );
-            float z = (float) pos.get( 2 );
+            float x = MathUtils.ensureFloat( pos.get( 0 ) );
+            float y = MathUtils.ensureFloat( pos.get( 1 ) );
+            float z = MathUtils.ensureFloat( pos.get( 2 ) );
 
             this.setPosition( x, y, z );
         }
@@ -1285,9 +1285,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
         List<Object> motion = compound.getList( "Motion", false );
         if ( motion != null ) {
             // Data in the array are three floats (x, y, z)
-            float x = (float) motion.get( 0 );
-            float y = (float) motion.get( 1 );
-            float z = (float) motion.get( 2 );
+            float x = MathUtils.ensureFloat( motion.get( 0 ) );
+            float y = MathUtils.ensureFloat( motion.get( 1 ) );
+            float z = MathUtils.ensureFloat( motion.get( 2 ) );
 
             this.transform.setMotion( x, y, z );
         }
