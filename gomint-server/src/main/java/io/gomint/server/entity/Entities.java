@@ -96,6 +96,8 @@ public class Entities {
         this.generators.register( io.gomint.server.entity.passive.EntityWolf.class, new EntityWolfGenerator() );
         this.generators.register( io.gomint.server.entity.passive.EntityXPOrb.class, new EntityXPOrbGenerator() );
         this.generators.register( io.gomint.server.entity.passive.EntityZombieHorse.class, new EntityZombieHorseGenerator() );
+        this.generators.register( io.gomint.server.entity.projectile.EntityArrow.class, new EntityArrowGenerator() );
+        this.generators.register( io.gomint.server.entity.projectile.EntityEnderpearl.class, new EntityEnderpearlGenerator() );
         this.generators.register( io.gomint.server.entity.projectile.EntityExpBottle.class, new EntityExpBottleGenerator() );
         this.generators.register( io.gomint.server.entity.monster.EntityDrowned.class, new EntityDrownedGenerator() );
         this.generators.register( io.gomint.server.entity.monster.EntityVindicator.class, new EntityVindicatorGenerator() );
