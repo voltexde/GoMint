@@ -49,6 +49,7 @@ public class Entities {
         //this.generators.register( "io.gomint.server.entity.projectile" );
 
         this.generators.register( io.gomint.server.entity.active.EntityPrimedTNT.class, new EntityPrimedTNTGenerator() );
+
         this.generators.register( io.gomint.server.entity.monster.EntityBlaze.class, new EntityBlazeGenerator() );
         this.generators.register( io.gomint.server.entity.monster.EntityCaveSpider.class, new EntityCaveSpiderGenerator() );
         this.generators.register( io.gomint.server.entity.monster.EntityCreeper.class, new EntityCreeperGenerator() );
@@ -74,6 +75,7 @@ public class Entities {
         this.generators.register( io.gomint.server.entity.monster.EntityZombie.class, new EntityZombieGenerator() );
         this.generators.register( io.gomint.server.entity.monster.EntityZombiePigman.class, new EntityZombiePigmanGenerator() );
         this.generators.register( io.gomint.server.entity.monster.EntityZombieVillager.class, new EntityZombieVillagerGenerator() );
+
         this.generators.register( io.gomint.server.entity.passive.EntityArmorStand.class, new EntityArmorStandGenerator() );
         this.generators.register( io.gomint.server.entity.passive.EntityBat.class, new EntityBatGenerator() );
         this.generators.register( io.gomint.server.entity.passive.EntityChicken.class, new EntityChickenGenerator() );
@@ -96,9 +98,12 @@ public class Entities {
         this.generators.register( io.gomint.server.entity.passive.EntityWolf.class, new EntityWolfGenerator() );
         this.generators.register( io.gomint.server.entity.passive.EntityXPOrb.class, new EntityXPOrbGenerator() );
         this.generators.register( io.gomint.server.entity.passive.EntityZombieHorse.class, new EntityZombieHorseGenerator() );
+
         this.generators.register( io.gomint.server.entity.projectile.EntityArrow.class, new EntityArrowGenerator() );
         this.generators.register( io.gomint.server.entity.projectile.EntityEnderpearl.class, new EntityEnderpearlGenerator() );
         this.generators.register( io.gomint.server.entity.projectile.EntityExpBottle.class, new EntityExpBottleGenerator() );
+        this.generators.register( io.gomint.server.entity.projectile.EntityFishingHook.class, new EntityFishingHookGenerator() );
+
         this.generators.register( io.gomint.server.entity.monster.EntityDrowned.class, new EntityDrownedGenerator() );
         this.generators.register( io.gomint.server.entity.monster.EntityVindicator.class, new EntityVindicatorGenerator() );
         this.generators.register( io.gomint.server.entity.monster.EntityEvoker.class, new EntityEvokerGenerator() );
