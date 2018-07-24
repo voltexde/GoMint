@@ -1,13 +1,12 @@
 package io.gomint.plugin.listener;
 
-import io.gomint.entity.passive.EntityHuman;
+import io.gomint.entity.passive.EntityCow;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.EventPriority;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.ItemArrow;
 import io.gomint.math.Vector;
-import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.TestPlugin;
 import io.gomint.util.random.FastRandom;
 import lombok.RequiredArgsConstructor;
@@ -31,17 +30,11 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getInventory().setItem( 0, ItemArrow.create( 12 ) );
 
         // Spawn a entity human in front
-        EntityHuman entityHuman = EntityHuman.create();
-        entityHuman.setSkin( PlayerSkin.fromURL( "https://i.imgur.com/stbZkGX.png" ) );
+        EntityCow entityHuman = EntityCow.create();
         entityHuman.setNameTag( "TEST" );
         entityHuman.spawn( event.getPlayer().getSpawnLocation().add( new Vector( 2, 0, 2 ) ) );
 
-        this.plugin.getScheduler().schedule( new Runnable() {
-            @Override
-            public void run() {
-                entityHuman.setNameTag( "TEST:" + FastRandom.current().nextInt( 1000 ) );
-            }
-        }, 5, 5, TimeUnit.SECONDS );
+        this.plugin.getScheduler().schedule( () -> entityHuman.setNameTag( "TEST:" + FastRandom.current().nextInt( 1000 ) ), 5, 5, TimeUnit.SECONDS );
     }
 
 }
