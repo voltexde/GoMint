@@ -123,8 +123,9 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
      *
      * @param data The data value of the item(s) on this stack
      */
-    public void setData( short data ) {
+    public io.gomint.inventory.item.ItemStack setData( short data ) {
         this.data = data;
+        return this;
     }
 
     /**
@@ -150,8 +151,10 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
      *
      * @param amount The number of items on this stack
      */
-    public void setAmount( int amount ) {
+    public io.gomint.inventory.item.ItemStack setAmount( int amount ) {
+        LOGGER.info( "Setting amount to {}", amount );
         this.amount = amount > getMaximumAmount() ? getMaximumAmount() : (byte) amount;
+        return this.updateInventories( this.amount <= 0 );
     }
 
     /**
@@ -173,7 +176,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     @Override
-    public void setCustomName( String name ) {
+    public io.gomint.inventory.item.ItemStack setCustomName( String name ) {
         // Check if we should clear the name
         if ( name == null ) {
             if ( this.nbt != null ) {
@@ -193,7 +196,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
                 }
             }
 
-            return;
+            return this;
         }
 
         // Do we have a compound tag?
@@ -204,6 +207,8 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         // Get the display tag
         NBTTagCompound display = this.nbt.getCompound( "display", true );
         display.addValue( "Name", name );
+
+        return this;
     }
 
     @Override
@@ -223,7 +228,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     @Override
-    public void setLore( String... lore ) {
+    public io.gomint.inventory.item.ItemStack setLore( String... lore ) {
         // Check if we should clear the name
         if ( lore == null ) {
             if ( this.nbt != null ) {
@@ -243,7 +248,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
                 }
             }
 
-            return;
+            return this;
         }
 
         // Do we have a compound tag?
@@ -255,6 +260,8 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         NBTTagCompound display = this.nbt.getCompound( "display", true );
         List<String> loreList = Arrays.asList( lore );
         display.addValue( "Lore", loreList );
+
+        return this;
     }
 
     @Override
@@ -284,11 +291,11 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     @Override
-    public void addEnchantment( Class<? extends Enchantment> clazz, short level ) {
+    public io.gomint.inventory.item.ItemStack addEnchantment( Class<? extends Enchantment> clazz, short level ) {
         short id = ( (GoMintServer) GoMint.instance() ).getEnchantments().getId( clazz );
         if ( id == -1 ) {
             LOGGER.warn( "Unknown enchantment:{}", clazz.getName() );
-            return;
+            return this;
         }
 
         if ( this.nbt == null ) {
@@ -303,6 +310,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         enchantmentList.add( enchCompound );
 
         this.dirtyEnchantments = true;
+        return this;
     }
 
     @Override
@@ -335,19 +343,19 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     @Override
-    public void removeEnchantment( Class<? extends Enchantment> clazz ) {
+    public io.gomint.inventory.item.ItemStack removeEnchantment( Class<? extends Enchantment> clazz ) {
         short id = ( (GoMintServer) GoMint.instance() ).getEnchantments().getId( clazz );
         if ( id == -1 ) {
-            return;
+            return this;
         }
 
         if ( this.nbt == null ) {
-            return;
+            return this;
         }
 
         List<Object> enchantmentList = this.nbt.getList( "ench", false );
         if ( enchantmentList == null ) {
-            return;
+            return this;
         }
 
         for ( Object nbtObject : new ArrayList<>( enchantmentList ) ) {
@@ -362,16 +370,21 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         if ( enchantmentList.isEmpty() ) {
             this.nbt.remove( "ench" );
         }
+
+        return this;
     }
 
     @Override
     public ItemStack clone() {
         try {
             ItemStack clone = (ItemStack) super.clone();
+            clone.dirtyEnchantments = true;
+            clone.enchantments = this.enchantments;
             clone.material = this.material;
             clone.data = this.data;
             clone.amount = this.amount;
             clone.nbt = ( this.nbt == null ? null : this.nbt.deepClone( "" ) );
+            clone.itemStackPlaces = new HashSet<>();
             return clone;
         } catch ( CloneNotSupportedException e ) {
             throw new AssertionError( "Clone of ItemStack failed", e );
@@ -396,18 +409,30 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         this.updateInventories( --this.amount <= 0 );
     }
 
-    void updateInventories( boolean replaceWithAir ) {
+    /**
+     * Check if we need to update this item in its inventories
+     *
+     * @param replaceWithAir if the item should be deleted (replaced with air)
+     * @return the item instance used or the air instance which has been set
+     */
+    io.gomint.inventory.item.ItemStack updateInventories( boolean replaceWithAir ) {
         if ( replaceWithAir ) {
+            io.gomint.inventory.item.ItemStack itemStack = ItemAir.create( 0 );
+
             // Notify all inventories this item is in that it should be replaced with air
             for ( ItemStackPlace place : new HashSet<>( this.itemStackPlaces ) ) {
-                place.getInventory().setItem( place.getSlot(), ItemAir.create( 0 ) );
+                place.getInventory().setItem( place.getSlot(), itemStack );
             }
+
+            return itemStack;
         } else {
             // Notify all inventories that this item has changed
             for ( ItemStackPlace place : new HashSet<>( this.itemStackPlaces ) ) {
                 place.getInventory().setItem( place.getSlot(), this );
             }
         }
+
+        return this;
     }
 
     public void removeFromHand( EntityPlayer player ) {
