@@ -40,10 +40,10 @@ public class BootStrap {
         // Configurator.setLevel( "", Level.TRACE );
         Configurator.setLevel( "io.gomint.emulator.PostProcessWorker", Level.INFO );
 
-        for ( int i = 0; i < 200; i++ ) {
+        for ( int i = 0; i < 1; i++ ) {
             service.execute( () -> {
                 Client client = new Client( service, postProcessExecutorService.getExecutor(), null );
-                client.ping( "yodamine.com", 19132 );
+                client.ping( "192.168.178.121", 19132 );
 
                 try {
                     Thread.sleep( 150 );
@@ -51,7 +51,7 @@ public class BootStrap {
                     e.printStackTrace();
                 }
 
-                client.connect( "yodamine.com", 19132 );
+                client.connect( "192.168.178.121", 19132 );
             } );
 
             Thread.sleep( 500 );

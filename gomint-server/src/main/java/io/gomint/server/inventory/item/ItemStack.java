@@ -152,7 +152,6 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
      * @param amount The number of items on this stack
      */
     public io.gomint.inventory.item.ItemStack setAmount( int amount ) {
-        LOGGER.info( "Setting amount to {}", amount );
         this.amount = amount > getMaximumAmount() ? getMaximumAmount() : (byte) amount;
         return this.updateInventories( this.amount <= 0 );
     }

@@ -1,8 +1,11 @@
 package io.gomint.plugin;
 
+import io.gomint.i18n.LocaleManager;
 import io.gomint.plugin.listener.EntityDamageListener;
 import io.gomint.plugin.listener.PlayerInteractListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
+
+import java.util.Locale;
 
 /**
  * @author geNAZt
@@ -19,6 +22,10 @@ public class TestPlugin extends Plugin {
         registerListener( new PlayerJoinListener( this ) );
         registerListener( new EntityDamageListener() );
         registerListener( new PlayerInteractListener() );
+
+        LocaleManager localeManager = new LocaleManager( this );
+        this.getLogger().info( localeManager.translate( Locale.GERMANY, "test" ) );
+        this.getLogger().info( localeManager.translate( Locale.GERMANY, "test1.test" ) );
     }
 
     @Override

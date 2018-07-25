@@ -60,6 +60,7 @@ public class CommandPreprocessor {
     private IndexedHashMap<String, List<Integer>> enums = new IndexedHashMap<>();
     // private Map<CommandHolder, Integer> aliasIndex = new HashMap<>();
     private Map<String, Integer> enumIndexes = new HashMap<>();
+    private List<String> postfixes = new ArrayList<>();
 
     // Cached commands packet
     @Getter
@@ -99,6 +100,10 @@ public class CommandPreprocessor {
 
                                 this.enumIndexes.put( command.getName() + "#" + entry.getKey(), this.enums.getIndex( command.getName() + "#" + entry.getKey() ) );
                             }
+
+                            if ( entry.getValue().getPostfix() != null && !this.postfixes.contains( entry.getValue().getPostfix() ) ) {
+                                this.postfixes.add( entry.getValue().getPostfix() );
+                            }
                         }
                     }
                 }
@@ -106,6 +111,7 @@ public class CommandPreprocessor {
         }
 
         this.commandsPacket.setEnums( this.enums );
+        this.commandsPacket.setPostFixes( this.postfixes );
 
         // Now we should have sorted any enums. Move on to write the command data
         List<CommandData> commandDataList = new ArrayList<>();
@@ -135,8 +141,14 @@ public class CommandPreprocessor {
 
                             switch ( entry.getValue().getType() ) {
                                 case INT:
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= ARG_TYPE_INT;
+                                    /*if ( entry.getValue().getPostfix() != null ) {
+                                        paramType |= ARG_FLAG_POSTFIX;
+                                        paramType |= this.postfixes.indexOf( entry.getValue().getPostfix() );
+                                    } else {*/
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= ARG_TYPE_INT;
+                                    // }
+
                                     break;
                                 case BOOL:
                                 case STRING_ENUM:
@@ -187,7 +199,6 @@ public class CommandPreprocessor {
         }
 
         this.commandsPacket.setCommandData( commandDataList );
-        this.commandsPacket.setPostFixes( new ArrayList<>() );
     }
 
     private void addEnum( String name, String value ) {
