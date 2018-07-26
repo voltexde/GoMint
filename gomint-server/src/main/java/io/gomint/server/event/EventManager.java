@@ -105,7 +105,7 @@ public class EventManager {
             return;
         }
 
-        eventHandlerList.removeHandler( listener.getClass().getName() + "#" + listenerMethod.getName() + "_" + eventHash );
+        eventHandlerList.removeHandler( listener.getClass().getName() + "#" + listenerMethod.getName() + "_" + eventHash + "_" + listener.hashCode() );
     }
 
 }
