@@ -33,7 +33,8 @@ import java.util.concurrent.TimeUnit;
 public class EntityItem extends Entity implements EntityItemDrop {
 
     private ItemStack itemStack;
-    @Getter private long pickupTime;
+    @Getter
+    private long pickupTime;
     private boolean isReset;
 
     private float lastUpdateDt;
