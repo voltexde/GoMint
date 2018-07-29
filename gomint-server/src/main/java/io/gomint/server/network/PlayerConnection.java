@@ -21,11 +21,9 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.jni.NativeCode;
-import io.gomint.server.jni.exception.NativeException;
 import io.gomint.server.jni.zlib.JavaZLib;
 import io.gomint.server.jni.zlib.NativeZLib;
 import io.gomint.server.jni.zlib.ZLib;
-import io.gomint.server.maintenance.NetworkPerformance;
 import io.gomint.server.network.handler.PacketAdventureSettingsHandler;
 import io.gomint.server.network.handler.PacketAnimateHandler;
 import io.gomint.server.network.handler.PacketBlockPickRequestHandler;
@@ -601,22 +599,14 @@ public class PlayerConnection {
         byte[] input = new byte[buffer.getRemaining()];
         System.arraycopy( buffer.getBuffer(), buffer.getPosition(), input, 0, input.length );
 
-        long startDecrypt = System.nanoTime();
-        long endDecrypt = 0;
-
         if ( this.encryptionHandler != null ) {
             input = this.encryptionHandler.decryptInputFromClient( input );
-
-            endDecrypt = System.nanoTime();
             if ( input == null ) {
                 // Decryption error
                 disconnect( "Checksum of encrypted packet was wrong" );
                 return null;
             }
         }
-
-        long startDecompress = System.nanoTime();
-        long endDecompress;
 
         ByteBuf inBuf = PooledByteBufAllocator.DEFAULT.directBuffer( input.length );
         inBuf.writeBytes( input );
@@ -636,11 +626,6 @@ public class PlayerConnection {
         byte[] data = new byte[outBuf.readableBytes()];
         outBuf.readBytes( data );
         outBuf.release();
-
-        endDecompress = System.nanoTime();
-
-        NetworkPerformance.addReceiveTimings( endDecrypt == 0 ? 0 : endDecrypt - startDecrypt, endDecompress - startDecompress );
-
         return data;
     }
 

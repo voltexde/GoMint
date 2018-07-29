@@ -15,19 +15,14 @@ import org.apache.logging.log4j.core.config.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 /**
  * This Bootstrap downloads all Libraries given inside of the "libs.dep" File in the Root
@@ -95,78 +90,6 @@ public class Bootstrap {
         } catch ( Throwable t ) {
             ReportUploader.create().exception( t ).property( "crash", "true" ).upload();
             LOGGER.error( "GoMint crashed: ", t );
-        }
-    }
-
-    /**
-     * Download needed Libs from the central Maven repository or any other Repo (can be any url in the libs.dep file)
-     *
-     * @param libsFolder in which the downloads should be stored
-     */
-    private static void checkLibs( File libsFolder ) {
-        // Load the dependency list
-        try ( BufferedReader reader = new BufferedReader( new InputStreamReader( Bootstrap.class.getResourceAsStream( "/libs.dep" ) ) ) ) {
-            // Parse the line
-            String line;
-            while ( ( line = reader.readLine() ) != null ) {
-                // Check for comment
-                if ( line.isEmpty() || line.equals( System.getProperty( "line.separator" ) ) || line.startsWith( "#" ) ) {
-                    continue;
-                }
-
-                // Extract the command mode
-                String[] splitCommand = line.split( "~" );
-                switch ( splitCommand[0] ) {
-                    case "delete":
-                        File toDelete = new File( libsFolder, splitCommand[1] );
-                        if ( toDelete.exists() ) {
-                            if ( !toDelete.delete() ) {
-                                LOGGER.error( "Could not delete old version of required lib. Please delete {}", splitCommand[1] );
-                                System.exit( -1 );
-                            } else {
-                                LOGGER.info( "Deleted old version of requried lib {}", splitCommand[1] );
-                            }
-                        }
-
-                        break;
-
-                    case "download":
-                        String libURL = splitCommand[1];
-
-                        // Head first to get informations about the file
-                        URL url = new URL( libURL );
-                        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                        urlConnection.setConnectTimeout( 1000 );
-                        urlConnection.setReadTimeout( 1000 );
-                        urlConnection.setRequestMethod( "HEAD" );
-
-                        // Filter out non java archive content types
-                        if ( !"application/java-archive".equals( urlConnection.getHeaderField( "Content-Type" ) ) ) {
-                            LOGGER.debug( "Skipping the download of {} because its not a Java Archive", libURL );
-                            continue;
-                        }
-
-                        // We need the contentLength to compare
-                        int contentLength = Integer.parseInt( urlConnection.getHeaderField( "Content-Length" ) );
-
-                        String[] tempSplit = url.getPath().split( "/" );
-                        String fileName = tempSplit[tempSplit.length - 1];
-
-                        // Check if we have a file with the same length
-                        File libFile = new File( libsFolder, fileName );
-                        if ( libFile.exists() && libFile.length() == contentLength ) {
-                            LOGGER.debug( "Skipping the download of {} because there already is a correct sized copy", libURL );
-                            continue;
-                        }
-
-                        // Download the file from the Server
-                        Files.copy( url.openStream(), libFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                        LOGGER.info( "Downloading library: {}", fileName );
-                        break;
-                }
-            }
-        } catch ( IOException e ) {
-            LOGGER.error( "Could not download needed library: ", e );
         }
     }
 
