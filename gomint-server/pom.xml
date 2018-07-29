@@ -91,12 +91,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.59</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.iq80.leveldb</groupId>
             <artifactId>leveldb</artifactId>
             <version>0.10-SNAPSHOT</version>
@@ -183,11 +177,6 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.bouncycastle:*</exclude>
-                                </excludes>
-                            </artifactSet>
                             <transformers>
                                 <transformer
                                         implementation="com.github.edwgiz.mavenShadePlugin.log4j2CacheTransformer.PluginsCacheFileTransformer">

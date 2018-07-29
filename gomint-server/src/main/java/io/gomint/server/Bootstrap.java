@@ -67,32 +67,22 @@ public class Bootstrap {
 
         // Check if we need to create the libs Folder
         File libsFolder = new File( "libs/" );
-        if ( !libsFolder.exists() && !libsFolder.mkdirs() ) {
-            LOGGER.error( "Could not create library Directory" );
-            System.exit( -1 );
-        }
+        if ( libsFolder.exists() ) {
+            File[] files = libsFolder.listFiles();
+            if ( files == null ) {
+                LOGGER.error( "Library Directory is corrupted" );
+                System.exit( -1 );
+            }
 
-        // Check the libs (versions and artifacts)
-        if ( !options.has( "slc" ) ) { // -slc (skip lib checking)
-            checkLibs( libsFolder );
-        } else {
-            LOGGER.warn( "Excluding the library check can lead to weird behaviour. Please enable it before you submit issues" );
-        }
-
-        File[] files = libsFolder.listFiles();
-        if ( files == null ) {
-            LOGGER.error( "Library Directory is corrupted" );
-            System.exit( -1 );
-        }
-
-        // Scan the libs/ Directory for .jar Files
-        for ( File file : files ) {
-            if ( file.getAbsolutePath().endsWith( ".jar" ) ) {
-                try {
-                    LOGGER.info( "Loading lib: " + file.getAbsolutePath() );
-                    addJARToClasspath( file );
-                } catch ( IOException e ) {
-                    LOGGER.warn( "Error attaching library to system classpath: ", e );
+            // Scan the libs/ Directory for .jar Files
+            for ( File file : files ) {
+                if ( file.getAbsolutePath().endsWith( ".jar" ) ) {
+                    try {
+                        LOGGER.info( "Loading lib: " + file.getAbsolutePath() );
+                        addJARToClasspath( file );
+                    } catch ( IOException e ) {
+                        LOGGER.warn( "Error attaching library to system classpath: ", e );
+                    }
                 }
             }
         }
