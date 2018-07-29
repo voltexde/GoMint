@@ -8,12 +8,9 @@
 package io.gomint.emulator;
 
 import io.gomint.emulator.client.Client;
-import io.gomint.server.jwt.MojangChainValidator;
-import io.gomint.server.network.EncryptionKeyFactory;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
-import java.security.Security;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,8 +22,6 @@ import java.util.concurrent.TimeUnit;
 public class BootStrap {
 
     public static void main( String[] args ) throws InterruptedException {
-        Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
-
         ScheduledExecutorService service = Executors.newScheduledThreadPool( 8 ); // Amount of cores
         PostProcessExecutorService postProcessExecutorService = new PostProcessExecutorService();
 
