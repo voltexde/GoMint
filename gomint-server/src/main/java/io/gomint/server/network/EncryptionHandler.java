@@ -136,12 +136,12 @@ public class EncryptionHandler {
 
         System.arraycopy( output, 0, outputChunked, 0, outputChunked.length );
 
-        byte[] hashBytes = calcHash( outputChunked, this.receiveCounter );
+        /*byte[] hashBytes = calcHash( outputChunked, this.receiveCounter );
         for ( int i = output.length - 8; i < output.length; i++ ) {
             if ( hashBytes[i - ( output.length - 8 )] != output[i] ) {
                 return null;
             }
-        }
+        }*/
 
         return outputChunked;
     }
