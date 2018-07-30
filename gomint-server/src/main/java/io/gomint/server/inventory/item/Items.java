@@ -487,6 +487,9 @@ public class Items {
         this.generators.register( ItemWritableBook.class, new ItemWritableBookGenerator() );
         this.generators.register( ItemWrittenBook.class, new ItemWrittenBookGenerator() );
         this.generators.register( ItemYellowGlazedTerracotta.class, new ItemYellowGlazedTerracottaGenerator() );
+        this.generators.register( ItemScute.class, new ItemScuteGenerator() );
+        this.generators.register( ItemTurtleShell.class, new ItemTurtleShellGenerator() );
+        this.generators.register( ItemHeartOfTheSea.class, new ItemHeartOfTheSeaGenerator() );
     }
 
     /**
