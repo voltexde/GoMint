@@ -75,8 +75,6 @@ public class PacketBossBar extends Packet {
         UNKNOWN( 6 ),
         TEXTURE( 7 );
 
-        private final int id;
-
         /* S2C: Shows the bossbar to the player. */
         public static final int TYPE_SHOW = 0;
         /* C2S: Registers a player to a boss fight. */
@@ -94,6 +92,7 @@ public class PacketBossBar extends Packet {
         public static final int TYPE_UNKNOWN_6 = 6;
         /* S2C: Not implemented :( Intended to alter bar appearance, but these currently produce no effect on clientside whatsoever. */
         public static final int TYPE_TEXTURE = 7;
+        private final int id;
     }
 
 }

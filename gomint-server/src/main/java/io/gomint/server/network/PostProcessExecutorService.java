@@ -13,7 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * @author geNAZt
  * @version 1.0
- *
+ * <p>
  * This is needed since a single thread can only handle ~150 players on a ~4.2 ghz ish 6700k. To handle more player than
  * that we need more threads to decompress stuff. Problem is we need to do this in order for each connection so we can't
  * use normal executor services because then packets would get out of order. We need to ping users to certain executors.

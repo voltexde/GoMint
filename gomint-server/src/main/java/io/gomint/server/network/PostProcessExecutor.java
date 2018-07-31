@@ -23,7 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @EqualsAndHashCode
 public class PostProcessExecutor {
 
-    @Getter private AtomicInteger connectionsInUse = new AtomicInteger( 0 );
+    @Getter
+    private AtomicInteger connectionsInUse = new AtomicInteger( 0 );
     private Executor executor = Executors.newSingleThreadExecutor();
 
     public void addWork( PlayerConnection connection, List<Packet> packets ) {

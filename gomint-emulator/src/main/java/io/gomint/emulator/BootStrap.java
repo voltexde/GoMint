@@ -22,23 +22,17 @@ import java.util.concurrent.TimeUnit;
 public class BootStrap {
 
     public static void main( String[] args ) throws InterruptedException {
-        ScheduledExecutorService service = Executors.newScheduledThreadPool( 8 ); // Amount of cores
+        Configurator.setLevel( "io.gomint.jraknet.ClientSocket", Level.ERROR );
+
+        ScheduledExecutorService service = Executors.newScheduledThreadPool( 256 ); // Amount of cores
         PostProcessExecutorService postProcessExecutorService = new PostProcessExecutorService();
 
-        service.scheduleAtFixedRate( new Runnable() {
-            @Override
-            public void run() {
-                Client.printDebug();
-            }
-        }, 5, 5, TimeUnit.SECONDS );
+        service.scheduleAtFixedRate( Client::printDebug, 5, 5, TimeUnit.SECONDS );
 
-        // Configurator.setLevel( "", Level.TRACE );
-        Configurator.setLevel( "io.gomint.emulator.PostProcessWorker", Level.INFO );
-
-        for ( int i = 0; i < 1; i++ ) {
+        for ( int i = 0; i < 1000; i++ ) {
             service.execute( () -> {
                 Client client = new Client( service, postProcessExecutorService.getExecutor(), null );
-                client.ping( "192.168.178.121", 19132 );
+                client.ping( "", 19132 );
 
                 try {
                     Thread.sleep( 150 );
@@ -46,10 +40,10 @@ public class BootStrap {
                     e.printStackTrace();
                 }
 
-                client.connect( "192.168.178.121", 19132 );
+                client.connect( "", 19132 );
             } );
 
-            Thread.sleep( 500 );
+            Thread.sleep( 1000 );
         }
     }
 

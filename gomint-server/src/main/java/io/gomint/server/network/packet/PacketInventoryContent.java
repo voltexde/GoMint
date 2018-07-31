@@ -15,7 +15,7 @@ public class PacketInventoryContent extends Packet {
     private ItemStack[] items;
 
     public PacketInventoryContent() {
-        super( Protocol.PACKET_INVENTORY_CONTENT_PACKET  );
+        super( Protocol.PACKET_INVENTORY_CONTENT_PACKET );
     }
 
     @Override

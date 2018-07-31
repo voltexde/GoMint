@@ -2,10 +2,9 @@ package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
-import io.gomint.math.Vector;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.player.PlayerPermission;
-import io.gomint.server.util.DumpUtil;
+import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.world.Gamerule;
 import lombok.Data;
 
@@ -62,6 +61,9 @@ public class PacketStartGame extends Packet {
     private boolean unknown1 = true;
     private long currentTick;
     private int enchantmentSeed;
+
+    // Server stuff
+    private String correlationId;
 
     /**
      * Create a new start game packet
@@ -121,6 +123,15 @@ public class PacketStartGame extends Packet {
         buffer.writeBoolean( this.unknown1 );
         buffer.writeLLong( this.currentTick );
         buffer.writeSignedVarInt( this.enchantmentSeed );
+
+        // TODO: PRTCL 282
+        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
+            // Write palette data
+            byte[] data = BlockRuntimeIDs.getPacketCache( protocolID );
+            buffer.writeBytes( data );
+
+            buffer.writeString( this.correlationId );
+        }
     }
 
     @Override

@@ -7,7 +7,6 @@ import io.gomint.server.jni.zlib.NativeZLib;
 import io.gomint.server.jni.zlib.ZLib;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
-import io.gomint.server.network.packet.PacketWorldChunk;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
@@ -58,8 +57,8 @@ public class PostProcessWorker implements Runnable {
         // Write all packets into the inBuf for compression
         for ( Packet packet : this.packets ) {
             PacketBuffer buffer = new PacketBuffer( 64 );
-            buffer.writeByte( packet.getId() );
-            buffer.writeShort( (short) 0 );
+
+            packet.serializeHeader( buffer, this.connection.getConnection().getProtocolVersion() );
             packet.serialize( buffer, this.connection.getProtocolID() );
 
             LOGGER.debug( "Writing packet {} to client: {}", Integer.toHexString( packet.getId() & 0xFF ), packet );

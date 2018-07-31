@@ -45,23 +45,19 @@ public class EncryptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EncryptionHandler.class );
     private static final ThreadLocal<MessageDigest> SHA256_DIGEST = new ThreadLocal<>();
-
+    // Holder for the server keypair
+    private final EncryptionKeyFactory keyFactory;
     // Packet counters
     private AtomicLong sendingCounter = new AtomicLong( 0 );
     private AtomicLong receiveCounter = new AtomicLong( 0 );
-
     // Client Side:
     private ECPublicKey clientPublicKey;
     private Cipher clientEncryptor;
     private Cipher clientDecryptor;
-
     // Data for packet and checksum calculations
     @Getter
     private byte[] clientSalt;
     private byte[] key;
-
-    // Holder for the server keypair
-    private final EncryptionKeyFactory keyFactory;
 
     /**
      * Create a new EncryptionHandler for the client
@@ -136,12 +132,12 @@ public class EncryptionHandler {
 
         System.arraycopy( output, 0, outputChunked, 0, outputChunked.length );
 
-        /*byte[] hashBytes = calcHash( outputChunked, this.receiveCounter );
+        byte[] hashBytes = calcHash( outputChunked, this.receiveCounter );
         for ( int i = output.length - 8; i < output.length; i++ ) {
             if ( hashBytes[i - ( output.length - 8 )] != output[i] ) {
                 return null;
             }
-        }*/
+        }
 
         return outputChunked;
     }
@@ -161,7 +157,6 @@ public class EncryptionHandler {
 
         return this.processCipher( this.clientEncryptor, finalInput );
     }
-
 
     /**
      * Get the servers public key

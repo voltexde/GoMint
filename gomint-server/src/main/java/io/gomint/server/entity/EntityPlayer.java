@@ -176,6 +176,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Setter @Getter
     private boolean spawnPlayers;
 
+    @Getter
+    private UUID deviceId;
+
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
      *
@@ -185,13 +188,15 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
      * @param xboxId     The xbox id from xbox live which has logged in
      * @param uuid       The uuid which has been sent from the client
      * @param locale     language of the player
+     * @param deviceId   id of the device (should be unique to all devices)
      */
     public EntityPlayer( WorldAdapter world,
                          PlayerConnection connection,
                          String username,
                          String xboxId,
                          UUID uuid,
-                         Locale locale ) {
+                         Locale locale,
+                         UUID deviceId ) {
         super( EntityType.PLAYER, world );
         this.connection = connection;
 
@@ -199,6 +204,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.setPlayerData( username, username, xboxId, uuid );
 
         this.locale = locale;
+        this.deviceId = deviceId;
         this.adventureSettings = new AdventureSettings( this );
 
         // Performance stuff
@@ -1486,6 +1492,32 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         if ( event.isCancelled() ) {
             this.connection.disconnect( event.getKickReason() );
         }
+    }
+
+    @Override
+    public Packet createSpawnPacket() {
+        PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
+        packetSpawnPlayer.setUuid( this.getUUID() );
+        packetSpawnPlayer.setName( this.getNameTag() ); // TODO: MJ BUG / 1.5.0.14 / Nametags don't change according to metadata index 4 (nametag) anymore, the client uses the name set in the spawn player packet
+        packetSpawnPlayer.setEntityId( this.getEntityId() );
+        packetSpawnPlayer.setRuntimeEntityId( this.getEntityId() );
+
+        packetSpawnPlayer.setX( this.getPositionX() );
+        packetSpawnPlayer.setY( this.getPositionY() );
+        packetSpawnPlayer.setZ( this.getPositionZ() );
+
+        packetSpawnPlayer.setVelocityX( this.getMotionX() );
+        packetSpawnPlayer.setVelocityY( this.getMotionY() );
+        packetSpawnPlayer.setVelocityZ( this.getMotionZ() );
+
+        packetSpawnPlayer.setPitch( this.getPitch() );
+        packetSpawnPlayer.setYaw( this.getYaw() );
+        packetSpawnPlayer.setHeadYaw( this.getHeadYaw() );
+
+        packetSpawnPlayer.setItemInHand( this.getInventory().getItemInHand() );
+        packetSpawnPlayer.setMetadataContainer( this.getMetadata() );
+        packetSpawnPlayer.setDeviceId( this.deviceId == null ? "" : this.deviceId.toString() );
+        return packetSpawnPlayer;
     }
 
     @Override

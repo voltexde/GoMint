@@ -154,6 +154,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Getter
     private ClassPath classPath;
 
+    @Getter
+    private UUID serverUniqueID = UUID.randomUUID();
     private String gitHash;
 
     private BlockingQueue<Runnable> mainThreadWork = new LinkedBlockingQueue<>();

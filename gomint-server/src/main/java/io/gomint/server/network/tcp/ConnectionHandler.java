@@ -34,10 +34,14 @@ import java.util.function.Consumer;
  */
 public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
 
+    private static final ConcurrentMap<EventLoop, Flusher> flusherLookup = new MapMaker()
+        .concurrencyLevel( 16 )
+        .weakKeys()
+        .makeMap();
     private ChannelHandlerContext ctx;
-
     private Consumer<Void> whenConnected;
-    @Getter private LinkedBlockingQueue<PacketBuffer> data = new LinkedBlockingQueue<>();
+    @Getter
+    private LinkedBlockingQueue<PacketBuffer> data = new LinkedBlockingQueue<>();
     private Consumer<Throwable> exceptionCallback;
     private Consumer<Void> disconnectCallback;
     private Consumer<Integer> pingCallback;
@@ -122,6 +126,11 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
         this.ctx.disconnect().syncUninterruptibly();
     }
 
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + Integer.toHexString( this.hashCode() );
+    }
+
     private static final class Flusher implements Runnable {
         final WeakReference<EventLoop> eventLoopRef;
         final Queue<FlushItem> queued = new ConcurrentLinkedQueue<>();
@@ -180,16 +189,6 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
             }
         }
     }
-
-    @Override
-    public String toString() {
-        return this.getClass().getSimpleName() + Integer.toHexString( this.hashCode() );
-    }
-
-    private static final ConcurrentMap<EventLoop, Flusher> flusherLookup = new MapMaker()
-        .concurrencyLevel( 16 )
-        .weakKeys()
-        .makeMap();
 
     private static class FlushItem {
         final Channel channel;

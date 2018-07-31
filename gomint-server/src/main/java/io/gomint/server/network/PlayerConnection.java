@@ -153,6 +153,16 @@ public class PlayerConnection {
     // Network manager that created this connection:
     @Getter
     private final NetworkManager networkManager;
+    // Actual connection for wire transfer:
+    @Getter
+    private final Connection connection;
+    @Getter
+    private final ConnectionHandler connectionHandler;
+    // World data
+    @Getter
+    private final LongSet playerChunks;
+    @Getter
+    private final LongSet loadingChunks;
     @Getter
     @Setter
     private EncryptionHandler encryptionHandler;
@@ -161,25 +171,12 @@ public class PlayerConnection {
     @Setter
     @Getter
     private int protocolID;
-
-    // Actual connection for wire transfer:
-    @Getter
-    private final Connection connection;
-    @Getter
-    private final ConnectionHandler connectionHandler;
     @Setter
     private long tcpId;
     @Setter
     private int tcpPing;
     private PostProcessExecutor postProcessorExecutor;
     private ZLib decompressor;
-
-    // World data
-    @Getter
-    private final LongSet playerChunks;
-    @Getter
-    private final LongSet loadingChunks;
-
     // Connection State:
     @Getter
     @Setter
@@ -373,8 +370,7 @@ public class PlayerConnection {
                 PacketBuffer[] packetBuffers = new PacketBuffer[drainedQueue.size()];
                 for ( int i = 0; i < drainedQueue.size(); i++ ) {
                     packetBuffers[i] = new PacketBuffer( 2 );
-                    packetBuffers[i].writeByte( drainedQueue.get( i ).getId() );
-                    packetBuffers[i].writeShort( (short) 0 );
+                    drainedQueue.get( i ).serializeHeader( packetBuffers[i], (byte) 8 );
                     drainedQueue.get( i ).serialize( packetBuffers[i], this.protocolID );
                 }
 
@@ -522,17 +518,31 @@ public class PlayerConnection {
 
     private void handleBufferData( long currentTimeMillis, PacketBuffer buffer ) {
         // Grab the packet ID from the packet's data
-        byte packetId = buffer.readByte();
+        int rawId = buffer.readUnsignedVarInt();
+        byte packetId;
 
-        // There is some data behind the packet id when non batched packets (2 bytes)
-        if ( packetId == PACKET_BATCH ) {
-            LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
+        // Check for split id stuff
+        if ( this.connection.getProtocolVersion() == 8 ) {
+            packetId = (byte) rawId;
+
+            // There is some data behind the packet id when non batched packets (2 bytes)
+            if ( packetId == PACKET_BATCH ) {
+                LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
+            }
+
+            // TODO: Proper implement sending subclient and target subclient (two bytes)
+            buffer.readShort();
+        } else {
+            // TODO: Find the new way of how the split ids are handled
+            packetId = (byte) rawId;
+
+            // There is some data behind the packet id when non batched packets (2 bytes)
+            if ( packetId == PACKET_BATCH ) {
+                LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
+            }
         }
 
         LOGGER.debug( "Got MCPE packet {}", Integer.toHexString( packetId & 0xFF ) );
-
-        // TODO: Proper implement sending subclient and target subclient (two bytes)
-        buffer.readShort();
 
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
@@ -900,6 +910,7 @@ public class PlayerConnection {
         packet.setTexturePacksRequired( false );
         packet.setCommandsEnabled( true );
         packet.setEnchantmentSeed( FastRandom.current().nextInt() );
+        packet.setCorrelationId( this.server.getServerUniqueID().toString() );
 
         // Set the new location
         this.entity.setAndRecalcPosition( this.entity.getSpawnLocation() != null ? this.entity.getSpawnLocation() : world.getSpawnLocation() );

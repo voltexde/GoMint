@@ -36,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -197,7 +198,8 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                 // Create entity:
                 WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();
                 connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(),
-                    chainValidator.getXboxId(), chainValidator.getUuid(), locale ) );
+                    chainValidator.getXboxId(), chainValidator.getUuid(), locale,
+                    skinToken.getClaim( "DeviceId" ) != null ? UUID.fromString( skinToken.getClaim( "DeviceId" ) ) : null ) );
                 connection.getEntity().setSkin( playerSkin );
                 connection.getEntity().setNameTagVisible( true );
                 connection.getEntity().setNameTagAlwaysVisible( true );

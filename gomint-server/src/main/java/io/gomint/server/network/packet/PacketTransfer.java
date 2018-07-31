@@ -11,9 +11,11 @@ import lombok.Setter;
  */
 public class PacketTransfer extends Packet {
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private String address;
-    @Getter @Setter
+    @Getter
+    @Setter
     private int port = 19132;
 
     public PacketTransfer() {
