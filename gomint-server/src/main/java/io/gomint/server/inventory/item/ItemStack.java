@@ -24,13 +24,7 @@ import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a stack of up to 255 items of the same type which may
@@ -60,35 +54,9 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     // Observer stuff for damaging items
     private Set<ItemStackPlace> itemStackPlaces = new HashSet<>();
 
-    /**
-     * Constructs a new item stack that will hold the given amount
-     * of items of the specified type. Additionally specifies the
-     * data value of the item.
-     *
-     * @param material The material of the item
-     * @param data     The data value of the item
-     * @param amount   The number of items on this stack (255 max)
-     */
-    public ItemStack( int material, short data, int amount ) {
+    ItemStack setMaterial( int material ) {
         this.material = material;
-        this.data = data;
-        this.amount = (byte) ( amount > getMaximumAmount() ? getMaximumAmount() : amount );
-    }
-
-    /**
-     * Constructs a new item stack that will hold the given amount
-     * of items of the specified type. Additionally specifies the
-     * data value of the item as well as raw NBT data that resembles
-     * additional required storage such as a chest's inventory.
-     *
-     * @param material The material of the item
-     * @param data     The data value of the item
-     * @param amount   The number of items on this stack (255 max)
-     * @param nbt      The additional raw NBT data of the item
-     */
-    public ItemStack( int material, short data, int amount, NBTTagCompound nbt ) {
-        this( material, data, amount );
-        this.nbt = nbt;
+        return this;
     }
 
     /**
@@ -170,8 +138,9 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
      *
      * @param compound The raw NBT data of this item
      */
-    public void setNbtData( NBTTagCompound compound ) {
+    ItemStack setNbtData( NBTTagCompound compound ) {
         this.nbt = compound;
+        return this;
     }
 
     @Override

@@ -1,5 +1,4 @@
 package io.gomint.server.inventory.item;
-
 import io.gomint.inventory.item.ItemType;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
@@ -11,15 +10,7 @@ import io.gomint.world.block.BlockFace;
 @RegisterInfo( id = 469 )
 public class ItemTurtleShell extends ItemArmor implements io.gomint.inventory.item.ItemTurtleShell {
 
-    // CHECKSTYLE:OFF
-    public ItemTurtleShell( short data, int amount ) {
-        super( 469, data, amount );
-    }
 
-    public ItemTurtleShell( short data, int amount, NBTTagCompound nbt ) {
-        super( 469, data, amount, nbt );
-    }
-    // CHECKSTYLE:ON
 
     @Override
     public float getReductionValue() {

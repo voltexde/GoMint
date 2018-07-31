@@ -824,9 +824,13 @@ public abstract class WorldAdapter implements World {
 
                     case POPULATE:
                         AsyncChunkPopulateTask populateTask = (AsyncChunkPopulateTask) task;
-                        this.chunkGenerator.populate( populateTask.getChunk() );
-                        populateTask.getChunk().calculateHeightmap( 240 );
-                        populateTask.getChunk().setPopulated( true );
+
+                        if ( !populateTask.getChunk().isPopulated() ) {
+                            this.chunkGenerator.populate( populateTask.getChunk() );
+                            populateTask.getChunk().calculateHeightmap( 240 );
+                            populateTask.getChunk().setPopulated( true );
+                        }
+
                         break;
 
                     default:

@@ -49,6 +49,9 @@ public class Bootstrap {
             Configurator.setLevel( "io.gomint.server.event.EventHandlerList", Level.DEBUG );
         }
 
+        // Performance hacks
+        System.setSecurityManager( null );
+
         // User agent
         System.setProperty( "http.agent", "GoMint/1.0" );
 

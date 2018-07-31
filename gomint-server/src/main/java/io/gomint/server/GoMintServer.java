@@ -7,6 +7,7 @@
 
 package io.gomint.server;
 
+import com.google.common.reflect.ClassPath;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.gomint.GoMint;
@@ -150,6 +151,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private Entities entities;
     @Getter
     private Effects effects;
+    @Getter
+    private ClassPath classPath;
 
     private String gitHash;
 
@@ -187,6 +190,13 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         LOGGER.info( "Starting {}", getVersion() );
         Thread.currentThread().setName( "GoMint Main Thread" );
+
+        try {
+            this.classPath = ClassPath.from( GoMintServer.class.getClassLoader() );
+        } catch ( IOException e ) {
+            LOGGER.error( "Could not init classpath reader", e );
+            return;
+        }
 
         // ------------------------------------ //
         // Executor Initialization
