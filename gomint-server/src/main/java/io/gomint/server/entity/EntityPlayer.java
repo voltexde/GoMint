@@ -8,7 +8,8 @@
 package io.gomint.server.entity;
 
 import io.gomint.GoMint;
-import io.gomint.command.*;
+import io.gomint.command.CommandOutput;
+import io.gomint.command.PlayerCommandSender;
 import io.gomint.enchant.EnchantmentKnockback;
 import io.gomint.enchant.EnchantmentSharpness;
 import io.gomint.entity.ChatType;
@@ -19,26 +20,62 @@ import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityTeleportEvent;
 import io.gomint.event.inventory.InventoryCloseEvent;
 import io.gomint.event.inventory.InventoryOpenEvent;
-import io.gomint.event.player.*;
-import io.gomint.gui.*;
-import io.gomint.math.*;
+import io.gomint.event.player.PlayerDeathEvent;
+import io.gomint.event.player.PlayerExhaustEvent;
+import io.gomint.event.player.PlayerFoodLevelChangeEvent;
+import io.gomint.event.player.PlayerJoinEvent;
+import io.gomint.event.player.PlayerMoveEvent;
+import io.gomint.event.player.PlayerRespawnEvent;
+import io.gomint.gui.ButtonList;
+import io.gomint.gui.Form;
+import io.gomint.gui.FormListener;
+import io.gomint.gui.FormResponse;
+import io.gomint.gui.Modal;
+import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.BlockPosition;
+import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
+import io.gomint.math.Vector2;
 import io.gomint.player.DeviceInfo;
 import io.gomint.server.GoMintServer;
-import io.gomint.server.command.CommandCanidate;
-import io.gomint.server.command.CommandHolder;
 import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.entity.passive.EntityHuman;
 import io.gomint.server.entity.projectile.EntityFishingHook;
-import io.gomint.server.inventory.*;
+import io.gomint.server.inventory.ArmorInventory;
+import io.gomint.server.inventory.ContainerInventory;
+import io.gomint.server.inventory.CraftingInputInventory;
+import io.gomint.server.inventory.CursorInventory;
+import io.gomint.server.inventory.EnchantmentTableInventory;
+import io.gomint.server.inventory.Inventory;
+import io.gomint.server.inventory.InventoryHolder;
+import io.gomint.server.inventory.OffhandInventory;
+import io.gomint.server.inventory.OneSlotInventory;
+import io.gomint.server.inventory.PlayerInventory;
+import io.gomint.server.inventory.WindowMagicNumbers;
 import io.gomint.server.inventory.item.ItemAir;
 import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.maintenance.performance.LoginPerformance;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
-import io.gomint.server.network.packet.*;
+import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketAvailableCommands;
+import io.gomint.server.network.packet.PacketContainerClose;
+import io.gomint.server.network.packet.PacketEntityEvent;
+import io.gomint.server.network.packet.PacketEntityMetadata;
+import io.gomint.server.network.packet.PacketModalRequest;
+import io.gomint.server.network.packet.PacketPlayState;
+import io.gomint.server.network.packet.PacketPlayerlist;
+import io.gomint.server.network.packet.PacketRespawnPosition;
+import io.gomint.server.network.packet.PacketServerSettingsResponse;
+import io.gomint.server.network.packet.PacketSetGamemode;
+import io.gomint.server.network.packet.PacketSetTitle;
+import io.gomint.server.network.packet.PacketSpawnPlayer;
+import io.gomint.server.network.packet.PacketText;
+import io.gomint.server.network.packet.PacketTransfer;
+import io.gomint.server.network.packet.PacketUpdateAttributes;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
-import io.gomint.server.maintenance.performance.LoginPerformance;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.util.EnumConnectors;
@@ -46,21 +83,32 @@ import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
-import io.gomint.world.*;
+import io.gomint.world.Chunk;
+import io.gomint.world.Gamemode;
+import io.gomint.world.Particle;
+import io.gomint.world.ParticleData;
+import io.gomint.world.Sound;
+import io.gomint.world.SoundData;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -156,7 +204,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Setter
     private EntityFishingHook fishingHook;
     private long lastPickupXP;
-    @Getter private Location spawnLocation;
+    @Getter
+    private Location spawnLocation;
 
     // Item usage ticking
     @Getter
@@ -173,7 +222,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Setter
     private Location nextMovement;
 
-    @Setter @Getter
+    @Setter
+    @Getter
     private boolean spawnPlayers;
 
     @Getter
@@ -416,9 +466,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             // Despawn entities first
             this.entityVisibilityManager.clear();
 
-            // Change worlds first
+            // Change worlds
             getWorld().removePlayer( this );
-            this.world = (WorldAdapter) to.getWorld();
+            this.setWorld( (WorldAdapter) to.getWorld() );
             this.world.spawnEntityAt( this, to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch() );
 
             // Be sure to get rid of all loaded chunks

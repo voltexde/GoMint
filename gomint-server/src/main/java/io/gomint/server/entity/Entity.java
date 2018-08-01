@@ -130,7 +130,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
     private boolean dead;
     protected int age;
 
-    @Setter
     protected WorldAdapter world;
     private TransformComponent transform;
     private float lastUpdateDt;
@@ -1375,6 +1374,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     public void updateOldPosition() {
         this.oldPosition = this.getLocation();
+    }
+
+    public void setWorld( WorldAdapter world ) {
+        LOGGER.info( "Setting world of {} to {}", this, world.getLevelName(), new Exception() );
+        this.world = world;
     }
 
 }
