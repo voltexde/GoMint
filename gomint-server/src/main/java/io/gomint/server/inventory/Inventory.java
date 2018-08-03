@@ -66,8 +66,9 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         }
 
         // Set new item
-        this.contents[index] = item;
-        ( (io.gomint.server.inventory.item.ItemStack) item ).addPlace( this, index );
+        io.gomint.server.inventory.item.ItemStack newStack = (io.gomint.server.inventory.item.ItemStack) item.clone();
+        this.contents[index] = newStack;
+        newStack.addPlace( this, index );
 
         for ( PlayerConnection playerConnection : this.viewer ) {
             this.sendContents( index, playerConnection );
