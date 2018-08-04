@@ -113,6 +113,9 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         BlockPosition spawnPoint = this.chunkGenerator.getSpawnPoint();
         this.spawn = new Location( this, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ() );
 
+        // Take over level name
+        this.levelName = name;
+
         // We need a level.dat
         try {
             this.saveLevelDat();
@@ -324,6 +327,9 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         dataCompound.addValue( "SpawnX", (int) this.spawn.getX() );
         dataCompound.addValue( "SpawnY", (int) this.spawn.getY() );
         dataCompound.addValue( "SpawnZ", (int) this.spawn.getZ() );
+
+        // Level name
+        dataCompound.addValue( "LevelName", this.levelName );
 
         // Save generator
         this.saveGenerator( dataCompound );

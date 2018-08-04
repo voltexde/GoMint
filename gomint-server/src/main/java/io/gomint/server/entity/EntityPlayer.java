@@ -227,7 +227,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private boolean spawnPlayers;
 
     @Getter
-    private UUID deviceId;
+    private String deviceId;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -246,7 +246,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                          String xboxId,
                          UUID uuid,
                          Locale locale,
-                         UUID deviceId ) {
+                         String deviceId ) {
         super( EntityType.PLAYER, world );
         this.connection = connection;
 

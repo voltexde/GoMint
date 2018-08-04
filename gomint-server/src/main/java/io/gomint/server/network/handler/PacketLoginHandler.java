@@ -199,7 +199,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                 WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();
                 connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(),
                     chainValidator.getXboxId(), chainValidator.getUuid(), locale,
-                    skinToken.getClaim( "DeviceId" ) != null ? UUID.fromString( skinToken.getClaim( "DeviceId" ) ) : null ) );
+                    skinToken.getClaim( "DeviceId" ) != null ? skinToken.getClaim( "DeviceId" ) : null ) );
                 connection.getEntity().setSkin( playerSkin );
                 connection.getEntity().setNameTagVisible( true );
                 connection.getEntity().setNameTagAlwaysVisible( true );
