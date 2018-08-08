@@ -648,7 +648,8 @@ public abstract class WorldAdapter implements World {
             this.getOrLoadChunk( x, z, true, chunk -> chunk.packageChunk( player, sendDelegate ) );
         } else {
             ChunkAdapter chunkAdapter = this.loadChunk( x, z, true );
-            if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ) {
+            if ( chunkAdapter.dirty || chunkAdapter.cachedPacket == null || chunkAdapter.cachedPacket.get() == null ||
+                chunkAdapter.cachedBetaPacket == null || chunkAdapter.cachedBetaPacket.get() == null ) {
                 packageChunk( chunkAdapter, sendDelegate );
             } else {
                 sendDelegate.invoke( CoordinateUtils.toLong( x, z ), chunkAdapter );
@@ -753,8 +754,8 @@ public abstract class WorldAdapter implements World {
      * @param callback The callback which should be invoked when the packing has been done
      */
     private void packageChunk( ChunkAdapter chunk, Delegate2<Long, ChunkAdapter> callback ) {
-        PacketWorldChunk packet = chunk.createPackagedData( Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
-        chunk.setCachedPacket( packet );
+        chunk.setCachedPacket( chunk.createPackagedData( Protocol.MINECRAFT_PE_PROTOCOL_VERSION ),
+            chunk.createPackagedData( Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) );
         callback.invoke( CoordinateUtils.toLong( chunk.getX(), chunk.getZ() ), chunk );
     }
 

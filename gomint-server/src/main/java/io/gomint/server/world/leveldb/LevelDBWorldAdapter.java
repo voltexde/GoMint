@@ -21,7 +21,6 @@ import io.gomint.world.Chunk;
 import io.gomint.world.Difficulty;
 import io.gomint.world.generator.GeneratorContext;
 import io.gomint.world.generator.integrated.LayeredGenerator;
-import lombok.EqualsAndHashCode;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.DbImpl;
@@ -42,7 +41,6 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-@EqualsAndHashCode( callSuper = true )
 public class LevelDBWorldAdapter extends WorldAdapter {
 
     private DB db;

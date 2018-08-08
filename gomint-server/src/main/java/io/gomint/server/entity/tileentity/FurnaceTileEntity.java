@@ -29,6 +29,10 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
 
     private FurnaceInventory inventory;
 
+    private short cookTime;
+    private short burnTime;
+    private short burnDuration;
+
     /**
      * Construct new TileEntity from TagCompound
      *
@@ -53,6 +57,10 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
                 }
             }
         }
+
+        this.cookTime = tagCompound.getShort( "CookTime", (short) 0 );
+        this.burnTime = tagCompound.getShort( "BurnTime", (short) 0 );
+        this.burnDuration = tagCompound.getShort( "BurnDuration", (short) 0 );
     }
 
     @Override
@@ -85,6 +93,10 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
         }
 
         compound.addValue( "Items", itemCompounds );
+
+        compound.addValue( "CookTime", this.cookTime );
+        compound.addValue( "BurnTime", 120 );
+        compound.addValue( "BurnDuration", this.burnDuration );
     }
 
 }

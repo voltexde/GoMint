@@ -56,7 +56,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
 
     public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z ) {
         super( worldAdapter, x, z );
-        this.chunkVersion = 7;
+        this.chunkVersion = 8;
     }
 
     /**

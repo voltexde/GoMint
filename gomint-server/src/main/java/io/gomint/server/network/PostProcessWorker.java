@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.zip.Adler32;
 
 /**
  * @author geNAZt
@@ -50,41 +50,69 @@ public class PostProcessWorker implements Runnable {
 
     @Override
     public void run() {
-        this.connection.getServer().getWatchdog().add( 1, TimeUnit.SECONDS );
-
         ByteBuf inBuf = PooledByteBufAllocator.DEFAULT.directBuffer();
 
         // Write all packets into the inBuf for compression
+        PacketBuffer buffer = new PacketBuffer( 64 );
+
         for ( Packet packet : this.packets ) {
-            PacketBuffer buffer = new PacketBuffer( 64 );
+            buffer.setPosition( 0 );
 
             packet.serializeHeader( buffer, this.connection.getConnection().getProtocolVersion() );
             packet.serialize( buffer, this.connection.getProtocolID() );
-
-            LOGGER.debug( "Writing packet {} to client: {}", Integer.toHexString( packet.getId() & 0xFF ), packet );
 
             writeVarInt( buffer.getPosition(), inBuf );
             inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
         }
 
-        LOGGER.debug( "Compressing {} bytes", inBuf.readableBytes() );
+        int inBytes = inBuf.readableBytes();
+        LOGGER.debug( "Compressing {} bytes", inBytes );
 
-        ZLib compressor = this.getCompressor();
-        ByteBuf outBuf = PooledByteBufAllocator.DEFAULT.directBuffer( 8192 ); // We will write at least once so ensureWrite will realloc to 8192 so or so
+        ByteBuf outBuf = null;
+        byte[] data = null;
 
         try {
-            compressor.process( inBuf, outBuf );
+            if ( inBytes > 256 ) {
+                ZLib compressor = this.getCompressor();
+                outBuf = PooledByteBufAllocator.DEFAULT.directBuffer( 8192 );
+                compressor.process( inBuf, outBuf );
+            } else {
+                inBuf.readerIndex( 0 );
+                data = new byte[inBytes + 7 + 4];
+                data[0] = 0x78;
+                data[1] = 0x01;
+                data[2] = 0x01;
+
+                // Write data length
+                int length = inBytes;
+                data[3] = (byte) length;
+                data[4] = (byte) ( length >>> 8 );
+                length = ~length;
+                data[5] = (byte) length;
+                data[6] = (byte) ( length >>> 8 );
+
+                // Write data
+                inBuf.readBytes( data, 7, inBuf.readableBytes() );
+
+                long checksum = adler32( data, 7, data.length - 11 );
+                data[data.length - 4] = ( (byte) ( ( checksum >> 24 ) % 256 ) );
+                data[data.length - 3] = ( (byte) ( ( checksum >> 16 ) % 256 ) );
+                data[data.length - 2] = ( (byte) ( ( checksum >> 8 ) % 256 ) );
+                data[data.length - 1] = ( (byte) ( checksum % 256 ) );
+            }
         } catch ( Exception e ) {
             LOGGER.error( "Could not compress data for network", e );
-            outBuf.release();
+            if ( outBuf != null ) outBuf.release();
             return;
         } finally {
             inBuf.release();
         }
 
-        byte[] data = new byte[outBuf.readableBytes()];
-        outBuf.readBytes( data );
-        outBuf.release();
+        if ( outBuf != null ) {
+            data = new byte[outBuf.readableBytes()];
+            outBuf.readBytes( data );
+            outBuf.release();
+        }
 
         PacketBatch batch = new PacketBatch();
         batch.setPayload( data );
@@ -94,8 +122,16 @@ public class PostProcessWorker implements Runnable {
             batch.setPayload( encryptionHandler.encryptInputForClient( batch.getPayload() ) );
         }
 
-        this.connection.getServer().getWatchdog().done();
         this.connection.send( batch );
+    }
+
+    /**
+     * Calculates the adler32 checksum of the data
+     */
+    private static long adler32( byte[] data, int offset, int length ) {
+        final Adler32 checksum = new Adler32();
+        checksum.update( data, offset, length );
+        return checksum.getValue();
     }
 
     private void writeVarInt( int value, ByteBuf stream ) {

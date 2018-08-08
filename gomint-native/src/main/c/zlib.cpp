@@ -73,7 +73,7 @@ void JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_end(JNIEnv* env, jobject 
 
 jlong JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_init(JNIEnv* env, jobject obj, jboolean compress, jint level) {
 	z_stream* stream = (z_stream*)calloc(1, sizeof(z_stream));
-	int ret = (compress) ? deflateInit(stream, level) : inflateInit(stream);
+	int ret = (compress) ? deflateInit2(stream, level, Z_DEFLATED, MAX_WBITS, 8, Z_HUFFMAN_ONLY) : inflateInit2(stream, 47);
 
 	if (ret != Z_OK) {
 		throwException(env, "Could not init z_stream", ret);
