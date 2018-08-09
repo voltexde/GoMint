@@ -7,6 +7,7 @@
 
 package io.gomint.server.network;
 
+import io.gomint.GoMint;
 import io.gomint.event.player.PlayerCleanedupEvent;
 import io.gomint.event.player.PlayerKickEvent;
 import io.gomint.event.player.PlayerQuitEvent;
@@ -91,7 +92,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -181,7 +181,7 @@ public class PlayerConnection {
     @Getter
     @Setter
     private PlayerConnectionState state;
-    private BlockingQueue<Packet> sendQueue;
+    private List<Packet> sendQueue;
 
     // Entity
     @Getter
@@ -259,11 +259,16 @@ public class PlayerConnection {
      * @param packet The packet which should be queued
      */
     public void addToSendQueue( Packet packet ) {
-        if ( this.sendQueue == null ) {
-            this.sendQueue = new LinkedBlockingQueue<>();
+        if ( !GoMint.instance().isMainThread() ) {
+            LOGGER.warn( "Add packet async to send queue - canceling sending", new Exception() );
+            return;
         }
 
-        if ( !this.sendQueue.offer( packet ) ) {
+        if ( this.sendQueue == null ) {
+            this.sendQueue = new ArrayList<>();
+        }
+
+        if ( !this.sendQueue.add( packet ) ) {
             LOGGER.warn( "Could not add packet {} to the send queue", packet );
         }
     }
@@ -358,25 +363,23 @@ public class PlayerConnection {
         // Send all queued packets
         if ( this.connection != null ) {
             if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
-                List<Packet> drainedQueue = new ArrayList<>();
-                this.sendQueue.drainTo( drainedQueue );
-                this.postProcessorExecutor.addWork( this, drainedQueue );
+                this.postProcessorExecutor.addWork( this, this.sendQueue.toArray( new Packet[0] ) );
+                this.sendQueue.clear();
             }
         } else {
             if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
-                List<Packet> drainedQueue = new ArrayList<>();
-                this.sendQueue.drainTo( drainedQueue );
-
-                PacketBuffer[] packetBuffers = new PacketBuffer[drainedQueue.size()];
-                for ( int i = 0; i < drainedQueue.size(); i++ ) {
+                Packet[] packets = this.sendQueue.toArray( new Packet[0] );
+                PacketBuffer[] packetBuffers = new PacketBuffer[packets.length];
+                for ( int i = 0; i < packets.length; i++ ) {
                     packetBuffers[i] = new PacketBuffer( 2 );
-                    drainedQueue.get( i ).serializeHeader( packetBuffers[i], (byte) 8 );
-                    drainedQueue.get( i ).serialize( packetBuffers[i], this.protocolID );
+                    packets[i].serializeHeader( packetBuffers[i], (byte) 8 );
+                    packets[i].serialize( packetBuffers[i], this.protocolID );
                 }
 
                 WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
                 mcpePacket.setBuffer( packetBuffers );
                 this.connectionHandler.send( mcpePacket );
+                this.sendQueue.clear();
             }
 
             this.connectionHandler.send( new FlushTickPacket() );
@@ -430,7 +433,7 @@ public class PlayerConnection {
     public void send( Packet packet ) {
         if ( this.connection != null ) {
             if ( !( packet instanceof PacketBatch ) ) {
-                this.postProcessorExecutor.addWork( this, Collections.singletonList( packet ) );
+                this.postProcessorExecutor.addWork( this, new Packet[]{ packet } );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
                 buffer.writeByte( packet.getId() );

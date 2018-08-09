@@ -331,7 +331,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         PacketSetGamemode packetSetGamemode = new PacketSetGamemode();
         packetSetGamemode.setGameMode( gameModeNumber == 1 ? 1 : 0 );
-        this.connection.send( packetSetGamemode );
+        this.connection.addToSendQueue( packetSetGamemode );
 
         this.sendAdventureSettings();
 
@@ -670,7 +670,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                 // Tell the client to close it
                 PacketContainerClose packetContainerClose = new PacketContainerClose();
                 packetContainerClose.setWindowId( windowId );
-                this.connection.send( packetContainerClose );
+                this.connection.addToSendQueue( packetContainerClose );
             }
         }
     }
@@ -726,7 +726,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             updateAttributes.addAttributeInstance( instance );
         }
 
-        this.connection.send( updateAttributes );
+        this.connection.addToSendQueue( updateAttributes );
     }
 
     /**

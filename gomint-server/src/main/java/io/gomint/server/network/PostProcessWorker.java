@@ -12,8 +12,8 @@ import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.zip.Adler32;
+import java.util.zip.DataFormatException;
 
 /**
  * @author geNAZt
@@ -30,88 +30,33 @@ public class PostProcessWorker implements Runnable {
     }
 
     private final PlayerConnection connection;
-    private final List<Packet> packets;
+    private final Packet[] packets;
 
-    public PostProcessWorker( PlayerConnection connection, List<Packet> packets ) {
+    public PostProcessWorker( PlayerConnection connection, Packet[] packets ) {
         this.connection = connection;
         this.packets = packets;
     }
 
     private ZLib getCompressor() {
-        if ( COMPRESSOR.get() == null ) {
-            ZLib zLib = ZLIB.newInstance();
-            zLib.init( true, this.connection.getServer().getServerConfig().getConnection().getCompressionLevel() );
-            COMPRESSOR.set( zLib );
+        ZLib zLib = COMPRESSOR.get();
+        if ( zLib != null ) {
             return zLib;
         }
 
-        return COMPRESSOR.get();
+        zLib = ZLIB.newInstance();
+        zLib.init( true, this.connection.getServer().getServerConfig().getConnection().getCompressionLevel() );
+        COMPRESSOR.set( zLib );
+        return zLib;
     }
 
     @Override
     public void run() {
-        ByteBuf inBuf = PooledByteBufAllocator.DEFAULT.directBuffer();
+        ByteBuf inBuf = writePackets( this.packets );
+        byte[] data = compress( inBuf );
+        inBuf.release();
 
-        // Write all packets into the inBuf for compression
-        PacketBuffer buffer = new PacketBuffer( 64 );
-
-        for ( Packet packet : this.packets ) {
-            buffer.setPosition( 0 );
-
-            packet.serializeHeader( buffer, this.connection.getConnection().getProtocolVersion() );
-            packet.serialize( buffer, this.connection.getProtocolID() );
-
-            writeVarInt( buffer.getPosition(), inBuf );
-            inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
-        }
-
-        int inBytes = inBuf.readableBytes();
-        LOGGER.debug( "Compressing {} bytes", inBytes );
-
-        ByteBuf outBuf = null;
-        byte[] data = null;
-
-        try {
-            if ( inBytes > 256 ) {
-                ZLib compressor = this.getCompressor();
-                outBuf = PooledByteBufAllocator.DEFAULT.directBuffer( 8192 );
-                compressor.process( inBuf, outBuf );
-            } else {
-                inBuf.readerIndex( 0 );
-                data = new byte[inBytes + 7 + 4];
-                data[0] = 0x78;
-                data[1] = 0x01;
-                data[2] = 0x01;
-
-                // Write data length
-                int length = inBytes;
-                data[3] = (byte) length;
-                data[4] = (byte) ( length >>> 8 );
-                length = ~length;
-                data[5] = (byte) length;
-                data[6] = (byte) ( length >>> 8 );
-
-                // Write data
-                inBuf.readBytes( data, 7, inBuf.readableBytes() );
-
-                long checksum = adler32( data, 7, data.length - 11 );
-                data[data.length - 4] = ( (byte) ( ( checksum >> 24 ) % 256 ) );
-                data[data.length - 3] = ( (byte) ( ( checksum >> 16 ) % 256 ) );
-                data[data.length - 2] = ( (byte) ( ( checksum >> 8 ) % 256 ) );
-                data[data.length - 1] = ( (byte) ( checksum % 256 ) );
-            }
-        } catch ( Exception e ) {
-            LOGGER.error( "Could not compress data for network", e );
-            if ( outBuf != null ) outBuf.release();
+        if ( data == null ) {
             return;
-        } finally {
-            inBuf.release();
-        }
-
-        if ( outBuf != null ) {
-            data = new byte[outBuf.readableBytes()];
-            outBuf.readBytes( data );
-            outBuf.release();
         }
 
         PacketBatch batch = new PacketBatch();
@@ -125,10 +70,85 @@ public class PostProcessWorker implements Runnable {
         this.connection.send( batch );
     }
 
+    private ByteBuf writePackets( Packet[] packets ) {
+        ByteBuf inBuf = newNettyBuffer();
+
+        // Write all packets into the inBuf for compression
+        PacketBuffer buffer = new PacketBuffer( 64 );
+
+        for ( Packet packet : packets ) {
+            buffer.setPosition( 0 );
+
+            packet.serializeHeader( buffer, this.connection.getConnection().getProtocolVersion() );
+            packet.serialize( buffer, this.connection.getProtocolID() );
+
+            writeVarInt( buffer.getPosition(), inBuf );
+            inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+        }
+
+        return inBuf;
+    }
+
+    private ByteBuf newNettyBuffer() {
+        return PooledByteBufAllocator.DEFAULT.directBuffer();
+    }
+
+    private byte[] compress( ByteBuf inBuf ) {
+        if ( inBuf.readableBytes() > 256 ) {
+            return zlibCompress( inBuf );
+        } else {
+            return fastStorage( inBuf );
+        }
+    }
+
+    private byte[] zlibCompress( ByteBuf inBuf ) {
+        ZLib compressor = this.getCompressor();
+        ByteBuf outBuf = newNettyBuffer();
+
+        try {
+            compressor.process( inBuf, outBuf );
+        } catch ( DataFormatException e ) {
+            LOGGER.error( "Could not compress data for network", e );
+            outBuf.release();
+            return null;
+        }
+
+        byte[] data = new byte[outBuf.readableBytes()];
+        outBuf.readBytes( data );
+        outBuf.release();
+        return data;
+    }
+
+    private byte[] fastStorage( ByteBuf inBuf ) {
+        byte[] data = new byte[inBuf.readableBytes() + 7 + 4];
+        data[0] = 0x78;
+        data[1] = 0x01;
+        data[2] = 0x01;
+
+        // Write data length
+        int length = inBuf.readableBytes();
+        data[3] = (byte) length;
+        data[4] = (byte) ( length >>> 8 );
+        length = ~length;
+        data[5] = (byte) length;
+        data[6] = (byte) ( length >>> 8 );
+
+        // Write data
+        inBuf.readBytes( data, 7, inBuf.readableBytes() );
+
+        long checksum = adler32( data, 7, data.length - 11 );
+        data[data.length - 4] = ( (byte) ( ( checksum >> 24 ) % 256 ) );
+        data[data.length - 3] = ( (byte) ( ( checksum >> 16 ) % 256 ) );
+        data[data.length - 2] = ( (byte) ( ( checksum >> 8 ) % 256 ) );
+        data[data.length - 1] = ( (byte) ( checksum % 256 ) );
+
+        return data;
+    }
+
     /**
      * Calculates the adler32 checksum of the data
      */
-    private static long adler32( byte[] data, int offset, int length ) {
+    private long adler32( byte[] data, int offset, int length ) {
         final Adler32 checksum = new Adler32();
         checksum.update( data, offset, length );
         return checksum.getValue();

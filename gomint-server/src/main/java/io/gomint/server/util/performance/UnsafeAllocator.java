@@ -36,6 +36,7 @@ public class UnsafeAllocator {
      */
     public static synchronized long allocate( int size ) {
         long baseAddress = UNSAFE.allocateMemory( size );
+        UNSAFE.setMemory( baseAddress, size, (byte) 0 );
         ALLOCATED_BASES.add( new Entry( baseAddress, size ) );
         return baseAddress;
     }

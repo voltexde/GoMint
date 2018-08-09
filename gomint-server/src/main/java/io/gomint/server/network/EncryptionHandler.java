@@ -18,8 +18,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.ShortBufferException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.security.DigestException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -150,7 +148,7 @@ public class EncryptionHandler {
      */
     public byte[] encryptInputForClient( byte[] input ) {
         byte[] hashBytes = calcHash( input, this.sendingCounter );
-        byte[] finalInput = new byte[hashBytes.length + input.length];
+        byte[] finalInput = new byte[8 + input.length];
 
         System.arraycopy( input, 0, finalInput, 0, input.length );
         System.arraycopy( hashBytes, 0, finalInput, input.length, 8 );
@@ -202,11 +200,24 @@ public class EncryptionHandler {
             }
 
             byte[] result = new byte[digest.getDigestLength()];
-            digest.update( ByteBuffer.allocate( 8 ).order( ByteOrder.LITTLE_ENDIAN ).putLong( counter.getAndIncrement() ).array(), 0, 8 );
+
+            long v = counter.getAndIncrement();
+
+            byte[] buffer = new byte[8];
+            buffer[0] = (byte) ( (int) ( v & 255L ) );
+            buffer[1] = (byte) ( (int) ( v >> 8 & 255L ) );
+            buffer[2] = (byte) ( (int) ( v >> 16 & 255L ) );
+            buffer[3] = (byte) ( (int) ( v >> 24 & 255L ) );
+            buffer[4] = (byte) ( (int) ( v >> 32 & 255L ) );
+            buffer[5] = (byte) ( (int) ( v >> 40 & 255L ) );
+            buffer[6] = (byte) ( (int) ( v >> 48 & 255L ) );
+            buffer[7] = (byte) ( (int) ( v >> 56 & 255L ) );
+
+            digest.update( buffer );
             digest.update( input, 0, input.length );
             digest.update( this.key, 0, this.key.length );
             digest.digest( result, 0, result.length );
-            return Arrays.copyOf( result, 8 );
+            return result;
         } catch ( DigestException e ) {
             LOGGER.error( "Could not create SHA256 hash", e );
         }
