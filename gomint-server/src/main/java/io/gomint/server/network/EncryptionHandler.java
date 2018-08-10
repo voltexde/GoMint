@@ -43,15 +43,20 @@ public class EncryptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EncryptionHandler.class );
     private static final ThreadLocal<MessageDigest> SHA256_DIGEST = new ThreadLocal<>();
+    private static final ThreadLocal<SecureRandom> RANDOM = new ThreadLocal<>();
+
     // Holder for the server keypair
     private final EncryptionKeyFactory keyFactory;
+
     // Packet counters
     private AtomicLong sendingCounter = new AtomicLong( 0 );
     private AtomicLong receiveCounter = new AtomicLong( 0 );
+
     // Client Side:
     private ECPublicKey clientPublicKey;
     private Cipher clientEncryptor;
     private Cipher clientDecryptor;
+
     // Data for packet and checksum calculations
     @Getter
     private byte[] clientSalt;
@@ -88,15 +93,19 @@ public class EncryptionHandler {
         }
 
         // Generate a random salt:
-        SecureRandom secureRandom = null;
-        try {
-            secureRandom = SecureRandom.getInstance( "SHA1PRNG" );
-        } catch ( NoSuchAlgorithmException e ) {
-            LOGGER.warn( "Could not get secure random instance", e );
-            return false;
+        SecureRandom secureRandom = RANDOM.get();
+        if ( secureRandom == null ) {
+            try {
+                secureRandom = SecureRandom.getInstance( "SHA1PRNG" );
+                RANDOM.set( secureRandom );
+            } catch ( NoSuchAlgorithmException e ) {
+                LOGGER.warn( "Could not get secure random instance", e );
+                return false;
+            }
         }
 
-        this.clientSalt = secureRandom.generateSeed( 16 );
+        this.clientSalt = new byte[16];
+        secureRandom.nextBytes( this.clientSalt );
 
         // Generate shared secret from ECDH keys:
         byte[] secret = this.generateECDHSecret( this.keyFactory.getKeyPair().getPrivate(), this.clientPublicKey );

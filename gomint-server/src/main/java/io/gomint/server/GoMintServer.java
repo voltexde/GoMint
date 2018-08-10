@@ -217,20 +217,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.executorService = MoreExecutors.listeningDecorator( new ThreadPoolExecutor( 3, 512, 60L,
             TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory ) );
 
-        if ( PerformanceHacks.isUnsafeEnabled() ) {
-            this.executorService.submit( () -> {
-                while ( init.get() ) {
-                    UnsafeAllocator.printUsage();
-
-                    try {
-                        Thread.sleep( 10000 );
-                    } catch ( InterruptedException e ) {
-                        e.printStackTrace();
-                    }
-                }
-            } );
-        }
-
         this.watchdog = new Watchdog( this );
 
         LOGGER.info( "Loading block, item and entity registers" );
