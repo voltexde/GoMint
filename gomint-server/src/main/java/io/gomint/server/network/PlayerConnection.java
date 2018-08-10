@@ -82,6 +82,7 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.util.random.FastRandom;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import it.unimi.dsi.fastutil.bytes.ByteConsumer;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -153,11 +154,14 @@ public class PlayerConnection {
     // Network manager that created this connection:
     @Getter
     private final NetworkManager networkManager;
+
     // Actual connection for wire transfer:
     @Getter
     private final Connection connection;
     @Getter
     private final ConnectionHandler connectionHandler;
+    private byte raknetVersion;
+
     // World data
     @Getter
     private final LongSet playerChunks;
@@ -250,6 +254,10 @@ public class PlayerConnection {
 
                 return packetData;
             } );
+
+            this.raknetVersion = this.connection.getProtocolVersion();
+        } else {
+            this.connectionHandler.onRaknetVersion( b -> raknetVersion = b );
         }
     }
 
@@ -372,11 +380,12 @@ public class PlayerConnection {
                 PacketBuffer[] packetBuffers = new PacketBuffer[packets.length];
                 for ( int i = 0; i < packets.length; i++ ) {
                     packetBuffers[i] = new PacketBuffer( 2 );
-                    packets[i].serializeHeader( packetBuffers[i], (byte) 8 );
+                    packets[i].serializeHeader( packetBuffers[i], this.raknetVersion );
                     packets[i].serialize( packetBuffers[i], this.protocolID );
                 }
 
                 WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+                mcpePacket.setRaknetVersion( this.raknetVersion );
                 mcpePacket.setBuffer( packetBuffers );
                 this.connectionHandler.send( mcpePacket );
                 this.sendQueue.clear();
@@ -445,11 +454,11 @@ public class PlayerConnection {
             LOGGER.debug( "Writing packet {} to client", Integer.toHexString( packet.getId() & 0xFF ) );
 
             PacketBuffer buffer = new PacketBuffer( 2 );
-            buffer.writeByte( packet.getId() );
-            buffer.writeShort( (short) 0 );
+            packet.serializeHeader( buffer, this.raknetVersion );
             packet.serialize( buffer, this.protocolID );
 
             WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+            mcpePacket.setRaknetVersion( this.raknetVersion );
             mcpePacket.setBuffer( new PacketBuffer[]{ buffer } );
             this.connectionHandler.send( mcpePacket );
         }
@@ -525,7 +534,7 @@ public class PlayerConnection {
         byte packetId;
 
         // Check for split id stuff
-        if ( this.connection.getProtocolVersion() == 8 ) {
+        if ( this.raknetVersion == 8 ) {
             packetId = (byte) rawId;
 
             // There is some data behind the packet id when non batched packets (2 bytes)

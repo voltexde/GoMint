@@ -44,7 +44,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
 
     @Override
     public long getBreakTime() {
-        return 350;
+        return 300;
     }
 
     @Override

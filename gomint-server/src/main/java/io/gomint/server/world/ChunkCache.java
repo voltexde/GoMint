@@ -130,10 +130,6 @@ public class ChunkCache {
             while ( toRemoveCursor.hasNext() ) {
                 this.cachedChunks.remove( toRemoveCursor.nextLong() );
             }
-
-            if ( PerformanceHacks.isUnsafeEnabled() ) {
-                UnsafeAllocator.printUsage();
-            }
         }
     }
 

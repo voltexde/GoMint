@@ -6,6 +6,8 @@ import io.gomint.event.EventListener;
 import io.gomint.event.EventPriority;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.inventory.item.ItemArrow;
+import io.gomint.inventory.item.ItemBed;
+import io.gomint.inventory.item.ItemStonePickaxe;
 import io.gomint.math.Vector;
 import io.gomint.plugin.TestPlugin;
 import io.gomint.util.random.FastRandom;
@@ -28,6 +30,8 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().getPermissionManager().setPermission( "*", true );
 
         event.getPlayer().getInventory().setItem( 0, ItemArrow.create( 12 ) );
+        event.getPlayer().getInventory().setItem( 1, ItemBed.create( 12 ) );
+        event.getPlayer().getInventory().setItem( 2, ItemStonePickaxe.create( 1 ) );
 
         // Spawn a entity human in front
         EntityCow entityHuman = EntityCow.create();
