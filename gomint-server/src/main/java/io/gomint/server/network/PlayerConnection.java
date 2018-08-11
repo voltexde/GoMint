@@ -232,7 +232,7 @@ public class PlayerConnection {
         // Attach data processor if needed
         if ( this.connection != null ) {
             this.decompressor = ZLIB.newInstance();
-            this.decompressor.init( false, 7 ); // Level doesn't matter
+            this.decompressor.init( false, false, 7 ); // Level doesn't matter
 
             this.postProcessorExecutor = networkManager.getPostProcessService().getExecutor();
             this.connection.addDataProcessor( packetData -> {

@@ -46,7 +46,7 @@ public class PostProcessWorker implements Runnable {
     private ZLib getCompressor() {
         if ( COMPRESSOR.get() == null ) {
             ZLib zLib = ZLIB.newInstance();
-            zLib.init( true, 7 );
+            zLib.init( true, false, 7 );
             COMPRESSOR.set( zLib );
             return zLib;
         }

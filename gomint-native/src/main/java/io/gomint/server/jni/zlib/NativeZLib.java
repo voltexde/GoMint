@@ -29,11 +29,11 @@ public class NativeZLib implements ZLib {
     private long ctx;
 
     @Override
-    public void init( boolean compress, int level ) {
+    public void init( boolean compress, boolean gzip, int level ) {
         free();
 
         this.compress = compress;
-        this.ctx = nativeCompress.init( compress, level );
+        this.ctx = nativeCompress.init( compress, gzip, level );
     }
 
     @Override

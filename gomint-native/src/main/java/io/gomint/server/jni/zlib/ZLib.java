@@ -13,7 +13,7 @@ import java.util.zip.DataFormatException;
 
 public interface ZLib {
 
-    void init( boolean compress, int level );
+    void init( boolean compress, boolean gzip, int level );
 
     void free();
 

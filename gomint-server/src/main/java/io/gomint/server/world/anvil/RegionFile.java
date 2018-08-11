@@ -35,7 +35,6 @@ import java.util.zip.Inflater;
 class RegionFile {
 
     private static final NativeCode<ZLib> ZLIB = new NativeCode<>( "zlib", JavaZLib.class, NativeZLib.class );
-    private static final ThreadLocal<ZLib> COMPRESSOR = new ThreadLocal<>();
     private static final ThreadLocal<ZLib> DECOMPRESSOR = new ThreadLocal<>();
 
     static {
@@ -92,21 +91,10 @@ class RegionFile {
         }
     }
 
-    private ZLib getCompressor() {
-        if ( COMPRESSOR.get() == null ) {
-            ZLib zLib = ZLIB.newInstance();
-            zLib.init( true,7 );
-            COMPRESSOR.set( zLib );
-            return zLib;
-        }
-
-        return COMPRESSOR.get();
-    }
-
     private ZLib getDecompressor() {
         if ( DECOMPRESSOR.get() == null ) {
             ZLib zLib = ZLIB.newInstance();
-            zLib.init( false, 7 );
+            zLib.init( false, false, 7 );
             DECOMPRESSOR.set( zLib );
             return zLib;
         }

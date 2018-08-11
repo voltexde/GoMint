@@ -44,7 +44,7 @@ public class PostProcessWorker implements Runnable {
         }
 
         zLib = ZLIB.newInstance();
-        zLib.init( true, this.connection.getServer().getServerConfig().getConnection().getCompressionLevel() );
+        zLib.init( true, false, this.connection.getServer().getServerConfig().getConnection().getCompressionLevel() );
         COMPRESSOR.set( zLib );
         return zLib;
     }

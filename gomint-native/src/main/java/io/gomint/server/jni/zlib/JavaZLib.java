@@ -26,14 +26,14 @@ public class JavaZLib implements ZLib {
     private Inflater inflater;
 
     @Override
-    public void init( boolean compress, int level ) {
+    public void init( boolean compress, boolean gzip, int level ) {
         this.compress = compress;
         free();
 
         if ( compress ) {
-            deflater = new Deflater( level );
+            deflater = new Deflater( level, gzip );
         } else {
-            inflater = new Inflater();
+            inflater = new Inflater( gzip );
         }
     }
 
