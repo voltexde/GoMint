@@ -120,13 +120,15 @@ public class BlockRuntimeIDs {
                     dataValues = new int[highestDataValues.get( blockId ) + 1];
                 }
 
+                Long overrideId = (Long) idObj.get( "runtimeID" );
+
                 if ( beta ) {
-                    dataValues[dataValue] = RUNTIME_ID_BETA.getAndIncrement();
+                    dataValues[dataValue] = overrideId != null ? overrideId.intValue() : RUNTIME_ID_BETA.getAndIncrement();
                     BLOCK_DATA_TO_RUNTIME_BETA[blockId] = dataValues;
                     buffer.writeString( (String) idObj.get( "name" ) );
                     buffer.writeLShort( (short) dataValue );
                 } else {
-                    dataValues[dataValue] = RUNTIME_ID.getAndIncrement();
+                    dataValues[dataValue] = overrideId != null ? overrideId.intValue() : RUNTIME_ID.getAndIncrement();
                     BLOCK_DATA_TO_RUNTIME[blockId] = dataValues;
                     buffer.writeString( (String) idObj.get( "name" ) );
                     buffer.writeLShort( (short) dataValue );
@@ -166,9 +168,9 @@ public class BlockRuntimeIDs {
     public static int fromLegacy( int blockId, byte dataValue, int protocolID ) {
         // Get lookup array
         int[][] lookup = BLOCK_DATA_TO_RUNTIME;
-        /*if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
+        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
             lookup = BLOCK_DATA_TO_RUNTIME_BETA;
-        }*/
+        }
 
         // We first lookup the wanted values
         int runtimeID = lookup( blockId, dataValue, lookup );
