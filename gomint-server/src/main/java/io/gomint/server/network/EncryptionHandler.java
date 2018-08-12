@@ -7,6 +7,7 @@
 
 package io.gomint.server.network;
 
+import io.gomint.util.random.FastRandom;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 import java.security.interfaces.ECPublicKey;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -43,7 +42,6 @@ public class EncryptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EncryptionHandler.class );
     private static final ThreadLocal<MessageDigest> SHA256_DIGEST = new ThreadLocal<>();
-    private static final ThreadLocal<SecureRandom> RANDOM = new ThreadLocal<>();
 
     // Holder for the server keypair
     private final EncryptionKeyFactory keyFactory;
@@ -93,19 +91,8 @@ public class EncryptionHandler {
         }
 
         // Generate a random salt:
-        SecureRandom secureRandom = RANDOM.get();
-        if ( secureRandom == null ) {
-            try {
-                secureRandom = SecureRandom.getInstance( "SHA1PRNG" );
-                RANDOM.set( secureRandom );
-            } catch ( NoSuchAlgorithmException e ) {
-                LOGGER.warn( "Could not get secure random instance", e );
-                return false;
-            }
-        }
-
         this.clientSalt = new byte[16];
-        secureRandom.nextBytes( this.clientSalt );
+        FastRandom.current().nextBytes( this.clientSalt );
 
         // Generate shared secret from ECDH keys:
         byte[] secret = this.generateECDHSecret( this.keyFactory.getKeyPair().getPrivate(), this.clientPublicKey );

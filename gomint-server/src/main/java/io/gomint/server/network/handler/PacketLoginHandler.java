@@ -54,7 +54,6 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
     private static final Logger LOGGER = LoggerFactory.getLogger( PacketLoginHandler.class );
     private static final EncryptionRequestForger FORGER = new EncryptionRequestForger();
     private static final Pattern NAME_PATTERN = Pattern.compile( "[a-zA-z0-9_\\. ]{1,16}" );
-    private static final ExecutorService LOGIN_HELPER = Executors.newSingleThreadExecutor();
 
     @Override
     public void handle( PacketLogin packet, long currentTimeMillis, PlayerConnection connection ) {
@@ -233,7 +232,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                     connection.initWorldAndResourceSend();
                 } else {
                     // Generating EDCH secrets can take up huge amount of time
-                    LOGIN_HELPER.execute( () -> {
+                    connection.getServer().getExecutorService().execute( () -> {
                         connection.getServer().getWatchdog().add( 2, TimeUnit.SECONDS );
 
                         // Enable encryption
