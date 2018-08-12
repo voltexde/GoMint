@@ -119,7 +119,7 @@ public class ChunkCache {
                 continue;
             }
 
-            LOGGER.info( "Cleaning up chunk @ {} {}", currentX, currentZ );
+            LOGGER.debug( "Cleaning up chunk @ {} {}", currentX, currentZ );
 
             // Ask this chunk if he wants to be gced
             this.tempHashes[1].add( l );
