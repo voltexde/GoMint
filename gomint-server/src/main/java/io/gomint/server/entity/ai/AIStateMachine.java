@@ -13,13 +13,6 @@ public class AIStateMachine {
     private AIState activeState;
 
     /**
-     * Constructs a new AIStateMachine.
-     */
-    public AIStateMachine() {
-
-    }
-
-    /**
      * Gets the AI state that is currently active.
      *
      * @return The currently active AI state

@@ -8,7 +8,6 @@
 package io.gomint.server.entity.potion.effect;
 
 import io.gomint.server.entity.EntityLiving;
-import io.gomint.server.player.EffectManager;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -28,6 +27,12 @@ public class Absorption extends Effect {
         player.setAbsorptionHearts( player.getAbsorptionHearts() + 4 * ( this.amplifier + 1 ) );
     }
 
+    /**
+     * This method does nothing, absorption is handled in the damage calculation
+     *
+     * @param currentTimeMillis milliseconds of the tick start
+     * @param dT                percentage of a whole second done
+     */
     @Override
     public void update( long currentTimeMillis, float dT ) {
 

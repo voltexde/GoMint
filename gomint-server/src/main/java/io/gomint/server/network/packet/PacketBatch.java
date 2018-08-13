@@ -20,6 +20,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode( callSuper = false )
 public class PacketBatch extends Packet {
 
+    private boolean compressed;
     private byte[] payload;
 
     public PacketBatch() {

@@ -52,13 +52,22 @@ public class PostProcessWorker implements Runnable {
     @Override
     public void run() {
         ByteBuf inBuf = writePackets( this.packets );
+        if ( inBuf.readableBytes() == 0 ) {
+            inBuf.release();
+            return;
+        }
+
         byte[] data = compress( inBuf );
         inBuf.release();
-
         if ( data == null ) {
             return;
         }
 
+        PacketBatch batch = this.encrypt( data );
+        this.connection.send( batch );
+    }
+
+    private PacketBatch encrypt( byte[] data ) {
         PacketBatch batch = new PacketBatch();
         batch.setPayload( data );
 
@@ -67,7 +76,7 @@ public class PostProcessWorker implements Runnable {
             batch.setPayload( encryptionHandler.encryptInputForClient( batch.getPayload() ) );
         }
 
-        this.connection.send( batch );
+        return batch;
     }
 
     private ByteBuf writePackets( Packet[] packets ) {
@@ -77,13 +86,26 @@ public class PostProcessWorker implements Runnable {
         PacketBuffer buffer = new PacketBuffer( 64 );
 
         for ( Packet packet : packets ) {
-            buffer.setPosition( 0 );
+            if ( packet instanceof PacketBatch ) { // Only chunks can do this
+                if ( !( (PacketBatch) packet ).isCompressed() ) {
+                    ByteBuf in = newNettyBuffer();
+                    in.writeBytes( ( (PacketBatch) packet ).getPayload() );
+                    ( (PacketBatch) packet ).setPayload( this.compress( in ) );
+                    in.release();
+                    ( (PacketBatch) packet ).setCompressed( true );
+                }
 
-            packet.serializeHeader( buffer, this.connection.getConnection().getProtocolVersion() );
-            packet.serialize( buffer, this.connection.getProtocolID() );
+                PacketBatch encrypted = this.encrypt( ( (PacketBatch) packet ).getPayload() );
+                this.connection.send( encrypted );
+            } else {
+                buffer.setPosition( 0 );
 
-            writeVarInt( buffer.getPosition(), inBuf );
-            inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+                packet.serializeHeader( buffer, this.connection.getConnection().getProtocolVersion() );
+                packet.serialize( buffer, this.connection.getProtocolID() );
+
+                writeVarInt( buffer.getPosition(), inBuf );
+                inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+            }
         }
 
         return inBuf;
@@ -155,14 +177,12 @@ public class PostProcessWorker implements Runnable {
     }
 
     private void writeVarInt( int value, ByteBuf stream ) {
-        int copyValue = value;
-
-        while ( ( copyValue & -128 ) != 0 ) {
-            stream.writeByte( copyValue & 127 | 128 );
-            copyValue >>>= 7;
+        while ( ( value & -128 ) != 0 ) {
+            stream.writeByte( value & 127 | 128 );
+            value >>>= 7;
         }
 
-        stream.writeByte( copyValue );
+        stream.writeByte( value );
     }
 
 }

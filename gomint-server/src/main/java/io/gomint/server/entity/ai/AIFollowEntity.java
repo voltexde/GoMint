@@ -77,25 +77,17 @@ public class AIFollowEntity extends AIState {
 
             this.pathfinding.getTransform().setMotion( direction.getX(), direction.getY(), direction.getZ() );
 
-            LOGGER.debug( "Current pos: " + position + "; Needed: " + node + "; Direction: " + direction );
+            LOGGER.debug( "Current pos: {}; Needed: {}; Direction: {}", position, node, direction );
 
             if ( blockPosition.equals( node ) ) {
                 this.currentPathNode++;
             }
         } else if ( this.followEntity.isOnGround() ) {
-            LOGGER.debug( "Current follow position: " + this.followEntity.getLocation() );
+            LOGGER.debug( "Current follow position: {}", this.followEntity.getLocation() );
 
             this.pathfinding.setGoal( this.followEntity.getLocation() );
             this.path = this.pathfinding.getPath();
             this.currentPathNode = 0;
-
-            LOGGER.debug( "Path to follow entity " + this.followEntity );
-            for ( BlockPosition intTriple : this.path ) {
-                /*EntityItem item = new EntityItem( new ItemStack( Material.BRICK ), this.world );
-                this.world.spawnEntityAt( item, intTriple.toVector() );
-
-                LOGGER.debug( intTriple.toString() );*/
-            }
         }
     }
 

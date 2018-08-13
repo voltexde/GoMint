@@ -6,8 +6,6 @@ import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
 import io.gomint.server.world.WorldAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,8 +18,6 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  */
 public class AIPassiveIdleMovement extends AIState {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger( AIPassiveIdleMovement.class );
 
     private final WorldAdapter world;
     private final PathfindingEngine pathfinding;

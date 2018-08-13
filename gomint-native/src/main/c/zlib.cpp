@@ -79,10 +79,10 @@ jlong JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_init(JNIEnv* env, jobjec
 	{
 	    if ( gzip )
 	    {
-	        ret = deflateInit2(stream, level, Z_DEFLATED, 16 + MAX_WBITS, 8, Z_HUFFMAN_ONLY);
+	        ret = deflateInit2(stream, level, Z_DEFLATED, 16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
 	    } else
 	    {
-	        ret = deflateInit2(stream, level, Z_DEFLATED, MAX_WBITS, 8, Z_HUFFMAN_ONLY);
+	        ret = deflateInit2(stream, level, Z_DEFLATED, MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
 	    }
 	} else
 	{
