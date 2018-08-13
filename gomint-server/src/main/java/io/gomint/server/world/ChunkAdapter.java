@@ -574,14 +574,14 @@ public class ChunkAdapter implements Chunk {
         packet.setX( this.x );
         packet.setZ( this.z );
         packet.setData( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
-        return packChunk( packet );
+        return packChunk( packet, protocolId );
     }
 
-    private PacketBatch packChunk( PacketWorldChunk chunkPacket ) {
+    private PacketBatch packChunk( PacketWorldChunk chunkPacket, int protocolId ) {
         PacketBatch chunkPacketBatch = new PacketBatch();
         PacketBuffer buffer = new PacketBuffer( 64 );
-        chunkPacket.serializeHeader( buffer, (byte) 8 );
-        chunkPacket.serialize( buffer, Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
+        chunkPacket.serializeHeader( buffer, protocolId == 274 ? (byte) 8 : (byte) 9 );
+        chunkPacket.serialize( buffer, protocolId );
 
         ByteBuffer finalOut = ByteBuffer.allocate( buffer.getPosition() + 5 );
         writeVarInt( buffer.getPosition(), finalOut );
