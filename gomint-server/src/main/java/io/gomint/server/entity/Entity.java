@@ -1377,7 +1377,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     public void setWorld( WorldAdapter world ) {
-        LOGGER.info( "Setting world of {} to {}", this, world.getLevelName(), new Exception() );
+        LOGGER.info( "Setting world of {} to {}", this, world.toString() );
         this.world = world;
     }
 

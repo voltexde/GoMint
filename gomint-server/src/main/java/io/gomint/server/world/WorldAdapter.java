@@ -91,7 +91,7 @@ import java.util.function.Predicate;
  * @version 1.0
  */
 @EqualsAndHashCode( of = { "worldDir" } )
-@ToString( of = { "levelName" } )
+@ToString( of = { "levelName", "worldDir" } )
 public abstract class WorldAdapter implements World {
 
     // Shared objects
