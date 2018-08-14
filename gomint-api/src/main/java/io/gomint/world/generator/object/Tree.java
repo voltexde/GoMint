@@ -20,7 +20,7 @@ import io.gomint.world.block.BlockType;
 public abstract class Tree {
 
     private static final BlockType[] OVERRIDABLE = new BlockType[]{
-        BlockType.AIR, BlockType.SAPLING, BlockType.LOG, BlockType.LEAVES, BlockType.SNOW_LAYER, BlockType.ACACIA_LEAVES, BlockType.ACACIA_WOOD
+        BlockType.AIR, BlockType.SAPLING, BlockType.LOG, BlockType.LEAVES, BlockType.SNOW_LAYER, BlockType.ACACIA_LEAVES, BlockType.LOG2
     };
 
     protected int treeHeight;

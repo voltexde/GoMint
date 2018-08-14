@@ -8,21 +8,22 @@ import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockLog;
+import io.gomint.world.block.BlockLog2;
 import io.gomint.world.block.BlockType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author geNAZt
+ * @author KCodeYT
  * @version 1.0
  */
-@RegisterInfo( id = 17 )
-public class Log extends Block implements BlockLog {
+@RegisterInfo( id = 162 )
+public class Log2 extends Block implements BlockLog2 {
 
     @Override
     public int getBlockId() {
-        return 17;
+        return 162;
     }
 
     @Override
@@ -37,7 +38,7 @@ public class Log extends Block implements BlockLog {
 
     @Override
     public BlockType getType() {
-        return BlockType.LOG;
+        return BlockType.LOG2;
     }
 
     @Override
@@ -57,18 +58,12 @@ public class Log extends Block implements BlockLog {
     public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         if ( entity instanceof EntityPlayer && this.isCorrectTool(item) ) {
             switch ( this.getTypeData() ) {
-                case 3:
-                    this.setType( StrippedJungleLog.class );
-                    break;
-                case 2:
-                    this.setType( StrippedBirchLog.class );
-                    break;
                 case 1:
-                    this.setType( StrippedSpruceLog.class );
+                    this.setType( StrippedDarkOakLog.class );
                     break;
                 case 0:
                 default:
-                    this.setType( StrippedOakLog.class );
+                    this.setType( StrippedAcaciaLog.class );
                     break;
             }
 
@@ -87,14 +82,8 @@ public class Log extends Block implements BlockLog {
 
         short newData = 0;
         switch ( type ) {
-            case SPRUCE:
+            case DARK_OAK:
                 newData |= 1;
-                break;
-            case BIRCH:
-                newData |= 2;
-                break;
-            case JUNGLE:
-                newData |= 3;
                 break;
             default:
                 break;
@@ -109,15 +98,11 @@ public class Log extends Block implements BlockLog {
     public Type getLogType() {
         switch ( this.getTypeData() ) {
             case 0:
-                return Type.OAK;
+                return Type.ACACIA;
             case 1:
-                return Type.SPRUCE;
-            case 2:
-                return Type.BIRCH;
-            case 3:
-                return Type.JUNGLE;
+                return Type.DARK_OAK;
             default:
-                return Type.OAK;
+                return Type.ACACIA;
         }
     }
 
