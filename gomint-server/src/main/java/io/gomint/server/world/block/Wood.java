@@ -1,8 +1,13 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemFlintAndSteel;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.Entity;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
 /**
