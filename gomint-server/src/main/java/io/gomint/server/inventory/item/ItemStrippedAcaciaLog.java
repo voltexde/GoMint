@@ -7,7 +7,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @author KCodeYT
  * @version 1.0
  */
-@RegisterInfo( id = 263 )
+@RegisterInfo( id = -8 )
 public class ItemStrippedAcaciaLog extends ItemStack implements io.gomint.inventory.item.ItemStrippedAcaciaLog {
 
     @Override
@@ -17,7 +17,7 @@ public class ItemStrippedAcaciaLog extends ItemStack implements io.gomint.invent
 
     @Override
     public void setLogDirection( Direction direction ) {
-        short type = this.getData();
+        short type = 0;
 
         switch ( direction ) {
             case EAST_WEST:

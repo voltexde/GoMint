@@ -7,7 +7,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @author KCodeYT
  * @version 1.0
  */
-@RegisterInfo( id = 265 )
+@RegisterInfo( id = -10 )
 public class ItemStrippedOakLog extends ItemStack implements io.gomint.inventory.item.ItemStrippedOakLog {
 
     @Override
@@ -17,7 +17,7 @@ public class ItemStrippedOakLog extends ItemStack implements io.gomint.inventory
 
     @Override
     public void setLogDirection( Direction direction ) {
-        short type = this.getData();
+        short type = 0;
 
         switch ( direction ) {
             case EAST_WEST:

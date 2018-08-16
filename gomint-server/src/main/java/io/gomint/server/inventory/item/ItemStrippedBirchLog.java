@@ -7,7 +7,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @author KCodeYT
  * @version 1.0
  */
-@RegisterInfo( id = 261 )
+@RegisterInfo( id = -6 )
 public class ItemStrippedBirchLog extends ItemStack implements io.gomint.inventory.item.ItemStrippedBirchLog {
 
     @Override
@@ -17,7 +17,7 @@ public class ItemStrippedBirchLog extends ItemStack implements io.gomint.invento
 
     @Override
     public void setLogDirection( Direction direction ) {
-        short type = this.getData();
+        short type = 0;
 
         switch ( direction ) {
             case EAST_WEST:
