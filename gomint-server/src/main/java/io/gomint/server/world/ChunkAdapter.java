@@ -75,8 +75,8 @@ public class ChunkAdapter implements Chunk {
 
     // Networking
     boolean dirty;
-    SoftReference<PacketBatch> cachedPacket;
-    SoftReference<PacketBatch> cachedBetaPacket;
+    SoftReference<Packet> cachedPacket;
+    SoftReference<Packet> cachedBetaPacket;
 
     // Chunk
     protected final int x;
@@ -261,7 +261,7 @@ public class ChunkAdapter implements Chunk {
      * @param batch The batch which has been generated to be sent to the clients
      * @param betaBatch The batch which has been generated to be sent to the beta clients
      */
-    void setCachedPacket( PacketBatch batch, PacketBatch betaBatch ) {
+    void setCachedPacket( Packet batch, Packet betaBatch ) {
         this.dirty = false;
         this.cachedPacket = new SoftReference<>( batch );
         this.cachedBetaPacket = new SoftReference<>( betaBatch );
@@ -299,7 +299,7 @@ public class ChunkAdapter implements Chunk {
      * @param callback The callback to be invoked once the operation is complete
      */
     void packageChunk( EntityPlayer player, Delegate2<Long, ChunkAdapter> callback ) {
-        SoftReference<PacketBatch> cachedPacketRef = (player.getConnection().getProtocolID() ==
+        SoftReference<Packet> cachedPacketRef = (player.getConnection().getProtocolID() ==
             Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION) ? this.cachedBetaPacket : this.cachedPacket;
 
         if ( !this.dirty && cachedPacketRef != null ) {
@@ -523,7 +523,7 @@ public class ChunkAdapter implements Chunk {
      * @param protocolId for which we want this chunk data
      * @return The world chunk packet that is to be sent
      */
-    PacketBatch createPackagedData( int protocolId ) {
+    Packet createPackagedData( int protocolId ) {
         PacketBuffer buffer = new PacketBuffer( 16 );
 
         // Detect how much data we can skip
@@ -565,7 +565,7 @@ public class ChunkAdapter implements Chunk {
                 try {
                     nbtWriter.write( compound );
                 } catch ( IOException e ) {
-                    e.printStackTrace();
+                    LOGGER.warn( "Could not persist nbt for network", e );
                 }
             }
         }
@@ -574,6 +574,12 @@ public class ChunkAdapter implements Chunk {
         packet.setX( this.x );
         packet.setZ( this.z );
         packet.setData( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
+
+        // Don't pack the chunk if using TCP
+        if ( this.world.getServer().getServerConfig().getListener().isUseTCP() ) {
+            return packet;
+        }
+
         return packChunk( packet, protocolId );
     }
 
@@ -677,7 +683,7 @@ public class ChunkAdapter implements Chunk {
         }
     }
 
-    public PacketBatch getCachedPacket( int protocolId ) {
+    public Packet getCachedPacket( int protocolId ) {
         if ( this.dirty ) {
             this.cachedPacket.clear();
             this.cachedBetaPacket.clear();
@@ -688,7 +694,7 @@ public class ChunkAdapter implements Chunk {
         }
 
         // Check if we have a object
-        PacketBatch packetWorldChunk = ( protocolId == Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) ? this.cachedPacket.get() : this.cachedBetaPacket.get();
+        Packet packetWorldChunk = ( protocolId == Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) ? this.cachedPacket.get() : this.cachedBetaPacket.get();
         if ( packetWorldChunk == null ) {
             // The packet got cleared from the JVM due to memory limits
             if ( this.world.getServer().getCurrentTickTime() - LAST_WARNING.get() >= 5000 ) {
