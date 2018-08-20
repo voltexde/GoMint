@@ -21,6 +21,4 @@ public class HashNative {
 
     static native void free( long ctx );
 
-    static native void reset( long ctx );
-
 }

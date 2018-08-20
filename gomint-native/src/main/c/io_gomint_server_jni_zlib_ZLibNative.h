@@ -34,7 +34,7 @@ JNIEXPORT void JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_reset
 /*
  * Class:     io_gomint_server_jni_zlib_ZLibNative
  * Method:    init
- * Signature: (ZI)J
+ * Signature: (ZZI)J
  */
 JNIEXPORT jlong JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_init
   (JNIEnv *, jobject, jboolean, jboolean, jint);

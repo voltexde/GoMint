@@ -33,14 +33,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_gomint_server_jni_hash_HashNative_digest
 
 /*
  * Class:     io_gomint_server_jni_hash_HashNative
- * Method:    reset
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_io_gomint_server_jni_hash_HashNative_reset
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     io_gomint_server_jni_hash_HashNative
  * Method:    free
  * Signature: (J)V
  */

@@ -8,17 +8,17 @@ void initializeDigest(EVP_MD_CTX *mdCtx) {
     EVP_DigestInit_ex(mdCtx, EVP_sha256(), NULL);
 }
 
-jlong JNICALL Java_io_gomint_server_jni_hash_HashNative_init(JNIEnv *env, jobject obj) {
+jlong JNICALL Java_io_gomint_server_jni_hash_HashNative_init(JNIEnv *env, jclass clz) {
     EVP_MD_CTX *mdCtx = EVP_MD_CTX_create();
     initializeDigest(mdCtx);
     return (jlong) mdCtx;
 }
 
-void JNICALL Java_io_gomint_server_jni_hash_HashNative_update(JNIEnv *env, jobject obj, jlong ctx, jlong in, jint bytes) {
+void JNICALL Java_io_gomint_server_jni_hash_HashNative_update(JNIEnv *env, jclass clz, jlong ctx, jlong in, jint bytes) {
     EVP_DigestUpdate((EVP_MD_CTX*) ctx, (byte*) in, bytes);
 }
 
-jbyteArray JNICALL Java_io_gomint_server_jni_hash_HashNative_digest(JNIEnv *env, jobject obj, jlong ctx) {
+jbyteArray JNICALL Java_io_gomint_server_jni_hash_HashNative_digest(JNIEnv *env, jclass clz, jlong ctx) {
     // SHA-256 produces 32 bytes (256 bits)
     unsigned char output[32];
 
@@ -35,6 +35,6 @@ jbyteArray JNICALL Java_io_gomint_server_jni_hash_HashNative_digest(JNIEnv *env,
     return array;
 }
 
-JNIEXPORT void JNICALL Java_io_gomint_server_jni_hash_HashNative_free(JNIEnv *env, jobject obj, jlong ctx) {
+JNIEXPORT void JNICALL Java_io_gomint_server_jni_hash_HashNative_free(JNIEnv *env, jclass clz, jlong ctx) {
     EVP_MD_CTX_destroy((EVP_MD_CTX*) ctx);
 }

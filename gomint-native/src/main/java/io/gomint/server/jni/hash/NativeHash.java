@@ -51,7 +51,7 @@ public class NativeHash implements Hash {
 
     @Override
     public void reset() {
-        HashNative.reset( this.ctx );
+        // Native auto resets after the digest
     }
 
     private void checkState() {
