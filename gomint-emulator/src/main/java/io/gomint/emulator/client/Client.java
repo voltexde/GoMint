@@ -38,10 +38,8 @@ import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.network.packet.PacketStartGame;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.resource.ResourceResponseStatus;
-import io.gomint.server.scheduler.AsyncScheduledTask;
 import io.gomint.server.util.Pair;
 import io.gomint.util.random.FastRandom;
-import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,9 +209,7 @@ public class Client {
             packet.setMessage( message );
             this.send( packet );
 
-            this.service.submit( new AsyncScheduledTask( () -> {
-                Client.this.internalClose( message );
-            }, 3, -1, TimeUnit.SECONDS ) );
+            this.service.schedule( () -> Client.this.internalClose( message ), 3, TimeUnit.SECONDS );
         } else {
             this.internalClose( message );
         }
@@ -467,7 +463,7 @@ public class Client {
         if ( packet.getId() == PACKET_START_GAME ) {
             this.spawn = ( (PacketStartGame) packet ).getSpawn();
             this.ownId = ( (PacketStartGame) packet ).getEntityId();
-            this.runtimeId = ((PacketStartGame) packet).getRuntimeEntityId();
+            this.runtimeId = ( (PacketStartGame) packet ).getRuntimeEntityId();
 
             this.spawnChunk = new Pair<>( (int) ( this.spawn.getX() / 16 ), (int) ( this.spawn.getZ() / 16 ) );
 

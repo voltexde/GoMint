@@ -71,7 +71,6 @@ import io.gomint.server.network.packet.PacketWorldTime;
 import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.protocol.FlushTickPacket;
 import io.gomint.server.network.tcp.protocol.WrappedMCPEPacket;
-import io.gomint.server.scheduler.AsyncScheduledTask;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.StringUtil;
@@ -82,7 +81,6 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.util.random.FastRandom;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import it.unimi.dsi.fastutil.bytes.ByteConsumer;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -98,8 +96,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
@@ -814,9 +810,7 @@ public class PlayerConnection {
             packet.setMessage( message );
             this.send( packet );
 
-            this.server.getExecutorService().submit( new AsyncScheduledTask( () -> {
-                PlayerConnection.this.internalClose( message );
-            }, 3, -1, TimeUnit.SECONDS ) );
+            this.server.getExecutorService().schedule( () -> PlayerConnection.this.internalClose( message ), 3, TimeUnit.SECONDS );
         } else {
             this.internalClose( message );
         }

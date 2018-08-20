@@ -9,6 +9,7 @@ package io.gomint.server;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.gomint.GoMint;
 import io.gomint.GoMintInstanceHolder;
@@ -19,6 +20,7 @@ import io.gomint.gui.ButtonList;
 import io.gomint.gui.CustomForm;
 import io.gomint.gui.Modal;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.jraknet.EventLoops;
 import io.gomint.permission.GroupManager;
 import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.StartupPriority;
@@ -76,6 +78,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -129,7 +133,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private AtomicBoolean running = new AtomicBoolean( true );
     private AtomicBoolean init = new AtomicBoolean( true );
     @Getter
-    private ListeningExecutorService executorService;
+    private ListeningScheduledExecutorService executorService;
     private Thread readerThread;
     private long currentTickTime;
 
@@ -214,9 +218,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         };
 
-        this.executorService = MoreExecutors.listeningDecorator( new ThreadPoolExecutor( 3, 512, 60L,
-            TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory ) );
-
+        this.executorService = MoreExecutors.listeningDecorator( EventLoops.LOOP_GROUP );
         this.watchdog = new Watchdog( this );
 
         LOGGER.info( "Loading block, item and entity registers" );
@@ -478,7 +480,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.pluginManager.close();
 
         if ( this.networkManager != null ) {
-            this.networkManager.close();
+            this.networkManager.shutdown();
         }
 
         if ( this.worldManager != null ) {
@@ -495,11 +497,16 @@ public class GoMintServer implements GoMint, InventoryHolder {
             }
         }
 
-        if ( !this.executorService.isTerminated() ) {
-            List<Runnable> running = this.executorService.shutdownNow();
-            for ( Runnable runnable : running ) {
+        if ( wait <= 0 ) {
+            List<Runnable> remainRunning = this.executorService.shutdownNow();
+            for ( Runnable runnable : remainRunning ) {
                 LOGGER.warn( "Runnable " + runnable.getClass().getName() + " has been terminated due to shutdown" );
             }
+        }
+
+        // Shutdown networking
+        if ( this.networkManager != null ) {
+            this.networkManager.close();
         }
 
         // Tell jLine to close PLS

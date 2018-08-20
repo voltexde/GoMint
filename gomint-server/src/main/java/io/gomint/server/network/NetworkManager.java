@@ -19,6 +19,8 @@ import io.gomint.server.network.tcp.Initializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ThreadDeathWatcher;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -38,6 +40,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -75,7 +78,7 @@ public class NetworkManager {
 
     // Post process service
     @Getter
-    private PostProcessExecutorService postProcessService = new PostProcessExecutorService();
+    private PostProcessExecutorService postProcessService;
 
     /**
      * Init a new NetworkManager for accepting new connections and read incoming data
@@ -84,6 +87,7 @@ public class NetworkManager {
      */
     public NetworkManager( GoMintServer server ) {
         this.server = server;
+        this.postProcessService = new PostProcessExecutorService( server.getExecutorService() );
     }
 
     // ======================================= PUBLIC API ======================================= //
@@ -193,25 +197,14 @@ public class NetworkManager {
      * Closes the network manager and all player connections.
      */
     public void close() {
-        if ( this.socket != null ) {
-            this.socket.close();
-            this.socket = null;
+        // Close the jRaknet EventLoops, we don't need them anymore
+        try {
+            EventLoops.LOOP_GROUP.shutdownGracefully().await();
 
-            for ( Long2ObjectMap.Entry<PlayerConnection> entry : this.playersByGuid.long2ObjectEntrySet() ) {
-                entry.getValue().close();
-            }
-
-            // Close the jRaknet EventLoops, we don't need them anymore
-            try {
-                EventLoops.LOOP_GROUP.shutdownGracefully().await();
-            } catch ( InterruptedException e ) {
-                LOGGER.error( "Could not shutdown jRaknet loop: ", e );
-            }
-        }
-
-        if ( this.tcpListener != null ) {
-            this.tcpChannel.close();
-            Initializer.close();
+            GlobalEventExecutor.INSTANCE.awaitInactivity( 5, TimeUnit.SECONDS );
+            ThreadDeathWatcher.awaitInactivity( 5, TimeUnit.SECONDS );
+        } catch ( InterruptedException e ) {
+            LOGGER.error( "Could not shutdown netty loops", e );
         }
     }
 
@@ -367,6 +360,22 @@ public class NetworkManager {
      */
     public int getPort() {
         return this.tcpListener != null ? this.boundPort : this.socket.getBindAddress().getPort();
+    }
+
+    public void shutdown() {
+        if ( this.socket != null ) {
+            this.socket.close();
+            this.socket = null;
+
+            for ( Long2ObjectMap.Entry<PlayerConnection> entry : this.playersByGuid.long2ObjectEntrySet() ) {
+                entry.getValue().close();
+            }
+        }
+
+        if ( this.tcpListener != null ) {
+            this.tcpChannel.close();
+            Initializer.close();
+        }
     }
 
 }

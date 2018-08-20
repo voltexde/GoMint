@@ -70,6 +70,11 @@ public final class NativeCode<T> {
             if ( !loaded ) {
                 String ending = SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? ".dll" : ".so";
                 try ( InputStream soFile = this.getInput( ending ) ) {
+                    if ( soFile == null ) {
+                        loaded = false;
+                        return false;
+                    }
+
                     // Else we will create and copy it to a temp file
                     File temp = File.createTempFile( fullName, ending );
 
