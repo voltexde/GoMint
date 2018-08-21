@@ -23,6 +23,9 @@ public class EntityDamageByEntityEvent extends EntityDamageEvent {
      * Create a new entity based cancellable event
      *
      * @param entity for which this event is
+     * @param attacker which attacked this entity
+     * @param damageSource with which the entity should be attacked
+     * @param damage which should be dealt
      */
     public EntityDamageByEntityEvent( Entity entity, Entity attacker, DamageSource damageSource, float damage ) {
         super( entity, damageSource, damage );

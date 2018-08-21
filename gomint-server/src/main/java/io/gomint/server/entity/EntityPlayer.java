@@ -696,7 +696,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     /**
      * Check for attribute updates and send them to the player if needed
      */
-    public void updateAttributes() {
+    private void updateAttributes() {
         PacketUpdateAttributes updateAttributes = null;
 
         for ( AttributeInstance instance : attributes.values() ) {

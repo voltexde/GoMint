@@ -10,6 +10,7 @@ package io.gomint.server.entity;
 import io.gomint.entity.BossBar;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityTeleportEvent;
+import io.gomint.event.entity.EntityVelocityEvent;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
@@ -510,6 +511,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     protected abstract void fall();
 
+    /**
+     * Check if this entity is collided
+     *
+     * @param movX the amount of x which the entity has moved
+     * @param movY the amount of y which the entity has moved
+     * @param movZ the amount of z which the entity has moved
+     * @param dX the amount of x which the entity should have moved
+     * @param dY the amount of y which the entity should have moved
+     * @param dZ the amount of z which the entity should have moved
+     */
     protected void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
         // Check if we collided with something
         this.isCollidedVertically = movY != dY;
@@ -641,9 +652,21 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.setVelocity( velocity, true );
     }
 
+    /**
+     * Set the given velocity
+     *
+     * @param velocity which should be applied to the entity
+     * @param send true when the entity should get the velocity
+     */
     public void setVelocity( Vector velocity, boolean send ) {
-        LOGGER.debug( "New motion for {}: {}", this, velocity );
-        this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
+        EntityVelocityEvent event = new EntityVelocityEvent( this, velocity );
+        this.world.getServer().getPluginManager().callEvent( event );
+        if ( event.isCancelled() ) {
+            return;
+        }
+
+        LOGGER.debug( "New motion for {}: {}", this, event.getVelocity() );
+        this.transform.setMotion( event.getVelocity().getX(), event.getVelocity().getY(), event.getVelocity().getZ() );
         this.fallDistance = 0;
 
         if ( send ) {
@@ -651,17 +674,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
         }
     }
 
-    public void broadCastMotion() {
+    /**
+     * Broadcast the current motion to all surrounding (visible) entities
+     */
+    void broadCastMotion() {
         PacketEntityMotion motion = new PacketEntityMotion();
         motion.setEntityId( this.getEntityId() );
         motion.setVelocity( this.transform.getMotion() );
 
-        this.world.sendToVisible( this.transform.getPosition().toBlockPosition(), motion, new Predicate<io.gomint.entity.Entity>() {
-            @Override
-            public boolean test( io.gomint.entity.Entity entity ) {
-                return entity instanceof EntityPlayer && ( (EntityPlayer) entity ).getEntityVisibilityManager().isVisible( Entity.this );
-            }
-        } );
+        this.world.sendToVisible( this.transform.getPosition().toBlockPosition(), motion,
+            entity -> entity instanceof EntityPlayer && ( (EntityPlayer) entity ).getEntityVisibilityManager().isVisible( Entity.this ) );
     }
 
     /**

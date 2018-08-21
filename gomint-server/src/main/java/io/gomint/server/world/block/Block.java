@@ -94,7 +94,7 @@ public abstract class Block implements io.gomint.world.block.Block {
      *
      * @return true when there is, false when not
      */
-    public boolean isUpdateScheduled() {
+    boolean isUpdateScheduled() {
         return this.world.isUpdateScheduled( this.location.toBlockPosition() );
     }
 
@@ -135,6 +135,7 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @param face    The block face the entity interacts with
      * @param facePos The position where the entity interacted with the block
      * @param item    The item with which the entity interacted, can be null
+     * @return true when the block has made a action for interaction, false when not
      */
     public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         return false;
