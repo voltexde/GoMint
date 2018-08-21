@@ -34,7 +34,6 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -49,7 +48,6 @@ public abstract class Block implements io.gomint.world.block.Block {
     private static final Logger LOGGER = LoggerFactory.getLogger( Block.class );
 
     // CHECKSTYLE:OFF
-
     @Getter
     private int blockId;
     @Setter
@@ -276,10 +274,10 @@ public abstract class Block implements io.gomint.world.block.Block {
                     data.setCompound( new NBTTagCompound( "" ) );
                 }
 
-                TileEntity tileEntity = instance.createTileEntity( data.getCompound() );
-                if ( tileEntity != null ) {
-                    instance.setTileEntity( tileEntity );
-                    worldAdapter.storeTileEntity( pos, tileEntity );
+                TileEntity tileEntityInstance = instance.createTileEntity( data.getCompound() );
+                if ( tileEntityInstance != null ) {
+                    instance.setTileEntity( tileEntityInstance );
+                    worldAdapter.storeTileEntity( pos, tileEntityInstance );
                 }
             }
 
@@ -310,10 +308,10 @@ public abstract class Block implements io.gomint.world.block.Block {
 
             // Check if new block needs tile entity
             if ( instance.needsTileEntity() ) {
-                TileEntity tileEntity = instance.createTileEntity( new NBTTagCompound( "" ) );
-                if ( tileEntity != null ) {
-                    instance.setTileEntity( tileEntity );
-                    worldAdapter.storeTileEntity( pos, tileEntity );
+                TileEntity tileEntityInstance = instance.createTileEntity( new NBTTagCompound( "" ) );
+                if ( tileEntityInstance != null ) {
+                    instance.setTileEntity( tileEntityInstance );
+                    worldAdapter.storeTileEntity( pos, tileEntityInstance );
                 }
             }
 
@@ -377,8 +375,8 @@ public abstract class Block implements io.gomint.world.block.Block {
             compound.addValue( "z", pos.getZ() );
 
             // Construct new tile entity
-            TileEntity tileEntity = TileEntities.construct( compound, worldAdapter );
-            worldAdapter.storeTileEntity( pos, tileEntity );
+            TileEntity tileEntityInstance = TileEntities.construct( compound, worldAdapter );
+            worldAdapter.storeTileEntity( pos, tileEntityInstance );
         }
 
         long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
@@ -699,7 +697,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     public abstract float getBlastResistance();
 
-    public void setBlockId( byte blockId ) {
+    public void setBlockId( int blockId ) {
         if ( isPlaced() ) {
             this.blockId = blockId;
             this.world.setBlockId( this.location.toBlockPosition(), this.layer, blockId );

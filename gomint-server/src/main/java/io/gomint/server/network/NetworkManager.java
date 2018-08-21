@@ -136,7 +136,7 @@ public class NetworkManager {
 
             this.socket = new ServerSocket( LOGGER, maxConnections );
             this.socket.setMojangModificationEnabled( true );
-            this.socket.setEventHandler( ( socket, socketEvent ) -> NetworkManager.this.handleSocketEvent( socketEvent ) );
+            this.socket.setEventHandler( ( eventSocket, socketEvent ) -> NetworkManager.this.handleSocketEvent( socketEvent ) );
             this.socket.bind( host, port );
         }
     }
@@ -170,8 +170,10 @@ public class NetworkManager {
         // Handle updates to player map:
         while ( !this.incomingConnections.isEmpty() ) {
             PlayerConnection connection = this.incomingConnections.poll();
-            LOGGER.debug( "Adding new connection to the server: {}", connection );
-            this.playersByGuid.put( connection.getId(), connection );
+            if ( connection != null ) {
+                LOGGER.debug( "Adding new connection to the server: {}", connection );
+                this.playersByGuid.put( connection.getId(), connection );
+            }
         }
 
         synchronized ( this.closedConnections ) {
@@ -205,6 +207,7 @@ public class NetworkManager {
             ThreadDeathWatcher.awaitInactivity( 5, TimeUnit.SECONDS );
         } catch ( InterruptedException e ) {
             LOGGER.error( "Could not shutdown netty loops", e );
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -227,7 +230,10 @@ public class NetworkManager {
      */
     void notifyUnknownPacket( byte packetId, PacketBuffer buffer ) {
         if ( this.dump ) {
-            LOGGER.info( "Received unknown packet 0x" + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+            if ( LOGGER.isInfoEnabled() ) {
+                LOGGER.info( "Received unknown packet 0x{}", Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+            }
+
             this.dumpPacket( packetId, buffer );
         }
     }
@@ -305,7 +311,9 @@ public class NetworkManager {
     }
 
     private void dumpPacket( byte packetId, PacketBuffer buffer ) {
-        LOGGER.info( "Dumping packet " + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+        if ( LOGGER.isInfoEnabled() ) {
+            LOGGER.info( "Dumping packet {}", Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+        }
 
         StringBuilder filename = new StringBuilder( Integer.toHexString( ( (int) packetId ) & 0xFF ) );
         while ( filename.length() < 2 ) {
@@ -362,6 +370,9 @@ public class NetworkManager {
         return this.tcpListener != null ? this.boundPort : this.socket.getBindAddress().getPort();
     }
 
+    /**
+     * Shut all network listeners down
+     */
     public void shutdown() {
         if ( this.socket != null ) {
             this.socket.close();
