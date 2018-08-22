@@ -9,6 +9,8 @@ package io.gomint.server.util;
 
 import com.google.common.base.Strings;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.inventory.Inventory;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,40 @@ import java.util.Map;
 public class DumpUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( DumpUtil.class );
+
+    public static void dumpInventory( Inventory inventory ) {
+        LOGGER.info( "Inventory: {} - Size: {}", inventory.getClass().getName(), inventory.size() );
+
+        if ( inventory.size() > 9 ) {
+
+        } else {
+            int rowSize = inventory.size() == 4 ? 2 : 3;
+            for ( int i = 0; i < rowSize; i++ ) {
+                StringBuilder builder = new StringBuilder( "  " );
+
+                for ( int j = 0; j < rowSize; j++ ) {
+                    ItemStack item = (ItemStack) inventory.getItem( i * rowSize + j );
+                    String slotName = String.valueOf( i * rowSize + j );
+                    String itemName = String.valueOf( item.getMaterial() );
+                    String dataName = String.valueOf( item.getData() );
+                    String amountName = String.valueOf( item.getAmount() );
+                    int itemDataNameLength = itemName.length() + dataName.length() + amountName.length();
+
+                    builder
+                        .append( slotName )
+                        .append( slotName.length() == 2 ? " " : "  " )
+                        .append( itemName )
+                        .append( ":" )
+                        .append( dataName )
+                        .append( "x" )
+                        .append( amountName )
+                        .append( Strings.repeat( " ", 7 - itemDataNameLength ) );
+                }
+
+                LOGGER.info( builder.toString() );
+            }
+        }
+    }
 
     public static void dumpPacketbuffer( PacketBuffer buffer ) {
         StringBuilder lineBuilder = new StringBuilder();

@@ -11,6 +11,7 @@ import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.inventory.item.ItemType;
 import io.gomint.jraknet.PacketBuffer;
+import io.gomint.server.inventory.CraftingInputInventory;
 import io.gomint.server.inventory.Inventory;
 import io.gomint.server.network.packet.Packet;
 
@@ -121,6 +122,36 @@ public class ShapedRecipe extends CraftingRecipe {
 
     @Override
     public int[] isCraftable( Inventory inputInventory ) {
+        // Check normal first
+        int[] output = this.check( inputInventory );
+        if ( output == null ) {
+            // vFlip the input
+            Inventory flippedInventory = new CraftingInputInventory( inputInventory.getOwner() );
+            if ( inputInventory.size() > 4 ) {
+                flippedInventory.resizeAndClear( inputInventory.size() );
+            }
+
+            // Take over and flip the slots
+            for ( int i = 0; i < inputInventory.getContentsArray().length; i++ ) {
+                if ( i == 0 || i == 3 || i == 6 ) {
+                    // Flip to +2
+                    flippedInventory.setItem( i + 2, inputInventory.getContentsArray()[i] );
+                } else if ( i == 2 || i == 5 || i == 8 ) {
+                    // Flip to -2
+                    flippedInventory.setItem( i - 2, inputInventory.getContentsArray()[i] );
+                } else {
+                    // This should be the middle
+                    flippedInventory.setItem( i, inputInventory.getContentsArray()[i] );
+                }
+            }
+
+            return this.check( flippedInventory );
+        }
+
+        return output;
+    }
+
+    private int[] check( Inventory inputInventory ) {
         // Order the input so the recipe is in the upper left corner
         int xSpace = 0;
         int zSpace = 0;
@@ -175,6 +206,11 @@ public class ShapedRecipe extends CraftingRecipe {
 
                 if ( !canBeUsedForCrafting( recipeItem, invItem ) ) {
                     return null;
+                }
+
+                // Ignore AIR
+                if ( invItem.getType() == ItemType.AIR ) {
+                    continue;
                 }
 
                 consumeItems[j + ( this.width * i )] = itemSlot;

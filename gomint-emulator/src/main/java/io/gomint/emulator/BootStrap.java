@@ -29,10 +29,10 @@ public class BootStrap {
 
         service.scheduleAtFixedRate( Client::printDebug, 5, 5, TimeUnit.SECONDS );
 
-        for ( int i = 0; i < 1000; i++ ) {
+        for ( int i = 0; i < 1; i++ ) {
             service.execute( () -> {
                 Client client = new Client( service, postProcessExecutorService.getExecutor(), null );
-                client.ping( "", 19132 );
+                client.ping( "127.0.0.1", 19132 );
 
                 try {
                     Thread.sleep( 150 );
@@ -40,7 +40,7 @@ public class BootStrap {
                     e.printStackTrace();
                 }
 
-                client.connect( "", 19132 );
+                client.connect( "127.0.0.1", 19132 );
             } );
 
             Thread.sleep( 1000 );

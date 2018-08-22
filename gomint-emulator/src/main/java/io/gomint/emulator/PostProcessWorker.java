@@ -16,6 +16,7 @@ import io.gomint.server.jni.zlib.NativeZLib;
 import io.gomint.server.jni.zlib.ZLib;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
+import io.gomint.server.util.DumpUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
@@ -62,13 +63,13 @@ public class PostProcessWorker implements Runnable {
         // Write all packets into the inBuf for compression
         for ( Packet packet : this.packets ) {
             PacketBuffer buffer = new PacketBuffer( 64 );
-            buffer.writeByte( packet.getId() );
-            buffer.writeShort( (short) 0 );
-            packet.serialize( buffer, 273 );
+            packet.serializeHeader( buffer, this.connection.getRaknetVersion() );
+            packet.serialize( buffer, 274 );
 
             writeVarInt( buffer.getPosition(), inBuf );
             inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
         }
+
         // Create the output buffer
         ByteBuf outBuf = PooledByteBufAllocator.DEFAULT.directBuffer( 8192 ); // We will write at least once so ensureWrite will realloc to 8192 so or so
 
@@ -84,9 +85,11 @@ public class PostProcessWorker implements Runnable {
             inBuf.release();
         }
 
-        byte[] data = new byte[outBuf.writerIndex()];
+        byte[] data = new byte[outBuf.readableBytes()];
         outBuf.readBytes( data );
         outBuf.release();
+
+        DumpUtil.dumpByteArray( data );
 
         PacketBatch batch = new PacketBatch();
         batch.setPayload( data );

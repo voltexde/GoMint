@@ -376,8 +376,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
                 if ( dY != movY ) {
                     Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
-                    LOGGER.debug( "Entity {} collided with {}", this, block );
-
                     this.collidedWith.add( block );
                 }
             }

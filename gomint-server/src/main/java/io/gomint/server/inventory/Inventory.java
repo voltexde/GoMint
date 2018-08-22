@@ -255,4 +255,8 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         return false;
     }
 
+    public InventoryHolder getOwner() {
+        return this.owner;
+    }
+
 }

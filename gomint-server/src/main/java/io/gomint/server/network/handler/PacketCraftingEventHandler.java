@@ -6,6 +6,7 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketCraftingEvent;
+import io.gomint.server.util.DumpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +72,9 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
             return;
         }
 
+        /*DumpUtil.dumpInventory( connection.getEntity().getCraftingInputInventory() );
+        DumpUtil.dumpInventory( connection.getEntity().getCraftingInventory() );*/
+
         // Let the recipe check if it can complete
         int[] consumeSlots = recipe.isCraftable( connection.getEntity().getCraftingInputInventory() );
         boolean craftable = consumeSlots != null;
@@ -103,10 +107,7 @@ public class PacketCraftingEventHandler implements PacketHandler<PacketCraftingE
 
         // Consume items
         for ( int slot : consumeSlots ) {
-            LOGGER.debug( "Consuming slot {}", slot );
-
             io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) connection.getEntity().getCraftingInputInventory().getItem( slot );
-            LOGGER.debug( "ItemStack before {}", itemStack );
             itemStack.afterPlacement();
         }
 
