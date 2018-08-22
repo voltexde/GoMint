@@ -9,6 +9,7 @@ import io.gomint.command.CommandSender;
 import io.gomint.command.ParamValidator;
 import io.gomint.plugin.Plugin;
 import io.gomint.server.command.internal.ListCommand;
+import io.gomint.server.command.internal.SayCommand;
 import io.gomint.server.command.internal.StopCommand;
 import io.gomint.server.command.internal.TPCommand;
 import io.gomint.server.entity.CommandPermission;
@@ -48,6 +49,7 @@ public class CommandManager {
         try {
             for ( Class cmdClass : new Class[]{
                 ListCommand.class,
+                SayCommand.class,
                 StopCommand.class,
                 TPCommand.class
             } ) {
