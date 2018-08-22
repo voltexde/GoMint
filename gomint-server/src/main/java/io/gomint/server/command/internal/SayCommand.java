@@ -19,7 +19,7 @@ import java.util.Map;
 @Description( "Sends a message in the chat to other players." )
 @Permission( "gomint.command.say" )
 @Overload( {
-    @Parameter( name = "message", validator = TextValidator.class, arguments = {".*"} )
+    @Parameter( name = "message", validator = TextValidator.class )
 } )
 public class SayCommand extends Command {
 
