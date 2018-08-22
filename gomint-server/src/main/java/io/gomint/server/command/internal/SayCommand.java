@@ -5,17 +5,19 @@ import io.gomint.command.Command;
 import io.gomint.command.CommandOutput;
 import io.gomint.command.CommandSender;
 import io.gomint.command.PlayerCommandSender;
-import io.gomint.command.annotation.Description;
-import io.gomint.command.annotation.Name;
-import io.gomint.command.annotation.Overload;
-import io.gomint.command.annotation.Parameter;
+import io.gomint.command.annotation.*;
 import io.gomint.command.validator.TextValidator;
 import io.gomint.server.entity.EntityPlayer;
 
 import java.util.Map;
 
+/**
+ * @author Kaooot
+ * @version 1.0
+ */
 @Name( "say" )
 @Description( "Sends a message in the chat to other players." )
+@Permission( "gomint.command.say" )
 @Overload( {
     @Parameter( name = "message", validator = TextValidator.class, arguments = {".*"} )
 } )
