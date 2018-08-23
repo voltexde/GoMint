@@ -133,15 +133,23 @@ public class ShapedRecipe extends CraftingRecipe {
 
             // Take over and flip the slots
             for ( int i = 0; i < inputInventory.getContentsArray().length; i++ ) {
-                if ( i == 0 || i == 3 || i == 6 ) {
-                    // Flip to +2
-                    flippedInventory.setItem( i + 2, inputInventory.getContentsArray()[i] );
-                } else if ( i == 2 || i == 5 || i == 8 ) {
-                    // Flip to -2
-                    flippedInventory.setItem( i - 2, inputInventory.getContentsArray()[i] );
+                if ( inputInventory.size() == 9 ) {
+                    if ( i == 0 || i == 3 || i == 6 ) {
+                        // Flip to +2
+                        flippedInventory.setItem( i + 2, inputInventory.getContentsArray()[i] );
+                    } else if ( i == 2 || i == 5 || i == 8 ) {
+                        // Flip to -2
+                        flippedInventory.setItem( i - 2, inputInventory.getContentsArray()[i] );
+                    } else {
+                        // This should be the middle
+                        flippedInventory.setItem( i, inputInventory.getContentsArray()[i] );
+                    }
                 } else {
-                    // This should be the middle
-                    flippedInventory.setItem( i, inputInventory.getContentsArray()[i] );
+                    if ( i == 0 || i == 2 ) {
+                        flippedInventory.setItem( i + 1, inputInventory.getContentsArray()[i] );
+                    } else {
+                        flippedInventory.setItem( i - 1, inputInventory.getContentsArray()[i] );
+                    }
                 }
             }
 

@@ -29,8 +29,52 @@ public class DumpUtil {
     public static void dumpInventory( Inventory inventory ) {
         LOGGER.info( "Inventory: {} - Size: {}", inventory.getClass().getName(), inventory.size() );
 
-        if ( inventory.size() > 9 ) {
+        if ( inventory.size() == 1 ) {
+            StringBuilder builder = new StringBuilder( "  " );
+            ItemStack item = (ItemStack) inventory.getItem( 0 );
+            String slotName = String.valueOf( 0 );
+            String itemName = String.valueOf( item.getMaterial() );
+            String dataName = String.valueOf( item.getData() );
+            String amountName = String.valueOf( item.getAmount() );
+            int itemDataNameLength = itemName.length() + dataName.length() + amountName.length();
 
+            builder
+                .append( slotName )
+                .append( "  " )
+                .append( itemName )
+                .append( ":" )
+                .append( dataName )
+                .append( "x" )
+                .append( amountName )
+                .append( Strings.repeat( " ", 7 - itemDataNameLength ) );
+
+            LOGGER.info( builder.toString() );
+        } else if ( inventory.size() > 9 ) {
+            int rowSize = inventory.size() / 9;
+            for ( int i = 0; i < rowSize; i++ ) {
+                StringBuilder builder = new StringBuilder( "  " );
+
+                for ( int j = 0; j < 9; j++ ) {
+                    ItemStack item = (ItemStack) inventory.getItem( i * 9 + j );
+                    String slotName = String.valueOf( i * 9 + j );
+                    String itemName = String.valueOf( item.getMaterial() );
+                    String dataName = String.valueOf( item.getData() );
+                    String amountName = String.valueOf( item.getAmount() );
+                    int itemDataNameLength = itemName.length() + dataName.length() + amountName.length();
+
+                    builder
+                        .append( slotName )
+                        .append( slotName.length() == 2 ? " " : "  " )
+                        .append( itemName )
+                        .append( ":" )
+                        .append( dataName )
+                        .append( "x" )
+                        .append( amountName )
+                        .append( Strings.repeat( " ", 7 - itemDataNameLength ) );
+                }
+
+                LOGGER.info( builder.toString() );
+            }
         } else {
             int rowSize = inventory.size() == 4 ? 2 : 3;
             for ( int i = 0; i < rowSize; i++ ) {
