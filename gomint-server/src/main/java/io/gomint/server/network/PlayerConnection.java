@@ -100,10 +100,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 
-import static io.gomint.server.network.Protocol.PACKET_BATCH;
-import static io.gomint.server.network.Protocol.PACKET_ENCRYPTION_RESPONSE;
-import static io.gomint.server.network.Protocol.PACKET_LOGIN;
-import static io.gomint.server.network.Protocol.PACKET_RESOURCEPACK_RESPONSE;
+import static io.gomint.server.network.Protocol.*;
 
 /**
  * @author BlackyPaw
@@ -557,6 +554,14 @@ public class PlayerConnection {
             if ( packetId == PACKET_LOGIN ) {
                 PacketLogin packet = new PacketLogin();
                 packet.deserialize( buffer, this.protocolID );
+
+                // Ok we need to hack a bit here since new betas have other incoming packets
+                if ( packet.getProtocol() > Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) {
+                    // Unset SetLocalPlayerInit
+                    PACKET_HANDLERS[PACKET_SET_LOCAL_PLAYER_INITIALIZED & 0xff] = null;
+                    PACKET_HANDLERS[PACKET_SET_LOCAL_PLAYER_INITIALIZED_BETA & 0xff] = new PacketSetLocalPlayerAsInitializedHandler();
+                }
+
                 this.handlePacket( currentTimeMillis, packet );
             } else {
                 LOGGER.error( "Received odd packet" );

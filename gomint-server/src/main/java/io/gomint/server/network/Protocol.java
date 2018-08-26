@@ -128,9 +128,10 @@ public final class Protocol {
     public static final byte PACKET_UPDATE_BLOCK_SYNCHED = (byte) 0x6e;
     public static final byte PACKET_ENTITY_RELATIVE_MOVEMENT = (byte) 0x6f;
     public static final byte PACKET_SET_LOCAL_PLAYER_INITIALIZED = (byte) 0x70;
+    public static final byte PACKET_SET_SCOREBOARD_IDENTITY = (byte) 0x70;
+    public static final byte PACKET_SET_LOCAL_PLAYER_INITIALIZED_BETA = (byte) 0x71;
     public static final byte PACKET_SET_TITLE = (byte) 0x58;
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
-    private static final Logger LOGGER = LoggerFactory.getLogger( Protocol.class );
     // CHECKSTYLE:ON
 
     // ========================================= PACKET METHODS ========================================= //

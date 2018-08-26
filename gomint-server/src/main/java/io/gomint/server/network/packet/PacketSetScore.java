@@ -39,9 +39,22 @@ public class PacketSetScore extends Packet {
         buffer.writeUShort( this.entries.size() );
 
         for ( ScoreEntry entry : this.entries ) {
-            buffer.writeUUID( entry.uuid );
+            buffer.writeUnsignedVarLong( entry.scoreId );
             buffer.writeString( entry.objective );
             buffer.writeLInt( entry.score );
+
+            if ( this.type == 0 ) {
+                buffer.writeByte( entry.entityType );
+                switch ( entry.entityType ) {
+                    case 0: // Fake entity
+                        buffer.writeString( entry.fakeEntity );
+                        break;
+                    case 1:
+                    case 2:
+                        buffer.writeUnsignedVarLong( entry.entityId );
+                        break;
+                }
+            }
         }
     }
 
@@ -53,9 +66,13 @@ public class PacketSetScore extends Packet {
     @RequiredArgsConstructor
     @Getter
     public static class ScoreEntry {
-        private final UUID uuid;
+        private final long scoreId;
         private final String objective;
         private final int score;
+
+        private final byte entityType;
+        private String fakeEntity;
+        private long entityId;
     }
 
 }

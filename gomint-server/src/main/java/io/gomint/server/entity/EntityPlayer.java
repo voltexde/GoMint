@@ -78,6 +78,7 @@ import io.gomint.server.network.packet.PacketUpdateAttributes;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
+import io.gomint.server.scoreboard.Scoreboard;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
@@ -228,6 +229,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Getter
     private String deviceId;
+
+    // Scoreboard
+    @Getter @Setter private Scoreboard scoreboard;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
