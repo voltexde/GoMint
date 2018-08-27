@@ -38,8 +38,6 @@ import io.gomint.server.network.packet.PacketSetChunkRadius;
 import io.gomint.server.network.packet.PacketSetLocalPlayerAsInitialized;
 import io.gomint.server.network.packet.PacketText;
 import io.gomint.server.network.packet.PacketWorldSoundEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author BlackyPaw
@@ -144,10 +142,18 @@ public final class Protocol {
      * Creates a new packet instance given the packet ID found inside the first byte of any
      * packet's data.
      *
-     * @param id The ID of the the packet to create
+     * @param id              The ID of the the packet to create
+     * @param protocolVersion which the client uses
      * @return The created packet or null if it could not be created
      */
-    public static Packet createPacket( byte id ) {
+    public static Packet createPacket( byte id, int protocolVersion ) {
+        if ( protocolVersion >= MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION ) {
+            switch ( id ) {
+                case PACKET_SET_LOCAL_PLAYER_INITIALIZED_BETA:
+                    return new PacketSetLocalPlayerAsInitialized();
+            }
+        }
+
         switch ( id ) {
             case PACKET_SET_LOCAL_PLAYER_INITIALIZED:
                 return new PacketSetLocalPlayerAsInitialized();

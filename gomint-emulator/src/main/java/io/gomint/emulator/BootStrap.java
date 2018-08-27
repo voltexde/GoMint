@@ -32,14 +32,6 @@ public class BootStrap {
         for ( int i = 0; i < 1; i++ ) {
             service.execute( () -> {
                 Client client = new Client( service, postProcessExecutorService.getExecutor(), null );
-                client.ping( "192.168.178.113", 19132 );
-
-                try {
-                    Thread.sleep( 150 );
-                } catch ( InterruptedException e ) {
-                    e.printStackTrace();
-                }
-
                 client.connect( "192.168.178.113", 19132 );
             } );
 

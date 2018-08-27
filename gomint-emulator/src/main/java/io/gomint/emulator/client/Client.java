@@ -77,7 +77,6 @@ public class Client {
     private Pair<Integer, Integer> spawnChunk;
     private ClientSocket socket;
     private Connection connection;
-    private AtomicInteger chunkCounter = new AtomicInteger( 0 );
 
     private PlayerConnectionState state = PlayerConnectionState.HANDSHAKE;
 
@@ -103,8 +102,9 @@ public class Client {
         try {
             this.socket.initialize();
             this.socket.setMojangModificationEnabled( true );
-            this.socket.setProtocolVersion( 9 );
             this.socket.setEventHandler( ( socket, socketEvent ) -> {
+                System.out.println( socketEvent.getType() );
+
                 if ( socketEvent.getType() == SocketEvent.Type.CONNECTION_CLOSED ) {
                     CONNECTED.decrementAndGet();
                     DISCONNECTED.incrementAndGet();

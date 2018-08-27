@@ -89,8 +89,6 @@ public class PostProcessWorker implements Runnable {
         outBuf.readBytes( data );
         outBuf.release();
 
-        DumpUtil.dumpByteArray( data );
-
         PacketBatch batch = new PacketBatch();
         batch.setPayload( data );
 
