@@ -8,7 +8,6 @@
 package io.gomint.server;
 
 import com.google.common.reflect.ClassPath;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.gomint.GoMint;
@@ -24,6 +23,7 @@ import io.gomint.jraknet.EventLoops;
 import io.gomint.permission.GroupManager;
 import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.StartupPriority;
+import io.gomint.scoreboard.Scoreboard;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.config.ServerConfig;
 import io.gomint.server.config.WorldConfig;
@@ -42,9 +42,7 @@ import io.gomint.server.network.Protocol;
 import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.SyncTaskManager;
-import io.gomint.server.util.PerformanceHacks;
 import io.gomint.server.util.Watchdog;
-import io.gomint.server.util.performance.UnsafeAllocator;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.WorldManager;
@@ -76,16 +74,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Manifest;
@@ -684,6 +675,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Override
     public Collection<World> getWorlds() {
         return Collections.unmodifiableCollection( this.worldManager.getWorlds() );
+    }
+
+    @Override
+    public Scoreboard createScoreboard() {
+        return new io.gomint.server.scoreboard.Scoreboard();
     }
 
     /**

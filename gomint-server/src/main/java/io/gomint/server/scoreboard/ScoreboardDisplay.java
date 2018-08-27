@@ -7,7 +7,8 @@
 
 package io.gomint.server.scoreboard;
 
-import io.gomint.server.entity.Entity;
+import io.gomint.entity.Entity;
+import io.gomint.scoreboard.DisplayEntry;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -17,18 +18,27 @@ import lombok.Data;
  */
 @AllArgsConstructor
 @Data
-public class ScoreboardDisplay {
+public class ScoreboardDisplay implements io.gomint.scoreboard.ScoreboardDisplay {
 
     private final Scoreboard scoreboard;
     private final String objectiveName;
     private String displayName;
 
-    public void addEntity( Entity entity, int score ) {
-        this.scoreboard.addEntity( entity, this.objectiveName, score );
+    @Override
+    public DisplayEntry addEntity( Entity entity, int score ) {
+        long scoreId = this.scoreboard.addOrUpdateEntity( (io.gomint.server.entity.Entity) entity, this.objectiveName, score );
+        return new io.gomint.server.scoreboard.DisplayEntry( this.scoreboard, scoreId );
     }
 
-    public void addString( String name, int score ) {
-        this.scoreboard.addString( name, this.objectiveName, score );
+    @Override
+    public DisplayEntry addLine( String line, int score ) {
+        long scoreId = this.scoreboard.addOrUpdateLine( line, this.objectiveName, score );
+        return new io.gomint.server.scoreboard.DisplayEntry( this.scoreboard, scoreId );
+    }
+
+    @Override
+    public void removeEntry( DisplayEntry entry ) {
+        this.scoreboard.removeScoreEntry( ( (io.gomint.server.scoreboard.DisplayEntry) entry ).getScoreId() );
     }
 
 }

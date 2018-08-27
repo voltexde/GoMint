@@ -59,6 +59,7 @@ import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.maintenance.performance.LoginPerformance;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
+import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketAvailableCommands;
 import io.gomint.server.network.packet.PacketContainerClose;
@@ -231,7 +232,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private String deviceId;
 
     // Scoreboard
-    @Getter @Setter private Scoreboard scoreboard;
+    @Getter private Scoreboard scoreboard;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -1634,6 +1635,27 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void setSpawnLocation( Location spawnLocation ) {
         this.spawnLocation = spawnLocation;
         this.connection.sendPlayerSpawnPosition();
+    }
+
+    @Override
+    public void setScoreboard( io.gomint.scoreboard.Scoreboard scoreboard ) {
+        // Only allow for latest version (1.7.0.2+)
+        if ( this.connection.getProtocolID() < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
+            return;
+        }
+
+        this.removeScoreboard();
+
+        this.scoreboard = (Scoreboard) scoreboard;
+        this.scoreboard.showFor( this );
+    }
+
+    @Override
+    public void removeScoreboard() {
+        if ( this.scoreboard != null ) {
+            this.scoreboard.hideFor( this );
+            this.scoreboard = null;
+        }
     }
 
     public void setUsingItem( boolean value ) {
