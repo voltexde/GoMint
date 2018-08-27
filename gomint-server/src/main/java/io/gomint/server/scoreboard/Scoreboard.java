@@ -16,8 +16,6 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -32,10 +30,8 @@ import java.util.Set;
  */
 public class Scoreboard {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( Scoreboard.class );
-
     // Scores
-    private long scoreIdCounter = 500;
+    private long scoreIdCounter = 0;
     private Long2ObjectMap<ScoreboardLine> scoreboardLines = new Long2ObjectArrayMap<>();
 
     private Long2LongMap scoreIdToEntityId = new Long2LongOpenHashMap();
@@ -93,7 +89,7 @@ public class Scoreboard {
         }
 
         // Add this score
-        long newId = ++this.scoreIdCounter;
+        long newId = this.scoreIdCounter++;
         ScoreboardLine line = new ScoreboardLine( (byte) 3, 0, name, objective, score );
         this.scoreboardLines.put( newId, line );
 
@@ -141,7 +137,6 @@ public class Scoreboard {
         }
 
         packetSetScore.setEntries( entries );
-        LOGGER.info( "SetScore: {}", packetSetScore );
         return packetSetScore;
     }
 

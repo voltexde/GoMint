@@ -41,7 +41,7 @@ public class PacketSetScore extends Packet {
         buffer.writeUnsignedVarInt( this.entries.size() );
 
         for ( ScoreEntry entry : this.entries ) {
-            buffer.writeUnsignedVarLong( entry.scoreId );
+            buffer.writeSignedVarLong( entry.scoreId );
             buffer.writeString( entry.objective );
             buffer.writeLInt( entry.score );
 
