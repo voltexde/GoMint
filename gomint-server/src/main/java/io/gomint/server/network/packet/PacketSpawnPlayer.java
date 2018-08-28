@@ -99,10 +99,7 @@ public class PacketSpawnPlayer extends Packet {
 
         writeEntityLinks( this.links, buffer );
 
-        // TODO: PRTCL 282
-        if ( protocolID >= Protocol.MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION ) {
-            buffer.writeString( this.deviceId );
-        }
+        buffer.writeString( this.deviceId );
     }
 
     @Override

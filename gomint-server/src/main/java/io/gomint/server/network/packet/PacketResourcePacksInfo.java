@@ -34,11 +34,7 @@ public class PacketResourcePacksInfo extends Packet {
                 buffer.writeLLong( entry.getSize() );
                 buffer.writeString( "" );
                 buffer.writeString( "" );
-
-                // TODO: PRTCL 282
-                if ( protocolID >= Protocol.MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION ) {
-                    buffer.writeString( "" );
-                }
+                buffer.writeString( "" );
             }
         }
 
@@ -50,11 +46,7 @@ public class PacketResourcePacksInfo extends Packet {
                 buffer.writeLLong( entry.getSize() );
                 buffer.writeString( "" );
                 buffer.writeString( "" );
-
-                // TODO: PRTCL 282
-                if ( protocolID >= Protocol.MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION ) {
-                    buffer.writeString( "" );
-                }
+                buffer.writeString( "" );
             }
         }
     }
@@ -70,11 +62,7 @@ public class PacketResourcePacksInfo extends Packet {
             buffer.readLLong();
             buffer.readString();
             buffer.readString();
-
-            // TODO: PRTCL 282
-            if ( protocolID >= Protocol.MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION ) {
-                buffer.readString();
-            }
+            buffer.readString();
         }
 
         behaviourAmount = buffer.readLShort();
@@ -84,11 +72,7 @@ public class PacketResourcePacksInfo extends Packet {
             buffer.readLLong();
             buffer.readString();
             buffer.readString();
-
-            // TODO: PRTCL 282
-            if ( protocolID >= Protocol.MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION ) {
-                buffer.readString();
-            }
+            buffer.readString();
         }
     }
 

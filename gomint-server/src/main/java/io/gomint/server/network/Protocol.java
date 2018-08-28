@@ -48,9 +48,9 @@ public final class Protocol {
     // CHECKSTYLE:OFF
     // MC:PE Protocol ID
     public static final int MINECRAFT_PE_BETA_PROTOCOL_VERSION = 290;
-    public static final int MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION = 282;
-    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 274;
-    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.5.0";
+    public static final int MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION = -1;
+    public static final int MINECRAFT_PE_PROTOCOL_VERSION = 282;
+    public static final String MINECRAFT_PE_NETWORK_VERSION = "1.6.0.14";
 
     // ========================================= PACKET IDS ========================================= //
     public static final byte PACKET_BATCH = (byte) 0xfe;
@@ -125,9 +125,8 @@ public final class Protocol {
     public static final byte PACKET_SET_SCORE = (byte) 0x6c;
     public static final byte PACKET_UPDATE_BLOCK_SYNCHED = (byte) 0x6e;
     public static final byte PACKET_ENTITY_RELATIVE_MOVEMENT = (byte) 0x6f;
-    public static final byte PACKET_SET_LOCAL_PLAYER_INITIALIZED = (byte) 0x70;
     public static final byte PACKET_SET_SCOREBOARD_IDENTITY = (byte) 0x70;
-    public static final byte PACKET_SET_LOCAL_PLAYER_INITIALIZED_BETA = (byte) 0x71;
+    public static final byte PACKET_SET_LOCAL_PLAYER_INITIALIZED = (byte) 0x71;
     public static final byte PACKET_SET_TITLE = (byte) 0x58;
     public static final byte PACKET_SET_COMPASS_TARGET = (byte) 0xB1;
     // CHECKSTYLE:ON
@@ -143,17 +142,9 @@ public final class Protocol {
      * packet's data.
      *
      * @param id              The ID of the the packet to create
-     * @param protocolVersion which the client uses
      * @return The created packet or null if it could not be created
      */
-    public static Packet createPacket( byte id, int protocolVersion ) {
-        if ( protocolVersion >= MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION ) {
-            switch ( id ) {
-                case PACKET_SET_LOCAL_PLAYER_INITIALIZED_BETA:
-                    return new PacketSetLocalPlayerAsInitialized();
-            }
-        }
-
+    public static Packet createPacket( byte id ) {
         switch ( id ) {
             case PACKET_SET_LOCAL_PLAYER_INITIALIZED:
                 return new PacketSetLocalPlayerAsInitialized();

@@ -100,7 +100,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 
-import static io.gomint.server.network.Protocol.*;
+import static io.gomint.server.network.Protocol.PACKET_BATCH;
+import static io.gomint.server.network.Protocol.PACKET_ENCRYPTION_RESPONSE;
+import static io.gomint.server.network.Protocol.PACKET_LOGIN;
+import static io.gomint.server.network.Protocol.PACKET_RESOURCEPACK_RESPONSE;
 
 /**
  * @author BlackyPaw
@@ -467,7 +470,7 @@ public class PlayerConnection {
     private boolean sendWorldChunk( ChunkAdapter chunkAdapter ) {
         this.playerChunks.add( chunkAdapter.longHashCode() );
         this.loadingChunks.remove( chunkAdapter.longHashCode() );
-        this.addToSendQueue( chunkAdapter.getCachedPacket( this.protocolID ) );
+        this.addToSendQueue( chunkAdapter.getCachedPacket() );
         this.entity.getEntityVisibilityManager().updateAddedChunk( chunkAdapter );
 
         if ( this.state == PlayerConnectionState.LOGIN && this.loadingChunks.isEmpty() ) {
@@ -524,27 +527,11 @@ public class PlayerConnection {
     private void handleBufferData( long currentTimeMillis, PacketBuffer buffer ) {
         // Grab the packet ID from the packet's data
         int rawId = buffer.readUnsignedVarInt();
-        byte packetId;
+        byte packetId = (byte) rawId;
 
-        // Check for split id stuff
-        if ( this.raknetVersion == 8 ) {
-            packetId = (byte) rawId;
-
-            // There is some data behind the packet id when non batched packets (2 bytes)
-            if ( packetId == PACKET_BATCH ) {
-                LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
-            }
-
-            // TODO: Proper implement sending subclient and target subclient (two bytes)
-            buffer.readShort();
-        } else {
-            // TODO: Find the new way of how the split ids are handled
-            packetId = (byte) rawId;
-
-            // There is some data behind the packet id when non batched packets (2 bytes)
-            if ( packetId == PACKET_BATCH ) {
-                LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
-            }
+        // There is some data behind the packet id when non batched packets (2 bytes)
+        if ( packetId == PACKET_BATCH ) {
+            LOGGER.error( "Malformed batch packet payload: Batch packets are not allowed to contain further batch packets" );
         }
 
         LOGGER.debug( "Got MCPE packet {}", Integer.toHexString( packetId & 0xFF ) );
@@ -590,7 +577,7 @@ public class PlayerConnection {
         }
 
 
-        Packet packet = Protocol.createPacket( packetId, protocolID );
+        Packet packet = Protocol.createPacket( packetId );
         if ( packet == null ) {
             this.networkManager.notifyUnknownPacket( packetId, buffer );
 
@@ -723,7 +710,7 @@ public class PlayerConnection {
                     this.requestChunk( chunk.getFirst(), chunk.getSecond() );
                 } else {
                     // We already know this chunk but maybe forceResend is enabled
-                    worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity,
+                    worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(),
                         false, ( chunkHash, loadedChunk ) -> {
                             if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
                                 this.entity.getEntityVisibilityManager().updateAddedChunk( loadedChunk );
@@ -768,7 +755,7 @@ public class PlayerConnection {
 
     private void requestChunk( Integer x, Integer z ) {
         LOGGER.debug( "Requesting chunk {} {} for {}", x, z, this.entity );
-        this.entity.getWorld().sendChunk( x, z, this.entity,
+        this.entity.getWorld().sendChunk( x, z,
             false, ( chunkHash, loadedChunk ) -> {
                 if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
                     this.entity.getChunkSendQueue().offer( loadedChunk );

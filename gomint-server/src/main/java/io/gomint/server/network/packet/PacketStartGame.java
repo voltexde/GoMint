@@ -129,14 +129,11 @@ public class PacketStartGame extends Packet {
         buffer.writeLLong( this.currentTick );
         buffer.writeSignedVarInt( this.enchantmentSeed );
 
-        // TODO: PRTCL 282
-        if ( protocolID >= Protocol.MINECRAFT_PE_NEXT_STABLE_PROTOCOL_VERSION ) {
-            // Write palette data
-            byte[] data = BlockRuntimeIDs.getPacketCache( protocolID );
-            buffer.writeBytes( data );
+        // Write palette data
+        byte[] data = BlockRuntimeIDs.getPacketCache();
+        buffer.writeBytes( data );
 
-            buffer.writeString( this.correlationId );
-        }
+        buffer.writeString( this.correlationId );
     }
 
     @Override

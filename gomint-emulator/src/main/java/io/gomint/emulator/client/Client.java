@@ -429,7 +429,7 @@ public class Client {
         // LOGGER.info( "Got packet {}", Integer.toHexString( packetId & 0xFF ) );
 
         if ( buffer.getRemaining() > 0 ) {
-            Packet packet = Protocol.createPacket( packetId, 290 );
+            Packet packet = Protocol.createPacket( packetId );
             if ( packet == null ) {
                 packet = AdditionalProtocol.createPacket( packetId );
                 if ( packet == null ) {
