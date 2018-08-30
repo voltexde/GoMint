@@ -33,6 +33,7 @@ import io.gomint.server.network.packet.PacketTileEntityData;
 import io.gomint.server.network.packet.PacketUpdateBlock;
 import io.gomint.server.network.packet.PacketWorldEvent;
 import io.gomint.server.network.packet.PacketWorldSoundEvent;
+import io.gomint.server.scheduler.CoreScheduler;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.storage.TemporaryStorage;
@@ -129,7 +130,6 @@ public abstract class WorldAdapter implements World {
     private AtomicBoolean asyncWorkerRunning;
     private BlockingQueue<AsyncChunkTask> asyncChunkTasks;
     private Queue<AsyncChunkPackageTask> chunkPackageTasks;
-    private Thread asyncWorkerThread;
 
     // EntityPlayer handling
     private Object2ObjectMap<io.gomint.server.entity.EntityPlayer, ChunkAdapter> players;
@@ -144,7 +144,7 @@ public abstract class WorldAdapter implements World {
         this.players = new Object2ObjectOpenHashMap<>();
         this.asyncChunkTasks = new LinkedBlockingQueue<>();
         this.chunkPackageTasks = new ConcurrentLinkedQueue<>();
-        this.startAsyncWorker( server.getExecutorService() );
+        this.startAsyncWorker( server.getScheduler() );
         this.initGamerules();
     }
 
@@ -783,23 +783,27 @@ public abstract class WorldAdapter implements World {
     /**
      * Starts the asynchronous worker thread used by the world to perform I/O operations for chunks.
      */
-    private void startAsyncWorker( ExecutorService executorService ) {
+    private void startAsyncWorker( CoreScheduler scheduler ) {
         this.asyncWorkerRunning = new AtomicBoolean( true );
 
-        executorService.execute( () -> {
-            Thread.currentThread().setName( Thread.currentThread().getName() + " [Async World I/O: " + WorldAdapter.this.getWorldName() + "]" );
-            WorldAdapter.this.asyncWorkerThread = Thread.currentThread();
-            WorldAdapter.this.asyncWorkerLoop();
-        } );
+        scheduler.scheduleAsync( WorldAdapter.this::asyncWorkerLoop, 5, 5, TimeUnit.MILLISECONDS );
     }
 
     /**
      * Main loop of the world's asynchronous worker thread.
      */
     private void asyncWorkerLoop() {
-        while ( this.asyncWorkerRunning.get() ) {
+        // Fast out
+        if ( !this.asyncWorkerRunning.get() || this.asyncChunkTasks.isEmpty() ) {
+            return;
+        }
+
+        while ( !this.asyncChunkTasks.isEmpty() ) {
             try {
-                AsyncChunkTask task = this.asyncChunkTasks.take();
+                AsyncChunkTask task = this.asyncChunkTasks.poll();
+                if ( task == null ) {
+                    return;
+                }
 
                 ChunkAdapter chunk;
                 switch ( task.getType() ) {
@@ -832,8 +836,6 @@ public abstract class WorldAdapter implements World {
 
                         break;
                 }
-            } catch ( InterruptedException interrupted ) {
-                return;
             } catch ( Throwable cause ) {
                 // Catching throwable in order to make sure no uncaught exceptions puts
                 // the asynchronous worker into nirvana:
@@ -1142,9 +1144,6 @@ public abstract class WorldAdapter implements World {
     public void close() {
         // Stop async worker
         this.asyncWorkerRunning.set( false );
-
-        // Wait until the thread is done
-        this.asyncWorkerThread.interrupt();
     }
 
     public TemporaryStorage getTemporaryBlockStorage( BlockPosition position, int layer ) {

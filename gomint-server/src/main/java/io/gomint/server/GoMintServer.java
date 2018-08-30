@@ -41,6 +41,7 @@ import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
+import io.gomint.server.scheduler.CoreScheduler;
 import io.gomint.server.scheduler.SyncTaskManager;
 import io.gomint.server.util.Watchdog;
 import io.gomint.server.world.WorldAdapter;
@@ -74,9 +75,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Manifest;
@@ -127,6 +131,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private ListeningScheduledExecutorService executorService;
     private Thread readerThread;
     private long currentTickTime;
+    @Getter
+    private CoreScheduler scheduler;
 
     // Additional informations for API usage
     private double tps;
@@ -166,7 +172,16 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // Executor Initialization
         // ------------------------------------ //
-        this.executorService = MoreExecutors.listeningDecorator( EventLoops.LOOP_GROUP );
+        this.executorService = MoreExecutors.listeningDecorator( Executors.newScheduledThreadPool( 4, new ThreadFactory() {
+            private final AtomicLong counter = new AtomicLong( 0 );
+
+            @Override
+            public Thread newThread( Runnable r ) {
+                Thread thread = new Thread( r );
+                thread.setName( "GoMint Thread #" + counter.incrementAndGet() );
+                return thread;
+            }
+        } ) );
         this.watchdog = new Watchdog( this );
 
         this.watchdog.add( 30, TimeUnit.SECONDS );
@@ -295,6 +310,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // Scheduler + WorldManager + PluginManager Initialization
         // ------------------------------------ //
         this.syncTaskManager = new SyncTaskManager( this, skipNanos );
+        this.scheduler = new CoreScheduler( this.getExecutorService(), this.getSyncTaskManager() );
+
         this.worldManager = new WorldManager( this );
 
         this.pluginManager = new SimplePluginManager( this );
