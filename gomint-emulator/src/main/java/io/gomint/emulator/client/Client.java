@@ -525,8 +525,4 @@ public class Client {
         this.socket.ping( ip, port );
     }
 
-    public byte getRaknetVersion() {
-        return this.connection.getProtocolVersion();
-    }
-
 }

@@ -156,7 +156,6 @@ public class PlayerConnection {
     private final Connection connection;
     @Getter
     private final ConnectionHandler connectionHandler;
-    private byte raknetVersion;
 
     // World data
     @Getter
@@ -177,6 +176,7 @@ public class PlayerConnection {
     private int tcpPing;
     private PostProcessExecutor postProcessorExecutor;
     private ZLib decompressor;
+
     // Connection State:
     @Getter
     @Setter
@@ -250,10 +250,6 @@ public class PlayerConnection {
 
                 return packetData;
             } );
-
-            this.raknetVersion = this.connection.getProtocolVersion();
-        } else {
-            this.connectionHandler.onRaknetVersion( b -> raknetVersion = b );
         }
     }
 
@@ -376,12 +372,12 @@ public class PlayerConnection {
                 PacketBuffer[] packetBuffers = new PacketBuffer[packets.length];
                 for ( int i = 0; i < packets.length; i++ ) {
                     packetBuffers[i] = new PacketBuffer( 2 );
-                    packets[i].serializeHeader( packetBuffers[i], this.raknetVersion );
+                    packets[i].serializeHeader( packetBuffers[i] );
                     packets[i].serialize( packetBuffers[i], this.protocolID );
                 }
 
                 WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
-                mcpePacket.setRaknetVersion( this.raknetVersion );
+                mcpePacket.setRaknetVersion( (byte) 9 );
                 mcpePacket.setBuffer( packetBuffers );
                 this.connectionHandler.send( mcpePacket );
                 this.sendQueue.clear();
@@ -450,11 +446,11 @@ public class PlayerConnection {
             LOGGER.debug( "Writing packet {} to client", Integer.toHexString( packet.getId() & 0xFF ) );
 
             PacketBuffer buffer = new PacketBuffer( 2 );
-            packet.serializeHeader( buffer, this.raknetVersion );
+            packet.serializeHeader( buffer );
             packet.serialize( buffer, this.protocolID );
 
             WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
-            mcpePacket.setRaknetVersion( this.raknetVersion );
+            mcpePacket.setRaknetVersion( (byte) 9 );
             mcpePacket.setBuffer( new PacketBuffer[]{ buffer } );
             this.connectionHandler.send( mcpePacket );
         }

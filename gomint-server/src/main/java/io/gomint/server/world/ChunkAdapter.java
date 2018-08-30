@@ -580,7 +580,7 @@ public class ChunkAdapter implements Chunk {
     private PacketBatch packChunk( PacketWorldChunk chunkPacket ) {
         PacketBatch chunkPacketBatch = new PacketBatch();
         PacketBuffer buffer = new PacketBuffer( 64 );
-        chunkPacket.serializeHeader( buffer, (byte) 9 );
+        chunkPacket.serializeHeader( buffer );
         chunkPacket.serialize( buffer, Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
 
         ByteBuffer finalOut = ByteBuffer.allocate( buffer.getPosition() + 5 );
