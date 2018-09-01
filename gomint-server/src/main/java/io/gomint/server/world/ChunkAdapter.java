@@ -12,6 +12,7 @@ import io.gomint.math.BlockPosition;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.Protocol;
@@ -554,7 +555,7 @@ public class ChunkAdapter implements Chunk {
 
             for ( TileEntity tileEntity : tileEntities ) {
                 NBTTagCompound compound = new NBTTagCompound( "" );
-                tileEntity.toCompound( compound );
+                tileEntity.toCompound( compound, SerializationReason.NETWORK );
 
                 try {
                     nbtWriter.write( compound );
@@ -660,7 +661,7 @@ public class ChunkAdapter implements Chunk {
         if ( implBlock.getTileEntity() != null ) {
             // Get compound
             NBTTagCompound compound = new NBTTagCompound( "" );
-            implBlock.getTileEntity().toCompound( compound );
+            implBlock.getTileEntity().toCompound( compound, SerializationReason.PERSIST );
 
             // Change position
             int fullX = CoordinateUtils.getChunkMin( this.x ) + x;

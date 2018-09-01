@@ -14,6 +14,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.inventory.FurnaceInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.network.packet.PacketSetContainerData;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
@@ -26,6 +27,9 @@ import java.util.List;
  * @version 1.0
  */
 public class FurnaceTileEntity extends ContainerTileEntity implements InventoryHolder {
+
+    private static final int CONTAINER_PROPERTY_TICK_COUNT = 0;
+    private static final int CONTAINER_PROPERTY_LIT_TIME = 1;
 
     private FurnaceInventory inventory;
 
@@ -72,31 +76,53 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
     public void interact( Entity entity, BlockFace face, Vector facePos, io.gomint.inventory.item.ItemStack item ) {
         if ( entity instanceof EntityPlayer ) {
             ( (EntityPlayer) entity ).openInventory( this.inventory );
+
+            // Send the needed container data
+            this.sendDataProperties( (io.gomint.server.entity.EntityPlayer) entity );
         }
     }
 
+    public void sendDataProperties( io.gomint.server.entity.EntityPlayer player ) {
+        PacketSetContainerData containerData = new PacketSetContainerData();
+        containerData.setKey( CONTAINER_PROPERTY_TICK_COUNT );
+        containerData.setValue( 120 );
+        player.getConnection().addToSendQueue( containerData );
+
+        containerData = new PacketSetContainerData();
+        containerData.setKey( CONTAINER_PROPERTY_LIT_TIME );
+        containerData.setValue( 120 );
+        player.getConnection().addToSendQueue( containerData );
+
+        /*containerData = new PacketSetContainerData();
+        containerData.setKey( 2 );
+        containerData.setValue( 200 );
+        player.getConnection().addToSendQueue( containerData );*/
+    }
+
     @Override
-    public void toCompound( NBTTagCompound compound ) {
-        super.toCompound( compound );
+    public void toCompound( NBTTagCompound compound, SerializationReason reason ) {
+        super.toCompound( compound, reason );
 
         compound.addValue( "id", "Furnace" );
 
-        List<NBTTagCompound> itemCompounds = new ArrayList<>();
-        for ( int i = 0; i < this.inventory.size(); i++ ) {
-            ItemStack itemStack = (ItemStack) this.inventory.getItem( i );
-            if ( !( itemStack instanceof ItemAir ) ) {
-                NBTTagCompound itemCompound = new NBTTagCompound( "" );
-                itemCompound.addValue( "Slot", (byte) i );
-                putItemStack( itemStack, itemCompound );
-                itemCompounds.add( itemCompound );
+        if ( reason == SerializationReason.PERSIST ) {
+            List<NBTTagCompound> itemCompounds = new ArrayList<>();
+            for ( int i = 0; i < this.inventory.size(); i++ ) {
+                ItemStack itemStack = (ItemStack) this.inventory.getItem( i );
+                if ( !( itemStack instanceof ItemAir ) ) {
+                    NBTTagCompound itemCompound = new NBTTagCompound( "" );
+                    itemCompound.addValue( "Slot", (byte) i );
+                    putItemStack( itemStack, itemCompound );
+                    itemCompounds.add( itemCompound );
+                }
             }
+
+            compound.addValue( "Items", itemCompounds );
+
+            compound.addValue( "CookTime", (short) 120 /* this.cookTime */ );
+            compound.addValue( "BurnTime", (short) 120 );
+            compound.addValue( "BurnDuration", (short) 240 /* this.burnDuration */ );
         }
-
-        compound.addValue( "Items", itemCompounds );
-
-        compound.addValue( "CookTime", this.cookTime );
-        compound.addValue( "BurnTime", 120 );
-        compound.addValue( "BurnDuration", this.burnDuration );
     }
 
 }

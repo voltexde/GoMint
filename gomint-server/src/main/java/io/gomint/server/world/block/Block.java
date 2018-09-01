@@ -14,6 +14,7 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
@@ -379,7 +380,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         if ( instance.getTileEntity() != null ) {
             // We need to copy the tile entity and change its location
             NBTTagCompound compound = new NBTTagCompound( "" );
-            instance.getTileEntity().toCompound( compound );
+            instance.getTileEntity().toCompound( compound, SerializationReason.PERSIST );
 
             // Change the position
             compound.addValue( "x", pos.getX() );

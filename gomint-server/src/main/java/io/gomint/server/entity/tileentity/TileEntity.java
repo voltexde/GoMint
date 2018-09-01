@@ -108,12 +108,15 @@ public abstract class TileEntity {
      * Save this TileEntity back to an compound
      *
      * @param compound The Compound which should be used to save the data into
+     * @param reason   why should this tile be serialized?
      */
-    public void toCompound( NBTTagCompound compound ) {
-        compound.addValue( "x", (int) this.location.getX() );
-        compound.addValue( "y", (int) this.location.getY() );
-        compound.addValue( "z", (int) this.location.getZ() );
-        compound.addValue( "isMovable", this.moveable );
+    public void toCompound( NBTTagCompound compound, SerializationReason reason ) {
+        if ( reason == SerializationReason.PERSIST ) {
+            compound.addValue( "x", (int) this.location.getX() );
+            compound.addValue( "y", (int) this.location.getY() );
+            compound.addValue( "z", (int) this.location.getZ() );
+            compound.addValue( "isMovable", this.moveable );
+        }
     }
 
     public boolean isNeedsPersistance() {

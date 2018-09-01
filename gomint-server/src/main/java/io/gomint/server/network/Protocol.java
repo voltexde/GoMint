@@ -98,7 +98,7 @@ public final class Protocol {
     public static final byte PACKET_HOTBAR = (byte) 0x30;
     public static final byte PACKET_INVENTORY_CONTENT_PACKET = (byte) 0x31;
     public static final byte PACKET_INVENTORY_SET_SLOT = (byte) 0x32;
-    public static final byte PACKET_CONTAINER_SET_CONTENT = (byte) 0x33;
+    public static final byte PACKET_SET_CONTAINER_DATA = (byte) 0x33;
     public static final byte PACKET_CRAFTING_RECIPES = (byte) 0x34;
     public static final byte PACKET_CRAFTING_EVENT = (byte) 0x35;
     public static final byte PACKET_ADVENTURE_SETTINGS = (byte) 0x37;

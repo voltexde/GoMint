@@ -45,8 +45,8 @@ public class NoteblockTileEntity extends TileEntity {
     }
 
     @Override
-    public void toCompound( NBTTagCompound compound ) {
-        super.toCompound( compound );
+    public void toCompound( NBTTagCompound compound, SerializationReason reason ) {
+        super.toCompound( compound, reason );
 
         compound.addValue( "id", "Music" );
         compound.addValue( "note", this.note );
