@@ -26,7 +26,7 @@ public class DeopCommand extends Command {
         CommandOutput output = new CommandOutput();
         EntityPlayer target = (EntityPlayer) arguments.get( "player" );
 
-        if( target.isOp() ) {
+        if( !target.isOp() ) {
             return output.fail( "Could not deop (already not op): " + target.getName() );
         }
 
