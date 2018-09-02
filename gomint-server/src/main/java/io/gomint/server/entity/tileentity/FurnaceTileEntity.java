@@ -7,20 +7,25 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.GoMint;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
+import io.gomint.server.GoMintServer;
+import io.gomint.server.crafting.SmeltingRecipe;
 import io.gomint.server.inventory.FurnaceInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.packet.PacketSetContainerData;
+import io.gomint.server.util.Pair;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -47,6 +52,15 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
         super( tagCompound, world );
 
         this.inventory = new FurnaceInventory( this );
+        this.inventory.addObserver( new Consumer<Pair<Integer, io.gomint.inventory.item.ItemStack>>() {
+            @Override
+            public void accept( Pair<Integer, io.gomint.inventory.item.ItemStack> pair ) {
+                if ( pair.getFirst() == 0 ) {
+                    // Input slot has changed
+                    onInputChanged( pair.getSecond() );
+                }
+            }
+        } );
 
         List<Object> itemCompounds = tagCompound.getList( "Items", false );
         if ( itemCompounds != null ) {
@@ -65,6 +79,20 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
         this.cookTime = tagCompound.getShort( "CookTime", (short) 0 );
         this.burnTime = tagCompound.getShort( "BurnTime", (short) 0 );
         this.burnDuration = tagCompound.getShort( "BurnDuration", (short) 0 );
+    }
+
+    private void onInputChanged( io.gomint.inventory.item.ItemStack input ) {
+        // If we currently smelt reset progress
+
+
+        // Check if there is a smelting recipe present
+        GoMintServer server = (GoMintServer) GoMint.instance();
+        SmeltingRecipe recipe = server.getRecipeManager().getSmeltingRecipe( input );
+        if ( recipe != null ) {
+            for ( io.gomint.inventory.item.ItemStack stack : recipe.createResult() ) {
+                System.out.println( stack );
+            }
+        }
     }
 
     @Override

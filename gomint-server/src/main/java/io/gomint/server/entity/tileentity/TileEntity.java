@@ -111,10 +111,11 @@ public abstract class TileEntity {
      * @param reason   why should this tile be serialized?
      */
     public void toCompound( NBTTagCompound compound, SerializationReason reason ) {
+        compound.addValue( "x", (int) this.location.getX() );
+        compound.addValue( "y", (int) this.location.getY() );
+        compound.addValue( "z", (int) this.location.getZ() );
+
         if ( reason == SerializationReason.PERSIST ) {
-            compound.addValue( "x", (int) this.location.getX() );
-            compound.addValue( "y", (int) this.location.getY() );
-            compound.addValue( "z", (int) this.location.getZ() );
             compound.addValue( "isMovable", this.moveable );
         }
     }

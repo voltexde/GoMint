@@ -45,7 +45,6 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
     private Consumer<Throwable> exceptionCallback;
     private Consumer<Void> disconnectCallback;
     private Consumer<Integer> pingCallback;
-    private ByteConsumer raknetVersionConsumer;
 
     ConnectionHandler() {
         super( true );
