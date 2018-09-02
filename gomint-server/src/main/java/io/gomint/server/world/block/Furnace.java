@@ -107,6 +107,9 @@ public class Furnace extends Block implements io.gomint.world.block.BlockFurnace
             }
 
             tileEntity.getInventory().clear();
+
+            // Remove all viewers
+            tileEntity.getInventory().clearViewers();
         }
 
         return super.onBreak( creative );

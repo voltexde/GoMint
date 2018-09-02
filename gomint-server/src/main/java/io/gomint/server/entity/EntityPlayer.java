@@ -112,6 +112,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -864,6 +865,10 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                 }
             } );
         }
+
+        // Check all open inventories
+        Object2ByteMap.FastEntrySet<ContainerInventory> fastEntrySet = (Object2ByteMap.FastEntrySet<ContainerInventory>) this.containerIds.object2ByteEntrySet();
+        fastEntrySet.fastIterator().forEachRemaining( containerInventoryEntry -> containerInventoryEntry.getKey().removeViewer( EntityPlayer.this ) );
     }
 
     /**

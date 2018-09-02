@@ -276,4 +276,8 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         this.changeObservers.add( consumer );
     }
 
+    public void clearViewers() {
+        this.viewer.clear();
+    }
+
 }
