@@ -50,7 +50,7 @@ public class EnderChestTileEntity extends ContainerTileEntity implements Invento
     }
 
     @Override
-    public void update( long currentMillis, float dF ) {
+    public void update( long currentMillis ) {
 
     }
 

@@ -11,6 +11,8 @@ import io.gomint.GoMint;
 import io.gomint.entity.Entity;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.inventory.item.ItemAir;
+import io.gomint.inventory.item.ItemBurnable;
+import io.gomint.inventory.item.ItemType;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.crafting.SmeltingRecipe;
@@ -18,14 +20,12 @@ import io.gomint.server.inventory.FurnaceInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.packet.PacketSetContainerData;
-import io.gomint.server.util.Pair;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -35,12 +35,18 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
 
     private static final int CONTAINER_PROPERTY_TICK_COUNT = 0;
     private static final int CONTAINER_PROPERTY_LIT_TIME = 1;
+    private static final int CONTAINER_PROPERTY_LIT_DURATION = 2;
 
     private FurnaceInventory inventory;
 
     private short cookTime;
     private short burnTime;
     private short burnDuration;
+
+    private io.gomint.inventory.item.ItemStack output;
+
+    // Update tracker
+    private float updateDF;
 
     /**
      * Construct new TileEntity from TagCompound
@@ -52,13 +58,10 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
         super( tagCompound, world );
 
         this.inventory = new FurnaceInventory( this );
-        this.inventory.addObserver( new Consumer<Pair<Integer, io.gomint.inventory.item.ItemStack>>() {
-            @Override
-            public void accept( Pair<Integer, io.gomint.inventory.item.ItemStack> pair ) {
-                if ( pair.getFirst() == 0 ) {
-                    // Input slot has changed
-                    onInputChanged( pair.getSecond() );
-                }
+        this.inventory.addObserver( pair -> {
+            if ( pair.getFirst() == 0 ) {
+                // Input slot has changed
+                onInputChanged( pair.getSecond() );
             }
         } );
 
@@ -72,6 +75,10 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
                     this.inventory.addItem( getItemStack( cd ) );
                 } else {
                     this.inventory.setItem( slot, getItemStack( cd ) );
+
+                    if ( slot == 0 ) {
+                        checkForRecipe( this.inventory.getItem( 0 ) );
+                    }
                 }
             }
         }
@@ -83,21 +90,136 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
 
     private void onInputChanged( io.gomint.inventory.item.ItemStack input ) {
         // If we currently smelt reset progress
+        if ( this.cookTime > 0 ) {
+            this.cookTime = 0;
 
+            for ( Entity viewer : this.inventory.getViewers() ) {
+                if ( viewer instanceof io.gomint.server.entity.EntityPlayer ) {
+                    this.sendTickProgress( (io.gomint.server.entity.EntityPlayer) viewer );
+                }
+            }
+        }
+
+        // Check for new recipe
+        this.checkForRecipe( input );
+    }
+
+    private void checkForRecipe( io.gomint.inventory.item.ItemStack input ) {
+        // Reset just to be sure that the new item needs to have a new recipe
+        this.output = null;
 
         // Check if there is a smelting recipe present
         GoMintServer server = (GoMintServer) GoMint.instance();
         SmeltingRecipe recipe = server.getRecipeManager().getSmeltingRecipe( input );
         if ( recipe != null ) {
             for ( io.gomint.inventory.item.ItemStack stack : recipe.createResult() ) {
-                System.out.println( stack );
+                this.output = stack; // Smelting only has one result
             }
         }
     }
 
     @Override
-    public void update( long currentMillis, float dF ) {
+    public void update( long currentMillis ) {
+        // Check if we "crafted"
+        if ( this.output != null && this.burnTime > 0 ) {
+            this.cookTime++;
 
+            if ( this.cookTime >= 200 ) {
+                // We did it
+                ItemStack itemStack = (ItemStack) this.inventory.getItem( 2 );
+                if ( itemStack.getType() != this.output.getType() ) {
+                    this.inventory.setItem( 2, this.output );
+                } else {
+                    itemStack.setAmount( itemStack.getAmount() + this.output.getAmount() );
+                    this.inventory.setItem( 2, itemStack );
+                }
+
+                this.cookTime = 0;
+                this.broadcastCookTime();
+            } else if ( this.cookTime % 20 == 0 ) {
+                this.broadcastCookTime();
+            }
+        }
+
+        // Check if we have fuel loaded
+        if ( this.burnDuration > 0 ) {
+            this.burnTime--;
+
+            // Check if we can refuel
+            boolean didRefuel = false;
+            if ( this.burnTime == 0 ) {
+                this.burnDuration = 0;
+                if ( this.checkForRefuel() ) {
+                    didRefuel = true;
+                    this.broadcastFuelInfo();
+                }
+            }
+
+            // Broadcast data
+            if ( !didRefuel && ( this.burnTime == 0 || this.burnTime % 20 == 0 ) ) {
+                this.broadcastFuelInfo();
+            }
+        } else {
+            if ( this.checkForRefuel() ) {
+                this.broadcastFuelInfo();
+            }
+        }
+    }
+
+    private void broadcastCookTime() {
+        for ( Entity viewer : this.inventory.getViewers() ) {
+            if ( viewer instanceof io.gomint.server.entity.EntityPlayer ) {
+                this.sendTickProgress( (io.gomint.server.entity.EntityPlayer) viewer );
+            }
+        }
+    }
+
+    private void broadcastFuelInfo() {
+        for ( Entity viewer : this.inventory.getViewers() ) {
+            if ( viewer instanceof io.gomint.server.entity.EntityPlayer ) {
+                this.sendFuelInfo( (io.gomint.server.entity.EntityPlayer) viewer );
+            }
+        }
+    }
+
+    private boolean checkForRefuel() {
+        // We need a recipe to load fuel
+        if ( this.canProduceOutput() ) {
+            io.gomint.inventory.item.ItemStack fuelItem = this.inventory.getItem( 1 );
+            if ( fuelItem instanceof ItemBurnable ) {
+                long duration = ( (ItemBurnable) fuelItem ).getBurnTime();
+
+                if ( fuelItem.getAmount() > 0 ) {
+                    ItemStack itemStack = (ItemStack) fuelItem;
+                    itemStack.afterPlacement();
+
+                    this.burnDuration = (short) ( duration / 50 );
+                    this.burnTime = this.burnDuration;
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean canProduceOutput() {
+        // Do we have a recipe loaded?
+        if ( this.output == null ) {
+            return false;
+        }
+
+        // Do we have enough input?
+
+
+        // Do we have enough space in the output slot for this
+        io.gomint.inventory.item.ItemStack itemStack = this.inventory.getItem( 2 );
+        if ( itemStack.getType() == this.output.getType() ) {
+            return itemStack.getAmount() + this.output.getAmount() <= itemStack.getMaximumAmount();
+        }
+
+        return true;
     }
 
     @Override
@@ -110,21 +232,52 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
         }
     }
 
-    public void sendDataProperties( io.gomint.server.entity.EntityPlayer player ) {
+    private void sendTickProgress( io.gomint.server.entity.EntityPlayer player ) {
+        byte windowId = player.getWindowId( this.inventory );
+
         PacketSetContainerData containerData = new PacketSetContainerData();
+        containerData.setWindowId( windowId );
         containerData.setKey( CONTAINER_PROPERTY_TICK_COUNT );
-        containerData.setValue( 120 );
+        containerData.setValue( this.cookTime );
+        player.getConnection().addToSendQueue( containerData );
+    }
+
+    private void sendFuelInfo( io.gomint.server.entity.EntityPlayer player ) {
+        byte windowId = player.getWindowId( this.inventory );
+
+        PacketSetContainerData containerData = new PacketSetContainerData();
+        containerData.setWindowId( windowId );
+        containerData.setKey( CONTAINER_PROPERTY_LIT_TIME );
+        containerData.setValue( this.burnTime );
         player.getConnection().addToSendQueue( containerData );
 
         containerData = new PacketSetContainerData();
-        containerData.setKey( CONTAINER_PROPERTY_LIT_TIME );
-        containerData.setValue( 120 );
+        containerData.setWindowId( windowId );
+        containerData.setKey( CONTAINER_PROPERTY_LIT_DURATION );
+        containerData.setValue( this.burnDuration );
+        player.getConnection().addToSendQueue( containerData );
+    }
+
+    private void sendDataProperties( io.gomint.server.entity.EntityPlayer player ) {
+        byte windowId = player.getWindowId( this.inventory );
+
+        PacketSetContainerData containerData = new PacketSetContainerData();
+        containerData.setWindowId( windowId );
+        containerData.setKey( CONTAINER_PROPERTY_TICK_COUNT );
+        containerData.setValue( this.cookTime );
         player.getConnection().addToSendQueue( containerData );
 
-        /*containerData = new PacketSetContainerData();
-        containerData.setKey( 2 );
-        containerData.setValue( 200 );
-        player.getConnection().addToSendQueue( containerData );*/
+        containerData = new PacketSetContainerData();
+        containerData.setWindowId( windowId );
+        containerData.setKey( CONTAINER_PROPERTY_LIT_TIME );
+        containerData.setValue( this.burnTime );
+        player.getConnection().addToSendQueue( containerData );
+
+        containerData = new PacketSetContainerData();
+        containerData.setWindowId( windowId );
+        containerData.setKey( CONTAINER_PROPERTY_LIT_DURATION );
+        containerData.setValue( this.burnDuration );
+        player.getConnection().addToSendQueue( containerData );
     }
 
     @Override
@@ -147,9 +300,9 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
 
             compound.addValue( "Items", itemCompounds );
 
-            compound.addValue( "CookTime", (short) 120 /* this.cookTime */ );
-            compound.addValue( "BurnTime", (short) 120 );
-            compound.addValue( "BurnDuration", (short) 240 /* this.burnDuration */ );
+            compound.addValue( "CookTime", this.cookTime );
+            compound.addValue( "BurnTime", this.burnTime );
+            compound.addValue( "BurnDuration", this.burnDuration );
         }
     }
 

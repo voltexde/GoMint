@@ -728,13 +728,13 @@ public class ChunkAdapter implements Chunk {
         return this.entities;
     }
 
-    public void tickTiles( long currentTimeMS, float dT ) {
+    public void tickTiles( long currentTimeMS ) {
         for ( ChunkSlice chunkSlice : this.chunkSlices ) {
             if ( chunkSlice != null ) {
                 ObjectIterator<Short2ObjectMap.Entry<TileEntity>> iterator = chunkSlice.getTileEntities().short2ObjectEntrySet().fastIterator();
                 while ( iterator.hasNext() ) {
                     TileEntity tileEntity = iterator.next().getValue();
-                    tileEntity.update( currentTimeMS, dT );
+                    tileEntity.update( currentTimeMS );
 
                     if ( tileEntity.isNeedsPersistance() ) {
                         this.needsPersistance = true;

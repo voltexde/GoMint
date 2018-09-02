@@ -93,12 +93,11 @@ public abstract class TileEntity {
     }
 
     /**
-     * Tick this tileEntity
+     * Tick this tileEntity exactly once per 50 ms
      *
      * @param currentMillis The amount of millis to save some CPU
-     * @param dF            The percentage of the second which was calculated in the last tick
      */
-    public abstract void update( long currentMillis, float dF );
+    public abstract void update( long currentMillis );
 
     public void interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
 

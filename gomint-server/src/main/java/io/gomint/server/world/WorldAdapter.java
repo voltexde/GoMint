@@ -488,7 +488,7 @@ public abstract class WorldAdapter implements World {
                 chunkAdapter.tickRandomBlocks( currentTimeMS, dT );
             }
 
-            chunkAdapter.tickTiles( currentTimeMS, dT );
+            chunkAdapter.tickTiles( currentTimeMS );
         }
     }
 

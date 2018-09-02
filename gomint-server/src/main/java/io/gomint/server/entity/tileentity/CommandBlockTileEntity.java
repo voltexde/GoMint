@@ -66,7 +66,7 @@ public class CommandBlockTileEntity extends ContainerTileEntity {
     }
 
     @Override
-    public void update( long currentMillis, float dF ) {
+    public void update( long currentMillis ) {
 
     }
 

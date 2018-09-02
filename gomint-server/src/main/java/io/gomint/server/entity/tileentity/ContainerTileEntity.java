@@ -37,7 +37,7 @@ public class ContainerTileEntity extends TileEntity {
     }
 
     @Override
-    public void update( long currentMillis, float dF ) {
+    public void update( long currentMillis ) {
 
     }
 
