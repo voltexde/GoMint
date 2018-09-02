@@ -189,7 +189,7 @@ public class ChunkCache {
 
     synchronized long[] getTickingChunks( float dT ) {
         this.lastFullTickDT += dT;
-        if ( this.lastFullTickDT >= Values.CLIENT_TICK_RATE ) {
+        if ( Values.CLIENT_TICK_RATE - this.lastFullTickDT < 0.005f ) {
             // We need to tick all chunks which haven't been ticked until now
             long[] returnVal = new long[this.cachedChunks.size()];
             int index = 0;

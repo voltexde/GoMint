@@ -1193,6 +1193,12 @@ public abstract class WorldAdapter implements World {
         chunk.setTileEntity( position.getX() & 0xF, position.getY(), position.getZ() & 0xF, tileEntity );
     }
 
+    public void removeTileEntity( BlockPosition position ) {
+        // Get chunk
+        ChunkAdapter chunk = this.loadChunk( position.getX() >> 4, position.getZ() >> 4, true );
+        chunk.removeTileEntity( position.getX() & 0xF, position.getY(), position.getZ() & 0xF );
+    }
+
     public boolean breakBlock( BlockPosition position, List<ItemStack> drops, boolean creative ) {
         io.gomint.server.world.block.Block block = getBlockAt( position );
         if ( block.onBreak( creative ) ) {

@@ -70,9 +70,13 @@ public class Watchdog implements Runnable {
         }
     }
 
-    public synchronized void add( long diff, TimeUnit unit ) {
-        long currentTime = System.currentTimeMillis();
+    public synchronized void add( long currentTime, long diff, TimeUnit unit ) {
         this.watchdogMap.put( Thread.currentThread().getId(), currentTime + unit.toMillis( diff ) );
+    }
+
+    public void add( long diff, TimeUnit unit ) {
+        long currentTime = System.currentTimeMillis();
+        this.add( currentTime, diff, unit );
     }
 
     public synchronized void done() {

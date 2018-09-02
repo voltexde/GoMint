@@ -98,4 +98,18 @@ public class Furnace extends Block implements io.gomint.world.block.BlockFurnace
         this.addToBlockData( (byte) ( this.facing.toData() << 1 ) );
     }
 
+    @Override
+    public boolean onBreak( boolean creative ) {
+        if ( !creative ) {
+            FurnaceTileEntity tileEntity = this.getTileEntity();
+            for ( ItemStack itemStack : tileEntity.getInventory().getContentsArray() ) {
+                this.world.dropItem( this.location, itemStack );
+            }
+
+            tileEntity.getInventory().clear();
+        }
+
+        return super.onBreak( creative );
+    }
+
 }

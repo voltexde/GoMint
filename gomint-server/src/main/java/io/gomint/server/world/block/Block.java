@@ -292,6 +292,8 @@ public abstract class Block implements io.gomint.world.block.Block {
                     instance.setTileEntity( tileEntityInstance );
                     worldAdapter.storeTileEntity( pos, tileEntityInstance );
                 }
+            } else {
+                worldAdapter.removeTileEntity( pos );
             }
 
             instance = this.world.getBlockAt( pos );
@@ -308,24 +310,37 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     @Override
     public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType ) {
+        return this.setType( blockType, true, true );
+    }
+
+    public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType, boolean checkTile, boolean resetData ) {
         BlockPosition pos = this.location.toBlockPosition();
         Block instance = this.world.getServer().getBlocks().get( blockType );
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
             worldAdapter.setBlockId( pos, this.layer, instance.getBlockId() );
-            worldAdapter.setBlockData( pos, this.layer, (byte) 0 );
-            worldAdapter.resetTemporaryStorage( pos, this.layer );
+
+            if ( resetData ) {
+                worldAdapter.setBlockData( pos, this.layer, (byte) 0 );
+                worldAdapter.resetTemporaryStorage( pos, this.layer );
+            }
 
             instance.setWorld( worldAdapter );
             instance.setLocation( this.location );
 
             // Check if new block needs tile entity
-            if ( instance.needsTileEntity() ) {
-                TileEntity tileEntityInstance = instance.createTileEntity( new NBTTagCompound( "" ) );
-                if ( tileEntityInstance != null ) {
-                    instance.setTileEntity( tileEntityInstance );
-                    worldAdapter.storeTileEntity( pos, tileEntityInstance );
+            if ( checkTile ) {
+                if ( instance.needsTileEntity() ) {
+                    TileEntity tileEntityInstance = instance.createTileEntity( new NBTTagCompound( "" ) );
+                    if ( tileEntityInstance != null ) {
+                        instance.setTileEntity( tileEntityInstance );
+                        worldAdapter.storeTileEntity( pos, tileEntityInstance );
+                    }
+                } else {
+                    worldAdapter.removeTileEntity( pos );
                 }
+            } else {
+                instance.setTileEntity( this.tileEntity );
             }
 
             long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
@@ -356,6 +371,8 @@ public abstract class Block implements io.gomint.world.block.Block {
         // Check if new block needs tile entity
         if ( instance.getTileEntity() != null ) {
             worldAdapter.storeTileEntity( pos, instance.getTileEntity() );
+        } else {
+            worldAdapter.removeTileEntity( pos );
         }
 
         long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
@@ -390,6 +407,8 @@ public abstract class Block implements io.gomint.world.block.Block {
             // Construct new tile entity
             TileEntity tileEntityInstance = TileEntities.construct( compound, worldAdapter );
             worldAdapter.storeTileEntity( pos, tileEntityInstance );
+        } else {
+            worldAdapter.removeTileEntity( pos );
         }
 
         long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );

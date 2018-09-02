@@ -114,6 +114,14 @@ public class ChunkSlice {
         return new Location( this.chunk.world, this.shiftedMinX + x, this.shiftedMinY + y, this.shiftedMinZ + z );
     }
 
+    void removeTileEntity( int x, int y, int z ) {
+        this.removeTileEntityInternal( getIndex( x, y, z ) );
+    }
+
+    private void removeTileEntityInternal( short index ) {
+        this.tileEntities.remove( index );
+    }
+
     void addTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         this.addTileEntityInternal( getIndex( x, y, z ), tileEntity );
     }

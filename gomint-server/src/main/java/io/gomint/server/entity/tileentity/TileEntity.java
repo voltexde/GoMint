@@ -13,6 +13,8 @@ import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.BurningFurnace;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import lombok.Getter;
@@ -123,6 +125,10 @@ public abstract class TileEntity {
         boolean ne = this.needsPersistance;
         this.needsPersistance = false;
         return ne;
+    }
+
+    protected Block getBlock() {
+        return this.location.getBlock();
     }
 
 }

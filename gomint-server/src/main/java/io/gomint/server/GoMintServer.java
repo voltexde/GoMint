@@ -19,7 +19,6 @@ import io.gomint.gui.ButtonList;
 import io.gomint.gui.CustomForm;
 import io.gomint.gui.Modal;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.jraknet.EventLoops;
 import io.gomint.permission.GroupManager;
 import io.gomint.player.PlayerSkin;
 import io.gomint.plugin.StartupPriority;
@@ -81,8 +80,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Manifest;
 
 /**
@@ -189,7 +186,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         GoMintServer.mainThread = Thread.currentThread().getId();
         GoMintInstanceHolder.setInstance( this );
 
-        // Extract informations from the manifest
+        // Extract information from the manifest
         String buildVersion = "dev/unsupported";
         ClassLoader cl = getClass().getClassLoader();
         try {
@@ -297,10 +294,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.loadConfig();
         this.defaultWorld = this.serverConfig.getDefaultWorld();
 
-        // Calculate the nanoseconds we need for the tick loop
-        long skipNanos = TimeUnit.SECONDS.toNanos( 1 ) / this.getServerConfig().getTargetTPS();
-        LOGGER.debug( "Setting skipNanos to: {}", skipNanos );
-
         // ------------------------------------ //
         // Start of encryption helpers
         // ------------------------------------ //
@@ -309,7 +302,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // Scheduler + WorldManager + PluginManager Initialization
         // ------------------------------------ //
-        this.syncTaskManager = new SyncTaskManager( this, skipNanos );
+        this.syncTaskManager = new SyncTaskManager( this );
         this.scheduler = new CoreScheduler( this.getExecutorService(), this.getSyncTaskManager() );
 
         this.worldManager = new WorldManager( this );
@@ -404,33 +397,37 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // Main Loop
         // ------------------------------------ //
 
+        // Calculate the nanoseconds we need for the tick loop
+        int targetTPS = this.getServerConfig().getTargetTPS();
+        if ( targetTPS > 1000 ) {
+            LOGGER.warn( "Setting target TPS above 1k is not supported, target TPS has been set to 1k" );
+            targetTPS = 1000;
+        }
+
+        long skipMillis = TimeUnit.SECONDS.toMillis( 1 ) / targetTPS;
+        LOGGER.info( "Setting skipMillis to: {}", skipMillis );
+
         // Tick loop
         float lastTickTime = Float.MIN_NORMAL;
-        ReentrantLock tickLock = new ReentrantLock( true );
-        Condition tickCondition = tickLock.newCondition();
 
         while ( this.running.get() ) {
-            tickLock.lock();
             try {
-                this.watchdog.add( 30, TimeUnit.SECONDS );
-
-                start = System.nanoTime();
-
                 // Tick all major subsystems:
                 this.currentTickTime = System.currentTimeMillis();
+                this.watchdog.add( this.currentTickTime, 30, TimeUnit.SECONDS );
 
                 // Drain input lines
                 while ( !inputLines.isEmpty() ) {
-                    String line = inputLines.take();
-                    this.pluginManager.getCommandManager().executeSystem( line );
+                    String line = inputLines.poll();
+                    if ( line != null ) {
+                        this.pluginManager.getCommandManager().executeSystem( line );
+                    }
                 }
 
                 // Tick remaining work
-                if ( !this.mainThreadWork.isEmpty() ) {
-                    Runnable[] work = this.mainThreadWork.toArray( new Runnable[0] );
-                    this.mainThreadWork.clear();
-
-                    for ( Runnable runnable : work ) {
+                while ( !this.mainThreadWork.isEmpty() ) {
+                    Runnable runnable = this.mainThreadWork.poll();
+                    if ( runnable != null ) {
                         runnable.run();
                     }
                 }
@@ -438,7 +435,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 // Tick networking at every tick
                 this.networkManager.update( this.currentTickTime, lastTickTime );
 
-                this.syncTaskManager.update( this.currentTickTime, lastTickTime );
+                this.syncTaskManager.update( this.currentTickTime );
                 this.worldManager.update( this.currentTickTime, lastTickTime );
                 this.permissionGroupManager.update( this.currentTickTime, lastTickTime );
 
@@ -449,20 +446,19 @@ public class GoMintServer implements GoMint, InventoryHolder {
                     break;
                 }
 
-                long diff = System.nanoTime() - start;
-                if ( diff < skipNanos ) {
-                    tickCondition.await( skipNanos - diff, TimeUnit.NANOSECONDS );
-                    lastTickTime = (float) skipNanos / 1000000000.0F;
+                long diff = System.currentTimeMillis() - this.currentTickTime;
+                if ( diff < skipMillis ) {
+                    Thread.sleep( skipMillis - diff );
+
+                    lastTickTime = (float) skipMillis / TimeUnit.SECONDS.toMillis( 1 );
                     this.tps = ( 1 / (double) lastTickTime );
                 } else {
-                    lastTickTime = (float) diff / 1000000000.0F;
+                    lastTickTime = (float) diff / TimeUnit.SECONDS.toMillis( 1 );
                     this.tps = ( 1 / (double) lastTickTime );
-                    LOGGER.warn( "Running behind: " + this.tps + " / " + ( 1 / ( skipNanos / 1000000000.0F ) ) + " tps" );
+                    LOGGER.warn( "Running behind: {} / {} tps", this.tps, ( 1 / ( skipMillis / (float) TimeUnit.SECONDS.toMillis( 1 ) ) ) );
                 }
             } catch ( InterruptedException e ) {
                 // Ignored ._.
-            } finally {
-                tickLock.unlock();
             }
         }
 

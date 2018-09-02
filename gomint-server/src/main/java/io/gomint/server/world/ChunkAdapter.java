@@ -710,6 +710,15 @@ public class ChunkAdapter implements Chunk {
     public void setTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         slice.addTileEntity( x, y - 16 * ( y >> 4 ), z, tileEntity );
+
+        this.dirty = true;
+        this.needsPersistance = true;
+    }
+
+    public void removeTileEntity( int x, int y, int z ) {
+        ChunkSlice slice = ensureSlice( y >> 4 );
+        slice.removeTileEntity( x, y - 16 * ( y >> 4 ), z );
+
         this.dirty = true;
         this.needsPersistance = true;
     }

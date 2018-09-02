@@ -21,8 +21,13 @@ import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.packet.PacketSetContainerData;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.BurningFurnace;
+import io.gomint.server.world.block.Furnace;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
+import io.gomint.world.block.BlockType;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,16 +42,13 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
     private static final int CONTAINER_PROPERTY_LIT_TIME = 1;
     private static final int CONTAINER_PROPERTY_LIT_DURATION = 2;
 
-    private FurnaceInventory inventory;
+    @Getter private FurnaceInventory inventory;
 
     private short cookTime;
     private short burnTime;
     private short burnDuration;
 
     private io.gomint.inventory.item.ItemStack output;
-
-    // Update tracker
-    private float updateDF;
 
     /**
      * Construct new TileEntity from TagCompound
@@ -122,6 +124,12 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
     public void update( long currentMillis ) {
         // Check if we "crafted"
         if ( this.output != null && this.burnTime > 0 ) {
+            // Check if visuals are correct!
+            Block maybeBurningFurnace = this.getBlock();
+            if ( maybeBurningFurnace.getType() != BlockType.BURNING_FURNACE ) {
+                maybeBurningFurnace.setType( BurningFurnace.class, false, false );
+            }
+
             this.cookTime++;
 
             if ( this.cookTime >= 200 ) {
@@ -133,6 +141,9 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
                     itemStack.setAmount( itemStack.getAmount() + this.output.getAmount() );
                     this.inventory.setItem( 2, itemStack );
                 }
+
+                ItemStack input = (ItemStack) this.inventory.getItem( 0 );
+                input.afterPlacement();
 
                 this.cookTime = 0;
                 this.broadcastCookTime();
@@ -152,6 +163,9 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
                 if ( this.checkForRefuel() ) {
                     didRefuel = true;
                     this.broadcastFuelInfo();
+                } else {
+                    BurningFurnace burningFurnace = (BurningFurnace) this.getBlock();
+                    burningFurnace.setType( Furnace.class, false, false );
                 }
             }
 
@@ -211,7 +225,10 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
         }
 
         // Do we have enough input?
-
+        ItemStack input = (ItemStack) this.inventory.getItem( 0 );
+        if ( input.getType() == ItemType.AIR || input.getAmount() == 0 ) {
+            return false;
+        }
 
         // Do we have enough space in the output slot for this
         io.gomint.inventory.item.ItemStack itemStack = this.inventory.getItem( 2 );

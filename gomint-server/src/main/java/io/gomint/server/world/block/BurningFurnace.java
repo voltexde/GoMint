@@ -11,7 +11,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( id = 62 )
-public class BurningFurnace extends Block implements io.gomint.world.block.BlockBurningFurnace {
+public class BurningFurnace extends Furnace implements io.gomint.world.block.BlockBurningFurnace {
 
     @Override
     public int getBlockId() {
