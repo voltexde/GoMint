@@ -16,6 +16,7 @@ import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.crafting.SmeltingRecipe;
 import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.util.StringShortPair;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +44,12 @@ public class AssetsLibrary {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( AssetsLibrary.class );
 
-    @Getter private CreativeInventory creativeInventory;
-    @Getter private Set<Recipe> recipes;
+    @Getter
+    private CreativeInventory creativeInventory;
+    @Getter
+    private Set<Recipe> recipes;
+    @Getter
+    private List<StringShortPair> blockPalette;
 
     // Statistics
     private int shapelessRecipes;
@@ -69,9 +75,17 @@ public class AssetsLibrary {
      */
     @SuppressWarnings( "unchecked" )
     public void load( InputStream input ) throws IOException {
-        NBTTagCompound root = NBTTagCompound.readFrom( input, false, ByteOrder.BIG_ENDIAN );
+        NBTTagCompound root = NBTTagCompound.readFrom( input, true, ByteOrder.BIG_ENDIAN );
         this.loadRecipes( (List<NBTTagCompound>) ( (List) root.getList( "recipes", false ) ) );
         this.loadCreativeInventory( (List<byte[]>) ( (List) root.getList( "creativeInventory", false ) ) );
+        this.loadBlockPalette( (List<NBTTagCompound>) ( (List) root.getList( "blockPalette", false ) ) );
+    }
+
+    private void loadBlockPalette( List<NBTTagCompound> blockPaletteCompounds ) {
+        this.blockPalette = new ArrayList<>();
+        for ( NBTTagCompound compound : blockPaletteCompounds ) {
+            this.blockPalette.add( new StringShortPair( compound.getString( "id", "minecraft:air" ), compound.getShort( "data", (short) 0 ) ) );
+        }
     }
 
     private void loadCreativeInventory( List<byte[]> raw ) {

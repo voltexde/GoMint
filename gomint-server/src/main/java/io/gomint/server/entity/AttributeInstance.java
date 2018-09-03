@@ -1,6 +1,7 @@
 package io.gomint.server.entity;
 
 import io.gomint.math.MathUtils;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import lombok.ToString;
@@ -16,6 +17,7 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 @ToString
 @Getter
 public class AttributeInstance {

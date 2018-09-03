@@ -2,6 +2,7 @@ package io.gomint.server.entity;
 
 import io.gomint.server.network.packet.PacketAdventureSettings;
 import io.gomint.server.player.PlayerPermission;
+import io.gomint.server.registry.SkipRegister;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 @Data
 public class AdventureSettings {
 

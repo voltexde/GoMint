@@ -14,6 +14,7 @@ import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.packet.PacketInventoryTransaction;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.World;
 import io.gomint.world.block.BlockType;
@@ -36,6 +37,7 @@ import java.util.List;
  * after that we get some inventory transactions with windowId -15 and -17 (those contain the enchantment items) and the
  * last packet is a EntityEvent with ID 34 (enchanted) with data of the missing levels (-1,-2,-3)
  */
+@SkipRegister
 @RequiredArgsConstructor
 public class EnchantmentProcessor {
 

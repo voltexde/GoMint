@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.server.registry.SkipRegister;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -16,6 +17,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public class EntityMagicNumbers {
 
     private static final Object2IntMap<String> NEW_ID_MAPPING = new Object2IntOpenHashMap<>();

@@ -109,13 +109,13 @@ public class PacketStartGame extends Packet {
         buffer.writeBoolean( this.hasTrustPlayersEnabled );
         buffer.writeSignedVarInt( this.defaultPlayerPermission );
         buffer.writeSignedVarInt( this.xboxLiveBroadcastMode );
-        buffer.writeInt( 32 );
+        buffer.writeInt( 32 ); // Server Tick rate
         buffer.writeBoolean( this.hasPlatformBroadcast );
         buffer.writeSignedVarInt( this.platformBroadcastMode );
         buffer.writeBoolean( this.xboxLiveBroadcastIntent );
-        buffer.writeBoolean( false );
-        buffer.writeBoolean( false );
-        buffer.writeBoolean( false );
+        buffer.writeBoolean( false ); // locked behaviour template
+        buffer.writeBoolean( false ); // locked resource template
+        buffer.writeBoolean( false ); // locked world template
 
         // TODO: PRTCL 290
         if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {

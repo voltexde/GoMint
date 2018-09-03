@@ -8,12 +8,14 @@
 package io.gomint.server.enchant;
 
 import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.registry.SkipRegister;
 import lombok.Getter;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public class Enchantment implements io.gomint.enchant.Enchantment {
 
     @Getter

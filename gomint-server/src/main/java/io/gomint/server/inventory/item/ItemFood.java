@@ -8,15 +8,14 @@ package io.gomint.server.inventory.item;
 
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.item.category.ItemConsumable;
-import io.gomint.taglib.NBTTagCompound;
+import io.gomint.server.registry.SkipRegister;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public abstract class ItemFood extends ItemStack implements io.gomint.inventory.item.ItemFood, ItemConsumable {
-
-
 
     @Override
     public void onConsume( EntityPlayer player ) {

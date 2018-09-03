@@ -1,11 +1,13 @@
 package io.gomint.server.world.block;
 
 import io.gomint.server.entity.tileentity.ContainerTileEntity;
+import io.gomint.server.registry.SkipRegister;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public abstract class ContainerBlock extends Block {
 
     public void setCustomName( String customName ) {

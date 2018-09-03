@@ -19,6 +19,7 @@ import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.EntityType;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.util.random.FastRandom;
@@ -29,6 +30,7 @@ import java.util.Collection;
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public abstract class EntityProjectile extends Entity implements io.gomint.entity.projectile.EntityProjectile {
 
     protected final EntityLiving shooter;
