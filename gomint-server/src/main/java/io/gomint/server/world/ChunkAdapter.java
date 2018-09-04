@@ -181,7 +181,7 @@ public class ChunkAdapter implements Chunk {
         return this.world.randomUpdateNumber >> 2;
     }
 
-    private ChunkSlice ensureSlice( int y ) {
+    protected ChunkSlice ensureSlice( int y ) {
         ChunkSlice slice = this.chunkSlices[y];
         if ( slice != null ) {
             return slice;

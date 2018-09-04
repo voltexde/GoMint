@@ -700,9 +700,10 @@ public class PlayerConnection {
         }
 
         for ( Pair<Integer, Integer> chunk : toSendChunks ) {
+            long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
             if ( forceResendEntities ) {
-                long hash = CoordinateUtils.toLong( chunk.getFirst(), chunk.getSecond() );
                 if ( !this.playerChunks.contains( hash ) && !this.loadingChunks.contains( hash ) ) {
+                    this.loadingChunks.add( hash );
                     this.requestChunk( chunk.getFirst(), chunk.getSecond() );
                 } else {
                     // We already know this chunk but maybe forceResend is enabled
@@ -714,6 +715,7 @@ public class PlayerConnection {
                         } );
                 }
             } else {
+                this.loadingChunks.add( hash );
                 this.requestChunk( chunk.getFirst(), chunk.getSecond() );
             }
         }
@@ -753,8 +755,13 @@ public class PlayerConnection {
         LOGGER.debug( "Requesting chunk {} {} for {}", x, z, this.entity );
         this.entity.getWorld().sendChunk( x, z,
             false, ( chunkHash, loadedChunk ) -> {
+                LOGGER.debug( "Loaded chunk: {} - > {}", this.entity, loadedChunk );
                 if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
-                    this.entity.getChunkSendQueue().offer( loadedChunk );
+                    if ( !this.entity.getChunkSendQueue().offer( loadedChunk ) ) {
+                        LOGGER.warn( "Could not add chunk to send queue" );
+                    }
+
+                    LOGGER.debug( "Current queue length: {}", this.entity.getChunkSendQueue().size() );
                 }
             } );
     }

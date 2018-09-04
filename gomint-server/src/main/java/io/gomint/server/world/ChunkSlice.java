@@ -181,77 +181,6 @@ public class ChunkSlice {
         return this.isAllAir;
     }
 
-    /*byte[] getBytes( int protocolID ) {
-        // Check how many layers we have
-        int amountOfLayers = this.getAmountOfLayers();
-
-        PacketBuffer buffer = new PacketBuffer( Short.MAX_VALUE );
-        buffer.writeByte( (byte) amountOfLayers );
-
-        for ( int i = 0; i < amountOfLayers; i++ ) {
-            // Count how many unique blocks we have in this chunk
-            int index = 0;
-            Long2IntMap ids = new Long2IntArrayMap();
-            Long2IntMap runtimeIndex = new Long2IntArrayMap();
-            ids.defaultReturnValue( -1 );
-            int[] indexIDs = new int[4096];
-
-            for ( int x = 0; x < 16; x++ ) {
-                for ( int z = 0; z < 16; z++ ) {
-                    for ( int y = 0; y < 16; y++ ) {
-                        short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
-                        int blockId = this.getBlockInternal( i, blockIndex );
-                        byte blockData = this.data[i] == null ? 0 : this.data[i].get( blockIndex );
-
-                        long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
-                        int foundIndex = ids.get( hashId );
-                        if ( foundIndex == -1 ) {
-                            int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData, protocolID );
-                            runtimeIndex.put( index, runtimeId );
-                            ids.put( hashId, index );
-                            foundIndex = index;
-                            index++;
-                        }
-
-                        indexIDs[blockIndex] = foundIndex;
-                    }
-                }
-            }
-
-            // Get correct wordsize
-            int value = ids.size();
-            int numberOfBits = MathUtils.fastFloor( log2( value ) ) + 1;
-
-            // Prepare palette
-            int amountOfBlocks = MathUtils.fastFloor( 32f / (float) numberOfBits );
-
-            Palette palette = new Palette( buffer, amountOfBlocks, false );
-
-            byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );
-            buffer.writeByte( paletteWord );
-
-            for ( Integer id : indexIDs ) {
-                palette.addIndex( id );
-            }
-
-            palette.finish();
-
-            // Write runtimeIDs
-            buffer.writeSignedVarInt( ids.size() );
-
-            Long2IntMap.FastEntrySet entrySet = (Long2IntMap.FastEntrySet) runtimeIndex.long2IntEntrySet();
-            ObjectIterator<Long2IntMap.Entry> iterator = entrySet.fastIterator();
-            while ( iterator.hasNext() ) {
-                buffer.writeSignedVarInt( iterator.next().getIntValue() );
-            }
-        }
-
-        // Copy result
-        byte[] outputData = new byte[buffer.getPosition()];
-        System.arraycopy( buffer.getBuffer(), buffer.getBufferOffset(), outputData, 0, buffer.getPosition() );
-        return outputData;
-    }*/
-
     protected int getAmountOfLayers() {
         return this.blocks[1] != null ? 2 : 1;
     }
@@ -301,36 +230,37 @@ public class ChunkSlice {
         int amountOfLayers = this.getAmountOfLayers();
         buffer.writeByte( (byte) amountOfLayers );
 
-        for ( int i = 0; i < amountOfLayers; i++ ) {
+        for ( int layer = 0; layer < amountOfLayers; layer++ ) {
             // Count how many unique blocks we have in this chunk
             int[] indexIDs = new int[4096];
             LongList indexList = new LongArrayList();
             IntList runtimeIndex = new IntArrayList();
 
             int foundIndex = 0;
-            long lastHash = -1;
 
-            for ( int x = 0; x < 16; x++ ) {
-                for ( int z = 0; z < 16; z++ ) {
-                    for ( int y = 0; y < 16; y++ ) {
-                        short blockIndex = (short) ( ( x << 8 ) + ( z << 4 ) + y );
-                        int blockId = this.getBlockInternal( i, blockIndex );
-                        byte blockData = blockId == 0 || this.data[i] == null ? 0 : this.data[i].get( blockIndex );
+            int lastBlockId = -1;
+            byte lastDataId = -1;
 
-                        long hashId = ( (long) blockId ) << 32 | ( blockData & 0xffffffffL );
-                        if ( hashId != lastHash ) {
-                            foundIndex = indexList.indexOf( hashId );
-                            if ( foundIndex == -1 ) {
-                                int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData );
-                                runtimeIndex.add( runtimeId );
-                                indexList.add( hashId );
-                                foundIndex = indexList.size() - 1;
-                            }
-                        }
+            for ( short blockIndex = 0; blockIndex < indexIDs.length; blockIndex++ ) {
+                int blockId = this.getBlockInternal( layer, blockIndex );
+                byte blockData = blockId == 0 || this.data[layer] == null ? 0 : this.data[layer].get( blockIndex );
 
-                        indexIDs[blockIndex] = foundIndex;
+                if ( blockId != lastBlockId || blockData != lastDataId ) {
+                    long hashId = ( (long) blockId ) << 32 | ( blockData & 0xFF );
+
+                    foundIndex = indexList.indexOf( hashId );
+                    if ( foundIndex == -1 ) {
+                        int runtimeId = BlockRuntimeIDs.fromLegacy( blockId, blockData );
+                        runtimeIndex.add( runtimeId );
+                        indexList.add( hashId );
+                        foundIndex = indexList.size() - 1;
                     }
+
+                    lastBlockId = blockId;
+                    lastDataId = blockData;
                 }
+
+                indexIDs[blockIndex] = foundIndex;
             }
 
             // Get correct wordsize

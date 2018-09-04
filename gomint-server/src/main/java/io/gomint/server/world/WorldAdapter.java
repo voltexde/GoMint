@@ -809,6 +809,7 @@ public abstract class WorldAdapter implements World {
                 switch ( task.getType() ) {
                     case LOAD:
                         AsyncChunkLoadTask load = (AsyncChunkLoadTask) task;
+                        this.getLogger().debug( "Loading chunk {} / {}", load.getX(), load.getZ() );
                         chunk = this.loadChunk( load.getX(), load.getZ(), load.isGenerate() );
 
                         load.getCallback().invoke( chunk );

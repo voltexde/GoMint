@@ -106,12 +106,14 @@ public enum TileEntities {
     /**
      * Data for end portals
      */
-    END_PORTAL( "EndPortal", EndPortalTileEntity.class );
+    END_PORTAL( "EndPortal", EndPortalTileEntity.class ),
 
     /**
      * Data for banner
      */
     //BANNER( "Banner", BannerTileEntity.class );
+
+    MOB_SPAWNER( "MobSpawner", MobSpawnerTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;

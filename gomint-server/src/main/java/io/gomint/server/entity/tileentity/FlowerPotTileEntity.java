@@ -81,4 +81,5 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
         compound.addValue( "item", (short) this.holdingItem.getMaterial() );
         compound.addValue( "mData", (int) this.holdingItem.getData() );
     }
+
 }
