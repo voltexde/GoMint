@@ -9,6 +9,7 @@ package io.gomint.server.world.leveldb;
 
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCache;
@@ -20,7 +21,6 @@ import io.gomint.world.Chunk;
 import io.gomint.world.Difficulty;
 import io.gomint.world.generator.GeneratorContext;
 import io.gomint.world.generator.integrated.LayeredGenerator;
-import lombok.EqualsAndHashCode;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.DbImpl;
@@ -41,7 +41,6 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-@EqualsAndHashCode( callSuper = true )
 public class LevelDBWorldAdapter extends WorldAdapter {
 
     private DB db;
@@ -331,6 +330,11 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         } catch ( IOException e ) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean persistPlayer( EntityPlayer player ) {
+        return false;
     }
 
     @Override

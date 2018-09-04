@@ -46,7 +46,7 @@ public class PostProcessWorker implements Runnable {
     private ZLib getCompressor() {
         if ( COMPRESSOR.get() == null ) {
             ZLib zLib = ZLIB.newInstance();
-            zLib.init( true, 7 );
+            zLib.init( true, false, 7 );
             COMPRESSOR.set( zLib );
             return zLib;
         }
@@ -62,12 +62,13 @@ public class PostProcessWorker implements Runnable {
         // Write all packets into the inBuf for compression
         for ( Packet packet : this.packets ) {
             PacketBuffer buffer = new PacketBuffer( 64 );
-            buffer.writeUnsignedVarInt( packet.getId() ); // TODO: Add support for split screen
-            packet.serialize( buffer, 280 );
+            packet.serializeHeader( buffer );
+            packet.serialize( buffer, 282 );
 
             writeVarInt( buffer.getPosition(), inBuf );
             inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
         }
+
         // Create the output buffer
         ByteBuf outBuf = PooledByteBufAllocator.DEFAULT.directBuffer( 8192 ); // We will write at least once so ensureWrite will realloc to 8192 so or so
 
@@ -83,7 +84,7 @@ public class PostProcessWorker implements Runnable {
             inBuf.release();
         }
 
-        byte[] data = new byte[outBuf.writerIndex()];
+        byte[] data = new byte[outBuf.readableBytes()];
         outBuf.readBytes( data );
         outBuf.release();
 

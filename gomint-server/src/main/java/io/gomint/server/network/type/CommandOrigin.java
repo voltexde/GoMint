@@ -21,6 +21,7 @@ public class CommandOrigin {
     private byte unknown1;
     private UUID uuid;
     private byte unknown2;
-    @Setter private byte type; // 0x00 player, 0x03 server
+    @Setter
+    private byte type; // 0x00 player, 0x03 server
 
 }

@@ -2,7 +2,6 @@ package io.gomint.server.network.packet;
 
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.BlockPosition;
-import io.gomint.math.Vector;
 import io.gomint.server.network.Protocol;
 import io.gomint.world.block.BlockFace;
 import lombok.Data;

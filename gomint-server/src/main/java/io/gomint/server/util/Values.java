@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 public class Values {
 

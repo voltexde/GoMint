@@ -10,7 +10,12 @@ package io.gomint.server.entity;
 import io.gomint.entity.BossBar;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityTeleportEvent;
-import io.gomint.math.*;
+import io.gomint.event.entity.EntityVelocityEvent;
+import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
+import io.gomint.math.Vector;
+import io.gomint.math.Vector2;
 import io.gomint.server.entity.component.TransformComponent;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.PlayerConnection;
@@ -21,14 +26,21 @@ import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.block.*;
+import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.FlowingWater;
+import io.gomint.server.world.block.Ladder;
+import io.gomint.server.world.block.Liquid;
+import io.gomint.server.world.block.StationaryWater;
+import io.gomint.server.world.block.Vines;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Chunk;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +55,7 @@ import java.util.function.Predicate;
  * @author BlackyPaw
  * @version 1.1
  */
+@EqualsAndHashCode( of = { "id" } )
 public abstract class Entity implements io.gomint.entity.Entity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Entity.class );
@@ -81,6 +94,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * How high can this entity "climb" in one movement?
      */
     protected float stepHeight = 0;
+    @Setter
     protected boolean onGround;
 
     /**
@@ -97,6 +111,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Fall distance tracking
      */
+    @Getter
+    @Setter
     protected float fallDistance = 0;
 
     /**
@@ -115,7 +131,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
     private boolean dead;
     protected int age;
 
-    @Setter
     protected WorldAdapter world;
     private TransformComponent transform;
     private float lastUpdateDt;
@@ -141,7 +156,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * Movement status
      */
     private int nextFullMovement = 20;
-    @Getter private Location oldPosition;
+    @Getter
+    private Location oldPosition;
 
     /**
      * Construct a new Entity
@@ -165,6 +181,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.setHasCollision( true );
         this.setAffectedByGravity( true );
         this.setNameTagVisible( true );
+
+        // Check if we can setup AI
+        if ( this.world != null ) {
+            this.setupAI();
+        }
     }
 
     // ==================================== ACCESSORS ==================================== //
@@ -304,11 +325,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
             for ( io.gomint.world.block.Block block : blockList ) {
                 io.gomint.server.world.block.Block implBlock = (io.gomint.server.world.block.Block) block;
                 implBlock.onEntityCollision( this );
-                implBlock.addVelocity( this, pushedByBlocks );
+                pushedByBlocks = implBlock.addVelocity( this, pushedByBlocks );
             }
 
             if ( pushedByBlocks.length() > 0 ) {
-                pushedByBlocks.normalize().multiply( 0.014f );
+                pushedByBlocks = pushedByBlocks.normalize().multiply( 0.014f );
                 Vector newMotion = this.transform.getMotion().add( pushedByBlocks );
                 this.transform.setMotion( newMotion.getX(), newMotion.getY(), newMotion.getZ() );
                 this.broadCastMotion();
@@ -355,8 +376,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 dY = axisAlignedBB.calculateYOffset( this.boundingBox, dY );
                 if ( dY != movY ) {
                     Block block = this.world.getBlockAt( (int) axisAlignedBB.getMinX(), (int) axisAlignedBB.getMinY(), (int) axisAlignedBB.getMinZ() );
-                    LOGGER.debug( "Entity {} collided with {}", this, block );
-
                     this.collidedWith.add( block );
                 }
             }
@@ -490,6 +509,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
      */
     protected abstract void fall();
 
+    /**
+     * Check if this entity is collided
+     *
+     * @param movX the amount of x which the entity has moved
+     * @param movY the amount of y which the entity has moved
+     * @param movZ the amount of z which the entity has moved
+     * @param dX the amount of x which the entity should have moved
+     * @param dY the amount of y which the entity should have moved
+     * @param dZ the amount of z which the entity should have moved
+     */
     protected void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
         // Check if we collided with something
         this.isCollidedVertically = movY != dY;
@@ -621,9 +650,21 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.setVelocity( velocity, true );
     }
 
+    /**
+     * Set the given velocity
+     *
+     * @param velocity which should be applied to the entity
+     * @param send true when the entity should get the velocity
+     */
     public void setVelocity( Vector velocity, boolean send ) {
-        LOGGER.debug( "New motion for {}: {}", this, velocity );
-        this.transform.setMotion( velocity.getX(), velocity.getY(), velocity.getZ() );
+        EntityVelocityEvent event = new EntityVelocityEvent( this, velocity );
+        this.world.getServer().getPluginManager().callEvent( event );
+        if ( event.isCancelled() ) {
+            return;
+        }
+
+        LOGGER.debug( "New motion for {}: {}", this, event.getVelocity() );
+        this.transform.setMotion( event.getVelocity().getX(), event.getVelocity().getY(), event.getVelocity().getZ() );
         this.fallDistance = 0;
 
         if ( send ) {
@@ -631,17 +672,16 @@ public abstract class Entity implements io.gomint.entity.Entity {
         }
     }
 
-    public void broadCastMotion() {
+    /**
+     * Broadcast the current motion to all surrounding (visible) entities
+     */
+    void broadCastMotion() {
         PacketEntityMotion motion = new PacketEntityMotion();
         motion.setEntityId( this.getEntityId() );
         motion.setVelocity( this.transform.getMotion() );
 
-        this.world.sendToVisible( this.transform.getPosition().toBlockPosition(), motion, new Predicate<io.gomint.entity.Entity>() {
-            @Override
-            public boolean test( io.gomint.entity.Entity entity ) {
-                return entity instanceof EntityPlayer && ( (EntityPlayer) entity ).getEntityVisibilityManager().isVisible( Entity.this );
-            }
-        } );
+        this.world.sendToVisible( this.transform.getPosition().toBlockPosition(), motion,
+            entity -> entity instanceof EntityPlayer && ( (EntityPlayer) entity ).getEntityVisibilityManager().isVisible( Entity.this ) );
     }
 
     /**
@@ -891,6 +931,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.width = width;
         this.height = height;
         this.eyeHeight = (float) ( height / 2 + 0.1 );
+
+        this.metadataContainer.putFloat( MetadataContainer.DATA_BOUNDINGBOX_WIDTH, width );
+        this.metadataContainer.putFloat( MetadataContainer.DATA_BOUNDINGBOX_HEIGHT, height );
+
         this.recalcBoundingBox();
     }
 
@@ -983,9 +1027,10 @@ public abstract class Entity implements io.gomint.entity.Entity {
     /**
      * Create the packet for display in the client
      *
+     * @param receiver which should get this entity
      * @return packet for spawning this entity
      */
-    public Packet createSpawnPacket() {
+    public Packet createSpawnPacket( EntityPlayer receiver ) {
         PacketSpawnEntity spawnEntity = new PacketSpawnEntity();
         spawnEntity.setEntityId( this.getEntityId() );
         spawnEntity.setMetadata( this.metadataContainer );
@@ -1031,7 +1076,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         Location eyeLocation = this.getLocation().add( 0, this.eyeHeight, 0 );
         Block block = eyeLocation.getWorld().getBlockAt( eyeLocation.toBlockPosition() );
         if ( block instanceof StationaryWater || block instanceof FlowingWater ) {
-            float yLiquid = (float) ( block.getLocation().getY() + 1 + ( ( ( (Liquid) block ).getFillHeight() - 0.12 ) ) );
+            float yLiquid = (float) ( block.getLocation().getY() + 1 + ( ( (Liquid) block ).getFillHeight() - 0.12 ) );
             return eyeLocation.getY() < yLiquid;
         }
 
@@ -1133,6 +1178,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         this.world = (WorldAdapter) location.getWorld();
         this.world.spawnEntityAt( this, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch() );
+        this.setupAI();
+    }
+
+    protected void setupAI() {
+
     }
 
     public void teleport( Location to, EntityTeleportEvent.Cause cause ) {
@@ -1264,9 +1314,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
         List<Object> pos = compound.getList( "Pos", false );
         if ( pos != null ) {
             // Data in the array are three floats (x, y, z)
-            float x = (float) pos.get( 0 );
-            float y = (float) pos.get( 1 );
-            float z = (float) pos.get( 2 );
+            float x = MathUtils.ensureFloat( pos.get( 0 ) );
+            float y = MathUtils.ensureFloat( pos.get( 1 ) );
+            float z = MathUtils.ensureFloat( pos.get( 2 ) );
 
             this.setPosition( x, y, z );
         }
@@ -1275,9 +1325,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
         List<Object> motion = compound.getList( "Motion", false );
         if ( motion != null ) {
             // Data in the array are three floats (x, y, z)
-            float x = (float) motion.get( 0 );
-            float y = (float) motion.get( 1 );
-            float z = (float) motion.get( 2 );
+            float x = MathUtils.ensureFloat( motion.get( 0 ) );
+            float y = MathUtils.ensureFloat( motion.get( 1 ) );
+            float z = MathUtils.ensureFloat( motion.get( 2 ) );
 
             this.transform.setMotion( x, y, z );
         }
@@ -1291,6 +1341,42 @@ public abstract class Entity implements io.gomint.entity.Entity {
             this.setYaw( yaw );
             this.setPitch( pitch );
         }
+
+        // Fall distance
+        this.fallDistance = compound.getFloat( "FallDistance", 0f );
+        this.setAffectedByGravity( compound.getByte( "NoGravity", (byte) 0 ) == 0 );
+        this.onGround = compound.getByte( "OnGround", (byte) 1 ) == 1;
+    }
+
+    public NBTTagCompound persistToNBT() {
+        NBTTagCompound compound = new NBTTagCompound( "" );
+
+        // Store position
+        List<Float> pos = new ArrayList<>();
+        pos.add( this.getPositionX() );
+        pos.add( this.getPositionY() );
+        pos.add( this.getPositionZ() );
+        compound.addValue( "Pos", pos );
+
+        // Store motion
+        List<Float> motion = new ArrayList<>();
+        motion.add( this.getMotionX() );
+        motion.add( this.getMotionY() );
+        motion.add( this.getMotionZ() );
+        compound.addValue( "Motion", motion );
+
+        // Store rotation
+        List<Float> rotation = new ArrayList<>();
+        rotation.add( this.getYaw() );
+        rotation.add( this.getPitch() );
+        compound.addValue( "Rotation", rotation );
+
+        // Fall distance
+        compound.addValue( "FallDistance", this.fallDistance );
+        compound.addValue( "NoGravity", (byte) ( this.isAffectedByGravity() ? 0 : 1 ) );
+        compound.addValue( "OnGround", (byte) ( this.isOnGround() ? 1 : 0 ) );
+
+        return compound;
     }
 
     public boolean isMotionSendingEnabled() {
@@ -1309,6 +1395,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     public void updateOldPosition() {
         this.oldPosition = this.getLocation();
+    }
+
+    public void setWorld( WorldAdapter world ) {
+        LOGGER.info( "Setting world of {} to {}", this, world.toString() );
+        this.world = world;
     }
 
 }

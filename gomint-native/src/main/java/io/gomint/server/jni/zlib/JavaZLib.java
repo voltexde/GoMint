@@ -26,14 +26,14 @@ public class JavaZLib implements ZLib {
     private Inflater inflater;
 
     @Override
-    public void init( boolean compress, int level ) {
+    public void init( boolean compress, boolean gzip, int level ) {
         this.compress = compress;
         free();
 
         if ( compress ) {
-            deflater = new Deflater( level );
+            deflater = new Deflater( level, gzip );
         } else {
-            inflater = new Inflater();
+            inflater = new Inflater( gzip );
         }
     }
 
@@ -54,24 +54,28 @@ public class JavaZLib implements ZLib {
         in.readBytes( inData );
 
         if ( compress ) {
-            deflater.setInput( inData );
-            deflater.finish();
+            try {
+                deflater.setInput( inData );
+                deflater.finish();
 
-            while ( !deflater.finished() ) {
-                int count = deflater.deflate( buffer );
-                out.writeBytes( buffer, 0, count );
+                while ( !deflater.finished() ) {
+                    int count = deflater.deflate( buffer );
+                    out.writeBytes( buffer, 0, count );
+                }
+            } finally {
+                deflater.reset();
             }
-
-            deflater.reset();
         } else {
-            inflater.setInput( inData );
+            try {
+                inflater.setInput( inData );
 
-            while ( !inflater.finished() && inflater.getTotalIn() < inData.length ) {
-                int count = inflater.inflate( buffer );
-                out.writeBytes( buffer, 0, count );
+                while ( !inflater.finished() && inflater.getTotalIn() < inData.length ) {
+                    int count = inflater.inflate( buffer );
+                    out.writeBytes( buffer, 0, count );
+                }
+            } finally {
+                inflater.reset();
             }
-
-            inflater.reset();
         }
     }
 

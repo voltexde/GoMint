@@ -71,15 +71,36 @@ void JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_end(JNIEnv* env, jobject 
 	}
 }
 
-jlong JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_init(JNIEnv* env, jobject obj, jboolean compress, jint level) {
-	z_stream* stream = (z_stream*)calloc(1, sizeof(z_stream));
-	int ret = (compress) ? deflateInit(stream, level) : inflateInit(stream);
+jlong JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_init(JNIEnv* env, jobject obj, jboolean compress, jboolean gzip, jint level) {
+	z_stream* stream = (z_stream*) calloc(1, sizeof(z_stream));
 
-	if (ret != Z_OK) {
+	int ret;
+	if ( compress )
+	{
+	    if ( gzip )
+	    {
+	        ret = deflateInit2(stream, level, Z_DEFLATED, 16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
+	    } else
+	    {
+	        ret = deflateInit2(stream, level, Z_DEFLATED, MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
+	    }
+	} else
+	{
+	    if ( gzip )
+	    {
+	        ret = inflateInit2(stream, 16 + MAX_WBITS);
+	    } else
+	    {
+	        ret = inflateInit2(stream, MAX_WBITS);
+	    }
+	}
+
+	if ( ret != Z_OK )
+	{
 		throwException(env, "Could not init z_stream", ret);
 	}
 
-	return (jlong)stream;
+	return (jlong) stream;
 }
 
 jint JNICALL Java_io_gomint_server_jni_zlib_ZLibNative_process(JNIEnv* env, jobject obj, jlong ctx, jlong in, jint inLength, jlong out, jint outLength, jboolean compress) {

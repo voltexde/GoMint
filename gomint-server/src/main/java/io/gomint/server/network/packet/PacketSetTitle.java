@@ -5,7 +5,6 @@ import io.gomint.server.network.Protocol;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 @Data
 public class PacketSetTitle extends Packet {
@@ -25,7 +24,7 @@ public class PacketSetTitle extends Packet {
         buffer.writeSignedVarInt( type );
         buffer.writeString( text );
         buffer.writeSignedVarInt( fadeInTime );
-        buffer.writeSignedVarInt( stayTime);
+        buffer.writeSignedVarInt( stayTime );
         buffer.writeSignedVarInt( fadeOutTime );
     }
 

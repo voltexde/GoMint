@@ -5,7 +5,6 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.entity.EntityLink;
 import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.network.Protocol;
-import io.gomint.server.util.DumpUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -22,12 +21,10 @@ public class PacketSpawnPlayer extends Packet {
 
     private UUID uuid;
     private String name;
-    private String thirdPartyName = "";  // TODO: Find out if this is some sort of nickname function
-    private int platformID;         // TODO: The heck is this? (I guess the servers platform?)
+    private String thirdPartyName = "";     // TODO: Find out if this is some sort of nickname function
+    private int platformID;                 // TODO: The heck is this? (I guess the servers platform?)
     private long entityId;
     private long runtimeEntityId;
-
-    private String unknown = "";    // TODO: What is this?
 
     private float x;
     private float y;
@@ -52,6 +49,7 @@ public class PacketSpawnPlayer extends Packet {
     private int customFlags;
 
     private List<EntityLink> links;
+    private String deviceId;
 
     /**
      * Create a new spawn player packet
@@ -65,8 +63,11 @@ public class PacketSpawnPlayer extends Packet {
         buffer.writeUUID( this.uuid );
         buffer.writeString( this.name );
 
-        buffer.writeString( this.thirdPartyName );
-        buffer.writeSignedVarInt( this.platformID );
+        // TODO: PTRCL 290
+        if ( protocolID < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
+            buffer.writeString( this.thirdPartyName );
+            buffer.writeSignedVarInt( this.platformID );
+        }
 
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.runtimeEntityId );
@@ -97,12 +98,14 @@ public class PacketSpawnPlayer extends Packet {
         buffer.writeLLong( this.entityId );
 
         writeEntityLinks( this.links, buffer );
+
+        buffer.writeString( this.deviceId );
     }
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
-        System.out.println( buffer.readUnsignedVarLong() );
-        System.out.println( buffer.readUnsignedVarLong() );
+        buffer.readUUID();
+        System.out.println( buffer.readString() );
     }
 
 }

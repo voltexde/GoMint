@@ -9,14 +9,17 @@ package io.gomint.server.world.anvil;
 
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.Entity;
+import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.StringUtil;
 import io.gomint.server.world.ChunkAdapter;
+import io.gomint.server.world.HeapNibbleArray;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.anvil.entity.EntityConverters;
 import io.gomint.server.world.anvil.tileentity.TileEntityConverters;
+import io.gomint.server.world.postprocessor.BedPostProcessor;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTStream;
 import io.gomint.taglib.NBTTagCompound;
@@ -27,7 +30,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -98,7 +100,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
 
         for ( int sectionY = 0; sectionY < 16; ++sectionY ) {
             byte[] blocks = new byte[4096];
-            NibbleArray data = new NibbleArray( (short) 4096 );
+            HeapNibbleArray data = new HeapNibbleArray( (short) 4096 );
             int baseIndex = sectionY * 16;
 
             for ( int y = baseIndex; y < baseIndex + 16; ++y ) {
@@ -128,7 +130,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
         List<NBTTagCompound> tileEntityCompounds = new ArrayList<>();
         for ( TileEntity tileEntity : this.getTileEntities() ) {
             NBTTagCompound compound = new NBTTagCompound( "" );
-            tileEntity.toCompound( compound );
+            tileEntity.toCompound( compound, SerializationReason.PERSIST );
             tileEntityCompounds.add( compound );
         }
 
@@ -147,7 +149,6 @@ public class AnvilChunkAdapter extends ChunkAdapter {
     void loadFromNBT( NBTStream nbtStream ) throws WorldLoadException {
         // Fill in default values
         this.biomes = new byte[256];
-        Arrays.fill( this.biomes, (byte) -1 );
 
         // Allow for compound return for given paths
         nbtStream.addCompountAcceptor( path -> path.equals( ".Level.Entities" ) ||
@@ -292,6 +293,7 @@ public class AnvilChunkAdapter extends ChunkAdapter {
             default:
                 // We assume that the chunk is 1.8
                 this.tileEntityConverters = new io.gomint.server.world.anvil.tileentity.v1_8.TileEntities( this.world );
+                this.entityConverters = new io.gomint.server.world.anvil.entity.v1_8.Entities( this.world );
         }
     }
 
@@ -304,8 +306,8 @@ public class AnvilChunkAdapter extends ChunkAdapter {
         byte[] blocks = section.getByteArray( "Blocks", new byte[0] );
         byte[] addBlocks = section.getByteArray( "Add", new byte[0] );
 
-        NibbleArray add = addBlocks.length > 0 ? new NibbleArray( addBlocks ) : null;
-        NibbleArray data = new NibbleArray( section.getByteArray( "Data", new byte[0] ) );
+        NibbleArray add = addBlocks.length > 0 ? NibbleArray.create( addBlocks ) : null;
+        NibbleArray data = NibbleArray.create( section.getByteArray( "Data", new byte[0] ) );
 
         if ( blocks == null ) {
             throw new IllegalArgumentException( "Corrupt chunk: Section is missing obligatory compounds" );
@@ -350,9 +352,14 @@ public class AnvilChunkAdapter extends ChunkAdapter {
                     }
 
                     switch ( blockId ) {
+                        case 26: // Bed
+                            BlockPosition position = new BlockPosition( ( this.x << 4 ) + i, y, ( this.z << 4 ) + k );
+                            this.postProcessors.offer( new BedPostProcessor( this.world, position ) );
+                            break;
+
                         case 29:
                         case 33: // Piston head
-                            BlockPosition position = new BlockPosition( ( this.x << 4 ) + i, y, ( this.z << 4 ) + k );
+                            position = new BlockPosition( ( this.x << 4 ) + i, y, ( this.z << 4 ) + k );
                             this.postProcessors.offer( new PistonPostProcessor( this.world, position ) );
                             break;
 

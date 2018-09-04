@@ -17,20 +17,20 @@ public class PacketAnimate extends Packet {
     private long entityId;
 
     public PacketAnimate() {
-        super(Protocol.PACKET_ANIMATE);
+        super( Protocol.PACKET_ANIMATE );
     }
 
     @Override
-    public void serialize(PacketBuffer buffer, int protocolID) {
-        buffer.writeSignedVarInt(this.actionId);
-        buffer.writeUnsignedVarLong(this.entityId);
+    public void serialize( PacketBuffer buffer, int protocolID ) {
+        buffer.writeSignedVarInt( this.actionId );
+        buffer.writeUnsignedVarLong( this.entityId );
     }
 
     @Override
-    public void deserialize(PacketBuffer buffer, int protocolID) {
+    public void deserialize( PacketBuffer buffer, int protocolID ) {
         this.actionId = buffer.readSignedVarInt();
         this.playerAnimation = PlayerAnimation.getById( actionId );
-        switch ( playerAnimation ){
+        switch ( playerAnimation ) {
             case SWING:
                 this.entityId = buffer.readUnsignedVarLong();
                 break;
@@ -43,7 +43,9 @@ public class PacketAnimate extends Packet {
 
         private int id;
 
-        PlayerAnimation( int id ) { this.id = id; }
+        PlayerAnimation( int id ) {
+            this.id = id;
+        }
 
         public static PlayerAnimation getById( int id ) {
             switch ( id ) {

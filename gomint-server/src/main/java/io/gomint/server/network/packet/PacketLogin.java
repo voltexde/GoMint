@@ -10,7 +10,6 @@ package io.gomint.server.network.packet;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.network.Protocol;
 import lombok.Data;
-import lombok.Getter;
 
 /**
  * @author geNAZt

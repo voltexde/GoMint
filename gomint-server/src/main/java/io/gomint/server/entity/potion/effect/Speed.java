@@ -21,10 +21,6 @@ import io.gomint.server.registry.RegisterInfo;
 @RegisterInfo( id = 1 )
 public class Speed extends Effect {
 
-    public Speed( EffectManager manager, int amplifier, long runoutTimer ) {
-        super( manager, amplifier, runoutTimer );
-    }
-
     @Override
     public byte getId() {
         return 1;
@@ -32,7 +28,7 @@ public class Speed extends Effect {
 
     @Override
     public void apply( EntityLiving player ) {
-        player.getAttributeInstance( Attribute.MOVEMENT_SPEED ).setMultiplyModifier( AttributeModifier.SPEED_EFFECT, 1 + ( ( this.amplifier + 1 ) * 0.2f ) );
+        player.getAttributeInstance( Attribute.MOVEMENT_SPEED ).setMultiplyModifier( AttributeModifier.SPEED_EFFECT, ( ( this.amplifier + 1 ) * 0.2f ) );
     }
 
     @Override

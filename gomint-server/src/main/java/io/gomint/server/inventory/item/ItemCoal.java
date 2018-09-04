@@ -1,30 +1,24 @@
 package io.gomint.server.inventory.item;
 
+import io.gomint.inventory.item.ItemBurnable;
 import io.gomint.inventory.item.ItemType;
-
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 263 )
- public class ItemCoal extends ItemStack implements io.gomint.inventory.item.ItemCoal {
-
-    // CHECKSTYLE:OFF
-    public ItemCoal( short data, int amount ) {
-        super( 263, data, amount );
-    }
-
-    public ItemCoal( short data, int amount, NBTTagCompound nbt ) {
-        super( 263, data, amount, nbt );
-    }
-    // CHECKSTYLE:ON
+public class ItemCoal extends ItemStack implements io.gomint.inventory.item.ItemCoal, ItemBurnable {
 
     @Override
     public ItemType getType() {
         return ItemType.COAL;
+    }
+
+    @Override
+    public long getBurnTime() {
+        return 80000;
     }
 
 }

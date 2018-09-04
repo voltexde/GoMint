@@ -7,6 +7,7 @@
 
 package io.gomint.server.network;
 
+import io.gomint.GoMint;
 import io.gomint.event.player.PlayerCleanedupEvent;
 import io.gomint.event.player.PlayerKickEvent;
 import io.gomint.event.player.PlayerQuitEvent;
@@ -19,9 +20,14 @@ import io.gomint.math.Location;
 import io.gomint.player.DeviceInfo;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.entity.passive.EntityHuman;
+import io.gomint.server.jni.NativeCode;
+import io.gomint.server.jni.zlib.JavaZLib;
+import io.gomint.server.jni.zlib.NativeZLib;
+import io.gomint.server.jni.zlib.ZLib;
 import io.gomint.server.network.handler.PacketAdventureSettingsHandler;
 import io.gomint.server.network.handler.PacketAnimateHandler;
+import io.gomint.server.network.handler.PacketBlockPickRequestHandler;
 import io.gomint.server.network.handler.PacketBookEditHandler;
 import io.gomint.server.network.handler.PacketCommandRequestHandler;
 import io.gomint.server.network.handler.PacketContainerCloseHandler;
@@ -50,9 +56,11 @@ import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketConfirmChunkRadius;
 import io.gomint.server.network.packet.PacketDisconnect;
 import io.gomint.server.network.packet.PacketEncryptionResponse;
+import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.server.network.packet.PacketLogin;
 import io.gomint.server.network.packet.PacketMovePlayer;
 import io.gomint.server.network.packet.PacketPlayState;
+import io.gomint.server.network.packet.PacketPlayerlist;
 import io.gomint.server.network.packet.PacketResourcePackResponse;
 import io.gomint.server.network.packet.PacketResourcePacksInfo;
 import io.gomint.server.network.packet.PacketSetCommandsEnabled;
@@ -63,7 +71,6 @@ import io.gomint.server.network.packet.PacketWorldTime;
 import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.protocol.FlushTickPacket;
 import io.gomint.server.network.tcp.protocol.WrappedMCPEPacket;
-import io.gomint.server.scheduler.AsyncScheduledTask;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.StringUtil;
@@ -72,6 +79,8 @@ import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.util.random.FastRandom;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -80,20 +89,16 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.InflaterInputStream;
+import java.util.zip.DataFormatException;
 
 import static io.gomint.server.network.Protocol.PACKET_BATCH;
 import static io.gomint.server.network.Protocol.PACKET_ENCRYPTION_RESPONSE;
@@ -107,9 +112,13 @@ import static io.gomint.server.network.Protocol.PACKET_RESOURCEPACK_RESPONSE;
 public class PlayerConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PlayerConnection.class );
+    private static final NativeCode<ZLib> ZLIB = new NativeCode<>( "zlib", JavaZLib.class, NativeZLib.class );
     private static final PacketHandler[] PACKET_HANDLERS = new PacketHandler[256];
 
     static {
+        // Load zlib native
+        ZLIB.load();
+
         // Register all packet handlers we need
         PACKET_HANDLERS[Protocol.PACKET_MOVE_PLAYER & 0xff] = new PacketMovePlayerHandler();
         PACKET_HANDLERS[Protocol.PACKET_SET_CHUNK_RADIUS & 0xff] = new PacketSetChunkRadiusHandler();
@@ -121,6 +130,7 @@ public class PlayerConnection {
         PACKET_HANDLERS[Protocol.PACKET_LOGIN & 0xff] = new PacketLoginHandler();
         PACKET_HANDLERS[Protocol.PACKET_MOB_EQUIPMENT & 0xff] = new PacketMobEquipmentHandler();
         PACKET_HANDLERS[Protocol.PACKET_INTERACT & 0xff] = new PacketInteractHandler();
+        PACKET_HANDLERS[Protocol.PACKET_BLOCK_PICK_REQUEST & 0xff] = new PacketBlockPickRequestHandler();
         PACKET_HANDLERS[Protocol.PACKET_ENCRYPTION_RESPONSE & 0xff] = new PacketEncryptionResponseHandler();
         PACKET_HANDLERS[Protocol.PACKET_INVENTORY_TRANSACTION & 0xff] = new PacketInventoryTransactionHandler();
         PACKET_HANDLERS[Protocol.PACKET_CONTAINER_CLOSE & 0xff] = new PacketContainerCloseHandler();
@@ -140,6 +150,18 @@ public class PlayerConnection {
     // Network manager that created this connection:
     @Getter
     private final NetworkManager networkManager;
+
+    // Actual connection for wire transfer:
+    @Getter
+    private final Connection connection;
+    @Getter
+    private final ConnectionHandler connectionHandler;
+
+    // World data
+    @Getter
+    private final LongSet playerChunks;
+    @Getter
+    private final LongSet loadingChunks;
     @Getter
     @Setter
     private EncryptionHandler encryptionHandler;
@@ -148,29 +170,18 @@ public class PlayerConnection {
     @Setter
     @Getter
     private int protocolID;
-
-    // Actual connection for wire transfer:
-    @Getter
-    private final Connection connection;
-    @Getter
-    private final ConnectionHandler connectionHandler;
     @Setter
     private long tcpId;
     @Setter
     private int tcpPing;
     private PostProcessExecutor postProcessorExecutor;
-
-    // World data
-    @Getter
-    private final LongSet playerChunks;
-    @Getter
-    private final LongSet loadingChunks;
+    private ZLib decompressor;
 
     // Connection State:
     @Getter
     @Setter
     private PlayerConnectionState state;
-    private BlockingQueue<Packet> sendQueue;
+    private List<Packet> sendQueue;
 
     // Entity
     @Getter
@@ -190,12 +201,12 @@ public class PlayerConnection {
     @Setter
     @Getter
     private boolean startBreakResult;
-    @Setter
     @Getter
-    private ItemStack lastInteraction;
+    private Set<PacketInventoryTransaction> transactionsHandled = new HashSet<>();
 
     // Debug stuff
-    @Getter private AtomicInteger responseChunks = new AtomicInteger( 0 );
+    @Getter
+    private AtomicInteger responseChunks = new AtomicInteger( 0 );
 
     /**
      * Constructs a new player connection.
@@ -216,6 +227,9 @@ public class PlayerConnection {
 
         // Attach data processor if needed
         if ( this.connection != null ) {
+            this.decompressor = ZLIB.newInstance();
+            this.decompressor.init( false, false, 7 ); // Level doesn't matter
+
             this.postProcessorExecutor = networkManager.getPostProcessService().getExecutor();
             this.connection.addDataProcessor( packetData -> {
                 PacketBuffer buffer = new PacketBuffer( packetData.getPacketData(), 0 );
@@ -227,8 +241,6 @@ public class PlayerConnection {
                 // Check if packet is batched
                 byte packetId = buffer.readByte();
                 if ( packetId == Protocol.PACKET_BATCH ) {
-                    LOGGER.debug( "Compressed packet" );
-
                     // Decompress and decrypt
                     byte[] pureData = handleBatchPacket( buffer );
                     EncapsulatedPacket newPacket = new EncapsulatedPacket();
@@ -247,11 +259,16 @@ public class PlayerConnection {
      * @param packet The packet which should be queued
      */
     public void addToSendQueue( Packet packet ) {
-        if ( this.sendQueue == null ) {
-            this.sendQueue = new LinkedBlockingQueue<>();
+        if ( !GoMint.instance().isMainThread() ) {
+            LOGGER.warn( "Add packet async to send queue - canceling sending", new Exception() );
+            return;
         }
 
-        if ( !this.sendQueue.offer( packet ) ) {
+        if ( this.sendQueue == null ) {
+            this.sendQueue = new ArrayList<>();
+        }
+
+        if ( !this.sendQueue.add( packet ) ) {
             LOGGER.warn( "Could not add packet {} to the send queue", packet );
         }
     }
@@ -280,7 +297,7 @@ public class PlayerConnection {
         // Clear spam stuff
         this.startBreakResult = false;
         this.hadStartBreak = false;
-        this.lastInteraction = null;
+        this.transactionsHandled.clear();
 
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
@@ -346,25 +363,24 @@ public class PlayerConnection {
         // Send all queued packets
         if ( this.connection != null ) {
             if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
-                List<Packet> drainedQueue = new ArrayList<>();
-                this.sendQueue.drainTo( drainedQueue );
-                this.postProcessorExecutor.addWork( this, drainedQueue );
+                this.postProcessorExecutor.addWork( this, this.sendQueue.toArray( new Packet[0] ) );
+                this.sendQueue.clear();
             }
         } else {
             if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
-                List<Packet> drainedQueue = new ArrayList<>();
-                this.sendQueue.drainTo( drainedQueue );
-
-                PacketBuffer[] packetBuffers = new PacketBuffer[drainedQueue.size()];
-                for ( int i = 0; i < drainedQueue.size(); i++ ) {
+                Packet[] packets = this.sendQueue.toArray( new Packet[0] );
+                PacketBuffer[] packetBuffers = new PacketBuffer[packets.length];
+                for ( int i = 0; i < packets.length; i++ ) {
                     packetBuffers[i] = new PacketBuffer( 2 );
-                    drainedQueue.get( i ).serializeHeader( packetBuffers[i] );
-                    drainedQueue.get( i ).serialize( packetBuffers[i], this.protocolID );
+                    packets[i].serializeHeader( packetBuffers[i] );
+                    packets[i].serialize( packetBuffers[i], this.protocolID );
                 }
 
                 WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+                mcpePacket.setRaknetVersion( (byte) 9 );
                 mcpePacket.setBuffer( packetBuffers );
                 this.connectionHandler.send( mcpePacket );
+                this.sendQueue.clear();
             }
 
             this.connectionHandler.send( new FlushTickPacket() );
@@ -418,10 +434,10 @@ public class PlayerConnection {
     public void send( Packet packet ) {
         if ( this.connection != null ) {
             if ( !( packet instanceof PacketBatch ) ) {
-                this.postProcessorExecutor.addWork( this, Collections.singletonList( packet ) );
+                this.postProcessorExecutor.addWork( this, new Packet[]{ packet } );
             } else {
                 PacketBuffer buffer = new PacketBuffer( 64 );
-                packet.serializeHeader( buffer );
+                buffer.writeByte( packet.getId() );
                 packet.serialize( buffer, this.protocolID );
 
                 this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
@@ -434,6 +450,7 @@ public class PlayerConnection {
             packet.serialize( buffer, this.protocolID );
 
             WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+            mcpePacket.setRaknetVersion( (byte) 9 );
             mcpePacket.setBuffer( new PacketBuffer[]{ buffer } );
             this.connectionHandler.send( mcpePacket );
         }
@@ -449,7 +466,7 @@ public class PlayerConnection {
     private boolean sendWorldChunk( ChunkAdapter chunkAdapter ) {
         this.playerChunks.add( chunkAdapter.longHashCode() );
         this.loadingChunks.remove( chunkAdapter.longHashCode() );
-        this.addToSendQueue( chunkAdapter.getCachedPacket( this.protocolID ) );
+        this.addToSendQueue( chunkAdapter.getCachedPacket() );
         this.entity.getEntityVisibilityManager().updateAddedChunk( chunkAdapter );
 
         if ( this.state == PlayerConnectionState.LOGIN && this.loadingChunks.isEmpty() ) {
@@ -505,13 +522,8 @@ public class PlayerConnection {
 
     private void handleBufferData( long currentTimeMillis, PacketBuffer buffer ) {
         // Grab the packet ID from the packet's data
-        int rawPacketId = buffer.readUnsignedVarInt();
-        if ( rawPacketId > 256 ) {
-            // This is split screen. GTFO
-            return;
-        }
-
-        byte packetId = (byte) rawPacketId;
+        int rawId = buffer.readUnsignedVarInt();
+        byte packetId = (byte) rawId;
 
         // There is some data behind the packet id when non batched packets (2 bytes)
         if ( packetId == PACKET_BATCH ) {
@@ -519,9 +531,6 @@ public class PlayerConnection {
         }
 
         LOGGER.debug( "Got MCPE packet {}", Integer.toHexString( packetId & 0xFF ) );
-
-        // TODO: Proper implement sending subclient and target subclient (two bytes)
-        // buffer.readShort();
 
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
@@ -587,6 +596,7 @@ public class PlayerConnection {
         // Encrypted?
         byte[] input = new byte[buffer.getRemaining()];
         System.arraycopy( buffer.getBuffer(), buffer.getPosition(), input, 0, input.length );
+
         if ( this.encryptionHandler != null ) {
             input = this.encryptionHandler.decryptInputFromClient( input );
             if ( input == null ) {
@@ -596,22 +606,25 @@ public class PlayerConnection {
             }
         }
 
-        InflaterInputStream inflaterInputStream = new InflaterInputStream( new ByteArrayInputStream( input ) );
+        ByteBuf inBuf = PooledByteBufAllocator.DEFAULT.directBuffer( input.length );
+        inBuf.writeBytes( input );
 
-        ByteArrayOutputStream bout = new ByteArrayOutputStream( buffer.getRemaining() );
-        byte[] batchIntermediate = new byte[256];
+        ByteBuf outBuf = PooledByteBufAllocator.DEFAULT.directBuffer( 8192 ); // We will write at least once so ensureWrite will realloc to 8192 so or so
 
         try {
-            int read;
-            while ( ( read = inflaterInputStream.read( batchIntermediate ) ) > -1 ) {
-                bout.write( batchIntermediate, 0, read );
-            }
-        } catch ( IOException e ) {
+            this.decompressor.process( inBuf, outBuf );
+        } catch ( DataFormatException e ) {
             LOGGER.error( "Failed to decompress batch packet", e );
+            outBuf.release();
             return null;
+        } finally {
+            inBuf.release();
         }
 
-        return bout.toByteArray();
+        byte[] data = new byte[outBuf.readableBytes()];
+        outBuf.readBytes( data );
+        outBuf.release();
+        return data;
     }
 
     /**
@@ -693,7 +706,7 @@ public class PlayerConnection {
                     this.requestChunk( chunk.getFirst(), chunk.getSecond() );
                 } else {
                     // We already know this chunk but maybe forceResend is enabled
-                    worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(), this.entity,
+                    worldAdapter.sendChunk( chunk.getFirst(), chunk.getSecond(),
                         false, ( chunkHash, loadedChunk ) -> {
                             if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
                                 this.entity.getEntityVisibilityManager().updateAddedChunk( loadedChunk );
@@ -738,7 +751,7 @@ public class PlayerConnection {
 
     private void requestChunk( Integer x, Integer z ) {
         LOGGER.debug( "Requesting chunk {} {} for {}", x, z, this.entity );
-        this.entity.getWorld().sendChunk( x, z, this.entity,
+        this.entity.getWorld().sendChunk( x, z,
             false, ( chunkHash, loadedChunk ) -> {
                 if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
                     this.entity.getChunkSendQueue().offer( loadedChunk );
@@ -777,9 +790,7 @@ public class PlayerConnection {
             packet.setMessage( message );
             this.send( packet );
 
-            this.server.getExecutorService().submit( new AsyncScheduledTask( () -> {
-                PlayerConnection.this.internalClose( message );
-            }, 3, -1, TimeUnit.SECONDS ) );
+            this.server.getExecutorService().schedule( () -> PlayerConnection.this.internalClose( message ), 3, TimeUnit.SECONDS );
         } else {
             this.internalClose( message );
         }
@@ -827,7 +838,7 @@ public class PlayerConnection {
         move.setX( location.getX() );
         move.setY( (float) ( location.getY() + 1.62 ) );
         move.setZ( location.getZ() );
-        move.setHeadYaw( location.getYaw() );
+        move.setHeadYaw( location.getHeadYaw() );
         move.setYaw( location.getYaw() );
         move.setPitch( location.getPitch() );
         move.setMode( (byte) 2 );
@@ -885,8 +896,10 @@ public class PlayerConnection {
         packet.setTexturePacksRequired( false );
         packet.setCommandsEnabled( true );
         packet.setEnchantmentSeed( FastRandom.current().nextInt() );
+        packet.setCorrelationId( this.server.getServerUniqueID().toString() );
 
-        this.entity.setPosition( this.entity.getSpawnLocation() != null ? this.entity.getSpawnLocation() : world.getSpawnLocation() );
+        // Set the new location
+        this.entity.setAndRecalcPosition( this.entity.getSpawnLocation() != null ? this.entity.getSpawnLocation() : world.getSpawnLocation() );
         this.addToSendQueue( packet );
     }
 
@@ -976,7 +989,40 @@ public class PlayerConnection {
     }
 
     public void spawnPlayerEntities() {
+        // Now its ok to send players
+        this.entity.setSpawnPlayers( true );
 
+        // Send player list for all online players
+        List<PacketPlayerlist.Entry> listEntry = null;
+        for ( io.gomint.entity.EntityPlayer player : this.getServer().getPlayers() ) {
+            if ( !this.entity.isHidden( player ) && !this.entity.equals( player ) ) {
+                if ( listEntry == null ) {
+                    listEntry = new ArrayList<>();
+                }
+
+                listEntry.add( new PacketPlayerlist.Entry( (EntityHuman) player ) );
+            }
+        }
+
+        if ( listEntry != null ) {
+            // Send player list
+            PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
+            packetPlayerlist.setMode( (byte) 0 );
+            packetPlayerlist.setEntries( listEntry );
+            this.send( packetPlayerlist );
+        }
+
+        // Show all players
+        LongIterator playerChunksIterator = this.playerChunks.iterator();
+        while ( playerChunksIterator.hasNext() ) {
+            long chunkHash = playerChunksIterator.nextLong();
+
+            int currentX = (int) ( chunkHash >> 32 );
+            int currentZ = (int) ( chunkHash ) + Integer.MIN_VALUE;
+
+            ChunkAdapter chunk = this.entity.getWorld().getChunk( currentX, currentZ );
+            this.entity.getEntityVisibilityManager().updateAddedChunk( chunk );
+        }
     }
 
 }

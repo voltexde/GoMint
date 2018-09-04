@@ -16,6 +16,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoop;
 import io.netty.channel.SimpleChannelInboundHandler;
+import it.unimi.dsi.fastutil.bytes.ByteConsumer;
 import lombok.Getter;
 
 import java.lang.ref.WeakReference;
@@ -34,8 +35,11 @@ import java.util.function.Consumer;
  */
 public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
 
+    private static final ConcurrentMap<EventLoop, Flusher> flusherLookup = new MapMaker()
+        .concurrencyLevel( 16 )
+        .weakKeys()
+        .makeMap();
     private ChannelHandlerContext ctx;
-
     private Consumer<Void> whenConnected;
     @Getter private LinkedBlockingQueue<PacketBuffer> data = new LinkedBlockingQueue<>();
     private Consumer<Throwable> exceptionCallback;
@@ -87,7 +91,9 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
     @Override
     protected void channelRead0( ChannelHandlerContext channelHandlerContext, final Packet packet ) throws Exception {
         if ( packet instanceof WrappedMCPEPacket ) {
-            for ( PacketBuffer buffer : ( (WrappedMCPEPacket) packet ).getBuffer() ) {
+            WrappedMCPEPacket wrappedMCPEPacket = ( (WrappedMCPEPacket) packet );
+
+            for ( PacketBuffer buffer : wrappedMCPEPacket.getBuffer() ) {
                 this.data.offer( buffer );
             }
         } else if ( packet instanceof UpdatePingPacket ) {
@@ -106,7 +112,7 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
         this.pingCallback = callback;
     }
 
-    public void whenConnected( Consumer<Void> callback ) {
+    void whenConnected( Consumer<Void> callback ) {
         this.whenConnected = callback;
     }
 
@@ -120,6 +126,11 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
 
     public void disconnect() {
         this.ctx.disconnect().syncUninterruptibly();
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + Integer.toHexString( this.hashCode() );
     }
 
     private static final class Flusher implements Runnable {
@@ -180,16 +191,6 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
             }
         }
     }
-
-    @Override
-    public String toString() {
-        return this.getClass().getSimpleName() + Integer.toHexString( this.hashCode() );
-    }
-
-    private static final ConcurrentMap<EventLoop, Flusher> flusherLookup = new MapMaker()
-        .concurrencyLevel( 16 )
-        .weakKeys()
-        .makeMap();
 
     private static class FlushItem {
         final Channel channel;

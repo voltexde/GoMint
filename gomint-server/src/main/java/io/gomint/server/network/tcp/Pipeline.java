@@ -31,6 +31,8 @@ class Pipeline {
     private static final String CONNECTION_HANDLER = "connectionHandler";
     private static final String PACKET_DECODER = "packetDecoder";
     private static final String PACKET_ENCODER = "packetEncoder";
+    private static final String PACKET_DECOMPRESSOR = "packetDecompressor";
+    private static final String PACKET_COMPRESSOR = "packetCompressor";
 
     /**
      * Create a new event loop group based on the native implementation
@@ -60,8 +62,10 @@ class Pipeline {
      */
     static void prepare( ChannelPipeline pipeline, ConnectionHandler connectionHandler ) {
         pipeline.addLast( FRAME_DECODER, new LengthFieldBasedFrameDecoder( Integer.MAX_VALUE, 0, 4, 0, 4 ) );
+        pipeline.addLast( PACKET_DECOMPRESSOR, new PacketDecompressor() );
         pipeline.addLast( PACKET_DECODER, new Decoder() );
         pipeline.addLast( FRAME_PREPENDER, new LengthFieldPrepender( 4 ) );
+        pipeline.addLast( PACKET_COMPRESSOR, new PacketCompressor() );
         pipeline.addLast( PACKET_ENCODER, new Encoder() );
         pipeline.addLast( CONNECTION_HANDLER, connectionHandler );
     }

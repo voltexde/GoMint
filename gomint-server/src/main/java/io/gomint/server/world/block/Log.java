@@ -1,8 +1,12 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.Entity;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockLog;
 import io.gomint.world.block.BlockType;
 
@@ -47,6 +51,33 @@ public class Log extends Block implements BlockLog {
 
     private short getTypeData() {
         return (short) ( this.getBlockData() - this.getDirectionData() );
+    }
+
+    @Override
+    public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
+        if ( entity instanceof EntityPlayer && this.isCorrectTool(item) ) {
+            switch ( this.getTypeData() ) {
+                case 3:
+                    this.setType( StrippedJungleLog.class );
+                    break;
+                case 2:
+                    this.setType( StrippedBirchLog.class );
+                    break;
+                case 1:
+                    this.setType( StrippedSpruceLog.class );
+                    break;
+                case 0:
+                default:
+                    this.setType( StrippedOakLog.class );
+                    break;
+            }
+
+            this.updateBlock();
+
+            return true;
+        }
+
+        return false;
     }
 
     @Override

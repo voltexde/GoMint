@@ -1,10 +1,15 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.util.random.FastRandom;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.registry.RegisterInfo;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -41,6 +46,14 @@ public class MobSpawner extends Block implements io.gomint.world.block.BlockMobS
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public List<ItemStack> getDrops( ItemStack itemInHand ) {
+        FastRandom random = FastRandom.current();
+        ((WorldAdapter) this.location.getWorld()).createExpOrb( this.location, random.nextInt( 15 ) + random.nextInt( 15 ) + 15 );
+
+        return new ArrayList<>();
     }
 
     @Override

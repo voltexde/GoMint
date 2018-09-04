@@ -19,6 +19,8 @@ import io.gomint.server.network.tcp.Initializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ThreadDeathWatcher;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -38,9 +40,9 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * @author BlackyPaw
@@ -77,7 +79,7 @@ public class NetworkManager {
 
     // Post process service
     @Getter
-    private PostProcessExecutorService postProcessService = new PostProcessExecutorService();
+    private PostProcessExecutorService postProcessService;
 
     /**
      * Init a new NetworkManager for accepting new connections and read incoming data
@@ -86,6 +88,7 @@ public class NetworkManager {
      */
     public NetworkManager( GoMintServer server ) {
         this.server = server;
+        this.postProcessService = new PostProcessExecutorService( server.getExecutorService() );
     }
 
     // ======================================= PUBLIC API ======================================= //
@@ -123,6 +126,7 @@ public class NetworkManager {
 
                 connectionHandler.onPing( playerConnection::setTcpPing );
                 connectionHandler.whenDisconnected( aVoid -> handleConnectionClosed( playerConnection.getId() ) );
+                connectionHandler.onException( throwable -> LOGGER.warn( "Exception in TCP handling", throwable ) );
             } );
 
             this.tcpChannel = this.tcpListener.bind( host, port ).syncUninterruptibly().channel();
@@ -134,7 +138,7 @@ public class NetworkManager {
 
             this.socket = new ServerSocket( LOGGER, maxConnections );
             this.socket.setMojangModificationEnabled( true );
-            this.socket.setEventHandler( ( socket, socketEvent ) -> NetworkManager.this.handleSocketEvent( socketEvent ) );
+            this.socket.setEventHandler( ( eventSocket, socketEvent ) -> NetworkManager.this.handleSocketEvent( socketEvent ) );
             this.socket.bind( host, port );
         }
     }
@@ -168,8 +172,10 @@ public class NetworkManager {
         // Handle updates to player map:
         while ( !this.incomingConnections.isEmpty() ) {
             PlayerConnection connection = this.incomingConnections.poll();
-            LOGGER.debug( "Adding new connection to the server: {}", connection );
-            this.playersByGuid.put( connection.getId(), connection );
+            if ( connection != null ) {
+                LOGGER.debug( "Adding new connection to the server: {}", connection );
+                this.playersByGuid.put( connection.getId(), connection );
+            }
         }
 
         synchronized ( this.closedConnections ) {
@@ -195,25 +201,15 @@ public class NetworkManager {
      * Closes the network manager and all player connections.
      */
     public void close() {
-        if ( this.socket != null ) {
-            this.socket.close();
-            this.socket = null;
+        // Close the jRaknet EventLoops, we don't need them anymore
+        try {
+            EventLoops.LOOP_GROUP.shutdownGracefully().await();
 
-            for ( Long2ObjectMap.Entry<PlayerConnection> entry : this.playersByGuid.long2ObjectEntrySet() ) {
-                entry.getValue().close();
-            }
-
-            // Close the jRaknet EventLoops, we don't need them anymore
-            try {
-                EventLoops.LOOP_GROUP.shutdownGracefully().await();
-            } catch ( InterruptedException e ) {
-                LOGGER.error( "Could not shutdown jRaknet loop: ", e );
-            }
-        }
-
-        if ( this.tcpListener != null ) {
-            this.tcpChannel.close();
-            Initializer.close();
+            GlobalEventExecutor.INSTANCE.awaitInactivity( 5, TimeUnit.SECONDS );
+            ThreadDeathWatcher.awaitInactivity( 5, TimeUnit.SECONDS );
+        } catch ( InterruptedException e ) {
+            LOGGER.error( "Could not shutdown netty loops", e );
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -236,7 +232,10 @@ public class NetworkManager {
      */
     void notifyUnknownPacket( byte packetId, PacketBuffer buffer ) {
         if ( this.dump ) {
-            LOGGER.info( "Received unknown packet 0x" + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+            if ( LOGGER.isInfoEnabled() ) {
+                LOGGER.info( "Received unknown packet 0x{}", Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+            }
+
             this.dumpPacket( packetId, buffer );
         }
     }
@@ -314,7 +313,9 @@ public class NetworkManager {
     }
 
     private void dumpPacket( byte packetId, PacketBuffer buffer ) {
-        LOGGER.info( "Dumping packet " + Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+        if ( LOGGER.isInfoEnabled() ) {
+            LOGGER.info( "Dumping packet {}", Integer.toHexString( ( (int) packetId ) & 0xFF ) );
+        }
 
         StringBuilder filename = new StringBuilder( Integer.toHexString( ( (int) packetId ) & 0xFF ) );
         while ( filename.length() < 2 ) {
@@ -369,6 +370,25 @@ public class NetworkManager {
      */
     public int getPort() {
         return this.tcpListener != null ? this.boundPort : this.socket.getBindAddress().getPort();
+    }
+
+    /**
+     * Shut all network listeners down
+     */
+    public void shutdown() {
+        if ( this.socket != null ) {
+            this.socket.close();
+            this.socket = null;
+
+            for ( Long2ObjectMap.Entry<PlayerConnection> entry : this.playersByGuid.long2ObjectEntrySet() ) {
+                entry.getValue().close();
+            }
+        }
+
+        if ( this.tcpListener != null ) {
+            this.tcpChannel.close();
+            Initializer.close();
+        }
     }
 
 }

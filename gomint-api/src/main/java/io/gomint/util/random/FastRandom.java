@@ -38,6 +38,7 @@ public final class FastRandom extends java.util.Random {
      *
      * @param seed which should be used
      */
+    @Override
     public void setSeed( long seed ) {
         this.seed = seed;
     }
@@ -50,6 +51,7 @@ public final class FastRandom extends java.util.Random {
      * @param nbits number of bits to generate
      * @return randomized number of bits length
      */
+    @Override
     protected int next( int nbits ) {
         long x = this.seed;
         x ^= ( x << 21 );

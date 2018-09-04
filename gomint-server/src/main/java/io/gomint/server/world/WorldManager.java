@@ -10,7 +10,7 @@ package io.gomint.server.world;
 import io.gomint.GoMint;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.world.anvil.AnvilWorldAdapter;
-import io.gomint.server.world.gomint.GomintWorldAdapter;
+import io.gomint.server.world.inmemory.InMemoryWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
 import io.gomint.server.world.leveldb.ZippedLevelDBWorldAdapter;
 import io.gomint.world.World;
@@ -127,13 +127,6 @@ public class WorldManager {
                     LOGGER.info( "Detected leveldb world '{}'", path );
                     return this.loadLevelDBWorld( file );
                 }
-
-                // Gomint world
-                File worldIndex = new File( file, "world.index" );
-                if ( worldIndex.exists() ) {
-                    LOGGER.info( "Detected gomint world '{}'", path );
-                    return this.loadGomintWorld( file );
-                }
             } else {
                 throw new WorldLoadException( "World does not exist" );
             }
@@ -148,13 +141,6 @@ public class WorldManager {
         }
 
         throw new WorldLoadException( "Could not detect world format" );
-    }
-
-    private World loadGomintWorld( File path ) throws WorldLoadException {
-        GomintWorldAdapter world = GomintWorldAdapter.load( this.server, path );
-        this.addWorld( world );
-        LOGGER.info( "Successfully loaded world '{}'", path.getName() );
-        return world;
     }
 
     private World loadZippedLevelDBWorld( File path, String name ) throws WorldLoadException {
@@ -225,9 +211,9 @@ public class WorldManager {
 
                 break;
 
-            case GOMINT:
+            case IN_MEMORY:
                 try {
-                    world = GomintWorldAdapter.create( this.server, name, options.generator() );
+                    world = InMemoryWorldAdapter.create( this.server, name, options.generator() );
                 } catch ( WorldCreateException e ) {
                     LOGGER.error( "Could not create new world", e );
                     return null;

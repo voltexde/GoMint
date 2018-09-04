@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import com.google.common.collect.Lists;
 import io.gomint.enchant.EnchantmentAquaAffinity;
 import io.gomint.enchant.EnchantmentEfficiency;
 import io.gomint.entity.potion.PotionEffect;
@@ -13,10 +14,10 @@ import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketTileEntityData;
 import io.gomint.server.network.packet.PacketUpdateBlock;
 import io.gomint.server.world.BlockRuntimeIDs;
@@ -34,7 +35,6 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -95,7 +95,7 @@ public abstract class Block implements io.gomint.world.block.Block {
      *
      * @return true when there is, false when not
      */
-    public boolean isUpdateScheduled() {
+    boolean isUpdateScheduled() {
         return this.world.isUpdateScheduled( this.location.toBlockPosition() );
     }
 
@@ -136,8 +136,20 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @param face    The block face the entity interacts with
      * @param facePos The position where the entity interacted with the block
      * @param item    The item with which the entity interacted, can be null
+     * @return true when the block has made a action for interaction, false when not
      */
     public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
+        return false;
+    }
+
+    /**
+     * Called when an entity punches a block
+     *
+     * @param entity  The entity which punches with it
+     * @param position The position where the entity punched the block
+     * @param creative
+     */
+    public boolean punch( Entity entity, BlockPosition position, boolean creative ) {
         return false;
     }
 
@@ -275,11 +287,13 @@ public abstract class Block implements io.gomint.world.block.Block {
                     data.setCompound( new NBTTagCompound( "" ) );
                 }
 
-                TileEntity tileEntity = instance.createTileEntity( data.getCompound() );
-                if ( tileEntity != null ) {
-                    instance.setTileEntity( tileEntity );
-                    worldAdapter.storeTileEntity( pos, tileEntity );
+                TileEntity tileEntityInstance = instance.createTileEntity( data.getCompound() );
+                if ( tileEntityInstance != null ) {
+                    instance.setTileEntity( tileEntityInstance );
+                    worldAdapter.storeTileEntity( pos, tileEntityInstance );
                 }
+            } else {
+                worldAdapter.removeTileEntity( pos );
             }
 
             instance = this.world.getBlockAt( pos );
@@ -296,24 +310,37 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     @Override
     public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType ) {
+        return this.setType( blockType, true, true );
+    }
+
+    public <T extends io.gomint.world.block.Block> T setType( Class<T> blockType, boolean checkTile, boolean resetData ) {
         BlockPosition pos = this.location.toBlockPosition();
         Block instance = this.world.getServer().getBlocks().get( blockType );
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
             worldAdapter.setBlockId( pos, this.layer, instance.getBlockId() );
-            worldAdapter.setBlockData( pos, this.layer, (byte) 0 );
-            worldAdapter.resetTemporaryStorage( pos, this.layer );
+
+            if ( resetData ) {
+                worldAdapter.setBlockData( pos, this.layer, (byte) 0 );
+                worldAdapter.resetTemporaryStorage( pos, this.layer );
+            }
 
             instance.setWorld( worldAdapter );
             instance.setLocation( this.location );
 
             // Check if new block needs tile entity
-            if ( instance.needsTileEntity() ) {
-                TileEntity tileEntity = instance.createTileEntity( new NBTTagCompound( "" ) );
-                if ( tileEntity != null ) {
-                    instance.setTileEntity( tileEntity );
-                    worldAdapter.storeTileEntity( pos, tileEntity );
+            if ( checkTile ) {
+                if ( instance.needsTileEntity() ) {
+                    TileEntity tileEntityInstance = instance.createTileEntity( new NBTTagCompound( "" ) );
+                    if ( tileEntityInstance != null ) {
+                        instance.setTileEntity( tileEntityInstance );
+                        worldAdapter.storeTileEntity( pos, tileEntityInstance );
+                    }
+                } else {
+                    worldAdapter.removeTileEntity( pos );
                 }
+            } else {
+                instance.setTileEntity( this.tileEntity );
             }
 
             long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
@@ -344,6 +371,8 @@ public abstract class Block implements io.gomint.world.block.Block {
         // Check if new block needs tile entity
         if ( instance.getTileEntity() != null ) {
             worldAdapter.storeTileEntity( pos, instance.getTileEntity() );
+        } else {
+            worldAdapter.removeTileEntity( pos );
         }
 
         long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
@@ -368,7 +397,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         if ( instance.getTileEntity() != null ) {
             // We need to copy the tile entity and change its location
             NBTTagCompound compound = new NBTTagCompound( "" );
-            instance.getTileEntity().toCompound( compound );
+            instance.getTileEntity().toCompound( compound, SerializationReason.PERSIST );
 
             // Change the position
             compound.addValue( "x", pos.getX() );
@@ -376,8 +405,10 @@ public abstract class Block implements io.gomint.world.block.Block {
             compound.addValue( "z", pos.getZ() );
 
             // Construct new tile entity
-            TileEntity tileEntity = TileEntities.construct( compound, worldAdapter );
-            worldAdapter.storeTileEntity( pos, tileEntity );
+            TileEntity tileEntityInstance = TileEntities.construct( compound, worldAdapter );
+            worldAdapter.storeTileEntity( pos, tileEntityInstance );
+        } else {
+            worldAdapter.removeTileEntity( pos );
         }
 
         long next = instance.update( UpdateReason.BLOCK_ADDED, this.world.getServer().getCurrentTickTime(), 0f );
@@ -503,7 +534,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Send all block packets needed to display this block
      *
-     * @param connection  which should get the block data
+     * @param connection which should get the block data
      */
     public void send( PlayerConnection connection ) {
         if ( !isPlaced() ) {
@@ -514,7 +545,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( position );
-        updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( this.getBlockId(), this.getBlockData(), connection.getProtocolID() ) );
+        updateBlock.setBlockId( BlockRuntimeIDs.fromLegacy( this.getBlockId(), this.getBlockData() ) );
         updateBlock.setFlags( PacketUpdateBlock.FLAG_ALL_PRIORITY );
 
         connection.addToSendQueue( updateBlock );
@@ -660,9 +691,8 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @return a list of drops
      */
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
-        return new ArrayList<ItemStack>() {{
-            add( world.getServer().getItems().create( getBlockId() & 0xFF, getBlockData(), (byte) 1, null ) );
-        }};
+        ItemStack drop = this.world.getServer().getItems().create( getBlockId(), getBlockData(), (byte) 1, null );
+        return Lists.newArrayList( drop );
     }
 
     /**
@@ -699,7 +729,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     public abstract float getBlastResistance();
 
-    public void setBlockId( byte blockId ) {
+    public void setBlockId( int blockId ) {
         if ( isPlaced() ) {
             this.blockId = blockId;
             this.world.setBlockId( this.location.toBlockPosition(), this.layer, blockId );
@@ -710,8 +740,8 @@ public abstract class Block implements io.gomint.world.block.Block {
         return false;
     }
 
-    public void addVelocity( Entity entity, Vector pushedByBlocks ) {
-
+    public Vector addVelocity( Entity entity, Vector pushedByBlocks ) {
+        return pushedByBlocks;
     }
 
     public boolean intersectsWith( AxisAlignedBB boundingBox ) {
@@ -731,6 +761,14 @@ public abstract class Block implements io.gomint.world.block.Block {
      */
     public TileEntity getRawTileEntity() {
         return this.tileEntity;
+    }
+
+    protected void resetBlockData() {
+        this.blockData = 0;
+    }
+
+    protected void addToBlockData( byte dataValue ) {
+        this.setBlockData( (byte) ( this.getBlockData() + dataValue ) );
     }
 
 }

@@ -1,16 +1,14 @@
 package io.gomint.server.inventory;
 
 import io.gomint.entity.Entity;
-import io.gomint.inventory.InventoryType;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.PlayerConnection;
+import io.gomint.server.util.Pair;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -19,10 +17,12 @@ import java.util.Set;
 public abstract class Inventory implements io.gomint.inventory.Inventory {
 
     protected InventoryHolder owner;
-    protected Set<PlayerConnection> viewer = new HashSet<>();
+    Set<PlayerConnection> viewer = new HashSet<>();
 
     protected int size;
     protected ItemStack[] contents;
+
+    private Vector<Consumer<Pair<Integer, ItemStack>>> changeObservers;
 
     public Inventory( InventoryHolder owner, int size ) {
         this.owner = owner;
@@ -60,7 +60,24 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
             item = ItemAir.create( 0 );
         }
 
-        this.contents[index] = item;
+        // Get old item
+        io.gomint.server.inventory.item.ItemStack oldItemStack = (io.gomint.server.inventory.item.ItemStack) this.contents[index];
+        if ( oldItemStack != null ) {
+            oldItemStack.removePlace( this, index );
+        }
+
+        // Set new item
+        io.gomint.server.inventory.item.ItemStack newStack = (io.gomint.server.inventory.item.ItemStack) item.clone();
+
+        if ( this.changeObservers != null ) {
+            Pair<Integer, ItemStack> pair = new Pair<>( index, newStack );
+            for ( Consumer<Pair<Integer, ItemStack>> observer : this.changeObservers ) {
+                observer.accept( pair );
+            }
+        }
+
+        this.contents[index] = newStack;
+        newStack.addPlace( this, index );
 
         for ( PlayerConnection playerConnection : this.viewer ) {
             this.sendContents( index, playerConnection );
@@ -197,7 +214,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         if ( this.contents != null ) {
             for ( int i = 0; i < this.contents.length; i++ ) {
                 if ( this.contents[i] != null ) {
-                     onRemove( i );
+                    onRemove( i );
                 }
             }
         }
@@ -212,7 +229,8 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
     }
 
     protected void onRemove( int slot ) {
-
+        io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) this.getItem( slot );
+        itemStack.removePlace( this, slot );
     }
 
     public void resizeAndClear( int newSize ) {
@@ -231,6 +249,35 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         return viewers;
     }
 
-    public abstract InventoryType getInventoryType();
+    @Override
+    public boolean contains( ItemStack itemStack ) {
+        if ( itemStack == null ) {
+            return false;
+        }
+
+        for ( ItemStack content : this.contents ) {
+            if ( itemStack.equals( content ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public InventoryHolder getOwner() {
+        return this.owner;
+    }
+
+    public void addObserver( Consumer<Pair<Integer, ItemStack>> consumer ) {
+        if ( this.changeObservers == null ) {
+            this.changeObservers = new Vector<>();
+        }
+
+        this.changeObservers.add( consumer );
+    }
+
+    public void clearViewers() {
+        this.viewer.clear();
+    }
 
 }

@@ -18,7 +18,7 @@ public final class MathUtils {
     private static final double BIG_ENOUGH_ROUND = BIG_ENOUGH_INT + 0.5;
 
     public static final double SQRT_3 = Math.sqrt( 3 );
-    public static final float EPSILON = 0.00001f;
+    public static final float EPSILON = 0.01f;
 
     private MathUtils() {
         throw new AssertionError( "Cannot instantiate MathUtils!" );
@@ -89,6 +89,20 @@ public final class MathUtils {
         y = y * ( 1.5F - ( xhalf * y * y ) );
         y = y * ( 1.5F - ( xhalf * y * y ) );
         return number * y;
+    }
+
+    /**
+     * Ensure that the object we are given in comes out as float
+     *
+     * @param o which should be converted
+     * @return float representation of the object
+     */
+    public static float ensureFloat( Object o ) {
+        if ( o instanceof Double ) {
+            return ( (Double) o ).floatValue();
+        }
+
+        return (float) o;
     }
 
 }

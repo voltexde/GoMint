@@ -10,11 +10,13 @@ package io.gomint.server.scheduler;
 import io.gomint.scheduler.Task;
 import io.gomint.util.CompleteHandler;
 import io.gomint.util.ExceptionHandler;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.Future;
 
 /**
  * @author geNAZt
@@ -22,34 +24,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class AsyncScheduledTask implements Task, Runnable {
 
-    private final Runnable task;
-
-    private final long delay;   // -1 means no execution
-    private final long period;  // <= 0 means no reschedule
-    private final AtomicBoolean running = new AtomicBoolean( true );
+    private static final Logger LOGGER = LoggerFactory.getLogger( AsyncScheduledTask.class );
+    @Getter private final Runnable task;
 
     private ExceptionHandler exceptionHandler;
     private List<CompleteHandler> completeHandlerList;
-    private Thread executingThread;
+
+    private Future<?> future;
 
     /**
      * Constructs a new AsyncScheduledTask. It needs to be executed via a normal {@link java.util.concurrent.ExecutorService}
      *
-     * @param task   runnable which should be executed
-     * @param delay  of this execution
-     * @param period delay after execution to run the runnable again
-     * @param unit   of time
+     * @param task runnable which should be executed
      */
-    public AsyncScheduledTask( Runnable task, long delay, long period, TimeUnit unit ) {
+    public AsyncScheduledTask( Runnable task ) {
         this.task = task;
-        this.delay = ( delay >= 0 ) ? unit.toMillis( delay ) : -1;
-        this.period = ( period >= 0 ) ? unit.toMillis( period ) : -1;
     }
 
     @Override
     public void cancel() {
-        this.running.set( false );
-        this.executingThread.interrupt();
+        this.future.cancel( true );
     }
 
     @Override
@@ -68,51 +62,20 @@ public class AsyncScheduledTask implements Task, Runnable {
 
     @Override
     public void run() {
-        // Fast path to failout
-        if ( this.delay == -1 ) {
-            this.fireCompleteHandlers();
-            return;
-        }
-
-        this.executingThread = Thread.currentThread();
-
-        // Check if we need to wait for the first execution
-        if ( this.delay > 0 ) {
-            try {
-                Thread.sleep( this.delay );
-            } catch ( InterruptedException ex ) {
-                this.executingThread.interrupt();
-            }
-        }
-
-        while ( this.running.get() ) {
-            // CHECKSTYLE:OFF
-            try {
-                this.task.run();
-            } catch ( Exception e ) {
-                if ( this.exceptionHandler != null ) {
-                    if ( !this.exceptionHandler.onException( e ) ) {
-                        this.fireCompleteHandlers();
-                        return;
-                    }
-                } else {
-                    e.printStackTrace();
+        // CHECKSTYLE:OFF
+        try {
+            this.task.run();
+        } catch ( Exception e ) {
+            if ( this.exceptionHandler != null ) {
+                if ( !this.exceptionHandler.onException( e ) ) {
+                    this.fireCompleteHandlers();
+                    this.cancel();
                 }
-            }
-            // CHECKSTYLE:ON
-
-            // If we have a period of 0 or less, only run once
-            if ( this.period <= 0 ) {
-                this.fireCompleteHandlers();
-                break;
-            }
-
-            try {
-                Thread.sleep( this.period );
-            } catch ( InterruptedException ex ) {
-                this.executingThread.interrupt();
+            } else {
+                LOGGER.error( "No exception handler given", e );
             }
         }
+        // CHECKSTYLE:ON
     }
 
     private void fireCompleteHandlers() {
@@ -123,6 +86,15 @@ public class AsyncScheduledTask implements Task, Runnable {
 
             this.completeHandlerList = null;
         }
+    }
+
+    /**
+     * Set the future of this task
+     *
+     * @param future of this task
+     */
+    void setFuture( Future<?> future ) {
+        this.future = future;
     }
 
 }

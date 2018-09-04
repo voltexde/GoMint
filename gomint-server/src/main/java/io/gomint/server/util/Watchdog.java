@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt
  * @version 1.0
  */
-public class Watchdog {
+public class Watchdog implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Watchdog.class );
     private final Long2LongMap watchdogMap;
@@ -34,20 +34,11 @@ public class Watchdog {
         this.watchdogMap = new Long2LongOpenHashMap();
         this.removed = new Long2LongOpenHashMap();
 
-        server.getExecutorService().submit( () -> {
-            while ( server.isRunning() ) {
-                check();
-
-                try {
-                    Thread.sleep( 10 );
-                } catch ( InterruptedException e ) {
-                    return;
-                }
-            }
-        } );
+        server.getExecutorService().scheduleAtFixedRate( this, 0, 10, TimeUnit.MILLISECONDS );
     }
 
-    private synchronized void check() {
+    @Override
+    public synchronized void run() {
         long currentTime = System.currentTimeMillis();
 
         final LongSet[] removeSet = { null };
@@ -79,9 +70,13 @@ public class Watchdog {
         }
     }
 
-    public synchronized void add( long diff, TimeUnit unit ) {
-        long currentTime = System.currentTimeMillis();
+    public synchronized void add( long currentTime, long diff, TimeUnit unit ) {
         this.watchdogMap.put( Thread.currentThread().getId(), currentTime + unit.toMillis( diff ) );
+    }
+
+    public void add( long diff, TimeUnit unit ) {
+        long currentTime = System.currentTimeMillis();
+        this.add( currentTime, diff, unit );
     }
 
     public synchronized void done() {

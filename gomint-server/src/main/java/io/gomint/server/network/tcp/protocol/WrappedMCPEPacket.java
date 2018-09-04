@@ -13,6 +13,7 @@ import java.util.Arrays;
 @Data
 public class WrappedMCPEPacket extends Packet {
 
+    private byte raknetVersion;
     private PacketBuffer[] buffer;
 
     public WrappedMCPEPacket() {
@@ -21,6 +22,8 @@ public class WrappedMCPEPacket extends Packet {
 
     @Override
     public void read( ByteBuf buf ) {
+        this.raknetVersion = buf.readByte();
+
         // First is a short showing how many packets are there
         short amountOfPackets = buf.readShort();
         this.buffer = new PacketBuffer[amountOfPackets];
@@ -34,6 +37,7 @@ public class WrappedMCPEPacket extends Packet {
 
     @Override
     public void write( ByteBuf buf ) {
+        buf.writeByte( this.raknetVersion );
         buf.writeShort( this.buffer.length );
         for ( PacketBuffer buffer : this.buffer ) {
             byte[] data = Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() );

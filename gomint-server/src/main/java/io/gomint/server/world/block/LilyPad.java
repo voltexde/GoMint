@@ -1,5 +1,9 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Location;
+import io.gomint.server.entity.Entity;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.registry.RegisterInfo;
@@ -14,6 +18,11 @@ public class LilyPad extends Block implements io.gomint.world.block.BlockLilyPad
     @Override
     public int getBlockId() {
         return 111;
+    }
+
+    @Override
+    public long getBreakTime() {
+        return 0;
     }
 
     @Override
@@ -39,6 +48,16 @@ public class LilyPad extends Block implements io.gomint.world.block.BlockLilyPad
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public boolean beforePlacement( Entity entity, ItemStack item, Location location ) {
+        Block block = (Block) location.getWorld().getBlockAt( location.toBlockPosition() ).getSide( BlockFace.UP );
+        if( block instanceof StationaryWater ) {
+            return true;
+        }
+
+        return false;
     }
 
 }

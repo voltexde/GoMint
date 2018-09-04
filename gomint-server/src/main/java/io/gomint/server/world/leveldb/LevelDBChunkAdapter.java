@@ -13,11 +13,10 @@ import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.MaterialMagicNumbers;
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.Palette;
 import io.gomint.server.world.ChunkAdapter;
-import io.gomint.server.world.NibbleArray;
+import io.gomint.server.world.HeapNibbleArray;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTReader;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
@@ -58,7 +56,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
 
     public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z ) {
         super( worldAdapter, x, z );
-        this.chunkVersion = 7;
+        this.chunkVersion = 8;
     }
 
     /**
@@ -107,7 +105,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
 
                     // Read NBT data
                     int needed = buffer.readLInt();
-                    Int2ObjectMap<Pair<Byte, Byte>> chunkPalette = new Int2ObjectOpenHashMap<>( needed ); // Varint my ass
+                    Int2ObjectMap<Pair<Integer, Byte>> chunkPalette = new Int2ObjectOpenHashMap<>( needed ); // Varint my ass
 
                     int index = 0;
                     NBTReaderNoBuffer reader = new NBTReaderNoBuffer( new InputStream() {
@@ -124,7 +122,11 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                     while ( index < needed ) {
                         try {
                             NBTTagCompound compound = reader.parse();
-                            byte blockId = (byte) MaterialMagicNumbers.valueOfWithId( compound.getString( "name", "minecraft:air" ) );
+                            int blockId = MaterialMagicNumbers.valueOfWithId( compound.getString( "name", "minecraft:air" ) );
+                            if ( blockId == -1 ) {
+                                LOGGER.error( "Unknown block {}", compound.getString( "name", "minecraft:air" ) );
+                            }
+
                             byte blockData = compound.getShort( "val", (short) 0 ).byteValue();
 
                             chunkPalette.put( index++, new Pair<>( blockId, blockData ) );
@@ -140,7 +142,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                                 int y = ( sectionY << 4 ) + j;
                                 short blockIndex = (short) ( k << 8 | i << 4 | j ); // j k i - k j i - i k j -
 
-                                Pair<Byte, Byte> dataPair = chunkPalette.get( indexes[blockIndex] );
+                                Pair<Integer, Byte> dataPair = chunkPalette.get( indexes[blockIndex] );
                                 this.setBlock( k, y, i, sI, dataPair.getFirst() );
                                 this.setData( k, y, i, sI, dataPair.getSecond() );
                             }
@@ -158,7 +160,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                 // Next 2048 bytes are metadata
                 byte[] metaData = new byte[2048];
                 buffer.readBytes( metaData );
-                NibbleArray meta = new NibbleArray( metaData );
+                HeapNibbleArray meta = new HeapNibbleArray( metaData );
 
                 // In older versions of the chunk there are light values saved
                 if ( this.chunkVersion < 4 ) {

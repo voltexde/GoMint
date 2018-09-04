@@ -9,7 +9,9 @@ package io.gomint.server.world;
 
 import io.gomint.math.MathUtils;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.util.PerformanceHacks;
 import io.gomint.server.util.Values;
+import io.gomint.server.util.performance.UnsafeAllocator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
@@ -98,8 +100,8 @@ public class ChunkCache {
 
             // Check if this is part of the spawn
             if ( spawnAreaSize > 0 &&
-                currentX >= spawnXChunk - spawnAreaSize && currentX <= spawnXChunk + spawnAreaSize &&
-                currentZ >= spawnZChunk - spawnAreaSize && currentZ <= spawnZChunk + spawnAreaSize ) {
+                ( Math.abs( currentX ) - spawnXChunk <= spawnAreaSize &&
+                Math.abs( currentZ ) - spawnZChunk <= spawnAreaSize ) ) {
                 continue;
             }
 
@@ -117,7 +119,7 @@ public class ChunkCache {
                 continue;
             }
 
-            LOGGER.info( "Cleaning up chunk @ {} {}", currentX, currentZ );
+            LOGGER.debug( "Cleaning up chunk @ {} {}", currentX, currentZ );
 
             // Ask this chunk if he wants to be gced
             this.tempHashes[1].add( l );
@@ -187,7 +189,7 @@ public class ChunkCache {
 
     synchronized long[] getTickingChunks( float dT ) {
         this.lastFullTickDT += dT;
-        if ( this.lastFullTickDT >= Values.CLIENT_TICK_RATE ) {
+        if ( Values.CLIENT_TICK_RATE - this.lastFullTickDT < 0.005f ) {
             // We need to tick all chunks which haven't been ticked until now
             long[] returnVal = new long[this.cachedChunks.size()];
             int index = 0;

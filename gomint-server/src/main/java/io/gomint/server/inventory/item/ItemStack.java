@@ -9,9 +9,13 @@ package io.gomint.server.inventory.item;
 
 import io.gomint.GoMint;
 import io.gomint.enchant.Enchantment;
+import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.inventory.Inventory;
+import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
+import io.gomint.server.inventory.item.helper.ItemStackPlace;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockFace;
@@ -20,12 +24,7 @@ import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents a stack of up to 255 items of the same type which may
@@ -35,8 +34,11 @@ import java.util.Objects;
  * @version 1.0
  */
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode( of = { "material", "data", "nbt" } )
 public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack {
+
+    private static final Set<Integer> USES_DATA_AS_DAMAGE = new HashSet<>();
+    private static final Set<Integer> IS_CHECKED_FOR_USES_DATA_AS_DAMAGE = new HashSet<>();
 
     private static final Logger LOGGER = LoggerFactory.getLogger( ItemStack.class );
 
@@ -49,35 +51,12 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     private Map<Class, Enchantment> enchantments;
     private boolean dirtyEnchantments;
 
-    /**
-     * Constructs a new item stack that will hold the given amount
-     * of items of the specified type. Additionally specifies the
-     * data value of the item.
-     *
-     * @param material The material of the item
-     * @param data     The data value of the item
-     * @param amount   The number of items on this stack (255 max)
-     */
-    public ItemStack( int material, short data, int amount ) {
-        this.material = material;
-        this.data = data;
-        this.amount = (byte) ( amount > getMaximumAmount() ? getMaximumAmount() : amount );
-    }
+    // Observer stuff for damaging items
+    private Set<ItemStackPlace> itemStackPlaces = new HashSet<>();
 
-    /**
-     * Constructs a new item stack that will hold the given amount
-     * of items of the specified type. Additionally specifies the
-     * data value of the item as well as raw NBT data that resembles
-     * additional required storage such as a chest's inventory.
-     *
-     * @param material The material of the item
-     * @param data     The data value of the item
-     * @param amount   The number of items on this stack (255 max)
-     * @param nbt      The additional raw NBT data of the item
-     */
-    public ItemStack( int material, short data, int amount, NBTTagCompound nbt ) {
-        this( material, data, amount );
-        this.nbt = nbt;
+    ItemStack setMaterial( int material ) {
+        this.material = material;
+        return this;
     }
 
     /**
@@ -90,9 +69,9 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     /**
-     * Get the maximum amount of damage before this item breaks
+     * Get the maximum amount of calculateUsage before this item breaks
      *
-     * @return maximum amount of damage
+     * @return maximum amount of calculateUsage
      */
     public short getMaxDamage() {
         return Short.MAX_VALUE;
@@ -112,8 +91,9 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
      *
      * @param data The data value of the item(s) on this stack
      */
-    public void setData( short data ) {
+    public io.gomint.inventory.item.ItemStack setData( short data ) {
         this.data = data;
+        return this;
     }
 
     /**
@@ -139,8 +119,9 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
      *
      * @param amount The number of items on this stack
      */
-    public void setAmount( int amount ) {
+    public io.gomint.inventory.item.ItemStack setAmount( int amount ) {
         this.amount = amount > getMaximumAmount() ? getMaximumAmount() : (byte) amount;
+        return this.updateInventories( this.amount <= 0 );
     }
 
     /**
@@ -157,12 +138,13 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
      *
      * @param compound The raw NBT data of this item
      */
-    public void setNbtData( NBTTagCompound compound ) {
+    ItemStack setNbtData( NBTTagCompound compound ) {
         this.nbt = compound;
+        return this;
     }
 
     @Override
-    public void setCustomName( String name ) {
+    public io.gomint.inventory.item.ItemStack setCustomName( String name ) {
         // Check if we should clear the name
         if ( name == null ) {
             if ( this.nbt != null ) {
@@ -182,7 +164,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
                 }
             }
 
-            return;
+            return this;
         }
 
         // Do we have a compound tag?
@@ -193,6 +175,8 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         // Get the display tag
         NBTTagCompound display = this.nbt.getCompound( "display", true );
         display.addValue( "Name", name );
+
+        return this;
     }
 
     @Override
@@ -212,7 +196,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     @Override
-    public void setLore( String... lore ) {
+    public io.gomint.inventory.item.ItemStack setLore( String... lore ) {
         // Check if we should clear the name
         if ( lore == null ) {
             if ( this.nbt != null ) {
@@ -232,7 +216,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
                 }
             }
 
-            return;
+            return this;
         }
 
         // Do we have a compound tag?
@@ -244,6 +228,8 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         NBTTagCompound display = this.nbt.getCompound( "display", true );
         List<String> loreList = Arrays.asList( lore );
         display.addValue( "Lore", loreList );
+
+        return this;
     }
 
     @Override
@@ -273,11 +259,11 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     @Override
-    public void addEnchantment( Class<? extends Enchantment> clazz, short level ) {
+    public io.gomint.inventory.item.ItemStack addEnchantment( Class<? extends Enchantment> clazz, short level ) {
         short id = ( (GoMintServer) GoMint.instance() ).getEnchantments().getId( clazz );
         if ( id == -1 ) {
             LOGGER.warn( "Unknown enchantment:{}", clazz.getName() );
-            return;
+            return this;
         }
 
         if ( this.nbt == null ) {
@@ -292,6 +278,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         enchantmentList.add( enchCompound );
 
         this.dirtyEnchantments = true;
+        return this;
     }
 
     @Override
@@ -324,19 +311,19 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     @Override
-    public void removeEnchantment( Class<? extends Enchantment> clazz ) {
+    public io.gomint.inventory.item.ItemStack removeEnchantment( Class<? extends Enchantment> clazz ) {
         short id = ( (GoMintServer) GoMint.instance() ).getEnchantments().getId( clazz );
         if ( id == -1 ) {
-            return;
+            return this;
         }
 
         if ( this.nbt == null ) {
-            return;
+            return this;
         }
 
         List<Object> enchantmentList = this.nbt.getList( "ench", false );
         if ( enchantmentList == null ) {
-            return;
+            return this;
         }
 
         for ( Object nbtObject : new ArrayList<>( enchantmentList ) ) {
@@ -351,29 +338,25 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         if ( enchantmentList.isEmpty() ) {
             this.nbt.remove( "ench" );
         }
+
+        return this;
     }
 
     @Override
     public ItemStack clone() {
         try {
             ItemStack clone = (ItemStack) super.clone();
+            clone.dirtyEnchantments = true;
+            clone.enchantments = this.enchantments;
             clone.material = this.material;
             clone.data = this.data;
             clone.amount = this.amount;
             clone.nbt = ( this.nbt == null ? null : this.nbt.deepClone( "" ) );
+            clone.itemStackPlaces = new HashSet<>();
             return clone;
         } catch ( CloneNotSupportedException e ) {
             throw new AssertionError( "Clone of ItemStack failed", e );
         }
-    }
-
-    @Override
-    public final boolean equals( Object other ) {
-        if ( !( other instanceof ItemStack ) ) return false;
-        ItemStack otherItemStack = (ItemStack) other;
-        return this.getMaterial() == otherItemStack.getMaterial() &&
-            this.getData() == otherItemStack.getData() &&
-            Objects.equals( this.nbt, otherItemStack.nbt );
     }
 
     /**
@@ -386,19 +369,38 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     /**
-     * This gets called when a item was placed down as a block
+     * This gets called when a item was placed down as a block. The amount gets decreased and the inventories this item is
+     * in get updated (if <= 0 to air, otherwise the amount gets updated)
      */
-    public boolean afterPlacement() {
+    public void afterPlacement() {
         // In a normal case the amount decreases
-        return this.amount > 0 && --this.amount == 0;
+        this.updateInventories( --this.amount <= 0 );
     }
 
-    public boolean useDamageAsData() {
-        return true;
-    }
+    /**
+     * Check if we need to update this item in its inventories
+     *
+     * @param replaceWithAir if the item should be deleted (replaced with air)
+     * @return the item instance used or the air instance which has been set
+     */
+    io.gomint.inventory.item.ItemStack updateInventories( boolean replaceWithAir ) {
+        if ( replaceWithAir ) {
+            io.gomint.inventory.item.ItemStack itemStack = ItemAir.create( 0 );
 
-    public boolean usesDamage() {
-        return false;
+            // Notify all inventories this item is in that it should be replaced with air
+            for ( ItemStackPlace place : new HashSet<>( this.itemStackPlaces ) ) {
+                place.getInventory().setItem( place.getSlot(), itemStack );
+            }
+
+            return itemStack;
+        } else {
+            // Notify all inventories that this item has changed
+            for ( ItemStackPlace place : new HashSet<>( this.itemStackPlaces ) ) {
+                place.getInventory().setItem( place.getSlot(), this );
+            }
+        }
+
+        return this;
     }
 
     public void removeFromHand( EntityPlayer player ) {
@@ -413,24 +415,66 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         return false;
     }
 
-    public boolean damage( int damage ) {
-        // Default no item uses damage
-        if ( !usesDamage() || useDamageAsData() ) {
+    /**
+     * Same rules as in {@link #calculateUsage(int)} will be applied. If the result of {@link #calculateUsage(int)} is
+     * true all inventories in which this item is will be notified to set air for this item, if its false the
+     * updated itemstack gets set
+     *
+     * @param damage which should be applied
+     */
+    public void calculateUsageAndUpdate( int damage ) {
+        this.updateInventories( this.calculateUsage( damage ) );
+    }
+
+    /**
+     * Calculate the damage done to this stack when using it. When a item has damage calculation enabled with
+     * {@link UseDataAsDamage} annotated, the parameter damage is added to the current data and checked against
+     * {@link ItemStack#getMaxDamage()}. If the damage is high enough the amount will be decreased by one.
+     * <p>
+     * If the item isn't annotated the damage parameter is ignored and a amount of this stack is removed
+     *
+     * @param damage which should be applied
+     * @return true when the stack is empty, false if the stack has still usages in it
+     */
+    public boolean calculateUsage( int damage ) {
+        // Default no item uses calculateUsage
+        if ( useDataAsDamage() ) {
+            // Check if we need to destroy this item stack
+            this.data += damage;
+            if ( this.data >= this.getMaxDamage() ) {
+                // Remove one amount
+                if ( --this.amount <= 0 ) {
+                    return true;
+                }
+
+                this.data = 0;
+            }
+
             return false;
         }
 
-        // Check if we need to destroy this item stack
-        this.data += damage;
-        if ( this.data > this.getMaxDamage() ) {
-            // Remove one amount
-            if ( --this.amount == 0 ) {
-                return true;
+        return false;
+    }
+
+    private boolean useDataAsDamage() {
+        if ( !IS_CHECKED_FOR_USES_DATA_AS_DAMAGE.contains( this.material ) ) {
+            Class current = this.getClass();
+            boolean usesData;
+
+            do {
+                usesData = current.isAnnotationPresent( UseDataAsDamage.class );
+                current = current.getSuperclass();
+            } while ( !usesData && !Object.class.equals( current ) );
+
+            if ( usesData ) {
+                USES_DATA_AS_DAMAGE.add( this.material );
             }
 
-            this.data = 0;
+            IS_CHECKED_FOR_USES_DATA_AS_DAMAGE.add( this.material );
+            return usesData;
         }
 
-        return false;
+        return USES_DATA_AS_DAMAGE.contains( this.material );
     }
 
     /**
@@ -442,10 +486,18 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         return 0;
     }
 
-    protected void enforceNBTData() {
+    void enforceNBTData() {
         if ( this.nbt == null ) {
             this.nbt = new NBTTagCompound( "" );
         }
+    }
+
+    public void addPlace( Inventory inventory, int slot ) {
+        this.itemStackPlaces.add( new ItemStackPlace( slot, inventory ) );
+    }
+
+    public void removePlace( Inventory inventory, int slot ) {
+        this.itemStackPlaces.remove( new ItemStackPlace( slot, inventory ) );
     }
 
 }

@@ -7,23 +7,31 @@
 
 package io.gomint.server.network;
 
+import io.gomint.server.jni.NativeCode;
+import io.gomint.server.jni.hash.Hash;
+import io.gomint.server.jni.hash.JavaHash;
+import io.gomint.server.jni.hash.NativeHash;
+import io.gomint.util.random.FastRandom;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import lombok.Getter;
-import org.bouncycastle.crypto.BufferedBlockCipher;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.digests.SHA256Digest;
-import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.security.*;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.ShortBufferException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -36,7 +44,16 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class EncryptionHandler {
 
+    private static final NativeCode<Hash> HASHING = new NativeCode<>( "hash", JavaHash.class, NativeHash.class );
     private static final Logger LOGGER = LoggerFactory.getLogger( EncryptionHandler.class );
+    private static final ThreadLocal<Hash> SHA256_DIGEST = new ThreadLocal<>();
+
+    static {
+        HASHING.load();
+    }
+
+    // Holder for the server keypair
+    private final EncryptionKeyFactory keyFactory;
 
     // Packet counters
     private AtomicLong sendingCounter = new AtomicLong( 0 );
@@ -44,16 +61,13 @@ public class EncryptionHandler {
 
     // Client Side:
     private ECPublicKey clientPublicKey;
-    private BufferedBlockCipher clientEncryptor;
-    private BufferedBlockCipher clientDecryptor;
+    private Cipher clientEncryptor;
+    private Cipher clientDecryptor;
 
     // Data for packet and checksum calculations
     @Getter
     private byte[] clientSalt;
     private byte[] key;
-
-    // Holder for the server keypair
-    private final EncryptionKeyFactory keyFactory;
 
     /**
      * Create a new EncryptionHandler for the client
@@ -86,15 +100,8 @@ public class EncryptionHandler {
         }
 
         // Generate a random salt:
-        SecureRandom secureRandom = null;
-        try {
-            secureRandom = SecureRandom.getInstance( "SHA1PRNG" );
-        } catch ( NoSuchAlgorithmException e ) {
-            LOGGER.warn( "Could not get secure random instance", e );
-            return false;
-        }
-
-        this.clientSalt = secureRandom.generateSeed( 16 );
+        this.clientSalt = new byte[16];
+        FastRandom.current().nextBytes( this.clientSalt );
 
         // Generate shared secret from ECDH keys:
         byte[] secret = this.generateECDHSecret( this.keyFactory.getKeyPair().getPrivate(), this.clientPublicKey );
@@ -146,14 +153,13 @@ public class EncryptionHandler {
      */
     public byte[] encryptInputForClient( byte[] input ) {
         byte[] hashBytes = calcHash( input, this.sendingCounter );
-        byte[] finalInput = new byte[hashBytes.length + input.length];
+        byte[] finalInput = new byte[8 + input.length];
 
         System.arraycopy( input, 0, finalInput, 0, input.length );
         System.arraycopy( hashBytes, 0, finalInput, input.length, 8 );
 
         return this.processCipher( this.clientEncryptor, finalInput );
     }
-
 
     /**
      * Get the servers public key
@@ -173,28 +179,43 @@ public class EncryptionHandler {
         return this.keyFactory.getKeyPair().getPrivate();
     }
 
-    private byte[] calcHash( byte[] input, AtomicLong counter ) {
-        SHA256Digest digest = new SHA256Digest();
+    private Hash getSHA256() {
+        Hash digest = SHA256_DIGEST.get();
+        if ( digest != null ) {
+            digest.reset();
+            return digest;
+        }
 
-        byte[] result = new byte[digest.getDigestSize()];
-        digest.update( ByteBuffer.allocate( 8 ).order( ByteOrder.LITTLE_ENDIAN ).putLong( counter.getAndIncrement() ).array(), 0, 8 );
-        digest.update( input, 0, input.length );
-        digest.update( this.key, 0, this.key.length );
-        digest.doFinal( result, 0 );
-
-        return Arrays.copyOf( result, 8 );
+        digest = HASHING.newInstance();
+        SHA256_DIGEST.set( digest );
+        return digest;
     }
 
-    private byte[] processCipher( BufferedBlockCipher cipher, byte[] input ) {
+    private byte[] calcHash( byte[] input, AtomicLong counter ) {
+        Hash digest = getSHA256();
+        if ( digest == null ) {
+            return new byte[8];
+        }
+
+        ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( 8 + input.length + this.key.length );
+        buf.writeLongLE( counter.getAndIncrement() );
+        buf.writeBytes( input );
+        buf.writeBytes( this.key );
+        digest.update( buf );
+        buf.release();
+        return digest.digest();
+    }
+
+    private byte[] processCipher( Cipher cipher, byte[] input ) {
         byte[] output = new byte[cipher.getOutputSize( input.length )];
-        int cursor = cipher.processBytes( input, 0, input.length, output, 0 );
 
         try {
+            int cursor = cipher.update( input, 0, input.length, output, 0 );
             // cursor += cipher.doFinal( output, cursor );
             if ( cursor != output.length ) {
-                throw new InvalidCipherTextException( "Output size did not match cursor" );
+                throw new ShortBufferException( "Output size did not match cursor" );
             }
-        } catch ( InvalidCipherTextException e ) {
+        } catch ( ShortBufferException e ) {
             LOGGER.error( "Could not encrypt/decrypt to/from cipher-text", e );
             return null;
         }
@@ -206,11 +227,11 @@ public class EncryptionHandler {
 
     private byte[] generateECDHSecret( PrivateKey privateKey, PublicKey publicKey ) {
         try {
-            KeyAgreement ka = KeyAgreement.getInstance( "ECDH", "BC" );
+            KeyAgreement ka = KeyAgreement.getInstance( "ECDH" );
             ka.init( privateKey );
             ka.doPhase( publicKey, true );
             return ka.generateSecret();
-        } catch ( NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException e ) {
+        } catch ( NoSuchAlgorithmException | InvalidKeyException e ) {
             LOGGER.error( "Failed to generate Elliptic-Curve-Diffie-Hellman Shared Secret for clientside encryption", e );
             return null;
         }
@@ -223,22 +244,34 @@ public class EncryptionHandler {
     }
 
     private byte[] hashSHA256( byte[]... message ) {
-        SHA256Digest digest = new SHA256Digest();
-
-        byte[] result = new byte[digest.getDigestSize()];
-        for ( byte[] bytes : message ) {
-            digest.update( bytes, 0, bytes.length );
+        Hash digest = getSHA256();
+        if ( digest == null ) {
+            return null;
         }
 
-        digest.doFinal( result, 0 );
+        ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer();
+        for ( byte[] bytes : message ) {
+            buf.writeBytes( bytes );
+        }
 
-        return result;
+        digest.update( buf );
+        buf.release();
+        return digest.digest();
     }
 
-    private BufferedBlockCipher createCipher( boolean encryptor, byte[] key, byte[] iv ) {
-        BufferedBlockCipher cipher = new BufferedBlockCipher( new CFBBlockCipher( new AESEngine(), 8 ) );
-        cipher.init( encryptor, new ParametersWithIV( new KeyParameter( key ), iv ) );
-        return cipher;
+    private Cipher createCipher( boolean encryptor, byte[] key, byte[] iv ) {
+        SecretKey secretKey = new SecretKeySpec( key, "AES" );
+        IvParameterSpec ivParameterSpec = new IvParameterSpec( iv );
+
+        try {
+            Cipher jdkCipher = Cipher.getInstance( "AES/CFB8/NoPadding" );
+            jdkCipher.init( encryptor ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, secretKey, ivParameterSpec );
+            return jdkCipher;
+        } catch ( NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e ) {
+            LOGGER.error( "Could not create cipher", e );
+        }
+
+        return null;
     }
 
 }

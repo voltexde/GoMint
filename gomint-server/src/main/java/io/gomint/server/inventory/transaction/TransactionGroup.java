@@ -25,10 +25,9 @@ public class TransactionGroup {
     private static final Logger LOGGER = LoggerFactory.getLogger( TransactionGroup.class );
 
     private final EntityPlayer player;
-    private final List<Transaction> transactions = new ArrayList<>();
+    @Getter private final List<Transaction> transactions = new ArrayList<>();
 
     // Need / have for this transactions
-    @Getter
     private List<ItemStack> haveItems = new ArrayList<>();
     private List<ItemStack> needItems = new ArrayList<>();
 

@@ -12,10 +12,12 @@ import io.gomint.math.BlockPosition;
 import io.gomint.server.async.Delegate2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.Packet;
+import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.util.PerformanceHacks;
 import io.gomint.server.world.postprocessor.PostProcessor;
@@ -28,6 +30,8 @@ import io.gomint.world.WorldLayer;
 import io.gomint.world.block.Block;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -36,12 +40,19 @@ import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.ref.SoftReference;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -65,7 +76,7 @@ public class ChunkAdapter implements Chunk {
 
     // Networking
     boolean dirty;
-    SoftReference<PacketWorldChunk> cachedPacket;
+    SoftReference<Packet> cachedPacket;
 
     // Chunk
     protected final int x;
@@ -95,7 +106,8 @@ public class ChunkAdapter implements Chunk {
     // State saving flag
     @Getter
     private boolean needsPersistance;
-    @Getter @Setter
+    @Getter
+    @Setter
     private boolean populated;
 
     // CHECKSTYLE:ON
@@ -248,7 +260,7 @@ public class ChunkAdapter implements Chunk {
      *
      * @param batch     The batch which has been generated to be sent to the clients
      */
-    void setCachedPacket( PacketWorldChunk batch ) {
+    void setCachedPacket( Packet batch ) {
         this.dirty = false;
         this.cachedPacket = new SoftReference<>( batch );
     }
@@ -281,12 +293,13 @@ public class ChunkAdapter implements Chunk {
      * This operation is done asynchronously in order to limit how many chunks are being
      * packaged in parallel as well as to cache some chunk packets.
      *
-     * @param player   which should get this chunk
      * @param callback The callback to be invoked once the operation is complete
      */
-    void packageChunk( EntityPlayer player, Delegate2<Long, ChunkAdapter> callback ) {
-        if ( !this.dirty && this.cachedPacket != null ) {
-            Packet packet = this.cachedPacket.get();
+    void packageChunk( Delegate2<Long, ChunkAdapter> callback ) {
+        SoftReference<Packet> cachedPacketRef = this.cachedPacket;
+
+        if ( !this.dirty && cachedPacketRef != null ) {
+            Packet packet = cachedPacketRef.get();
             if ( packet != null ) {
                 callback.invoke( CoordinateUtils.toLong( x, z ), this );
             } else {
@@ -366,7 +379,7 @@ public class ChunkAdapter implements Chunk {
     public void setBlock( int x, int y, int z, int layer, int id ) {
         int ySection = y >> 4;
         ChunkSlice slice = ensureSlice( ySection );
-        slice.setBlock( x, y - 16 * ySection, z, layer, id );
+        slice.setBlock( x, y - ( ySection << 4 ), z, layer, id );
         this.dirty = true;
         this.needsPersistance = true;
     }
@@ -435,8 +448,8 @@ public class ChunkAdapter implements Chunk {
      * @param z The z-coordinate relative to the chunk
      * @return The maximum block height
      */
-    public byte getHeight( int x, int z ) {
-        return this.height[( z << 4 ) + x];
+    public int getHeight( int x, int z ) {
+        return this.height[( z << 4 ) + x] & 0xFF;
     }
 
     @Override
@@ -503,16 +516,15 @@ public class ChunkAdapter implements Chunk {
      * Invoked by the world's asynchronous worker thread once the chunk is supposed
      * to actually pack itself into a world chunk packet.
      *
-     * @param protocolId for which we want this chunk data
      * @return The world chunk packet that is to be sent
      */
-    PacketWorldChunk createPackagedData( int protocolId ) {
-        PacketBuffer buffer = new PacketBuffer( 512 );
+    Packet createPackagedData() {
+        PacketBuffer buffer = new PacketBuffer( 16 );
 
         // Detect how much data we can skip
         int topEmpty = 15;
         for ( int i = 15; i >= 0; i-- ) {
-            ChunkSlice slice = chunkSlices[i];
+            ChunkSlice slice = this.chunkSlices[i];
             if ( slice == null || slice.isAllAir() ) {
                 topEmpty = i;
             } else {
@@ -522,8 +534,7 @@ public class ChunkAdapter implements Chunk {
 
         buffer.writeByte( (byte) topEmpty );
         for ( int i = 0; i < topEmpty; i++ ) {
-            buffer.writeByte( (byte) 8 );
-            buffer.writeBytes( ensureSlice( i ).getBytes( protocolId ) );
+            ensureSlice( i ).writeToNetwork( buffer );
         }
 
         buffer.writeBytes( this.height );
@@ -534,29 +545,60 @@ public class ChunkAdapter implements Chunk {
         // Write tile entity data
         Collection<TileEntity> tileEntities = this.getTileEntities();
         if ( !tileEntities.isEmpty() ) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
+            NBTWriter nbtWriter = new NBTWriter( new OutputStream() {
+                @Override
+                public void write( int b ) throws IOException {
+                    buffer.writeByte( (byte) b );
+                }
+            }, ByteOrder.LITTLE_ENDIAN );
             nbtWriter.setUseVarint( true );
 
             for ( TileEntity tileEntity : tileEntities ) {
                 NBTTagCompound compound = new NBTTagCompound( "" );
-                tileEntity.toCompound( compound );
+                tileEntity.toCompound( compound, SerializationReason.NETWORK );
 
                 try {
                     nbtWriter.write( compound );
                 } catch ( IOException e ) {
-                    e.printStackTrace();
+                    LOGGER.warn( "Could not persist nbt for network", e );
                 }
             }
-
-            buffer.writeBytes( baos.toByteArray() );
         }
 
         PacketWorldChunk packet = new PacketWorldChunk();
         packet.setX( this.x );
         packet.setZ( this.z );
         packet.setData( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
-        return packet;
+
+        // Don't pack the chunk if using TCP
+        if ( this.world.getServer().getServerConfig().getListener().isUseTCP() ) {
+            return packet;
+        }
+
+        return packChunk( packet );
+    }
+
+    private PacketBatch packChunk( PacketWorldChunk chunkPacket ) {
+        PacketBatch chunkPacketBatch = new PacketBatch();
+        PacketBuffer buffer = new PacketBuffer( 64 );
+        chunkPacket.serializeHeader( buffer );
+        chunkPacket.serialize( buffer, Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
+
+        ByteBuffer finalOut = ByteBuffer.allocate( buffer.getPosition() + 5 );
+        writeVarInt( buffer.getPosition(), finalOut );
+        finalOut.put( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getBufferOffset() + buffer.getPosition() );
+        chunkPacketBatch.setPayload( Arrays.copyOf( finalOut.array(), finalOut.position() ) );
+
+        return chunkPacketBatch;
+    }
+
+    private void writeVarInt( int value, ByteBuffer stream ) {
+        while ( ( value & -128 ) != 0 ) {
+            stream.put( (byte) ( value & 127 | 128 ) );
+            value >>>= 7;
+        }
+
+        stream.put( (byte) value );
     }
 
     /**
@@ -569,7 +611,7 @@ public class ChunkAdapter implements Chunk {
 
         for ( ChunkSlice chunkSlice : this.chunkSlices ) {
             if ( chunkSlice != null ) {
-                tileEntities.addAll( chunkSlice.getTileEntities() );
+                tileEntities.addAll( chunkSlice.getTileEntities().values() );
             }
         }
 
@@ -619,7 +661,7 @@ public class ChunkAdapter implements Chunk {
         if ( implBlock.getTileEntity() != null ) {
             // Get compound
             NBTTagCompound compound = new NBTTagCompound( "" );
-            implBlock.getTileEntity().toCompound( compound );
+            implBlock.getTileEntity().toCompound( compound, SerializationReason.PERSIST );
 
             // Change position
             int fullX = CoordinateUtils.getChunkMin( this.x ) + x;
@@ -636,15 +678,16 @@ public class ChunkAdapter implements Chunk {
         }
     }
 
-    public PacketWorldChunk getCachedPacket( int protocolId ) {
+    public Packet getCachedPacket() {
         if ( this.dirty ) {
             this.cachedPacket.clear();
-            this.cachedPacket = new SoftReference<>( createPackagedData( Protocol.MINECRAFT_PE_PROTOCOL_VERSION ) );
+
+            this.cachedPacket = new SoftReference<>( createPackagedData() );
             this.dirty = false;
         }
 
         // Check if we have a object
-        PacketWorldChunk packetWorldChunk = this.cachedPacket.get();
+        Packet packetWorldChunk = this.cachedPacket.get();
         if ( packetWorldChunk == null ) {
             // The packet got cleared from the JVM due to memory limits
             if ( this.world.getServer().getCurrentTickTime() - LAST_WARNING.get() >= 5000 ) {
@@ -658,7 +701,7 @@ public class ChunkAdapter implements Chunk {
                 LAST_WARNING.set( this.world.getServer().getCurrentTickTime() );
             }
 
-            return createPackagedData( protocolId );
+            return createPackagedData();
         }
 
         return packetWorldChunk;
@@ -667,6 +710,15 @@ public class ChunkAdapter implements Chunk {
     public void setTileEntity( int x, int y, int z, TileEntity tileEntity ) {
         ChunkSlice slice = ensureSlice( y >> 4 );
         slice.addTileEntity( x, y - 16 * ( y >> 4 ), z, tileEntity );
+
+        this.dirty = true;
+        this.needsPersistance = true;
+    }
+
+    public void removeTileEntity( int x, int y, int z ) {
+        ChunkSlice slice = ensureSlice( y >> 4 );
+        slice.removeTileEntity( x, y - 16 * ( y >> 4 ), z );
+
         this.dirty = true;
         this.needsPersistance = true;
     }
@@ -685,11 +737,13 @@ public class ChunkAdapter implements Chunk {
         return this.entities;
     }
 
-    public void tickTiles( long currentTimeMS, float dT ) {
+    public void tickTiles( long currentTimeMS ) {
         for ( ChunkSlice chunkSlice : this.chunkSlices ) {
             if ( chunkSlice != null ) {
-                for ( TileEntity tileEntity : chunkSlice.getTileEntities() ) {
-                    tileEntity.update( currentTimeMS, dT );
+                ObjectIterator<Short2ObjectMap.Entry<TileEntity>> iterator = chunkSlice.getTileEntities().short2ObjectEntrySet().fastIterator();
+                while ( iterator.hasNext() ) {
+                    TileEntity tileEntity = iterator.next().getValue();
+                    tileEntity.update( currentTimeMS );
 
                     if ( tileEntity.isNeedsPersistance() ) {
                         this.needsPersistance = true;

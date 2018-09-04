@@ -1,5 +1,4 @@
 package io.gomint.server.inventory.item;
-
 import io.gomint.inventory.item.ItemType;
 
 import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
@@ -7,6 +6,7 @@ import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.projectile.EntityFishingHook;
+import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
@@ -16,18 +16,11 @@ import io.gomint.world.block.BlockFace;
  * @author geNAZt
  * @version 1.0
  */
+@UseDataAsDamage
 @RegisterInfo( id = 346 )
 public class ItemFishingRod extends ItemStack implements io.gomint.inventory.item.ItemFishingRod {
 
-    // CHECKSTYLE:OFF
-    public ItemFishingRod( short data, int amount ) {
-        super( 346, data, amount );
-    }
 
-    public ItemFishingRod( short data, int amount, NBTTagCompound nbt ) {
-        super( 346, data, amount, nbt );
-    }
-    // CHECKSTYLE:ON
 
     @Override
     public short getMaxDamage() {
@@ -37,16 +30,6 @@ public class ItemFishingRod extends ItemStack implements io.gomint.inventory.ite
     @Override
     public byte getMaximumAmount() {
         return 1;
-    }
-
-    @Override
-    public boolean useDamageAsData() {
-        return false;
-    }
-
-    @Override
-    public boolean usesDamage() {
-        return true;
     }
 
     @Override
@@ -64,11 +47,7 @@ public class ItemFishingRod extends ItemStack implements io.gomint.inventory.ite
             int damage = entity.getFishingHook().retract();
             entity.setFishingHook( null );
 
-            if ( this.damage( damage ) ) {
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-            } else {
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), this );
-            }
+            this.calculateUsageAndUpdate( damage );
         }
 
         return true;
@@ -80,12 +59,7 @@ public class ItemFishingRod extends ItemStack implements io.gomint.inventory.ite
             int damage = entity.getFishingHook().retract();
             this.setData( (short) ( this.getData() + damage ) );
             entity.setFishingHook( null );
-
-            if ( this.damage( damage ) ) {
-                entity.getInventory().setItem( entity.getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-            } else {
-                entity.getInventory().sendContents( entity.getInventory().getItemInHandSlot(), entity.getConnection() );
-            }
+            this.calculateUsageAndUpdate( damage );
         }
     }
 

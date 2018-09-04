@@ -13,38 +13,9 @@ import lombok.Getter;
 @Data
 public class PacketInteract extends Packet {
 
-    public enum InteractAction {
-        INTERACT(1),
-        ATTACK(2),
-        LEAVE_VEHICLE(3),
-        MOUSEOVER(4);
-
-        @Getter
-        private final byte id;
-        InteractAction( int id ) {
-            this.id = (byte) id;
-        }
-
-        public static InteractAction valueOf( byte actionId ) {
-            switch ( actionId ) {
-                case 1:
-                    return INTERACT;
-                case 2:
-                    return ATTACK;
-                case 3:
-                    return LEAVE_VEHICLE;
-                case 4:
-                    return MOUSEOVER;
-                default:
-                    return MOUSEOVER;
-            }
-        }
-    }
-
     private InteractAction action;
     private long entityId;
     private Vector position;
-
     public PacketInteract() {
         super( Protocol.PACKET_INTERACT );
     }
@@ -66,6 +37,35 @@ public class PacketInteract extends Packet {
 
         if ( this.action == InteractAction.MOUSEOVER ) {
             this.position = readVector( buffer );
+        }
+    }
+
+    public enum InteractAction {
+        INTERACT( 1 ),
+        ATTACK( 2 ),
+        LEAVE_VEHICLE( 3 ),
+        MOUSEOVER( 4 );
+
+        @Getter
+        private final byte id;
+
+        InteractAction( int id ) {
+            this.id = (byte) id;
+        }
+
+        public static InteractAction valueOf( byte actionId ) {
+            switch ( actionId ) {
+                case 1:
+                    return INTERACT;
+                case 2:
+                    return ATTACK;
+                case 3:
+                    return LEAVE_VEHICLE;
+                case 4:
+                    return MOUSEOVER;
+                default:
+                    return MOUSEOVER;
+            }
         }
     }
 

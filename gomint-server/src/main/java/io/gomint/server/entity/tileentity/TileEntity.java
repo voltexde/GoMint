@@ -13,6 +13,8 @@ import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
+import io.gomint.server.world.block.BurningFurnace;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import lombok.Getter;
@@ -93,12 +95,11 @@ public abstract class TileEntity {
     }
 
     /**
-     * Tick this tileEntity
+     * Tick this tileEntity exactly once per 50 ms
      *
      * @param currentMillis The amount of millis to save some CPU
-     * @param dF            The percentage of the second which was calculated in the last tick
      */
-    public abstract void update( long currentMillis, float dF );
+    public abstract void update( long currentMillis );
 
     public void interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
 
@@ -108,18 +109,26 @@ public abstract class TileEntity {
      * Save this TileEntity back to an compound
      *
      * @param compound The Compound which should be used to save the data into
+     * @param reason   why should this tile be serialized?
      */
-    public void toCompound( NBTTagCompound compound ) {
+    public void toCompound( NBTTagCompound compound, SerializationReason reason ) {
         compound.addValue( "x", (int) this.location.getX() );
         compound.addValue( "y", (int) this.location.getY() );
         compound.addValue( "z", (int) this.location.getZ() );
-        compound.addValue( "isMovable", this.moveable );
+
+        if ( reason == SerializationReason.PERSIST ) {
+            compound.addValue( "isMovable", this.moveable );
+        }
     }
 
     public boolean isNeedsPersistance() {
         boolean ne = this.needsPersistance;
         this.needsPersistance = false;
         return ne;
+    }
+
+    protected Block getBlock() {
+        return this.location.getBlock();
     }
 
 }

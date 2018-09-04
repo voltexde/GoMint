@@ -52,40 +52,6 @@ public abstract class Packet {
     }
 
     /**
-     * Gets the packet's ID.
-     *
-     * @return The packet's ID
-     */
-    public byte getId() {
-        return this.id;
-    }
-
-    /**
-     * Serializes this packet into the given buffer.
-     *
-     * @param buffer     The buffer to serialize this packet into
-     * @param protocolID Protocol for which we request the serialization
-     */
-    public abstract void serialize( PacketBuffer buffer, int protocolID );
-
-    /**
-     * Deserializes this packet from the given buffer.
-     *
-     * @param buffer     The buffer to deserialize this packet from
-     * @param protocolID Protocol for which we request deserialization
-     */
-    public abstract void deserialize( PacketBuffer buffer, int protocolID );
-
-    /**
-     * Returns the ordering channel to send the packet on.
-     *
-     * @return The ordering channel of the packet
-     */
-    public int orderingChannel() {
-        return 0;
-    }
-
-    /**
      * Read a item stack from the packet buffer
      *
      * @param buffer from the packet
@@ -162,6 +128,40 @@ public abstract class Packet {
         // canPlace and canBreak
         buffer.writeSignedVarInt( 0 );
         buffer.writeSignedVarInt( 0 );
+    }
+
+    /**
+     * Gets the packet's ID.
+     *
+     * @return The packet's ID
+     */
+    public byte getId() {
+        return this.id;
+    }
+
+    /**
+     * Serializes this packet into the given buffer.
+     *
+     * @param buffer     The buffer to serialize this packet into
+     * @param protocolID Protocol for which we request the serialization
+     */
+    public abstract void serialize( PacketBuffer buffer, int protocolID );
+
+    /**
+     * Deserializes this packet from the given buffer.
+     *
+     * @param buffer     The buffer to deserialize this packet from
+     * @param protocolID Protocol for which we request deserialization
+     */
+    public abstract void deserialize( PacketBuffer buffer, int protocolID );
+
+    /**
+     * Returns the ordering channel to send the packet on.
+     *
+     * @return The ordering channel of the packet
+     */
+    public int orderingChannel() {
+        return 0;
     }
 
     /**
@@ -246,9 +246,19 @@ public abstract class Packet {
         return new BlockPosition( buffer.readSignedVarInt(), buffer.readUnsignedVarInt(), buffer.readSignedVarInt() );
     }
 
+    public BlockPosition readSignedBlockPosition( PacketBuffer buffer ) {
+        return new BlockPosition( buffer.readSignedVarInt(), buffer.readSignedVarInt(), buffer.readSignedVarInt() );
+    }
+
     public void writeBlockPosition( BlockPosition position, PacketBuffer buffer ) {
         buffer.writeSignedVarInt( position.getX() );
         buffer.writeUnsignedVarInt( position.getY() );
+        buffer.writeSignedVarInt( position.getZ() );
+    }
+
+    public void writeSignedBlockPosition( BlockPosition position, PacketBuffer buffer ) {
+        buffer.writeSignedVarInt( position.getX() );
+        buffer.writeSignedVarInt( position.getY() );
         buffer.writeSignedVarInt( position.getZ() );
     }
 
@@ -302,7 +312,7 @@ public abstract class Packet {
     }
 
     public void serializeHeader( PacketBuffer buffer ) {
-        buffer.writeUnsignedVarInt( this.getId() );
+        buffer.writeUnsignedVarInt( this.id );
     }
 
 }

@@ -11,9 +11,9 @@ import io.gomint.emulator.client.Client;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
-import java.security.Security;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
@@ -21,21 +21,21 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 public class BootStrap {
 
-    private static final int AMOUNT_OF_BOTS = 1;
-
     public static void main( String[] args ) throws InterruptedException {
-        Security.addProvider( new org.bouncycastle.jce.provider.BouncyCastleProvider() );
+        Configurator.setLevel( "io.gomint.jraknet.ClientSocket", Level.ERROR );
 
-        ScheduledExecutorService service = Executors.newScheduledThreadPool( 8 ); // Amount of cores
+        ScheduledExecutorService service = Executors.newScheduledThreadPool( 256 ); // Amount of cores
         PostProcessExecutorService postProcessExecutorService = new PostProcessExecutorService();
 
-        for ( int i = 0; i < AMOUNT_OF_BOTS; i++ ) {
+        service.scheduleAtFixedRate( Client::printDebug, 5, 5, TimeUnit.SECONDS );
+
+        for ( int i = 0; i < 1; i++ ) {
             service.execute( () -> {
                 Client client = new Client( service, postProcessExecutorService.getExecutor(), null );
-                client.connect( "192.168.1.144", 19132 );
+                client.connect( "192.168.178.113", 19132 );
             } );
 
-            Thread.sleep( 500 );
+            Thread.sleep( 1000 );
         }
     }
 

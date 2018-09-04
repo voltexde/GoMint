@@ -1,13 +1,11 @@
 package io.gomint.server.entity.ai;
 
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.pathfinding.PathfindingEngine;
-import io.gomint.server.util.IntTriple;
 import io.gomint.server.world.WorldAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,13 +19,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class AIPassiveIdleMovement extends AIState {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( AIPassiveIdleMovement.class );
-
     private final WorldAdapter world;
     private final PathfindingEngine pathfinding;
 
     private int currentPathNode;
-    private List<IntTriple> path;
+    private List<BlockPosition> path;
 
     private long lastPointReachedTime;
 
@@ -49,13 +45,13 @@ public class AIPassiveIdleMovement extends AIState {
         if ( this.path != null && this.currentPathNode < this.path.size() ) {
             Vector position = this.pathfinding.getTransform().getPosition();
 
-            IntTriple blockPosition = new IntTriple(
+            BlockPosition blockPosition = new BlockPosition(
                 MathUtils.fastFloor( position.getX() ),
                 MathUtils.fastFloor( position.getY() ),
                 MathUtils.fastFloor( position.getZ() )
             );
 
-            IntTriple node = this.path.get( this.currentPathNode );
+            BlockPosition node = this.path.get( this.currentPathNode );
 
             Vector direction = node.toVector().add( .5f, 0, .5f ).subtract( position ).normalize().multiply( 2 * dT );
             this.pathfinding.getTransform().setMotion( direction.getX(), direction.getY(), direction.getZ() );
@@ -91,9 +87,7 @@ public class AIPassiveIdleMovement extends AIState {
         double z = r * Math.sin( t );
 
         Vector position = this.pathfinding.getTransform().getPosition();
-        position.add( (float) x, 0.0F, (float) z );
-
-        return new Location( this.world, position );
+        return new Location( this.world, position.add( (float) x, 0.0F, (float) z ) );
     }
 
 }

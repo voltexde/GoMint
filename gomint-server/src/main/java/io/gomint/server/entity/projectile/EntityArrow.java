@@ -7,14 +7,17 @@
 
 package io.gomint.server.entity.projectile;
 
+import io.gomint.entity.EntityLiving;
 import io.gomint.event.entity.projectile.ProjectileHitBlocksEvent;
 import io.gomint.event.player.PlayerPickupItemEvent;
 import io.gomint.inventory.item.ItemArrow;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.EntityType;
+import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.util.random.FastRandom;
@@ -22,11 +25,13 @@ import io.gomint.world.block.Block;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@RegisterInfo( id = 80 )
 public class EntityArrow extends EntityProjectile implements io.gomint.entity.projectile.EntityArrow {
 
     private boolean firedHitEvent = false;
@@ -36,16 +41,35 @@ public class EntityArrow extends EntityProjectile implements io.gomint.entity.pr
     private boolean critical;
     private float lastUpdatedT;
 
+    private int powerModifier;
+    private int punchModifier;
+    private int flameModifier;
+
+    /**
+     * Create entity for API
+     */
+    public EntityArrow() {
+        super( null, EntityType.ARROW, null );
+        this.setSize( 0.5f, 0.5f );
+    }
+
     /**
      * Construct a new Entity
      *
-     * @param player which spawned this hook
-     * @param world  The world in which this entity is in
-     * @param force  with which the player shoot the bow
+     * @param player        which spawned this hook
+     * @param world         The world in which this entity is in
+     * @param force         with which the player shoot the bow
+     * @param powerModifier modifier for damage of this arrow
+     * @param punchModifier modifier for knockback of this arrow
+     * @param flameModifier modifier for burning arrows
      */
-    public EntityArrow( EntityPlayer player, WorldAdapter world, float force ) {
+    public EntityArrow( EntityPlayer player, WorldAdapter world, float force, int powerModifier, int punchModifier, int flameModifier ) {
         super( player, EntityType.ARROW, world );
         this.setSize( 0.5f, 0.5f );
+
+        this.powerModifier = powerModifier;
+        this.punchModifier = punchModifier;
+        this.flameModifier = flameModifier;
 
         this.critical = force == 1.0f;
         float applyForce = force * 2;
@@ -86,7 +110,34 @@ public class EntityArrow extends EntityProjectile implements io.gomint.entity.pr
     }
 
     @Override
+    protected void applyCustomKnockback( Entity hitEntity ) {
+        if ( this.punchModifier > 0 ) {
+            float sqrtMotion = (float) Math.sqrt( this.getMotionX() * this.getMotionX() + this.getMotionZ() * this.getMotionZ() );
+            if ( sqrtMotion > 0.0F ) {
+                Vector toAdd = new Vector(
+                    this.getMotionX() * this.punchModifier * 0.6f / sqrtMotion,
+                    0.1f,
+                    this.getMotionZ() * this.punchModifier * 0.6f / sqrtMotion
+                );
+
+                hitEntity.setVelocity( hitEntity.getVelocity().add( toAdd ) );
+            }
+        }
+    }
+
+    @Override
+    protected void applyCustomDamageEffects( Entity hitEntity ) {
+        if ( this.flameModifier > 0 && hitEntity instanceof EntityLiving ) {
+            ( (EntityLiving) hitEntity ).setBurning( 5, TimeUnit.SECONDS );
+        }
+    }
+
+    @Override
     public float getDamage() {
+        if ( this.powerModifier > 0 ) {
+            return 2 + ( this.powerModifier * 0.5f + 0.5f );
+        }
+
         return 2;
     }
 

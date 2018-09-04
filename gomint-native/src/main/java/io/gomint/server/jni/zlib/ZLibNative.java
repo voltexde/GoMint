@@ -27,7 +27,7 @@ public class ZLibNative {
 
     native void reset(long ctx, boolean compress);
 
-    native long init(boolean compress, int compressionLevel);
+    native long init(boolean compress, boolean gzip, int compressionLevel);
 
     native int process(long ctx, long in, int inLength, long out, int outLength, boolean compress);
 

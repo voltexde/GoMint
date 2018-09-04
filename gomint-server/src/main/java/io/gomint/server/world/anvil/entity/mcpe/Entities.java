@@ -9,16 +9,12 @@ package io.gomint.server.world.anvil.entity.mcpe;
 
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityMagicNumbers;
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.anvil.entity.EntityConverter;
 import io.gomint.server.world.anvil.entity.EntityConverters;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -72,7 +68,17 @@ public class Entities implements EntityConverters {
         return null;
     }
 
+    @Override
+    public NBTTagCompound write( Entity entity ) {
+        return null;
+    }
+
     private String convertToUnderScoreLower( String id ) {
+        // Fast out on invalid
+        if ( id == null || id.isEmpty() ) {
+            return "INVALID";
+        }
+
         // New value
         StringBuilder builder = new StringBuilder();
 

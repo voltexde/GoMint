@@ -1,23 +1,15 @@
 package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemReduceBreaktime;
-import io.gomint.taglib.NBTTagCompound;
+import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@UseDataAsDamage
 public abstract class ItemReduceTierStone extends ItemStack implements ItemReduceBreaktime {
 
-    // CHECKSTYLE:OFF
-    ItemReduceTierStone( int material, short data, int amount ) {
-        super( material, data, amount );
-    }
-
-    ItemReduceTierStone( int material, short data, int amount, NBTTagCompound nbt ) {
-        super( material, data, amount, nbt );
-    }
-    // CHECKSTYLE:ON
 
     @Override
     public byte getMaximumAmount() {
@@ -27,16 +19,6 @@ public abstract class ItemReduceTierStone extends ItemStack implements ItemReduc
     @Override
     public float getDivisor() {
         return 4;
-    }
-
-    @Override
-    public boolean useDamageAsData() {
-        return false;
-    }
-
-    @Override
-    public boolean usesDamage() {
-        return true;
     }
 
     @Override

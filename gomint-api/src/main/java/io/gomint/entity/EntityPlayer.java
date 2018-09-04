@@ -16,6 +16,7 @@ import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.permission.PermissionManager;
 import io.gomint.player.DeviceInfo;
+import io.gomint.scoreboard.Scoreboard;
 import io.gomint.world.*;
 
 import java.util.Locale;
@@ -48,6 +49,13 @@ public interface EntityPlayer extends EntityHuman {
      * @return true when op'ed, false when not
      */
     boolean isOp();
+
+    /**
+     * Set the player's operator status
+     *
+     * @param value
+     */
+    void setOp( boolean value );
 
     /**
      * Hide another player from this player
@@ -345,5 +353,24 @@ public interface EntityPlayer extends EntityHuman {
      * @param spawnLocation which should be used for this player
      */
     void setSpawnLocation( Location spawnLocation );
+
+    /**
+     * Get the location of the spawn
+     *
+     * @return location of spawn
+     */
+    Location getSpawnLocation();
+
+    /**
+     * Set a new scoreboard
+     *
+     * @param scoreboard which should be displayed to this player
+     */
+    void setScoreboard( Scoreboard scoreboard );
+
+    /**
+     * Remove the current scoreboard
+     */
+    void removeScoreboard();
 
 }

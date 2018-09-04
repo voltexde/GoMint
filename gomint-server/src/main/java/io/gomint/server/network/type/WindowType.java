@@ -28,7 +28,9 @@ public enum WindowType {
     TRADING( 15 ),
     COMMAND_BLOCK( 16 );
 
-    @Getter private final byte id;
+    @Getter
+    private final byte id;
+
     WindowType( int id ) {
         this.id = (byte) id;
     }

@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 /**
  * @author geNAZt
@@ -146,11 +145,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 if ( connection.getEntity().attackWithItemInHand( target ) ) {
                     if ( connection.getEntity().getGamemode() != Gamemode.CREATIVE ) {
                         ItemStack itemInHand = connection.getEntity().getInventory().getItemInHand();
-                        if ( ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).damage( 1 ) ) {
-                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                        } else {
-                            connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemInHand );
-                        }
+                        ( (io.gomint.server.inventory.item.ItemStack) itemInHand ).calculateUsageAndUpdate( 1 );
                     }
                 } else {
                     reset( packet, connection );
@@ -212,7 +207,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
         switch ( packet.getActionType() ) {
             case 0: // Click on block
                 // Only accept valid interactions
-                if ( !checkInteraction( itemInHand, connection ) ) {
+                if ( !checkInteraction( packet, connection ) ) {
                     return;
                 }
 
@@ -227,7 +222,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                 break;
             case 1: // Click in air
                 // Only accept valid interactions
-                if ( !checkInteraction( itemInHand, connection ) ) {
+                if ( !checkInteraction( packet, connection ) ) {
                     return;
                 }
 
@@ -324,17 +319,13 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
                             if ( breakTime > 50 ) {
                                 int damage = 1;
 
-                                // Swords get 2 damage
+                                // Swords get 2 calculateUsage
                                 if ( itemInHand instanceof ItemSword ) {
                                     damage = 2;
                                 }
 
                                 io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) itemInHand;
-                                if ( itemStack.damage( damage ) ) {
-                                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), ItemAir.create( 0 ) );
-                                } else {
-                                    connection.getEntity().getInventory().setItem( connection.getEntity().getInventory().getItemInHandSlot(), itemStack );
-                                }
+                                itemStack.calculateUsageAndUpdate( damage );
                             }
                         } else {
                             reset( packet, connection );
@@ -354,20 +345,14 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
         }
     }
 
-    private boolean checkInteraction( ItemStack itemInHand, PlayerConnection connection ) {
-        io.gomint.server.inventory.item.ItemStack lastInteraction = connection.getLastInteraction();
-        if ( lastInteraction == null ) {
-            connection.setLastInteraction( (io.gomint.server.inventory.item.ItemStack) itemInHand );
-            return true;
-        } else {
-            if ( lastInteraction.getType() == itemInHand.getType() &&
-                Objects.equals( lastInteraction.getNbtData(), itemInHand.getNbtData() ) ) {
-                return false;
-            }
-
-            connection.setLastInteraction( (io.gomint.server.inventory.item.ItemStack) itemInHand );
-            return true;
+    private boolean checkInteraction( PacketInventoryTransaction packet, PlayerConnection connection ) {
+        // We cache all packets for this tick so we don't handle one twice, vanilla likes spam (https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Spam_can.png/220px-Spam_can.png)
+        if ( connection.getTransactionsHandled().contains( packet ) ) {
+            return false;
         }
+
+        connection.getTransactionsHandled().add( packet );
+        return true;
     }
 
     private void handleTypeNormal( PlayerConnection connection, PacketInventoryTransaction packet ) {
@@ -380,7 +365,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
             switch ( transaction.getSourceType() ) {
                 case 99999:
                 case 0:
-                    // NormalGenerator inventory stuff
+                    // Normal inventory stuff
                     InventoryTransaction inventoryTransaction = new InventoryTransaction( connection.getEntity(),
                         inventory, transaction.getSlot(), transaction.getOldItem(), transaction.getNewItem() );
                     transactionGroup.addTransaction( inventoryTransaction );
