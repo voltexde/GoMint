@@ -6,7 +6,6 @@ import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
 import io.gomint.server.util.performance.ObjectConstructionFactory;
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public class Items {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Items.class );

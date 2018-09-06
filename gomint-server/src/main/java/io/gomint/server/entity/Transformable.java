@@ -2,7 +2,6 @@ package io.gomint.server.entity;
 
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.WorldAdapter;
 
 /**
@@ -11,7 +10,6 @@ import io.gomint.server.world.WorldAdapter;
  * @author BlackyPaw
  * @version 1.0
  */
-@SkipRegister
 public interface Transformable {
 
     /**

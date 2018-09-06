@@ -16,7 +16,6 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.Inventory;
 import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
 import io.gomint.server.inventory.item.helper.ItemStackPlace;
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockFace;
@@ -34,7 +33,6 @@ import java.util.*;
  * @author BlackyPaw
  * @version 1.0
  */
-@SkipRegister
 @ToString
 @EqualsAndHashCode( of = { "material", "data", "nbt" } )
 public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.ItemStack {

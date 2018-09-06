@@ -9,14 +9,12 @@ package io.gomint.server.entity;
 
 import io.gomint.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketBossBar;
-import io.gomint.server.registry.SkipRegister;
 import lombok.RequiredArgsConstructor;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 @RequiredArgsConstructor
 public class BossBar implements io.gomint.entity.BossBar {
 

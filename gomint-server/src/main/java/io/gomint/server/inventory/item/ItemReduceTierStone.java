@@ -2,15 +2,14 @@ package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemReduceBreaktime;
 import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
-import io.gomint.server.registry.SkipRegister;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 @UseDataAsDamage
 public abstract class ItemReduceTierStone extends ItemStack implements ItemReduceBreaktime {
+
 
     @Override
     public byte getMaximumAmount() {

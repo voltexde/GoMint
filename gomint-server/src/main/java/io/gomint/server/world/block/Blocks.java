@@ -13,7 +13,6 @@ import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.Registry;
 import io.gomint.server.util.performance.ObjectConstructionFactory;
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.WorldAdapter;
 import org.slf4j.Logger;
@@ -26,7 +25,6 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public class Blocks {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Blocks.class );

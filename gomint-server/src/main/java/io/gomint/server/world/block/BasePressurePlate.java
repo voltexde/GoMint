@@ -9,7 +9,6 @@ package io.gomint.server.world.block;
 
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.server.entity.Entity;
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.block.state.BooleanBlockState;
 
 import java.util.Collections;
@@ -20,7 +19,6 @@ import java.util.function.Function;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public abstract class BasePressurePlate extends Block {
 
     private BooleanBlockState activated = new BooleanBlockState();

@@ -8,7 +8,6 @@
 package io.gomint.server.entity;
 
 import io.gomint.server.inventory.ArmorInventory;
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -16,7 +15,6 @@ import io.gomint.taglib.NBTTagCompound;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public class EntityCreature extends EntityLiving implements io.gomint.entity.EntityCreature {
 
     /**

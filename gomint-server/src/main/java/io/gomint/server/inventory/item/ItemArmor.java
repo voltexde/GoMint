@@ -1,13 +1,13 @@
 package io.gomint.server.inventory.item;
-
-import io.gomint.server.registry.SkipRegister;
+import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public abstract class ItemArmor extends ItemStack {
+
+
 
     @Override
     public byte getMaximumAmount() {

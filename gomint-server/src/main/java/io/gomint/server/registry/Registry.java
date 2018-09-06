@@ -45,22 +45,12 @@ public class Registry<R> {
         for ( ClassPath.ClassInfo classInfo : this.server.getClassPath().getTopLevelClasses( classPath ) ) {
             register( classInfo.load() );
         }
-
-        LOGGER.info( "Registered generators: {}", classPath );
-        for ( int i = 0; i < this.generators.length; i++ ) {
-            LOGGER.info( "  {} -> {}", i, this.generators[i] );
-        }
     }
 
     private void register( Class<?> clazz ) {
-        // Check if we skip registration
-        if ( clazz.isAnnotationPresent( SkipRegister.class ) ) {
-            return;
-        }
-
         // We need register info
         if ( !clazz.isAnnotationPresent( RegisterInfo.class ) && !clazz.isAnnotationPresent( RegisterInfos.class ) ) {
-            LOGGER.warn( "No register info annotation present: {}", clazz.getName() );
+            LOGGER.debug( "No register info annotation present" );
             return;
         }
 

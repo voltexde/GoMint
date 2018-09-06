@@ -8,7 +8,6 @@
 package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.util.StringShortPair;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -23,7 +22,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,54 +42,9 @@ public class BlockRuntimeIDs {
     // Cached packet streams
     private static byte[] START_GAME_BUFFER;
 
-    public static void init( List<StringShortPair> blockPalette ) {
-        PacketBuffer buffer = new PacketBuffer( 64 );
-
-        int highestBlockID = -1;
-        Map<Integer, Integer> highestDataValues = new HashMap<>();
-
-        for ( StringShortPair pair : blockPalette ) {
-            int blockId = ( (Long) idObj.get( "id" ) ).intValue();
-            int dataValue = ( (Long) idObj.get( "data" ) ).intValue();
-
-            if ( highestBlockID < blockId ) {
-                highestBlockID = blockId;
-            }
-
-            Integer knownData = highestDataValues.get( blockId );
-            if ( knownData == null || dataValue > knownData ) {
-                highestDataValues.put( blockId, dataValue );
-            }
-        }
-        for ( Object id : runtimeIDs ) {
-            JSONObject idObj = (JSONObject) id;
-
-        }
-
-        // Init array
-        BLOCK_DATA_TO_RUNTIME = new int[highestBlockID + 1][];
-        buffer.writeUnsignedVarInt( runtimeIDs.size() );
-
-        for ( Object id : runtimeIDs ) {
-            JSONObject idObj = (JSONObject) id;
-            int blockId = ( (Long) idObj.get( "id" ) ).intValue();
-            int dataValue = ( (Long) idObj.get( "data" ) ).intValue();
-
-            int[] dataValues = BLOCK_DATA_TO_RUNTIME[blockId];
-            if ( dataValues == null ) {
-                dataValues = new int[highestDataValues.get( blockId ) + 1];
-            }
-
-            Long overrideId = (Long) idObj.get( "runtimeID" );
-
-
-            dataValues[dataValue] = overrideId != null ? overrideId.intValue() : RUNTIME_ID.getAndIncrement();
-            BLOCK_DATA_TO_RUNTIME[blockId] = dataValues;
-            buffer.writeString( (String) idObj.get( "name" ) );
-            buffer.writeLShort( (short) dataValue );
-        }
-
-        START_GAME_BUFFER = Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() );
+    static {
+        // Get the correct resource
+        loadFile( "/temp_runtimeids.json" );
     }
 
     public static void loadFile( String file ) {
@@ -115,7 +68,50 @@ public class BlockRuntimeIDs {
 
         // Read in json data
         if ( runtimeIDs != null ) {
+            PacketBuffer buffer = new PacketBuffer( 64 );
 
+            int highestBlockID = -1;
+            Map<Integer, Integer> highestDataValues = new HashMap<>();
+
+            for ( Object id : runtimeIDs ) {
+                JSONObject idObj = (JSONObject) id;
+                int blockId = ( (Long) idObj.get( "id" ) ).intValue();
+                int dataValue = ( (Long) idObj.get( "data" ) ).intValue();
+
+                if ( highestBlockID < blockId ) {
+                    highestBlockID = blockId;
+                }
+
+                Integer knownData = highestDataValues.get( blockId );
+                if ( knownData == null || dataValue > knownData ) {
+                    highestDataValues.put( blockId, dataValue );
+                }
+            }
+
+            // Init array
+            BLOCK_DATA_TO_RUNTIME = new int[highestBlockID + 1][];
+            buffer.writeUnsignedVarInt( runtimeIDs.size() );
+
+            for ( Object id : runtimeIDs ) {
+                JSONObject idObj = (JSONObject) id;
+                int blockId = ( (Long) idObj.get( "id" ) ).intValue();
+                int dataValue = ( (Long) idObj.get( "data" ) ).intValue();
+
+                int[] dataValues = BLOCK_DATA_TO_RUNTIME[blockId];
+                if ( dataValues == null ) {
+                    dataValues = new int[highestDataValues.get( blockId ) + 1];
+                }
+
+                Long overrideId = (Long) idObj.get( "runtimeID" );
+
+
+                dataValues[dataValue] = overrideId != null ? overrideId.intValue() : RUNTIME_ID.getAndIncrement();
+                BLOCK_DATA_TO_RUNTIME[blockId] = dataValues;
+                buffer.writeString( (String) idObj.get( "name" ) );
+                buffer.writeLShort( (short) dataValue );
+            }
+
+            START_GAME_BUFFER = Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() );
         }
     }
 

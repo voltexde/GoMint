@@ -1,7 +1,6 @@
 package io.gomint.server.world.block;
 
 import io.gomint.math.AxisAlignedBB;
-import io.gomint.server.registry.SkipRegister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,6 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public abstract class Stairs extends Block {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Stairs.class );

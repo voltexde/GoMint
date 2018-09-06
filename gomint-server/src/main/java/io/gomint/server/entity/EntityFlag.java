@@ -1,13 +1,10 @@
 package io.gomint.server.entity;
 
-import io.gomint.server.registry.SkipRegister;
 import lombok.Getter;
 
 /**
  * @author geNAZt
- * @version 1.0
  */
-@SkipRegister
 public enum EntityFlag {
 
     PLAYER_SLEEP( 1 ),

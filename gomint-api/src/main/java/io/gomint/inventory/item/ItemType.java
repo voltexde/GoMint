@@ -144,7 +144,6 @@ public enum ItemType {
     DROPPER,
     DYE,
     EGG,
-    ELEMENT_UNKNOWN,
     ELYTRA,
     EMERALD,
     EMERALD_ORE,

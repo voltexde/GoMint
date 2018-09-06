@@ -203,7 +203,7 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
             if ( fuelItem instanceof ItemBurnable ) {
                 long duration = ( (ItemBurnable) fuelItem ).getBurnTime();
 
-                if ( duration > 0 && fuelItem.getAmount() > 0 ) {
+                if ( fuelItem.getAmount() > 0 ) {
                     ItemStack itemStack = (ItemStack) fuelItem;
                     itemStack.afterPlacement();
 

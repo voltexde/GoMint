@@ -23,7 +23,6 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketEntityMotion;
 import io.gomint.server.network.packet.PacketSpawnEntity;
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.WorldAdapter;
@@ -56,7 +55,6 @@ import java.util.function.Predicate;
  * @author BlackyPaw
  * @version 1.1
  */
-@SkipRegister
 @EqualsAndHashCode( of = { "id" } )
 public abstract class Entity implements io.gomint.entity.Entity {
 

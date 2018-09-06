@@ -1,7 +1,6 @@
 package io.gomint.server.world.block;
 
 import io.gomint.math.AxisAlignedBB;
-import io.gomint.server.registry.SkipRegister;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public abstract class Slab extends Block {
 
     @Override
