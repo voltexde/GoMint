@@ -91,16 +91,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.iq80.leveldb</groupId>
+            <groupId>io.gomint</groupId>
             <artifactId>leveldb</artifactId>
-            <version>0.10-SNAPSHOT</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb-api -->
-        <dependency>
-            <groupId>org.iq80.leveldb</groupId>
-            <artifactId>leveldb-api</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/net.java.dev.jna/jna -->

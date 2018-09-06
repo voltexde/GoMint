@@ -16,6 +16,7 @@ import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.Palette;
 import io.gomint.server.world.ChunkAdapter;
+import io.gomint.server.world.ChunkSlice;
 import io.gomint.server.world.HeapNibbleArray;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.postprocessor.PistonPostProcessor;
@@ -52,11 +53,15 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
     public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z, byte chunkVersion ) {
         super( worldAdapter, x, z );
         this.chunkVersion = chunkVersion;
+        this.setPopulated( true );
+        this.loadedTime = worldAdapter.getServer().getCurrentTickTime();
     }
 
     public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z ) {
         super( worldAdapter, x, z );
-        this.chunkVersion = 8;
+        this.chunkVersion = 7;
+
+        this.loadedTime = worldAdapter.getServer().getCurrentTickTime();
     }
 
     /**
@@ -136,61 +141,15 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                         }
                     }
 
-                    for ( int j = 0; j < 16; ++j ) {
-                        for ( int i = 0; i < 16; ++i ) {
-                            for ( int k = 0; k < 16; ++k ) {
-                                int y = ( sectionY << 4 ) + j;
-                                short blockIndex = (short) ( k << 8 | i << 4 | j ); // j k i - k j i - i k j -
-
-                                Pair<Integer, Byte> dataPair = chunkPalette.get( indexes[blockIndex] );
-                                this.setBlock( k, y, i, sI, dataPair.getFirst() );
-                                this.setData( k, y, i, sI, dataPair.getSecond() );
-                            }
-                        }
+                    ChunkSlice slice = this.ensureSlice( sectionY );
+                    for ( short i = 0; i < indexes.length; i++ ) {
+                        Pair<Integer, Byte> dataPair = chunkPalette.get( indexes[i] );
+                        slice.setBlockInternal( i, sI, dataPair.getFirst() );
+                        slice.setDataInternal( i, sI, dataPair.getSecond() );
                     }
                 }
 
                 break;
-
-            case 0:
-                // Next 4096 bytes are block data
-                byte[] blockData = new byte[4096];
-                buffer.readBytes( blockData );
-
-                // Next 2048 bytes are metadata
-                byte[] metaData = new byte[2048];
-                buffer.readBytes( metaData );
-                HeapNibbleArray meta = new HeapNibbleArray( metaData );
-
-                // In older versions of the chunk there are light values saved
-                if ( this.chunkVersion < 4 ) {
-                    // TODO: Get skylight data and check if its correct
-                }
-
-                for ( int j = 0; j < 16; ++j ) {
-                    for ( int i = 0; i < 16; ++i ) {
-                        for ( int k = 0; k < 16; ++k ) {
-                            int y = ( sectionY << 4 ) + j;
-                            short blockIndex = (short) ( k << 8 | i << 4 | j ); // j k i - k j i - i k j -
-                            byte blockId = blockData[blockIndex];
-                            this.setBlock( k, y, i, 0, blockId );
-
-                            if ( meta.get( blockIndex ) != 0 ) {
-                                this.setData( k, y, i, 0, meta.get( blockIndex ) );
-                            }
-
-                            switch ( blockId ) {
-                                case 29:
-                                case 33: // Piston head
-                                    BlockPosition position = new BlockPosition( ( this.x << 4 ) + k, y, ( this.z << 4 ) + i );
-                                    this.postProcessors.offer( new PistonPostProcessor( this.world, position ) );
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    }
-                }
         }
     }
 

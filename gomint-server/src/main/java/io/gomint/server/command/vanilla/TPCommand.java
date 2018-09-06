@@ -1,6 +1,6 @@
 
 
-package io.gomint.server.command.internal;
+package io.gomint.server.command.vanilla;
 
 import io.gomint.GoMint;
 import io.gomint.command.Command;

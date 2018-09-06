@@ -137,7 +137,6 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         }
 
         this.loadLevelDat();
-        this.prepareChunkGenerator();
         this.prepareSpawnRegion();
         // CHECKSTYLE:ON
 
@@ -147,7 +146,8 @@ public final class AnvilWorldAdapter extends WorldAdapter {
         }
     }
 
-    private void prepareChunkGenerator() {
+    @Override
+    protected void prepareGenerator() {
         switch ( this.generatorName ) {
             case "flat":
                 if ( this.generatorOptions != null && !this.generatorOptions.isEmpty() ) {

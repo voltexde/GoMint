@@ -118,6 +118,7 @@ public abstract class WorldAdapter implements World {
     // Chunk Handling
     protected ChunkCache chunkCache;
     protected ChunkGenerator chunkGenerator;
+    private boolean isGeneratorBuilt;
 
     // Entity Handling
     private EntityManager entityManager;
@@ -809,6 +810,7 @@ public abstract class WorldAdapter implements World {
                 switch ( task.getType() ) {
                     case LOAD:
                         AsyncChunkLoadTask load = (AsyncChunkLoadTask) task;
+                        this.getLogger().debug( "Loading chunk {} / {}", load.getX(), load.getZ() );
                         chunk = this.loadChunk( load.getX(), load.getZ(), load.isGenerate() );
 
                         load.getCallback().invoke( chunk );
@@ -1153,6 +1155,12 @@ public abstract class WorldAdapter implements World {
     }
 
     public ChunkAdapter generate( int x, int z ) {
+        // Check if we can build up the generator
+        if ( !this.isGeneratorBuilt ) {
+            this.prepareGenerator();
+            this.isGeneratorBuilt = true;
+        }
+
         if ( this.chunkGenerator != null ) {
             ChunkAdapter chunk = (ChunkAdapter) this.chunkGenerator.generate( x, z );
             if ( chunk != null ) {
@@ -1395,6 +1403,11 @@ public abstract class WorldAdapter implements World {
             }
         }
     }
+
+    /**
+     * Tell the world implementation it should build up its chunk generator
+     */
+    protected abstract void prepareGenerator();
 
     public void constructGenerator( Class<? extends ChunkGenerator> generator, GeneratorContext context ) throws
         WorldCreateException {

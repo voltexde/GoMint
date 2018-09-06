@@ -3,7 +3,9 @@ package io.gomint.server.inventory.item;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.registry.Generator;
+import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.server.registry.SkipRegister;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
@@ -25,14 +27,9 @@ public class Items {
      * @param server which builds this registry
      */
     public Items( GoMintServer server ) {
-        this.generators = new Registry<>( server, clazz -> () -> {
-            try {
-                return (io.gomint.server.inventory.item.ItemStack) clazz.newInstance();
-            } catch ( InstantiationException | IllegalAccessException e ) {
-                LOGGER.error( "Could not generate new item", e );
-            }
-
-            return null;
+        this.generators = new Registry<>( server, clazz -> {
+            ObjectConstructionFactory factory = new ObjectConstructionFactory( clazz );
+            return () -> (io.gomint.server.inventory.item.ItemStack) factory.newInstance();
         } );
 
         this.generators.register( "io.gomint.server.inventory.item" );

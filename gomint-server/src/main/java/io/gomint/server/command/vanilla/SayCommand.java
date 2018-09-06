@@ -1,5 +1,6 @@
-package io.gomint.server.command.internal;
+package io.gomint.server.command.vanilla;
 
+import io.gomint.ChatColor;
 import io.gomint.GoMint;
 import io.gomint.command.Command;
 import io.gomint.command.CommandOutput;
@@ -32,9 +33,9 @@ public class SayCommand extends Command {
         if( commandSender instanceof PlayerCommandSender ) {
             EntityPlayer player = (EntityPlayer) commandSender;
 
-            GoMint.instance().getPlayers().forEach( players -> players.sendMessage( "[" + player.getName() + "] " + message ) );
+            GoMint.instance().getPlayers().forEach( players -> players.sendMessage( ChatColor.LIGHT_PURPLE + "[" + player.getName() + "] " + message ) );
         } else {
-            GoMint.instance().getPlayers().forEach( player -> player.sendMessage( "[Server] " + message ) );
+            GoMint.instance().getPlayers().forEach( player -> player.sendMessage( ChatColor.LIGHT_PURPLE + "[Server] " + message ) );
         }
         return output;
     }

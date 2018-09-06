@@ -42,7 +42,7 @@ public class FlowerPotConverter extends BasisConverter<FlowerPotTileEntity> {
         }
 
         // Skip non existent items for PE
-        if ( material == 0 ) {
+        if ( material == -1 ) {
             return new FlowerPotTileEntity( this.worldAdapter.getServer().getItems().create( 0, (short) 0, (byte) 0, null ), position );
         }
 

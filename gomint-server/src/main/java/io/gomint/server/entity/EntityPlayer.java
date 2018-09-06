@@ -134,7 +134,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
 
     // EntityPlayer Information
-    private Gamemode gamemode = Gamemode.SURVIVAL;
+    private Gamemode gamemode = Gamemode.CREATIVE;
     @Getter
     private AdventureSettings adventureSettings;
     @Getter
@@ -385,6 +385,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public boolean isOp() {
         return this.adventureSettings.isOperator();
+    }
+
+    @Override
+    public void setOp( boolean value ) {
+        this.adventureSettings.setOperator( value );
+        this.sendAdventureSettings();
     }
 
     @Override
