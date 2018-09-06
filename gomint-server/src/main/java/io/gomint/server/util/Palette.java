@@ -10,8 +10,6 @@ package io.gomint.server.util;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.MathUtils;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.BitSet;
 
@@ -70,7 +68,7 @@ public class Palette {
     public Palette( PacketBuffer data, int version, boolean read ) {
         this.data = data;
 
-        for ( PaletteVersion paletteVersionCanidate: PaletteVersion.values() ) {
+        for ( PaletteVersion paletteVersionCanidate : PaletteVersion.values() ) {
             if ( ( !read && paletteVersionCanidate.getAmountOfWords() <= version ) ||
                 ( read && paletteVersionCanidate.getVersionId() == version ) ) {
                 this.paletteVersion = paletteVersionCanidate;
@@ -135,7 +133,7 @@ public class Palette {
             // We need the amount of iterations
             int iterations = MathUtils.fastCeil( 4096 / (float) this.paletteVersion.getAmountOfWords() );
             for ( int i = 0; i < iterations; i++ ) {
-                BitSet bitSet = convert( this.data.readLInt() );
+                int currentData = this.data.readLInt();
                 int index = 0;
 
                 for ( byte b = 0; b < this.paletteVersion.getAmountOfWords(); b++ ) {
@@ -143,7 +141,7 @@ public class Palette {
                     int innerShiftIndex = 0;
 
                     for ( byte i1 = 0; i1 < this.paletteVersion.getVersionId(); i1++ ) {
-                        if ( bitSet.get( index++ ) ) {
+                        if ( ( currentData & ( 1 << index++ ) ) != 0 ) {
                             val ^= 1 << innerShiftIndex;
                         }
 

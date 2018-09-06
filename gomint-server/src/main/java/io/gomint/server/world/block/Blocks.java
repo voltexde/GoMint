@@ -12,6 +12,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.WorldAdapter;
 import org.slf4j.Logger;
@@ -36,14 +37,9 @@ public class Blocks {
      * @param server which builds this registry
      */
     public Blocks( GoMintServer server ) {
-        this.generators = new Registry<>( server, clazz -> () -> {
-            try {
-                return (Block) clazz.newInstance();
-            } catch ( InstantiationException | IllegalAccessException e ) {
-                LOGGER.error( "Could not generate new block", e );
-            }
-
-            return null;
+        this.generators = new Registry<>( server, clazz -> {
+            ObjectConstructionFactory factory = new ObjectConstructionFactory( clazz );
+            return () -> (Block) factory.newInstance();
         } );
 
         this.generators.register( "io.gomint.server.world.block" );
