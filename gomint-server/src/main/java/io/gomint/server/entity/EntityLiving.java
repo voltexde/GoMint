@@ -16,6 +16,7 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityEvent;
 import io.gomint.server.network.packet.PacketSpawnEntity;
 import io.gomint.server.player.EffectManager;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.util.Values;
 import io.gomint.server.world.WorldAdapter;
@@ -40,6 +41,7 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
+@SkipRegister
 public abstract class EntityLiving extends Entity implements InventoryHolder, io.gomint.entity.EntityLiving {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityLiving.class );

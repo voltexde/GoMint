@@ -1,12 +1,14 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.block.helper.ToolPresets;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public abstract class Banner extends Block {
 
     @Override
@@ -28,4 +30,5 @@ public abstract class Banner extends Block {
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.AXE;
     }
+
 }

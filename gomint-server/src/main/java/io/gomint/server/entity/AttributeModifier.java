@@ -7,10 +7,13 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.server.registry.SkipRegister;
+
 /**
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public enum AttributeModifier {
 
     // Damage

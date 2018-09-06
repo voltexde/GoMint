@@ -20,6 +20,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketTileEntityData;
 import io.gomint.server.network.packet.PacketUpdateBlock;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.UpdateReason;
@@ -43,6 +44,7 @@ import java.util.function.Function;
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 @EqualsAndHashCode( of = { "location" } )
 public abstract class Block implements io.gomint.world.block.Block {
 

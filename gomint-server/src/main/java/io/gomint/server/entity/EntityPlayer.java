@@ -78,6 +78,7 @@ import io.gomint.server.network.packet.PacketUpdateAttributes;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.scoreboard.Scoreboard;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.ChunkAdapter;
@@ -112,7 +113,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * The entity implementation for players. Players are considered living entities even though they
@@ -124,6 +124,7 @@ import java.util.function.Consumer;
  * @author BlackyPaw
  * @version 1.0
  */
+@SkipRegister
 public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder, PlayerCommandSender {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );

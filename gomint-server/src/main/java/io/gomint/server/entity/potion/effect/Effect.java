@@ -8,25 +8,31 @@
 package io.gomint.server.entity.potion.effect;
 
 import io.gomint.server.entity.EntityLiving;
-import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.player.EffectManager;
+import io.gomint.server.registry.SkipRegister;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public abstract class Effect implements io.gomint.entity.potion.Effect {
 
     private EffectManager manager;
-    @Getter protected int amplifier;
-    @Getter private long runoutTimer;
-    @Getter protected boolean visible = true;
+    @Getter
+    protected int amplifier;
+    @Getter
+    private long runoutTimer;
+    @Getter
+    protected boolean visible = true;
 
     public abstract byte getId();
+
     public abstract void apply( EntityLiving entity );
+
     public abstract void update( long currentTimeMillis, float dT );
+
     public abstract void remove( EntityLiving entity );
 
     public void setVisible( boolean value ) {

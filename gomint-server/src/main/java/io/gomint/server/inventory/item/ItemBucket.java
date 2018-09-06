@@ -1,20 +1,23 @@
 package io.gomint.server.inventory.item;
-import io.gomint.inventory.item.ItemType;
 
+import io.gomint.inventory.item.ItemBurnable;
+import io.gomint.inventory.item.ItemType;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.world.block.*;
-import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.Block;
+import io.gomint.world.block.BlockAir;
+import io.gomint.world.block.BlockFace;
+import io.gomint.world.block.BlockFlowingWater;
+import io.gomint.world.block.BlockLiquid;
+import io.gomint.world.block.BlockStationaryWater;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 @RegisterInfo( id = 325 )
-public class ItemBucket extends ItemStack implements io.gomint.inventory.item.ItemBucket {
-
-
+public class ItemBucket extends ItemStack implements io.gomint.inventory.item.ItemBucket, ItemBurnable {
 
     @Override
     public byte getMaximumAmount() {
@@ -93,6 +96,11 @@ public class ItemBucket extends ItemStack implements io.gomint.inventory.item.It
     @Override
     public ItemType getType() {
         return ItemType.BUCKET;
+    }
+
+    @Override
+    public long getBurnTime() {
+        return this.getContent() == Content.LAVA ? 1000000 : 0;
     }
 
 }

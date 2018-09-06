@@ -4,6 +4,7 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.entity.Entity;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.util.random.WeightedRandom;
 import io.gomint.server.world.UpdateReason;
 import io.gomint.util.random.FastRandom;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
  * <p>
  * This is a generic class for anything that can grow with metadata like crops, beetroot etc.
  */
+@SkipRegister
 public abstract class Growable extends Block {
 
     /**

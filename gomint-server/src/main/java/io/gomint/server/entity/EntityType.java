@@ -7,12 +7,15 @@
 
 package io.gomint.server.entity;
 
+import io.gomint.server.registry.SkipRegister;
+
 /**
  * An enumeration of all entity types known. Those values are needed for the AddEntityPackets
  *
  * @author BlackyPaw
  * @version 1.0
  */
+@SkipRegister
 public enum EntityType {
 
     /**

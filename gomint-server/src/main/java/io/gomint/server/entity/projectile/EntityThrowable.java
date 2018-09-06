@@ -12,6 +12,7 @@ import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityType;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.util.random.FastRandom;
 
@@ -19,6 +20,7 @@ import io.gomint.util.random.FastRandom;
  * @author geNAZt
  * @version 1.0
  */
+@SkipRegister
 public abstract class EntityThrowable extends EntityProjectile {
 
     /**
