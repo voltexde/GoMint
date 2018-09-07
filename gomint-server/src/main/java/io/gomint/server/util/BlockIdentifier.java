@@ -16,7 +16,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public class StringShortPair {
+public class BlockIdentifier {
 
     private final String blockId;
     private final short data;

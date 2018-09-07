@@ -16,7 +16,7 @@ import io.gomint.server.crafting.ShapelessRecipe;
 import io.gomint.server.crafting.SmeltingRecipe;
 import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.util.StringShortPair;
+import io.gomint.server.util.BlockIdentifier;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class AssetsLibrary {
     @Getter
     private Set<Recipe> recipes;
     @Getter
-    private List<StringShortPair> blockPalette;
+    private List<BlockIdentifier> blockPalette;
 
     // Statistics
     private int shapelessRecipes;
@@ -84,7 +84,7 @@ public class AssetsLibrary {
     private void loadBlockPalette( List<NBTTagCompound> blockPaletteCompounds ) {
         this.blockPalette = new ArrayList<>();
         for ( NBTTagCompound compound : blockPaletteCompounds ) {
-            this.blockPalette.add( new StringShortPair( compound.getString( "id", "minecraft:air" ), compound.getShort( "data", (short) 0 ) ) );
+            this.blockPalette.add( new BlockIdentifier( compound.getString( "id", "minecraft:air" ), compound.getShort( "data", (short) 0 ) ) );
         }
     }
 

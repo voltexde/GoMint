@@ -8,7 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.util.StringShortPair;
+import io.gomint.server.util.BlockIdentifier;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,13 +44,13 @@ public class BlockRuntimeIDs {
     // Cached packet streams
     private static byte[] START_GAME_BUFFER;
 
-    public static void init( List<StringShortPair> blockPalette ) {
+    public static void init( List<BlockIdentifier> blockPalette ) {
         PacketBuffer buffer = new PacketBuffer( 64 );
 
         int highestBlockID = -1;
         Map<Integer, Integer> highestDataValues = new HashMap<>();
 
-        for ( StringShortPair pair : blockPalette ) {
+       /* for ( BlockIdentifier pair : blockPalette ) {
             int blockId = ( (Long) idObj.get( "id" ) ).intValue();
             int dataValue = ( (Long) idObj.get( "data" ) ).intValue();
 
@@ -91,7 +91,7 @@ public class BlockRuntimeIDs {
             buffer.writeLShort( (short) dataValue );
         }
 
-        START_GAME_BUFFER = Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() );
+        START_GAME_BUFFER = Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() );*/
     }
 
     public static void loadFile( String file ) {
