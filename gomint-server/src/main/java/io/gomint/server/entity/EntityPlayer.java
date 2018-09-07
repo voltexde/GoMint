@@ -873,9 +873,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             } );
         }
 
-        // Check all open inventories
-        Object2ByteMap.FastEntrySet<ContainerInventory> fastEntrySet = (Object2ByteMap.FastEntrySet<ContainerInventory>) this.containerIds.object2ByteEntrySet();
-        fastEntrySet.fastIterator().forEachRemaining( containerInventoryEntry -> containerInventoryEntry.getKey().removeViewer( EntityPlayer.this ) );
+        if ( this.containerIds != null ) {
+            // Check all open inventories
+            Object2ByteMap.FastEntrySet<ContainerInventory> fastEntrySet = (Object2ByteMap.FastEntrySet<ContainerInventory>) this.containerIds.object2ByteEntrySet();
+            fastEntrySet.fastIterator().forEachRemaining( containerInventoryEntry -> containerInventoryEntry.getKey().removeViewer( EntityPlayer.this ) );
+        }
     }
 
     /**
