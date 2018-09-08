@@ -22,7 +22,7 @@ public abstract class Stairs extends Block {
 
     @Override
     public List<AxisAlignedBB> getBoundingBox() {
-        LOGGER.info( "Position: {} - Data: {}", this.location, this.getBlockData() );
+        //LOGGER.info( "Position: {} - Data: {}", this.location, this.getBlockData() );
 
         return Collections.singletonList( new AxisAlignedBB(
             this.location.getX(),
