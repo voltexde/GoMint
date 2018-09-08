@@ -8,7 +8,6 @@
 package io.gomint.server.world.leveldb;
 
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -17,9 +16,7 @@ import io.gomint.server.util.Pair;
 import io.gomint.server.util.Palette;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkSlice;
-import io.gomint.server.world.HeapNibbleArray;
 import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.postprocessor.PistonPostProcessor;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTReaderNoBuffer;
 import io.gomint.taglib.NBTTagCompound;
@@ -49,11 +46,12 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
      * @param x            position of chunk
      * @param z            position of chunk
      * @param chunkVersion version of this chunk
+     * @param populated    true when chunk is already populated, false when not
      */
-    public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z, byte chunkVersion ) {
+    public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z, byte chunkVersion, boolean populated ) {
         super( worldAdapter, x, z );
         this.chunkVersion = chunkVersion;
-        this.setPopulated( true );
+        this.setPopulated( populated );
         this.loadedTime = worldAdapter.getServer().getCurrentTickTime();
     }
 

@@ -266,8 +266,20 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                 }
             }
 
+            // Get version bit
+            byte[] finalized = this.db.get( snapshot, this.getKey( x, z, (byte) 0x36 ) );
+            if ( finalized == null ) {
+                if ( generate ) {
+                    return this.generate( x, z );
+                } else {
+                    return null;
+                }
+            }
+
             byte v = version[0];
-            LevelDBChunkAdapter loadingChunk = new LevelDBChunkAdapter( this, x, z, v );
+            boolean populated = finalized[0] == 2;
+
+            LevelDBChunkAdapter loadingChunk = new LevelDBChunkAdapter( this, x, z, v, populated );
 
             for ( int sectionY = 0; sectionY < 16; sectionY++ ) {
                 try {

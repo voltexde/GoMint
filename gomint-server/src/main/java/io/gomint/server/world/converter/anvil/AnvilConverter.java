@@ -1,8 +1,11 @@
 package io.gomint.server.world.converter.anvil;
 
 import io.gomint.server.world.converter.BaseConverter;
+import io.gomint.taglib.NBTTagCompound;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
@@ -27,6 +30,7 @@ public class AnvilConverter extends BaseConverter {
         }
 
         // Iterate over all region files and check if they match the pattern
+        long start = System.nanoTime();
         for ( File regionFile : regionFiles ) {
             String fileName = regionFile.getName();
             if ( fileName.startsWith( "r." ) ) {
@@ -35,12 +39,28 @@ public class AnvilConverter extends BaseConverter {
                     continue;
                 }
 
-                int regionX = Integer.parseInt( split[1] );
-                int regionZ = Integer.parseInt( split[2] );
 
-                System.out.println( "Found region " + regionX + " " + regionZ );
+                try {
+                    RegionFileSingleChunk regionFileReader = new RegionFileSingleChunk( regionFile );
+
+                    for ( int x = 0; x < 32; x++ ) {
+                        for ( int z = 0; z < 32; z++ ) {
+                            NBTTagCompound compound = regionFileReader.loadChunk( x, z );
+                            if ( compound == null ) {
+                                continue;
+                            }
+
+                            NBTTagCompound levelCompound = compound.getCompound( "Level", false );
+                            System.out.println( levelCompound );
+                        }
+                    }
+                } catch ( IOException e ) {
+                    e.printStackTrace();
+                }
             }
         }
+
+        System.out.println( "Done in " + TimeUnit.NANOSECONDS.toMillis( System.nanoTime() - start ) + " ms" );
     }
 
 }

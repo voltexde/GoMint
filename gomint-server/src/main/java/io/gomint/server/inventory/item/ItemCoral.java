@@ -7,7 +7,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @author Kaooot
  * @version 1.0
  */
-@RegisterInfo( id = 386 )
+@RegisterInfo( id = -131 )
 public class ItemCoral extends ItemStack implements io.gomint.inventory.item.ItemCoral {
 
     @Override
