@@ -114,19 +114,19 @@ public class WorldManager {
         File file = new File( path );
         if ( file.exists() ) {
             if ( file.isDirectory() ) {
-                // Anvil world:
-                File regionFolder = new File( file, "region" );
-                if ( regionFolder.exists() && regionFolder.isDirectory() ) {
-                    LOGGER.info( "Detected anvil world '{}'", path );
-                    return this.loadAnvilWorld( file );
-                }
-
                 // LevelDB world:
                 File dbFolder = new File( file, "db" );
                 if ( dbFolder.exists() && dbFolder.isDirectory() ) {
                     LOGGER.info( "Detected leveldb world '{}'", path );
                     return this.loadLevelDBWorld( file );
                 }
+
+                // Anvil world:
+                /*File regionFolder = new File( file, "region" );
+                if ( regionFolder.exists() && regionFolder.isDirectory() ) {
+                    LOGGER.info( "Detected anvil world '{}'", path );
+                    return this.loadAnvilWorld( file );
+                }*/
             } else {
                 throw new WorldLoadException( "World does not exist" );
             }

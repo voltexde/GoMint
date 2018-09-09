@@ -321,7 +321,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // Load assets from file:
         LOGGER.info( "Loading assets library..." );
-        AssetsLibrary assetsLibrary = new AssetsLibrary( this );
+        AssetsLibrary assetsLibrary = new AssetsLibrary( this.items );
 
         try {
             assetsLibrary.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
