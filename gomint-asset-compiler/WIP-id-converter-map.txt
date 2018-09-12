@@ -177,6 +177,10 @@
 176 minecraft:standing_banner
 177 minecraft:wall_banner
 178 minecraft:daylight_detector_inverted
+179 minecraft:red_sandstone
+180 minecraft:red_sandstone_stairs
+181 minecraft:double_stone_slab2
+182 minecraft:stone_slab2
 183 minecraft:spruce_fence_gate
 184 minecraft:birch_fence_gate
 185 minecraft:jungle_fence_gate

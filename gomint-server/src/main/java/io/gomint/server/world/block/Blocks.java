@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import com.google.common.reflect.ClassPath;
 import io.gomint.entity.Entity;
 import io.gomint.event.world.BlockPlaceEvent;
 import io.gomint.inventory.item.ItemStack;
@@ -36,10 +37,10 @@ public class Blocks {
     /**
      * Create a new block registry
      *
-     * @param server which builds this registry
+     * @param classPath which builds this registry
      */
-    public Blocks( GoMintServer server ) {
-        this.generators = new Registry<>( server, clazz -> {
+    public Blocks( ClassPath classPath ) {
+        this.generators = new Registry<>( classPath, clazz -> {
             ObjectConstructionFactory factory = new ObjectConstructionFactory( clazz );
             return () -> (Block) factory.newInstance();
         } );

@@ -1,7 +1,7 @@
 package io.gomint.server.world.converter.anvil;
 
-import io.gomint.server.util.Pair;
+import io.gomint.server.util.BlockIdentifier;
 
 interface Converter {
-    Pair<String, Byte> convert( int blockId, byte metaData );
+    BlockIdentifier convert( int blockId, byte metaData );
 }

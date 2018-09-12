@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -29,8 +30,8 @@ public class MobSpawnerTileEntity extends TileEntity {
      * @param tagCompound The TagCompound which should be used to read data from
      * @param world       The world in which this TileEntity resides
      */
-    public MobSpawnerTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
-        super( tagCompound, world );
+    public MobSpawnerTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
+        super( tagCompound, world, items );
 
         this.entityId = tagCompound.getInteger( "EntityId", 0 );
         this.displayWidth = tagCompound.getFloat( "DisplayEntityWidth", 0.8f );

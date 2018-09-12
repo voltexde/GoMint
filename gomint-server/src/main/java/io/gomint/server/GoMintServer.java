@@ -158,6 +158,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
     private BlockingQueue<Runnable> mainThreadWork = new LinkedBlockingQueue<>();
 
+    @Getter
+    private AssetsLibrary assets;
+
     /**
      * Starts the GoMint server
      *
@@ -220,11 +223,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // Build up registries
         // ------------------------------------ //
-        this.blocks = new Blocks( this );
-        this.items = new Items( this );
-        this.entities = new Entities( this );
-        this.effects = new Effects( this );
-        this.enchantments = new Enchantments( this );
+        this.blocks = new Blocks( this.classPath );
+        this.items = new Items( this.classPath );
+        this.entities = new Entities( this.classPath );
+        this.effects = new Effects( this.classPath );
+        this.enchantments = new Enchantments( this.classPath );
 
         startAfterRegistryInit( args, start );
     }
@@ -321,10 +324,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // ------------------------------------ //
         // Load assets from file:
         LOGGER.info( "Loading assets library..." );
-        AssetsLibrary assetsLibrary = new AssetsLibrary( this.items );
+        this.assets = new AssetsLibrary( this.items );
 
         try {
-            assetsLibrary.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
+            this.assets.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
         } catch ( IOException e ) {
             LOGGER.error( "Failed to load assets library", e );
             return;
@@ -334,13 +337,13 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.recipeManager = new RecipeManager();
 
         // Add all recipes from asset library:
-        for ( Recipe recipe : assetsLibrary.getRecipes() ) {
+        for ( Recipe recipe : this.assets.getRecipes() ) {
             this.recipeManager.registerRecipe( recipe );
         }
 
         this.recipeManager.fixMCPEBugs();
 
-        this.creativeInventory = assetsLibrary.getCreativeInventory();
+        this.creativeInventory = this.assets.getCreativeInventory();
         this.permissionGroupManager = new PermissionGroupManager();
 
         // ------------------------------------ //
@@ -351,7 +354,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
         } catch ( WorldLoadException e ) {
             // Try to generate world
-            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ).worldType( WorldType.ANVIL ) ) == null ) {
+            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ).worldType( WorldType.PERSISTENT ) ) == null ) {
                 LOGGER.error( "Failed to load or generate default world", e );
                 this.internalShutdown();
                 return;

@@ -1,53 +1,47 @@
 /*
- * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2018, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-package io.gomint.server.world.anvil.tileentity.v1_8;
+package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.ChestTileEntity;
-import io.gomint.server.entity.tileentity.DispenserTileEntity;
 import io.gomint.server.inventory.item.ItemAir;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public class DispenserConverter extends BasisConverter<DispenserTileEntity> {
+public class ChestConverter extends BasisConverter<ChestTileEntity> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( DispenserConverter.class );
+    private static final Logger LOGGER = LoggerFactory.getLogger( ChestConverter.class );
 
-    /**
-     * Construct new converter
-     *
-     * @param worldAdapter for which we construct
-     */
-    public DispenserConverter( WorldAdapter worldAdapter ) {
-        super( worldAdapter );
+    public ChestConverter( Items items, Object2IntMap<String> itemConverter ) {
+        super( items, itemConverter );
     }
 
     @Override
-    public DispenserTileEntity readFrom( NBTTagCompound compound ) {
-        // Read position first
+    public ChestTileEntity readFrom( NBTTagCompound compound ) {
+        // Position
         Location position = getPosition( compound );
 
         // Read in items
-        ItemStack[] items = new ItemStack[9];
+        ItemStack[] items = new ItemStack[27];
         List<Object> itemList = compound.getList( "Items", false );
         if ( itemList == null ) {
             // No items ? Return empty chest
-            return new DispenserTileEntity( items, position );
+            return new ChestTileEntity( items, position );
         }
 
         // Iterate over all items
@@ -74,7 +68,7 @@ public class DispenserConverter extends BasisConverter<DispenserTileEntity> {
             }
         }
 
-        return new DispenserTileEntity( items, position );
+        return new ChestTileEntity( items, position );
     }
 
 }

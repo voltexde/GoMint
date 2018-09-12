@@ -33,6 +33,30 @@ public class Main {
             System.exit( -1 );
         }
 
+        for ( String knownID : knownIDs ) {
+            System.out.println( knownID );
+        }
+
+        // Check the in-ids.txt
+        try {
+            List<Object> converterItems = assetsCompound.getList( "converterItems", true );
+
+            List<String> input = Files.readAllLines( Paths.get( "gomint-asset-compiler/in-ids.txt" ) );
+            for ( String line : input ) {
+                String[] split = line.split( " " );
+                if ( !knownIDs.contains( split[1] ) ) {
+                    System.out.println( "Unknown " + split[0] + " -> " + split[1] );
+                }
+
+                NBTTagCompound idPairCompound = new NBTTagCompound( "" );
+                idPairCompound.addValue( "s", split[1] );
+                idPairCompound.addValue( "i", Integer.parseInt( split[0] ) );
+                converterItems.add( idPairCompound );
+            }
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+
         // First we need to cleanup the id converter map
 
         /*

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2018, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-package io.gomint.server.world.anvil.tileentity;
+package io.gomint.server.world.converter.anvil.tileentity;
 
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
@@ -18,11 +18,6 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public abstract class TileEntityConverter<T> {
-
-    /**
-     * World for which this converter converts
-     */
-    protected WorldAdapter worldAdapter;
 
     /**
      * Construct and read a tile entity from the given compound

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2018, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-package io.gomint.server.world.anvil.tileentity;
+package io.gomint.server.world.converter.anvil.tileentity;
 
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.taglib.NBTTagCompound;

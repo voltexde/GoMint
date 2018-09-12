@@ -38,7 +38,7 @@ public class ItemFrame extends Block implements io.gomint.world.block.BlockItemF
         compound.addValue( "ItemDropChance", 1.0f );
         compound.addValue( "ItemRotation", (byte) 0 );
 
-        return new ItemFrameTileEntity( compound, this.world );
+        return new ItemFrameTileEntity( compound, this.world, this.world.getServer().getItems() );
     }
 
     @Override

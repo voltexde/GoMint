@@ -7,6 +7,7 @@
 
 package io.gomint.server.assets;
 
+import io.gomint.GoMint;
 import io.gomint.inventory.item.ItemAir;
 import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.GoMintServer;
@@ -49,6 +50,7 @@ public class AssetsLibrary {
     @Getter private Set<Recipe> recipes;
     @Getter private List<BlockIdentifier> blockPalette;
     @Getter private List<NBTTagCompound> converterData;
+    @Getter private List<NBTTagCompound> converterItemsData;
 
     // Statistics
     private int shapelessRecipes;
@@ -75,10 +77,14 @@ public class AssetsLibrary {
     @SuppressWarnings( "unchecked" )
     public void load( InputStream input ) throws IOException {
         NBTTagCompound root = NBTTagCompound.readFrom( input, true, ByteOrder.BIG_ENDIAN );
-        this.loadRecipes( (List<NBTTagCompound>) ( (List) root.getList( "recipes", false ) ) );
-        this.loadCreativeInventory( (List<byte[]>) ( (List) root.getList( "creativeInventory", false ) ) );
-        this.loadBlockPalette( (List<NBTTagCompound>) ( (List) root.getList( "blockPalette", false ) ) );
+        if ( GoMint.instance() != null ) {
+            this.loadRecipes( (List<NBTTagCompound>) ( (List) root.getList( "recipes", false ) ) );
+            this.loadCreativeInventory( (List<byte[]>) ( (List) root.getList( "creativeInventory", false ) ) );
+            this.loadBlockPalette( (List<NBTTagCompound>) ( (List) root.getList( "blockPalette", false ) ) );
+        }
+
         this.converterData = ( (List<NBTTagCompound>) ( (List) root.getList( "converter", false ) ) );
+        this.converterItemsData = ( (List<NBTTagCompound>) ( (List) root.getList( "converterItems", false ) ) );
     }
 
     private void loadBlockPalette( List<NBTTagCompound> blockPaletteCompounds ) {
@@ -89,7 +95,7 @@ public class AssetsLibrary {
     }
 
     private void loadCreativeInventory( List<byte[]> raw ) {
-        if ( this.items != null ) {
+        if ( GoMint.instance() != null ) {
             this.creativeInventory = new CreativeInventory( null, raw.size() );
 
             for ( byte[] bytes : raw ) {

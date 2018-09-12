@@ -8,6 +8,7 @@
 package io.gomint.server.entity.tileentity;
 
 import io.gomint.math.Location;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 
@@ -21,8 +22,8 @@ public class BannerTileEntity extends TileEntity {
         super( location );
     }
 
-    public BannerTileEntity( NBTTagCompound compound, WorldAdapter worldAdapter ) {
-        super( compound, worldAdapter );
+    public BannerTileEntity( NBTTagCompound compound, WorldAdapter worldAdapter, Items items ) {
+        super( compound, worldAdapter, items );
     }
 
     @Override

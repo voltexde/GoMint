@@ -15,7 +15,7 @@ public class Registry<R> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
-    private final GoMintServer server;
+    private final ClassPath classPath;
     private final GeneratorCallback<R> generatorCallback;
     private Generator<R>[] generators;
     private Generator<R>[] negativeGenerators;
@@ -24,11 +24,11 @@ public class Registry<R> {
     /**
      * Build a new generator registry
      *
-     * @param server   which started this gomint
+     * @param classPath which reflects the current classes
      * @param callback which is used to generate a generator for each found element
      */
-    public Registry( GoMintServer server, GeneratorCallback<R> callback ) {
-        this.server = server;
+    public Registry( ClassPath classPath, GeneratorCallback<R> callback ) {
+        this.classPath = classPath;
         this.generatorCallback = callback;
         this.generators = (Generator<R>[]) new Generator[16];
         this.negativeGenerators = (Generator<R>[]) new Generator[2];
@@ -42,13 +42,8 @@ public class Registry<R> {
     public void register( String classPath ) {
         LOGGER.debug( "Going to scan: {}", classPath );
 
-        for ( ClassPath.ClassInfo classInfo : this.server.getClassPath().getTopLevelClasses( classPath ) ) {
+        for ( ClassPath.ClassInfo classInfo : this.classPath.getTopLevelClasses( classPath ) ) {
             register( classInfo.load() );
-        }
-
-        LOGGER.info( "Registered generators: {}", classPath );
-        for ( int i = 0; i < this.generators.length; i++ ) {
-            LOGGER.info( "  {} -> {}", i, this.generators[i] );
         }
     }
 

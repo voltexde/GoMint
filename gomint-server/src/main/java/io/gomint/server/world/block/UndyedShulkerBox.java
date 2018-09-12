@@ -84,7 +84,7 @@ public class UndyedShulkerBox extends Block implements BlockUndyedShulkerBox {
         compound.addValue( "isUndyed", (byte) 1 );
         compound.addValue( "facing", (byte) 1 );
 
-        return new ShulkerBoxTileEntity( compound, this.world );
+        return new ShulkerBoxTileEntity( compound, this.world, this.world.getServer().getItems() );
     }
 
     @Override

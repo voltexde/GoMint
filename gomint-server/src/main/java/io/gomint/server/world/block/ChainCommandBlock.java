@@ -49,7 +49,7 @@ public class ChainCommandBlock extends ContainerBlock implements BlockChainComma
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new CommandBlockTileEntity( compound, this.world );
+        return new CommandBlockTileEntity( compound, this.world, this.world.getServer().getItems() );
     }
 
 }

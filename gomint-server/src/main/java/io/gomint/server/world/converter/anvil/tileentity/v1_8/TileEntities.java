@@ -1,16 +1,17 @@
 /*
- * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2018, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-package io.gomint.server.world.anvil.tileentity.v1_8;
+package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
-import io.gomint.server.entity.tileentity.*;
-import io.gomint.server.world.WorldAdapter;
-import io.gomint.server.world.anvil.tileentity.TileEntityConverters;
+import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.inventory.item.Items;
+import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
 import io.gomint.taglib.NBTTagCompound;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,30 +35,35 @@ public class TileEntities implements TileEntityConverters {
     private EnderChestConverter enderChestConverter;
     private DaylightDetectorConverter daylightDetectorConverter;
     private BedConverter bedConverter;
+    private FurnaceConverter furnaceConverter;
 
     /**
      * Construct 1.8 converter for the given world
      *
-     * @param worldAdapter which should be used in all convert operations
+     * @param items        which can be used by this converter
+     * @param itemConverter mappings for string -> int ids
      */
-    public TileEntities( WorldAdapter worldAdapter ) {
-        this.signConverter = new SignConverter( worldAdapter );
-        this.skullConverter = new SkullConverter( worldAdapter );
-        this.chestConverter = new ChestConverter( worldAdapter );
-        this.flowerPotConverter = new FlowerPotConverter( worldAdapter );
-        this.enchantTableConverter = new EnchantTableConverter( worldAdapter );
-        this.dispenserConverter = new DispenserConverter( worldAdapter );
-        this.endPortalConverter = new EndPortalConverter( worldAdapter );
-        this.beaconConverter = new BeaconConverter( worldAdapter );
-        this.enderChestConverter = new EnderChestConverter( worldAdapter );
-        this.daylightDetectorConverter = new DaylightDetectorConverter( worldAdapter );
-        this.bedConverter = new BedConverter( worldAdapter );
+    public TileEntities( Items items, Object2IntMap<String> itemConverter ) {
+        this.signConverter = new SignConverter( items, itemConverter );
+        this.skullConverter = new SkullConverter( items, itemConverter );
+        this.chestConverter = new ChestConverter( items, itemConverter );
+        this.flowerPotConverter = new FlowerPotConverter( items, itemConverter );
+        this.enchantTableConverter = new EnchantTableConverter( items, itemConverter );
+        this.dispenserConverter = new DispenserConverter( items, itemConverter );
+        this.endPortalConverter = new EndPortalConverter( items, itemConverter );
+        this.beaconConverter = new BeaconConverter( items, itemConverter );
+        this.enderChestConverter = new EnderChestConverter( items, itemConverter );
+        this.daylightDetectorConverter = new DaylightDetectorConverter( items, itemConverter );
+        this.bedConverter = new BedConverter( items, itemConverter );
+        this.furnaceConverter = new FurnaceConverter( items, itemConverter );
     }
 
     @Override
     public TileEntity read( NBTTagCompound compound ) {
         String id = compound.getString( "id", "" );
         switch ( id ) {
+            case "Furnace":
+                return this.furnaceConverter.readFrom( compound );
             case "DLDetector":
                 return this.daylightDetectorConverter.readFrom( compound );
             case "EnderChest":

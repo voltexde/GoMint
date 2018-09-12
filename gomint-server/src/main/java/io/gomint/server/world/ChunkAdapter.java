@@ -20,7 +20,6 @@ import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
 import io.gomint.server.network.packet.PacketWorldChunk;
 import io.gomint.server.util.PerformanceHacks;
-import io.gomint.server.world.postprocessor.PostProcessor;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.taglib.NBTWriter;
@@ -50,9 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -99,9 +96,6 @@ public class ChunkAdapter implements Chunk {
 
     // Entities
     protected Long2ObjectMap<io.gomint.entity.Entity> entities = null;
-
-    // Post loading processing
-    protected Queue<PostProcessor> postProcessors = new LinkedList<>();
 
     // State saving flag
     @Getter
@@ -258,7 +252,7 @@ public class ChunkAdapter implements Chunk {
      * Remove the dirty state for the chunk and set the batched packet to the
      * cache.
      *
-     * @param batch     The batch which has been generated to be sent to the clients
+     * @param batch The batch which has been generated to be sent to the clients
      */
     void setCachedPacket( Packet batch ) {
         this.dirty = false;
@@ -721,12 +715,6 @@ public class ChunkAdapter implements Chunk {
 
         this.dirty = true;
         this.needsPersistance = true;
-    }
-
-    public void runPostProcessors() {
-        while ( !this.postProcessors.isEmpty() ) {
-            this.postProcessors.poll().process();
-        }
     }
 
     public long longHashCode() {

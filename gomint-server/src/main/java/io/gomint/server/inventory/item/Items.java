@@ -1,5 +1,6 @@
 package io.gomint.server.inventory.item;
 
+import com.google.common.reflect.ClassPath;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.registry.Generator;
@@ -24,10 +25,10 @@ public class Items {
     /**
      * Create a new item registry
      *
-     * @param server which builds this registry
+     * @param classPath which builds this registry
      */
-    public Items( GoMintServer server ) {
-        this.generators = new Registry<>( server, clazz -> {
+    public Items( ClassPath classPath ) {
+        this.generators = new Registry<>( classPath, clazz -> {
             ObjectConstructionFactory factory = new ObjectConstructionFactory( clazz );
             return () -> (io.gomint.server.inventory.item.ItemStack) factory.newInstance();
         } );

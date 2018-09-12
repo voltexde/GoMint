@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
@@ -129,7 +130,7 @@ public enum TileEntities {
         this.nbtID = nbtID;
 
         try {
-            this.tileEntityConstructor = MethodHandles.lookup().unreflectConstructor( tileEntityClass.getConstructor( NBTTagCompound.class, WorldAdapter.class ) );
+            this.tileEntityConstructor = MethodHandles.lookup().unreflectConstructor( tileEntityClass.getConstructor( NBTTagCompound.class, WorldAdapter.class, Items.class ) );
         } catch ( IllegalAccessException | NoSuchMethodException e ) {
             e.printStackTrace();
             this.tileEntityConstructor = null;
@@ -154,7 +155,7 @@ public enum TileEntities {
         for ( TileEntities tileEntities : values() ) {
             if ( tileEntities.nbtID.equals( id ) ) {
                 try {
-                    return (TileEntity) tileEntities.tileEntityConstructor.invoke( compound, world );
+                    return (TileEntity) tileEntities.tileEntityConstructor.invoke( compound, world, world.getServer().getItems() );
                 } catch ( Throwable throwable ) {
                     LOGGER.warn( "Could not build up tile entity: ", throwable );
                     return null;
