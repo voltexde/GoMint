@@ -242,7 +242,7 @@ public class AnvilConverter extends BaseConverter {
                 if ( tileEntity == null ) {
                     LOGGER.warn( "Could not convert tile entity: {}", tileCompound );
                 } else {
-                    System.out.println( tileEntity );
+                    // System.out.println( tileEntity );
                 }
             }
         }

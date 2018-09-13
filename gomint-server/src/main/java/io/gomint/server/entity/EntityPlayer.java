@@ -798,6 +798,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
         }} );
         this.getConnection().addToSendQueue( playerlist );
+
+        LOGGER.debug( "Did send all prepare entity data" );
     }
 
     @Override

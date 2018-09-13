@@ -8,8 +8,11 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.entity.tileentity.JukeboxTileEntity;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockJukebox;
 import io.gomint.world.block.BlockType;
 
@@ -48,6 +51,17 @@ public class Jukebox extends Block implements BlockJukebox {
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.AXE;
+    }
+
+    @Override
+    public boolean needsTileEntity() {
+        return true;
+    }
+
+    @Override
+    TileEntity createTileEntity( NBTTagCompound compound ) {
+        super.createTileEntity( compound );
+        return new JukeboxTileEntity( compound, this.world, this.world.getServer().getItems() );
     }
 
 }

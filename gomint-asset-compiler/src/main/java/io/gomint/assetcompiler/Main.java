@@ -44,9 +44,6 @@ public class Main {
             List<String> input = Files.readAllLines( Paths.get( "gomint-asset-compiler/in-ids.txt" ) );
             for ( String line : input ) {
                 String[] split = line.split( " " );
-                if ( !knownIDs.contains( split[1] ) ) {
-                    System.out.println( "Unknown " + split[0] + " -> " + split[1] );
-                }
 
                 NBTTagCompound idPairCompound = new NBTTagCompound( "" );
                 idPairCompound.addValue( "s", split[1] );

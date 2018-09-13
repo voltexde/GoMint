@@ -69,6 +69,11 @@ public abstract class TileEntity {
             this.items = worldAdapter.getServer().getItems();
         }
 
+        // Item not there?
+        if ( compound == null ) {
+            return this.items.create( 0,(short) 0,(byte) 0, null );
+        }
+
         // This is needed since minecraft changed from storing raw ids to string keys somewhere in 1.7 / 1.8
         int material;
         try {

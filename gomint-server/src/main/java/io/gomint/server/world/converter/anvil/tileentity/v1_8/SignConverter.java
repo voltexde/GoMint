@@ -10,13 +10,11 @@ package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.SignTileEntity;
 import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,9 +25,8 @@ import org.slf4j.LoggerFactory;
 public class SignConverter extends BasisConverter<SignTileEntity> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( SignConverter.class );
-    private static final JSONParser JSON_PARSER = new JSONParser();
 
-    public SignConverter( Items items, Object2IntMap<String> itemConverter ) {
+    SignConverter( Items items, Object2IntMap<String> itemConverter ) {
         super( items, itemConverter );
     }
 
@@ -38,7 +35,7 @@ public class SignConverter extends BasisConverter<SignTileEntity> {
         // Read position first
         Location position = this.getPosition( compound );
 
-        // Fast out for nukkit / pmmp onverted worlds
+        // Fast out for nukkit / pmmp converted worlds
         if ( compound.containsKey( "Text" ) ) {
             String[] lines = compound.getString( "Text", "" ).split( "\n" );
             return new SignTileEntity( lines, position );
@@ -59,7 +56,7 @@ public class SignConverter extends BasisConverter<SignTileEntity> {
         String text = compound.getString( tagName, "" );
         if ( text != null && ( text.startsWith( "{\"text" ) || text.startsWith( "{\"extra" ) ) ) {
             try {
-                JSONObject jsonObject = (JSONObject) JSON_PARSER.parse( text );
+                JSONObject jsonObject = (JSONObject) new JSONParser().parse( text );
 
                 StringBuilder output = new StringBuilder();
                 Object extraDataObject = jsonObject.get( "extra" );
