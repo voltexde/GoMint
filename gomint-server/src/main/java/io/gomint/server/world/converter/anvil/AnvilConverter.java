@@ -42,6 +42,8 @@ public class AnvilConverter extends BaseConverter {
     private BlockConverter converter;
     private TileEntityConverters tileEntityConverter;
 
+    private boolean nukkitPMMPConverted = false;
+
     public AnvilConverter( AssetsLibrary assets, Items items, File worldFolder ) {
         super( worldFolder );
 
@@ -49,6 +51,9 @@ public class AnvilConverter extends BaseConverter {
         if ( !backupFolder.exists() ) {
             backupFolder.mkdir();
         }
+
+        File alreadyConverted = new File( worldFolder, "ALREADY_CONVERTED" );
+        this.nukkitPMMPConverted = alreadyConverted.exists();
 
         List<File> foldersToBeRemoved = new ArrayList<>();
         String parentFolder = worldFolder.toPath().toString();
@@ -71,12 +76,12 @@ public class AnvilConverter extends BaseConverter {
                     try {
                         Files.move( path, new File( backupFolder, moveFile ).toPath(), StandardCopyOption.ATOMIC_MOVE );
                     } catch ( IOException e ) {
-                        e.printStackTrace();
+                        LOGGER.error( "Could not move data into backup", e );
                     }
                 }
             } );
         } catch ( IOException e ) {
-            e.printStackTrace();
+            LOGGER.error( "Could not move data into backup", e );
         }
 
         for ( File file : foldersToBeRemoved ) {
@@ -155,6 +160,14 @@ public class AnvilConverter extends BaseConverter {
 
                     for ( int x = 0; x < 32; x++ ) {
                         for ( int z = 0; z < 32; z++ ) {
+                            if ( compounds.size() > 400 ) { // Throttle when the converter threads are behind
+                                try {
+                                    Thread.sleep( 20 );
+                                } catch ( InterruptedException e ) {
+                                    // Ignore
+                                }
+                            }
+
                             NBTTagCompound compound = regionFileReader.loadChunk( x, z );
                             if ( compound == null ) {
                                 continue;
@@ -236,15 +249,19 @@ public class AnvilConverter extends BaseConverter {
 
         List<Object> tileEntities = levelCompound.getList( "TileEntities", false );
         if ( tileEntities != null && tileEntities.size() > 0 ) {
+            List<TileEntity> newTileEntities = new ArrayList<>();
+
             for ( Object entity : tileEntities ) {
                 NBTTagCompound tileCompound = (NBTTagCompound) entity;
                 TileEntity tileEntity = this.tileEntityConverter.read( tileCompound );
                 if ( tileEntity == null ) {
                     LOGGER.warn( "Could not convert tile entity: {}", tileCompound );
                 } else {
-                    // System.out.println( tileEntity );
+                    newTileEntities.add( tileEntity );
                 }
             }
+
+            this.storeTileEntities( chunkX, chunkZ, newTileEntities );
         }
 
         this.persistChunk();

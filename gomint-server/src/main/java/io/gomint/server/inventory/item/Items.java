@@ -2,12 +2,10 @@ package io.gomint.server.inventory.item;
 
 import com.google.common.reflect.ClassPath;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.server.GoMintServer;
 import io.gomint.server.registry.Generator;
-import io.gomint.server.registry.GeneratorCallback;
 import io.gomint.server.registry.Registry;
-import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.server.registry.SkipRegister;
+import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +32,11 @@ public class Items {
         } );
 
         this.generators.register( "io.gomint.server.inventory.item" );
+    }
+
+    public <T extends ItemStack> T create( String id, short data, byte amount, NBTTagCompound nbt ) {
+        // Add a way to get block ids to integer ids for conversion into a item stack
+        return (T) new ItemAir(); // TODO: Build a proper implementation
     }
 
     /**

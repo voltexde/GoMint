@@ -5,9 +5,14 @@ import io.gomint.leveldb.DB;
 import io.gomint.leveldb.NativeLoader;
 import io.gomint.leveldb.WriteBatch;
 import io.gomint.math.MathUtils;
+import io.gomint.server.entity.tileentity.SerializationReason;
+import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.util.Allocator;
 import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.util.Palette;
+import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.taglib.NBTWriter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -16,19 +21,24 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.function.IntConsumer;
+import java.util.List;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 public class BaseConverter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( BaseConverter.class );
 
     static {
         NativeLoader.load();
@@ -50,37 +60,12 @@ public class BaseConverter {
 
     private ByteBuf getKey( int chunkX, int chunkZ, byte dataType ) {
         ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( 9 );
-        return buf.writeInt( chunkX ).writeInt( chunkZ ).writeByte( dataType );
-
-        /*return new byte[]{
-            (byte) ( chunkX & 0xFF ),
-            (byte) ( ( chunkX >>> 8 ) & 0xFF ),
-            (byte) ( ( chunkX >>> 16 ) & 0xFF ),
-            (byte) ( ( chunkX >>> 24 ) & 0xFF ),
-            (byte) ( chunkZ & 0xFF ),
-            (byte) ( ( chunkZ >>> 8 ) & 0xFF ),
-            (byte) ( ( chunkZ >>> 16 ) & 0xFF ),
-            (byte) ( ( chunkZ >>> 24 ) & 0xFF ),
-            dataType
-        };*/
+        return buf.writeIntLE( chunkX ).writeIntLE( chunkZ ).writeByte( dataType );
     }
 
     private ByteBuf getKeySubChunk( int chunkX, int chunkZ, byte dataType, byte subChunk ) {
         ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( 10 );
-        return buf.writeInt( chunkX ).writeInt( chunkZ ).writeByte( dataType ).writeByte( subChunk );
-
-        /*return new byte[]{
-            (byte) ( chunkX & 0xFF ),
-            (byte) ( ( chunkX >>> 8 ) & 0xFF ),
-            (byte) ( ( chunkX >>> 16 ) & 0xFF ),
-            (byte) ( ( chunkX >>> 24 ) & 0xFF ),
-            (byte) ( chunkZ & 0xFF ),
-            (byte) ( ( chunkZ >>> 8 ) & 0xFF ),
-            (byte) ( ( chunkZ >>> 16 ) & 0xFF ),
-            (byte) ( ( chunkZ >>> 24 ) & 0xFF ),
-            dataType,
-            subChunk
-        };*/
+        return buf.writeIntLE( chunkX ).writeIntLE( chunkZ ).writeByte( dataType ).writeByte( subChunk );
     }
 
     private PacketBuffer getBuffer() {
@@ -109,16 +94,11 @@ public class BaseConverter {
         ByteBuf keyA = this.getKey( chunkX, chunkZ, (byte) 0x76 );
         ByteBuf keyB = this.getKey( chunkX, chunkZ, (byte) 0x36 );
 
-        ByteBuf valA = allocate( new byte[]{ 7 } );
-        ByteBuf valB = allocate( new byte[]{ 2, 0, 0, 0 } );
+        ByteBuf valA = Allocator.allocate( new byte[]{ 7 } );
+        ByteBuf valB = Allocator.allocate( new byte[]{ 2, 0, 0, 0 } );
 
         batch.put( keyA, valA );
         batch.put( keyB, valB );
-
-        keyA.release();
-        keyB.release();
-        valA.release();
-        valB.release();
     }
 
     protected void storeSubChunkBlocks( int sectionY, int chunkX, int chunkZ, BlockIdentifier[] blocks ) {
@@ -161,12 +141,15 @@ public class BaseConverter {
 
         // Get correct wordsize
         int value = indexList.size();
-        int numberOfBits = MathUtils.fastFloor( log2( value ) ) + 1;
+        int numberOfBits = MathUtils.fastFloor( MathUtils.log2( value ) ) + 1;
 
         // Prepare palette
         int amountOfBlocks = MathUtils.fastFloor( 32f / (float) numberOfBits );
 
         PacketBuffer buffer = this.getBuffer();
+        buffer.writeByte( (byte) 8 );
+        buffer.writeByte( (byte) 1 );
+
         Palette palette = new Palette( buffer, amountOfBlocks, false );
 
         byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );
@@ -198,30 +181,41 @@ public class BaseConverter {
                     }
                 }, false, ByteOrder.LITTLE_ENDIAN );
             } catch ( IOException e ) {
-                e.printStackTrace();
+                LOGGER.warn( "Could not write nbt runtime", e );
             }
         }
 
-        ByteBuf key = this.getKeySubChunk( chunkX, chunkZ, (byte) 0x27, (byte) sectionY );
-        ByteBuf val = allocate( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
+        ByteBuf key = this.getKeySubChunk( chunkX, chunkZ, (byte) 0x2f, (byte) sectionY );
+        ByteBuf val = Allocator.allocate( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
 
         this.getWriteBatch().put( key, val );
-
-        key.release();
-        val.release();
 
         buffer.setPosition( 0 );
     }
 
-    private ByteBuf allocate( byte[] data ) {
-        ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( data.length );
-        buf.writeBytes( data );
-        return buf;
-    }
+    protected void storeTileEntities( int chunkX, int chunkZ, List<TileEntity> newTileEntities ) {
+        WriteBatch batch = this.getWriteBatch();
 
-    private int log2( int n ) {
-        if ( n <= 0 ) throw new IllegalArgumentException();
-        return 31 - Integer.numberOfLeadingZeros( n );
+        // Safe tiles
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
+        for ( TileEntity tileEntity : newTileEntities ) {
+            NBTTagCompound compound = new NBTTagCompound( "" );
+            tileEntity.toCompound( compound, SerializationReason.PERSIST );
+
+            try {
+                nbtWriter.write( compound );
+            } catch ( IOException e ) {
+                LOGGER.warn( "Could not write tile to leveldb", e );
+            }
+        }
+
+        if ( baos.size() > 0 ) {
+            ByteBuf key = this.getKey( chunkX, chunkZ, (byte) 0x31 );
+            ByteBuf val = Allocator.allocate( baos.toByteArray() );
+
+            batch.put( key, val );
+        }
     }
 
     public void done() {
@@ -242,7 +236,7 @@ public class BaseConverter {
     protected void persistChunk() {
         // Check for size
         WriteBatch batch = this.getWriteBatch();
-        if ( batch.size() > 16 * 1024 * 1024 ) {    // We persist every 16 MB
+        if ( batch.size() > 4 * 1024 * 1024 ) {    // We persist every 4 MB
             this.db.write( batch );
             batch.clear();
         }

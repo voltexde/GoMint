@@ -18,12 +18,12 @@ import io.gomint.world.block.BlockType;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 189 )
+@RegisterInfo( sId = "minecraft:chain_command_block" )
 public class ChainCommandBlock extends ContainerBlock implements BlockChainCommandBlock {
 
     @Override
-    public int getBlockId() {
-        return 189;
+    public String getBlockId() {
+        return "minecraft:chain_command_block";
     }
 
     @Override

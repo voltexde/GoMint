@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemJungleButton extends ItemStack implements io.gomint.inventory.item.ItemJungleButton {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:jungle_button";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.JUNGLE_BUTTON;
     }

@@ -48,6 +48,10 @@ public abstract class BasisConverter<T> extends TileEntityConverter<T> {
      * @return the item stack which has been stored in the compound
      */
     protected ItemStack getItemStack( NBTTagCompound compound ) {
+        if ( compound == null ) {
+            return this.items.create( 0, (short) 0, (byte) 0, null );
+        }
+
         // Check for correct ids
         int material = 0;
         try {

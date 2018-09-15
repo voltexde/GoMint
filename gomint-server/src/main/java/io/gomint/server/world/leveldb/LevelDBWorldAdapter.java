@@ -149,7 +149,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             throw new WorldCreateException( "World '" + name + "' could not be created. Folder could not be created" );
         }
 
-        File regionFolder = new File( worldFolder, "region" );
+        File regionFolder = new File( worldFolder, "db" );
         if ( !regionFolder.mkdir() ) {
             throw new WorldCreateException( "World '" + name + "' could not be created. Folder could not be created" );
         }
@@ -238,13 +238,14 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                                     count = ( (Long) layerConfig.get( "count" ) ).intValue();
                                 }
 
+                                // TODO: look at new format of the flat layers
                                 int blockId = ( (Long) layerConfig.get( "block_id" ) ).intValue();
                                 byte blockData = ( (Long) layerConfig.get( "block_data" ) ).byteValue();
 
-                                Block block = this.server.getBlocks().get( blockId, blockData, (byte) 0, (byte) 0, null, null, 0 );
+                                /*Block block = this.server.getBlocks().get( blockId, blockData, (byte) 0, (byte) 0, null, null, 0 );
                                 for ( int i = 0; i < count; i++ ) {
                                     blocks.add( block );
-                                }
+                                }*/
                             }
                         }
 
@@ -264,14 +265,14 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         }
     }
 
-    private ByteBuf getKey( int chunkX, int chunkZ, byte dataType ) {
+    public ByteBuf getKey( int chunkX, int chunkZ, byte dataType ) {
         ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( 9 );
-        return buf.writeInt( chunkX ).writeInt( chunkZ ).writeByte( dataType );
+        return buf.writeIntLE( chunkX ).writeIntLE( chunkZ ).writeByte( dataType );
     }
 
-    private ByteBuf getKeySubChunk( int chunkX, int chunkZ, byte dataType, byte subChunk ) {
+    public ByteBuf getKeySubChunk( int chunkX, int chunkZ, byte dataType, byte subChunk ) {
         ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( 10 );
-        return buf.writeInt( chunkX ).writeInt( chunkZ ).writeByte( dataType ).writeByte( subChunk );
+        return buf.writeIntLE( chunkX ).writeIntLE( chunkZ ).writeByte( dataType ).writeByte( subChunk );
     }
 
     private void loadLevelDat() throws WorldLoadException {
@@ -385,8 +386,8 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                     } else {
                         break;
                     }
-                } catch ( Exception ignored ) {
-                    break;
+                } catch ( Exception e ) {
+                    this.logger.warn( "Could not load subchunk", e );
                 }
             }
 
@@ -398,9 +399,8 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                 if ( tileEntityData != null ) {
                     loadingChunk.loadTileEntities( tileEntityData );
                 }
-            } catch ( Exception ignored ) {
-                ignored.printStackTrace();
-                // TODO: Implement proper error handling here
+            } catch ( Exception e ) {
+                this.logger.warn( "Could not load tiles", e );
             }
 
             try {
@@ -440,16 +440,12 @@ public class LevelDBWorldAdapter extends WorldAdapter {
 
     @Override
     protected void saveChunk( ChunkAdapter chunk ) {
-        /*if ( chunk == null ) {
+        if ( chunk == null ) {
             return;
         }
 
-        int chunkX = chunk.getX();
-        int chunkZ = chunk.getZ();
-
-        WriteBatch writeBatch = this.db.createWriteBatch();
-        writeBatch.put( this.getKey( chunkX, chunkZ, (byte) 0x30 ), ( (LevelDBChunkAdapter) chunk ).getSaveData() );
-        this.db.write( writeBatch );*/
+        LevelDBChunkAdapter adapter = (LevelDBChunkAdapter) chunk;
+        adapter.save( this.db );
     }
 
     @Override
@@ -457,7 +453,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         try {
             this.db.close();
         } catch ( Exception e ) {
-            e.printStackTrace();
+            this.logger.error( "Could not close leveldb", e );
         }
     }
 

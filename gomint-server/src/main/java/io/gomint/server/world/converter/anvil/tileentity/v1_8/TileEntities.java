@@ -36,6 +36,11 @@ public class TileEntities implements TileEntityConverters {
     private DaylightDetectorConverter daylightDetectorConverter;
     private BedConverter bedConverter;
     private FurnaceConverter furnaceConverter;
+    private ControlConverter controlConverter;
+    private NoteblockConverter noteblockConverter;
+    private HopperConverter hopperConverter;
+    private RecordPlayerConverter recordPlayerConverter;
+    private BannerConverter bannerConverter;
 
     /**
      * Construct 1.8 converter for the given world
@@ -56,12 +61,27 @@ public class TileEntities implements TileEntityConverters {
         this.daylightDetectorConverter = new DaylightDetectorConverter( items, itemConverter );
         this.bedConverter = new BedConverter( items, itemConverter );
         this.furnaceConverter = new FurnaceConverter( items, itemConverter );
+        this.controlConverter = new ControlConverter( items, itemConverter );
+        this.noteblockConverter = new NoteblockConverter( items, itemConverter );
+        this.hopperConverter = new HopperConverter( items, itemConverter );
+        this.recordPlayerConverter = new RecordPlayerConverter( items, itemConverter );
+        this.bannerConverter = new BannerConverter( items, itemConverter );
     }
 
     @Override
     public TileEntity read( NBTTagCompound compound ) {
         String id = compound.getString( "id", "" );
         switch ( id ) {
+            case "Banner":
+                return this.bannerConverter.readFrom( compound );
+            case "RecordPlayer":
+                return this.recordPlayerConverter.readFrom( compound );
+            case "Hopper":
+                return this.hopperConverter.readFrom( compound );
+            case "Music":
+                return this.noteblockConverter.readFrom( compound );
+            case "Control":
+                return this.controlConverter.readFrom( compound );
             case "Furnace":
                 return this.furnaceConverter.readFrom( compound );
             case "DLDetector":

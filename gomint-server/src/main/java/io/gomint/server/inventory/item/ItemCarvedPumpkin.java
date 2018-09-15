@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemCarvedPumpkin extends ItemStack implements io.gomint.inventory.item.ItemCarvedPumpkin {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:carved_pumpkin";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.CARVED_PUMPKIN;
     }

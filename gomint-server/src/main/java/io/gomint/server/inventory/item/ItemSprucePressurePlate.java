@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemSprucePressurePlate extends ItemStack implements io.gomint.inventory.item.ItemSprucePressurePlate {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:spruce_pressure_plate";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.SPRUCE_PRESSURE_PLATE;
     }

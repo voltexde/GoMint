@@ -12,12 +12,12 @@ import io.gomint.world.block.BlockType;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 33 )
+@RegisterInfo( sId = "minecraft:piston" )
 public class Piston extends Block implements io.gomint.world.block.BlockPiston {
 
     @Override
-    public int getBlockId() {
-        return 33;
+    public String getBlockId() {
+        return "minecraft:piston";
     }
 
     @Override

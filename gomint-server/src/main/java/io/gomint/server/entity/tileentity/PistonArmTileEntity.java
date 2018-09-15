@@ -75,6 +75,7 @@ public class PistonArmTileEntity extends TileEntity {
         BlockPosition pos = this.location.toBlockPosition();
         Block piston = this.location.getWorld().getBlockAt( pos );
         BlockFace facing = Things.convertFromDataToBlockFace( piston.getBlockData() );
+
         if ( this.isExtended() ) {
             // We need a PistonHead
             Block above = piston.getSide( facing );

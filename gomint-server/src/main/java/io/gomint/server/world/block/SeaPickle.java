@@ -15,7 +15,7 @@ import io.gomint.world.block.BlockType;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 411 )
+@RegisterInfo( sId = "minecraft:sea_pickle" )
 public class SeaPickle extends Block implements BlockSeaPickle {
 
     @Override

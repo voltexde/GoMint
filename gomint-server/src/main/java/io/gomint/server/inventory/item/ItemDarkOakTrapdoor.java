@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemDarkOakTrapdoor extends ItemStack implements io.gomint.inventory.item.ItemDarkOakTrapdoor {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:dark_oak_trapdoor";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.DARK_OAK_TRAPDOOR;
     }

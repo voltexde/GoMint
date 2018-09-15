@@ -11,6 +11,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemCoral extends ItemStack implements io.gomint.inventory.item.ItemCoral {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:coral";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.CORAL;
     }

@@ -8,7 +8,6 @@
 package io.gomint.server.util;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 
 /**
@@ -16,10 +15,10 @@ import lombok.Getter;
  * @version 1.0
  */
 @AllArgsConstructor
-@Data
+@Getter
 public class BlockIdentifier {
 
-    private String blockId;
-    private short data;
+    private final String blockId;
+    private final short data;
 
 }

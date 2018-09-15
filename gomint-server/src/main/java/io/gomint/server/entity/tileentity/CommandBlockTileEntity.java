@@ -35,6 +35,7 @@ public class CommandBlockTileEntity extends ContainerTileEntity {
      *
      * @param tagCompound The TagCompound which should be used to read data from
      * @param world       The world in which this TileEntity resides
+     * @param items       which is used to build up needed items
      */
     public CommandBlockTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
         super( tagCompound, world, items );

@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemDarkOakPressurePlate extends ItemStack implements io.gomint.inventory.item.ItemDarkOakPressurePlate {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:dark_oak_pressure_plate";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.DARK_OAK_PRESSURE_PLATE;
     }

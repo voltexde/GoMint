@@ -15,7 +15,7 @@ import io.gomint.world.block.BlockType;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 386 )
+@RegisterInfo( sId = "minecraft:coral" )
 public class Coral extends Block implements BlockCoral {
 
     @Override

@@ -19,7 +19,7 @@ public class Main {
 
     public static void main( String[] args ) throws IOException {
         // Load the MITM assets
-        Set<String> knownIDs = new HashSet<>();
+        List<String> knownIDs = new ArrayList<>();
         NBTTagCompound assetsCompound = null;
 
         try {

@@ -112,9 +112,22 @@ public enum TileEntities {
     /**
      * Data for banner
      */
-    //BANNER( "Banner", BannerTileEntity.class );
+    BANNER( "Banner", BannerTileEntity.class ),
 
-    MOB_SPAWNER( "MobSpawner", MobSpawnerTileEntity.class );
+    /**
+     * Data for mob spawner
+     */
+    MOB_SPAWNER( "MobSpawner", MobSpawnerTileEntity.class ),
+
+    /**
+     * Data for a jukebox
+     */
+    JUKEBOX( "Jukebox", JukeboxTileEntity.class ),
+
+    /**
+     * Data for a hopper
+     */
+    HOPPER( "Hopper", HopperTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;

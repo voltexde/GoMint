@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemAcaciaButton extends ItemStack implements io.gomint.inventory.item.ItemAcaciaButton {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:acacia_button";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.ACACIA_BUTTON;
     }

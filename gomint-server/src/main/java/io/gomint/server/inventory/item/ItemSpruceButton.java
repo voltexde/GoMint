@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemSpruceButton extends ItemStack implements io.gomint.inventory.item.ItemSpruceButton {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:spruce_button";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.SPRUCE_BUTTON;
     }

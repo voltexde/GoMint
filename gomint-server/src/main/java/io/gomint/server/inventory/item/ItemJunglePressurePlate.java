@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemJunglePressurePlate extends ItemStack implements io.gomint.inventory.item.ItemJunglePressurePlate {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:jungle_pressure_plate";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.JUNGLE_PRESSURE_PLATE;
     }

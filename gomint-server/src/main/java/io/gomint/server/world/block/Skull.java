@@ -20,7 +20,7 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 144 )
+@RegisterInfo( sId = "minecraft:skull" )
 public class Skull extends Block implements io.gomint.world.block.BlockSkull {
 
     @Override

@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemBirchButton extends ItemStack implements io.gomint.inventory.item.ItemBirchButton {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:birch_button";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.BIRCH_BUTTON;
     }

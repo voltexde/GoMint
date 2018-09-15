@@ -11,6 +11,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemSeaPickle extends ItemStack implements io.gomint.inventory.item.ItemSeaPickle {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:sea_pickle";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.SEA_PICKLE;
     }

@@ -327,6 +327,7 @@ public class PlayerConnection {
                             recheck = new ArrayList<>();
                         }
 
+                        LOGGER.debug( "Chunk not populated" );
                         recheck.add( chunk );
                         continue;
                     }
@@ -755,7 +756,7 @@ public class PlayerConnection {
         LOGGER.debug( "Requesting chunk {} {} for {}", x, z, this.entity );
         this.entity.getWorld().sendChunk( x, z,
             false, ( chunkHash, loadedChunk ) -> {
-                LOGGER.debug( "Loaded chunk: {} - > {}", this.entity, loadedChunk );
+                LOGGER.debug( "Loaded chunk: {} -> {}", this.entity, loadedChunk );
                 if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
                     if ( !this.entity.getChunkSendQueue().offer( loadedChunk ) ) {
                         LOGGER.warn( "Could not add chunk to send queue" );

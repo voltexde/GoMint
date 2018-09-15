@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemBirchPressurePlate extends ItemStack implements io.gomint.inventory.item.ItemBirchPressurePlate {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:birch_pressure_plate";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.BIRCH_PRESSURE_PLATE;
     }

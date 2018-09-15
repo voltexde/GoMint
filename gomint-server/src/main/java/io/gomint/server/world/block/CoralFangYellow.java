@@ -15,7 +15,7 @@ import io.gomint.world.block.BlockType;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 392 )
+@RegisterInfo( sId = "minecraft:coral_fan_hang3" )
 public class CoralFangYellow extends Block implements BlockCoralFangYellow {
 
     @Override

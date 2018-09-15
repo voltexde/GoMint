@@ -11,6 +11,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemTurtleEgg extends ItemStack implements io.gomint.inventory.item.ItemTurtleEgg {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:turtle_egg";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.TURTLE_EGG;
     }

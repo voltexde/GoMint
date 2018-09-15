@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemCoralFan extends ItemStack implements io.gomint.inventory.item.ItemCoralFan {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:coral_fan";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.CORAL_FAN;
     }

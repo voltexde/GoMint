@@ -8,12 +8,10 @@
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
 import io.gomint.math.Location;
-import io.gomint.server.entity.tileentity.BedTileEntity;
 import io.gomint.server.entity.tileentity.JukeboxTileEntity;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
-import io.gomint.world.block.data.BlockColor;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 
 /**

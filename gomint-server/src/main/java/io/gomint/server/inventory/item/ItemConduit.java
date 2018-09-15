@@ -18,6 +18,11 @@ import io.gomint.server.registry.RegisterInfo;
 public class ItemConduit extends ItemStack implements io.gomint.inventory.item.ItemConduit {
 
     @Override
+    public String getBlockId() {
+        return "minecraft:conduit";
+    }
+
+    @Override
     public ItemType getType() {
         return ItemType.CONDUIT;
     }

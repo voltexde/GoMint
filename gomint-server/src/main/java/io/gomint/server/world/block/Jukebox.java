@@ -20,12 +20,12 @@ import io.gomint.world.block.BlockType;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 84 )
+@RegisterInfo( sId = "minecraft:jukebox" )
 public class Jukebox extends Block implements BlockJukebox {
 
     @Override
-    public int getBlockId() {
-        return 84;
+    public String getBlockId() {
+        return "minecraft:jukebox";
     }
 
     @Override
