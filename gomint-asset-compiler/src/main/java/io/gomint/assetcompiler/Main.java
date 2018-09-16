@@ -33,8 +33,30 @@ public class Main {
             System.exit( -1 );
         }
 
-        for ( String knownID : knownIDs ) {
-            System.out.println( knownID );
+        // Load the JE to PE item id map
+        try {
+            List<Object> converterItems = assetsCompound.getList( "JEtoPEItems", true );
+
+            List<String> input = Files.readAllLines( Paths.get( "gomint-asset-compiler/item_convert.txt" ) );
+            for ( String line : input ) {
+                String[] split = line.split( " " );
+                String[] split2 = split[1].split( ":" );
+
+                if ( split2.length == 1 ) {
+                    String[] temp = new String[2];
+                    temp[0] = split2[0];
+                    temp[1] = "0";
+                    split2 = temp;
+                }
+
+                NBTTagCompound idPairCompound = new NBTTagCompound( "" );
+                idPairCompound.addValue( "s", Integer.parseInt( split[0] ) );
+                idPairCompound.addValue( "t", Integer.parseInt( split2[0] ) );
+                idPairCompound.addValue( "tm", Integer.parseInt( split2[1] ) );
+                converterItems.add( idPairCompound );
+            }
+        } catch ( IOException e ) {
+            e.printStackTrace();
         }
 
         // Check the in-ids.txt

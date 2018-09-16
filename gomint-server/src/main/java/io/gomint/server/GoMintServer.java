@@ -227,7 +227,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         // Build up registries
         // ------------------------------------ //
         this.blocks = new Blocks( this.classPath );
-        this.items = new Items( this.classPath );
+        this.items = new Items( this.classPath, null );
         this.entities = new Entities( this.classPath );
         this.effects = new Effects( this.classPath );
         this.enchantments = new Enchantments( this.classPath );

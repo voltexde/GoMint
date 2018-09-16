@@ -9,6 +9,7 @@ package io.gomint.server.world;
 
 import io.gomint.GoMint;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
 import io.gomint.server.world.inmemory.InMemoryWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
@@ -144,7 +145,7 @@ public class WorldManager {
     }
 
     private World convertAndLoad( File file ) throws WorldLoadException {
-        AnvilConverter converter = new AnvilConverter( this.server.getAssets(), this.server.getItems(), file );
+        AnvilConverter converter = new AnvilConverter( this.server.getAssets(), new Items( this.server.getClassPath(), this.server.getAssets().getJeTopeItems() ), file );
         converter.done();
         return loadLevelDBWorld( file );
     }

@@ -50,7 +50,9 @@ public class BannerTileEntity extends TileEntity {
 
     @Override
     public void toCompound( NBTTagCompound compound, SerializationReason reason ) {
-        compound.addValue( "id", "banner" );
+        super.toCompound( compound, reason );
+
+        compound.addValue( "id", "Banner" );
         compound.addValue( "Base", this.baseColor );
 
         if ( this.patterns.size() > 0 ) {

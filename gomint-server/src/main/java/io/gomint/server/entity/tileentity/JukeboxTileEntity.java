@@ -40,7 +40,7 @@ public class JukeboxTileEntity extends TileEntity {
     public void toCompound( NBTTagCompound compound, SerializationReason reason ) {
         super.toCompound( compound, reason );
 
-        compound.addValue( "id", "jukebox" );
+        compound.addValue( "id", "Jukebox" );
 
         if ( this.recordItem.getType() != ItemType.AIR ) {
             NBTTagCompound itemCompound = compound.getCompound( "RecordItem", true );

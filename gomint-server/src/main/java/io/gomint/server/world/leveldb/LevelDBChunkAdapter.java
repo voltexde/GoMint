@@ -278,14 +278,16 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         ByteArrayInputStream bais = new ByteArrayInputStream( tileEntityData );
         NBTReader nbtReader = new NBTReader( bais, ByteOrder.LITTLE_ENDIAN );
         while ( nbtReader.hasMoreToRead() ) {
+            TileEntity tileEntity = null;
+
             try {
                 NBTTagCompound compound = nbtReader.parse();
 
-                TileEntity tileEntity = TileEntities.construct( compound, this.world );
+                tileEntity = TileEntities.construct( compound, this.world );
                 if ( tileEntity != null ) {
                     this.addTileEntity( tileEntity );
                 }
-            } catch ( IOException e ) {
+            } catch ( Exception e ) {
                 LOGGER.error( "Error in loading tile entities", e );
                 break;
             }
