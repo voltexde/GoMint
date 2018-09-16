@@ -9,7 +9,6 @@ package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
 import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.FlowerPotTileEntity;
-import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -32,9 +31,9 @@ public class FlowerPotConverter extends BasisConverter<FlowerPotTileEntity> {
         // Read the item inside the pot
         int material;
         try {
-            material = MaterialMagicNumbers.valueOfWithId( compound.getString( "Item", "minecraft:air" ) );
+            material = this.itemConverter.getInt( compound.getString( "Item", "minecraft:air" ) );
         } catch ( ClassCastException e ) {
-            material = compound.getInteger( "Item", 0 );
+            material = compound.getInteger( "Item", -1 );
         }
 
         // Skip non existent items for PE

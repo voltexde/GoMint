@@ -430,6 +430,12 @@ public class LevelDBWorldAdapter extends WorldAdapter {
 
             // Register entities
             this.registerEntitiesFromChunk( loadingChunk );
+
+            // Do some work on the chunk if needed (like population)
+            if ( !populated ) {
+                this.addPopulateTask( loadingChunk );
+            }
+
             this.chunkCache.putChunk( loadingChunk );
 
             return loadingChunk;

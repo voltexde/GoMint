@@ -91,7 +91,16 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             saveChunkSlice( i, writeBatch );
         }
 
-        // Safe tiles
+        // Save metadata
+        ByteBuf key = ( (LevelDBWorldAdapter) this.world ).getKey( this.x, this.z, (byte) 0x76 );
+        ByteBuf val = Allocator.allocate( new byte[]{ (byte) this.chunkVersion } );
+        writeBatch.put( key, val );
+
+        key = ( (LevelDBWorldAdapter) this.world ).getKey( this.x, this.z, (byte) 0x36 );
+        val = Allocator.allocate( isPopulated() ? new byte[]{2,0,0,0} : new byte[]{0,0,0,0} );
+        writeBatch.put( key, val );
+
+        // Save tiles
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
         for ( TileEntity tileEntity : this.getTileEntities() ) {
@@ -106,8 +115,8 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         }
 
         if ( baos.size() > 0 ) {
-            ByteBuf key = ( (LevelDBWorldAdapter) this.world ).getKey( this.x, this.z, (byte) 0x31 );
-            ByteBuf val = Allocator.allocate( baos.toByteArray() );
+            key = ( (LevelDBWorldAdapter) this.world ).getKey( this.x, this.z, (byte) 0x31 );
+            val = Allocator.allocate( baos.toByteArray() );
 
             writeBatch.put( key, val );
         }

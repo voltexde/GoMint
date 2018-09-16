@@ -3,6 +3,7 @@ package io.gomint.server.inventory.item;
 import com.google.common.reflect.ClassPath;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.Generator;
+import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.registry.Registry;
 import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.util.Pair;
@@ -10,6 +11,8 @@ import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +28,7 @@ public class Items {
     private static final Logger LOGGER = LoggerFactory.getLogger( Items.class );
     private final Registry<io.gomint.server.inventory.item.ItemStack> generators;
     private final Int2ObjectMap<Pair<Integer, Integer>> itemMapper;
+    private final Object2IntMap<String> blockIdToItemId = new Object2IntOpenHashMap<>();
 
     /**
      * Create a new item registry
@@ -35,6 +39,15 @@ public class Items {
     public Items( ClassPath classPath, List<NBTTagCompound> mapperData ) {
         this.generators = new Registry<>( classPath, clazz -> {
             ObjectConstructionFactory factory = new ObjectConstructionFactory( clazz );
+
+            // We need one instance to get the string blockid
+            io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) factory.newInstance();
+            String blockId = itemStack.getBlockId();
+            if ( blockId != null ) {
+                int id = clazz.getAnnotation( RegisterInfo.class ).id();
+                this.blockIdToItemId.put( blockId, id );
+            }
+
             return () -> (io.gomint.server.inventory.item.ItemStack) factory.newInstance();
         } );
 
@@ -58,8 +71,8 @@ public class Items {
     }
 
     public <T extends ItemStack> T create( String id, short data, byte amount, NBTTagCompound nbt ) {
-        // Add a way to get block ids to integer ids for conversion into a item stack
-        return (T) new ItemAir(); // TODO: Build a proper implementation
+        // Resolve the item id and create as ever
+        return this.create( this.blockIdToItemId.getInt( id ), data, amount, nbt );
     }
 
     /**

@@ -97,8 +97,6 @@ public enum TileEntities {
      */
     DISPENSER( "Dispenser", DispenserTileEntity.class ),
 
-    // DROPPER( "Dropper", )
-
     /**
      * Data for beacon
      */
@@ -127,7 +125,22 @@ public enum TileEntities {
     /**
      * Data for a hopper
      */
-    HOPPER( "Hopper", HopperTileEntity.class );
+    HOPPER( "Hopper", HopperTileEntity.class ),
+
+    /**
+     * Data for a comparator
+     */
+    COMPARATOR( "Comparator", ComparatorTileEntity.class ),
+
+    /**
+     * Data for a cauldron
+     */
+    CAULDRON( "Cauldron", CauldronTileEntity.class ),
+
+    /**
+     * Data for a dropper
+     */
+    DROPPER( "Dropper", DropperTileEntity.class );
 
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;

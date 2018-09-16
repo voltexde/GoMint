@@ -10,6 +10,10 @@ public class DataConverter {
     private Pair<Integer, Byte> convertedValue = new Pair<>( 0, (byte) 1 );
 
     public DataConverter() {
+        addConverter( 29, 29, ( b, m ) -> (byte) (m > 7 ? m - 8 : m) );
+        addConverter( 33, 33, ( b, m ) -> (byte) (m > 7 ? m - 8 : m) );
+        addConverter( 34, 34, ( b, m ) -> (byte) (m > 7 ? m - 8 : m) );
+
         addConverter( 43, 43, ( b, m ) -> m == 6 ? 7 : m == 7 ? 6 : m );                                                        // Double Slab
         addConverter( 44, 44, ( b, m ) -> m == 6 ? 7 : m == 7 ? 6 : m == 14 ? 15 : m == 15 ? 14 : m );                          // Slab
         addConverter( 84, 25, ( b, m ) -> (byte) 0 );                                                                           // Jukebox
@@ -68,9 +72,7 @@ public class DataConverter {
             return (byte) ( ( pressed ) ? 8 : 0 );
         } );
 
-        addConverter( 166, 95, ( b, m ) -> (byte) 0 );                                                                          // Barrier
-        addConverter( 176, 0, ( b, m ) -> (byte) 0 );                                                                           // Standing banner
-        addConverter( 177, 0, ( b, m ) -> (byte) 0 );                                                                           // Banner
+        addConverter( 166, 416, ( b, m ) -> (byte) 0 );                                                                          // Barrier
 
         // New fences
         addConverter( 188, 0, ( b, m ) -> (byte) 1 );

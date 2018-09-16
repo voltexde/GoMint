@@ -1,8 +1,11 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.entity.tileentity.BannerTileEntity;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
@@ -31,4 +34,14 @@ public abstract class Banner extends Block {
         return ToolPresets.AXE;
     }
 
+    @Override
+    public boolean needsTileEntity() {
+        return true;
+    }
+
+    @Override
+    TileEntity createTileEntity( NBTTagCompound compound ) {
+        super.createTileEntity( compound );
+        return new BannerTileEntity( compound, this.world, this.world.getServer().getItems() );
+    }
 }

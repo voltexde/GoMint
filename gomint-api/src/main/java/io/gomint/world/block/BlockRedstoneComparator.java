@@ -11,5 +11,13 @@ package io.gomint.world.block;
  * @author geNAZt
  * @version 1.0
  */
-public interface BlockRedstoneComparatorPowered extends Block {
+public interface BlockRedstoneComparator extends Block {
+
+    /**
+     * Is this comparator powered?
+     *
+     * @return true when powered, false otherwise
+     */
+    boolean isPowered();
+
 }

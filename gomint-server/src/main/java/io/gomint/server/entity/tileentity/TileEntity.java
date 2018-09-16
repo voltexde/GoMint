@@ -11,7 +11,6 @@ import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
-import io.gomint.server.inventory.MaterialMagicNumbers;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
@@ -48,7 +47,7 @@ public abstract class TileEntity {
      *
      * @param tagCompound The TagCompound which should be used to read data from
      * @param world       The world in which this TileEntity resides
-     * @param items which generates item instances
+     * @param items       which generates item instances
      */
     TileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
         this.items = items;
@@ -71,26 +70,18 @@ public abstract class TileEntity {
 
         // Item not there?
         if ( compound == null ) {
-            return this.items.create( 0,(short) 0,(byte) 0, null );
-        }
-
-        // This is needed since minecraft changed from storing raw ids to string keys somewhere in 1.7 / 1.8
-        int material;
-        try {
-            material = compound.getShort( "id", (short) 0 );
-        } catch ( ClassCastException e ) {
-            material = MaterialMagicNumbers.valueOfWithId( compound.getString( "id", "minecraft:air" ) );
-        }
-
-        // Skip non existent items for PE
-        if ( material == 0 ) {
             return this.items.create( 0, (short) 0, (byte) 0, null );
         }
 
         short data = compound.getShort( "Damage", (short) 0 );
-        byte amount = compound.getByte( "Count", (byte) 1 );
+        byte amount = compound.getByte( "Count", (byte) 0 );
 
-        return this.items.create( material, data, amount, compound.getCompound( "tag", false ) );
+        // This is needed since minecraft changed from storing raw ids to string keys somewhere in 1.7 / 1.8
+        try {
+            return this.items.create( compound.getShort( "id", (short) 0 ), data, amount, compound.getCompound( "tag", false ) );
+        } catch ( ClassCastException e ) {
+            return this.items.create( compound.getString( "id", "minecraft:air" ), data, amount, compound.getCompound( "tag", false ) );
+        }
     }
 
     void putItemStack( io.gomint.server.inventory.item.ItemStack itemStack, NBTTagCompound compound ) {

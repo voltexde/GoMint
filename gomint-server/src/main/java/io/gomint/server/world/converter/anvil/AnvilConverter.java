@@ -1,6 +1,7 @@
 package io.gomint.server.world.converter.anvil;
 
 import io.gomint.server.assets.AssetsLibrary;
+import io.gomint.server.entity.tileentity.PistonArmTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.BlockIdentifier;
@@ -22,7 +23,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -240,17 +243,22 @@ public class AnvilConverter extends BaseConverter {
 
         this.startChunk( chunkX, chunkZ );
 
+        List<TileEntity> newTileEntities = new ArrayList<>();
+        Set<String> pistonHeadPositions = new HashSet<>();
+
         List<Object> sections = levelCompound.getList( "Sections", false );
         for ( Object section : sections ) {
             NBTTagCompound sectionCompound = (NBTTagCompound) section;
-            this.readAndConvertSubchunk( chunkX, chunkZ, sectionCompound );
+            List<TileEntity> needsMergingTiles = this.readAndConvertSubchunk( chunkX, chunkZ, sectionCompound, pistonHeadPositions );
+            if ( needsMergingTiles != null ) {
+                newTileEntities.addAll( needsMergingTiles );
+            }
+
             amountOfChunksDone.incrementAndGet();
         }
 
         List<Object> tileEntities = levelCompound.getList( "TileEntities", false );
-        if ( tileEntities != null && tileEntities.size() > 0 ) {
-            List<TileEntity> newTileEntities = new ArrayList<>();
-
+        if ( tileEntities != null && !tileEntities.isEmpty() ) {
             for ( Object entity : tileEntities ) {
                 NBTTagCompound tileCompound = (NBTTagCompound) entity;
                 TileEntity tileEntity = this.tileEntityConverter.read( tileCompound );
@@ -260,14 +268,18 @@ public class AnvilConverter extends BaseConverter {
                     newTileEntities.add( tileEntity );
                 }
             }
+        }
 
+        if ( !newTileEntities.isEmpty() ) {
             this.storeTileEntities( chunkX, chunkZ, newTileEntities );
         }
 
         this.persistChunk();
     }
 
-    private void readAndConvertSubchunk( int chunkX, int chunkZ, NBTTagCompound section ) {
+    private List<TileEntity> readAndConvertSubchunk( int chunkX, int chunkZ, NBTTagCompound section, Set<String> pistonHeadPositions ) {
+        List<TileEntity> tiles = null;
+
         byte[] blocks = section.getByteArray( "Blocks", new byte[0] );
         byte[] addBlocks = section.getByteArray( "Add", new byte[0] );
         int sectionY = section.getByte( "Y", (byte) 0 );
@@ -280,6 +292,7 @@ public class AnvilConverter extends BaseConverter {
         }
 
         BlockIdentifier[] newBlocks = new BlockIdentifier[4096];
+        Set<String> pistons = new HashSet<>();
 
         for ( int j = 0; j < 16; ++j ) {
             for ( int i = 0; i < 16; ++i ) {
@@ -311,12 +324,72 @@ public class AnvilConverter extends BaseConverter {
                         LOGGER.warn( "Could not convert block {}:{}", blockId, blockData );
                     } else {
                         newBlocks[newIndex] = converted;
+
+                        // Is this a piston? (they may lack tiles)
+                        String block = converted.getBlockId();
+                        switch ( block ) {
+                            case "minecraft:pistonArmCollision":
+                                int fullX = i + ( chunkX << 4 );
+                                int fullY = j + ( sectionY << 4 );
+                                int fullZ = k + ( chunkZ << 4 );
+
+                                pistonHeadPositions.add( fullX + ":" + fullY + ":" + fullZ );
+                                break;
+
+                            case "minecraft:sticky_piston":
+                            case "minecraft:piston":
+                                fullX = i + ( chunkX << 4 );
+                                fullY = j + ( sectionY << 4 );
+                                fullZ = k + ( chunkZ << 4 );
+
+                                pistons.add( fullX + ":" + fullY + ":" + fullZ + ":" + ( block.equals( "minecraft:sticky_piston" ) ? 1 : 0 ) );
+
+                                break;
+                        }
                     }
                 }
             }
         }
 
+        for ( String piston : pistons ) {
+            String[] split = piston.split( ":" );
+
+            int fullX = Integer.parseInt( split[0] );
+            int fullY = Integer.parseInt( split[1] );
+            int fullZ = Integer.parseInt( split[2] );
+            boolean sticky = split[3].equals( "1" );
+
+            if ( tiles == null ) {
+                tiles = new ArrayList<>();
+            }
+
+            NBTTagCompound compound = new NBTTagCompound( "" );
+            compound.addValue( "x", fullX );
+            compound.addValue( "y", fullY );
+            compound.addValue( "z", fullZ );
+            compound.addValue( "id", "PistonArm" );
+            compound.addValue( "Sticky", (byte) ( sticky ? 1 : 0 ) );
+
+            if ( pistonHeadPositions.contains( fullX + ":" + ( fullY + 1 ) + ":" + fullZ ) ) {
+                compound.addValue( "State", (byte) 1 );
+                compound.addValue( "NewState", (byte) 1 );
+
+                compound.addValue( "Progress", 1F );
+                compound.addValue( "LastProgress", 1F );
+            } else {
+                compound.addValue( "State", (byte) 0 );
+                compound.addValue( "NewState", (byte) 0 );
+
+                compound.addValue( "Progress", 0F );
+                compound.addValue( "LastProgress", 0F );
+            }
+
+            tiles.add( new PistonArmTileEntity( compound, null, null ) );
+        }
+
         this.storeSubChunkBlocks( sectionY, chunkX, chunkZ, newBlocks );
+
+        return tiles;
     }
 
 }

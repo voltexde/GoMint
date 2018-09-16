@@ -7,7 +7,7 @@
 
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
-import io.gomint.server.entity.tileentity.CommandBlockTileEntity;
+import io.gomint.server.entity.tileentity.CauldronTileEntity;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -16,15 +16,15 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
  * @author geNAZt
  * @version 1.0
  */
-public class ControlConverter extends BasisConverter<CommandBlockTileEntity> {
+public class CauldronConverter extends BasisConverter<CauldronTileEntity> {
 
-    public ControlConverter( Items items, Object2IntMap<String> itemConverter ) {
+    public CauldronConverter( Items items, Object2IntMap<String> itemConverter ) {
         super( items, itemConverter );
     }
 
     @Override
-    public CommandBlockTileEntity readFrom( NBTTagCompound compound ) {
-        return new CommandBlockTileEntity( compound, null, this.items );
+    public CauldronTileEntity readFrom( NBTTagCompound compound ) {
+        return new CauldronTileEntity( compound, null, this.items );
     }
 
 }

@@ -41,6 +41,9 @@ public class TileEntities implements TileEntityConverters {
     private HopperConverter hopperConverter;
     private RecordPlayerConverter recordPlayerConverter;
     private BannerConverter bannerConverter;
+    private ComparatorConverter comparatorConverter;
+    private CauldronConverter cauldronConverter;
+    private DropperConverter dropperConverter;
 
     /**
      * Construct 1.8 converter for the given world
@@ -66,12 +69,21 @@ public class TileEntities implements TileEntityConverters {
         this.hopperConverter = new HopperConverter( items, itemConverter );
         this.recordPlayerConverter = new RecordPlayerConverter( items, itemConverter );
         this.bannerConverter = new BannerConverter( items, itemConverter );
+        this.comparatorConverter = new ComparatorConverter( items, itemConverter );
+        this.cauldronConverter = new CauldronConverter( items, itemConverter );
+        this.dropperConverter = new DropperConverter( items, itemConverter );
     }
 
     @Override
     public TileEntity read( NBTTagCompound compound ) {
         String id = compound.getString( "id", "" );
         switch ( id ) {
+            case "Dropper":
+                return this.dropperConverter.readFrom( compound );
+            case "Cauldron":
+                return this.cauldronConverter.readFrom( compound );
+            case "Comparator":
+                return this.comparatorConverter.readFrom( compound );
             case "Banner":
                 return this.bannerConverter.readFrom( compound );
             case "RecordPlayer":

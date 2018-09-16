@@ -20,12 +20,12 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 64, itemId = 324 )
-@RegisterInfo( id = 193, itemId = 427 )
-@RegisterInfo( id = 194, itemId = 428 )
-@RegisterInfo( id = 195, itemId = 429 )
-@RegisterInfo( id = 196, itemId = 430 )
-@RegisterInfo( id = 197, itemId = 431 )
+@RegisterInfo( sId = "minecraft:wooden_door" )
+@RegisterInfo( sId = "minecraft:spruce_door" )
+@RegisterInfo( sId = "minecraft:birch_door" )
+@RegisterInfo( sId = "minecraft:jungle_door" )
+@RegisterInfo( sId = "minecraft:acacia_door" )
+@RegisterInfo( sId = "minecraft:dark_oak_door" )
 public class WoodenDoor extends Door implements BlockWoodenDoor {
 
     @Override
