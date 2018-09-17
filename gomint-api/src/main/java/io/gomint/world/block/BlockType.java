@@ -16,6 +16,7 @@ public enum BlockType {
     ACTIVATOR_RAIL,
     AIR,
     ANVIL,
+    BARRIER,
     BEACON,
     BED,
     BEDROCK,

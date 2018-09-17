@@ -1,11 +1,12 @@
 package io.gomint.server.world.converter.anvil;
 
 import io.gomint.server.assets.AssetsLibrary;
+import io.gomint.server.entity.tileentity.ItemFrameTileEntity;
 import io.gomint.server.entity.tileentity.PistonArmTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
+import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.BlockIdentifier;
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.converter.BaseConverter;
 import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
@@ -47,6 +48,9 @@ public class AnvilConverter extends BaseConverter {
     private TileEntityConverters tileEntityConverter;
 
     private boolean nukkitPMMPConverted = false;
+
+    private Items items;
+    private Object2IntMap<String> itemConverter;
 
     public AnvilConverter( AssetsLibrary assets, Items items, File worldFolder ) {
         super( worldFolder );
@@ -107,7 +111,7 @@ public class AnvilConverter extends BaseConverter {
             entityConverter.put( compound.getString( "s", "minecraft:chicken" ), compound.getInteger( "t", 10 ) );
         }
 
-        this.tileEntityConverter = new TileEntities( items, itemConverter, entityConverter );
+        this.tileEntityConverter = new TileEntities( this.items = items, this.itemConverter = itemConverter, entityConverter );
 
         // Convert all region files first
         File regionFolder = new File( backupFolder, "region" );
@@ -264,6 +268,38 @@ public class AnvilConverter extends BaseConverter {
             amountOfChunksDone.incrementAndGet();
         }
 
+        List<Object> entities = levelCompound.getList( "Entities", false );
+        if ( entities != null && !entities.isEmpty() ) {
+            for ( Object entity : entities ) {
+                NBTTagCompound entityCompound = (NBTTagCompound) entity;
+                String id = entityCompound.getString( "id", null );
+                if ( id != null ) {
+                    if ( id.equals( "ItemFrame" ) ) {
+                        NBTTagCompound tileCompound = new NBTTagCompound( "" );
+                        tileCompound.addValue( "x", entityCompound.getInteger( "TileX", 0 ) );
+                        tileCompound.addValue( "y", entityCompound.getInteger( "TileY", 0 ) );
+                        tileCompound.addValue( "z", entityCompound.getInteger( "TileZ", 0 ) );
+                        tileCompound.addValue( "id", "ItemFrame" );
+
+                        ItemStack itemStack = getItemStack( entityCompound.getCompound( "Item", false ) );
+                        NBTTagCompound itemCompound = tileCompound.getCompound( "Item", true );
+                        itemCompound.addValue( "id", itemStack.getMaterial() );
+                        itemCompound.addValue( "Data", itemStack.getData() );
+                        itemCompound.addValue( "Amount", itemStack.getAmount() );
+
+                        if ( itemStack.getNbtData() != null ) {
+                            itemCompound.addValue( "tag", itemStack.getNbtData().deepClone( "tag" ) );
+                        }
+
+                        tileCompound.addValue( "ItemDropChange", entityCompound.getFloat( "ItemDropChange", 1f ) );
+                        tileCompound.addValue( "ItemRotation", entityCompound.getByte( "ItemRotation", (byte) 0 ) );
+
+                        newTileEntities.add( new ItemFrameTileEntity( tileCompound, null, this.items ) );
+                    }
+                }
+            }
+        }
+
         List<Object> tileEntities = levelCompound.getList( "TileEntities", false );
         if ( tileEntities != null && !tileEntities.isEmpty() ) {
             for ( Object entity : tileEntities ) {
@@ -275,24 +311,35 @@ public class AnvilConverter extends BaseConverter {
             }
         }
 
-        List<Object> entities = levelCompound.getList( "Entities", false );
-        if ( entities != null && !entities.isEmpty() ) {
-            for ( Object entity : entities ) {
-                NBTTagCompound entityCompound = (NBTTagCompound) entity;
-                String id = entityCompound.getString( "id", null );
-                if ( id != null ) {
-                    if ( id.equals( "item_frame" ) ) {
-                        System.out.println( "Found item frame" );
-                    }
-                }
-            }
-        }
-
         if ( !newTileEntities.isEmpty() ) {
             this.storeTileEntities( chunkX, chunkZ, newTileEntities );
         }
 
         this.persistChunk();
+    }
+
+    protected ItemStack getItemStack( NBTTagCompound compound ) {
+        if ( compound == null ) {
+            return this.items.create( 0, (short) 0, (byte) 0, null );
+        }
+
+        // Check for correct ids
+        int material = 0;
+        try {
+            material = compound.getShort( "id", (short) 0 );
+        } catch ( Exception e ) {
+            material = this.itemConverter.getOrDefault( compound.getString( "id", "minecraft:air" ), 0 );
+        }
+
+        // Skip non existent items for PE
+        if ( material == 0 ) {
+            return this.items.create( 0, (short) 0, (byte) 0, null );
+        }
+
+        short data = compound.getShort( "Damage", (short) 0 );
+        byte amount = compound.getByte( "Count", (byte) 1 );
+
+        return this.items.create( material, data, amount, compound.getCompound( "tag", false ) );
     }
 
     private List<TileEntity> readAndConvertSubchunk( int chunkX, int chunkZ, NBTTagCompound section, Set<String> pistonHeadPositions ) {

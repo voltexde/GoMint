@@ -7,14 +7,13 @@
 
 package io.gomint.server.world.converter.anvil.tileentity;
 
-import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.AllArgsConstructor;
 
 /**
+ * @param <T> type of tile entity which this converter should generate
  * @author geNAZt
  * @version 1.0
- * @param <T> type of tile entity which this converter should generate
  */
 @AllArgsConstructor
 public abstract class TileEntityConverter<T> {

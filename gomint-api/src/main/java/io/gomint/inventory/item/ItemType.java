@@ -26,6 +26,7 @@ public enum ItemType {
     ARROW,
     BAKED_POTATO,
     BANNER,
+    BARRIER,
     BEACON,
     BED,
     BED_BLOCK,

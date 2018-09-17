@@ -80,7 +80,11 @@ public abstract class TileEntity {
         try {
             return this.items.create( compound.getShort( "id", (short) 0 ), data, amount, compound.getCompound( "tag", false ) );
         } catch ( ClassCastException e ) {
-            return this.items.create( compound.getString( "id", "minecraft:air" ), data, amount, compound.getCompound( "tag", false ) );
+            try {
+                return this.items.create( compound.getString( "id", "minecraft:air" ), data, amount, compound.getCompound( "tag", false ) );
+            } catch ( ClassCastException e1 ) {
+                return this.items.create( compound.getInteger( "id", 0 ), data, amount, compound.getCompound( "tag", false ) );
+            }
         }
     }
 
