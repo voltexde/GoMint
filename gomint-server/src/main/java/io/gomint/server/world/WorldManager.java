@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author BlackyPaw
@@ -145,6 +146,8 @@ public class WorldManager {
     }
 
     private World convertAndLoad( File file ) throws WorldLoadException {
+        this.server.getWatchdog().add( 120, TimeUnit.SECONDS );
+
         AnvilConverter converter = new AnvilConverter( this.server.getAssets(), new Items( this.server.getClassPath(), this.server.getAssets().getJeTopeItems() ), file );
         converter.done();
         return loadLevelDBWorld( file );

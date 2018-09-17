@@ -5,6 +5,7 @@ import io.gomint.server.entity.tileentity.PistonArmTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.BlockIdentifier;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.converter.BaseConverter;
 import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
@@ -100,7 +101,13 @@ public class AnvilConverter extends BaseConverter {
             itemConverter.put( compound.getString( "s", "minecraft:air" ), compound.getInteger( "i", 0 ) );
         }
 
-        this.tileEntityConverter = new TileEntities( items, itemConverter );
+        // Setup entity id converter
+        Object2IntMap<String> entityConverter = new Object2IntOpenHashMap<>();
+        for ( NBTTagCompound compound : assets.getJeTopeEntities() ) {
+            entityConverter.put( compound.getString( "s", "minecraft:chicken" ), compound.getInteger( "t", 10 ) );
+        }
+
+        this.tileEntityConverter = new TileEntities( items, itemConverter, entityConverter );
 
         // Convert all region files first
         File regionFolder = new File( backupFolder, "region" );
@@ -262,10 +269,21 @@ public class AnvilConverter extends BaseConverter {
             for ( Object entity : tileEntities ) {
                 NBTTagCompound tileCompound = (NBTTagCompound) entity;
                 TileEntity tileEntity = this.tileEntityConverter.read( tileCompound );
-                if ( tileEntity == null ) {
-                    LOGGER.warn( "Could not convert tile entity: {}", tileCompound );
-                } else {
+                if ( tileEntity != null ) {
                     newTileEntities.add( tileEntity );
+                }
+            }
+        }
+
+        List<Object> entities = levelCompound.getList( "Entities", false );
+        if ( entities != null && !entities.isEmpty() ) {
+            for ( Object entity : entities ) {
+                NBTTagCompound entityCompound = (NBTTagCompound) entity;
+                String id = entityCompound.getString( "id", null );
+                if ( id != null ) {
+                    if ( id.equals( "item_frame" ) ) {
+                        System.out.println( "Found item frame" );
+                    }
                 }
             }
         }

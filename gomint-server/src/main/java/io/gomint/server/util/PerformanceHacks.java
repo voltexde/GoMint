@@ -22,22 +22,25 @@ public class PerformanceHacks {
     private static Object unsafe;
 
     static {
-        // CHECKSTYLE:OFF
-        try {
-            Class unsafeClass = Class.forName( "sun.misc.Unsafe" );
-
+        if ( System.getProperty( "java.version" ).startsWith( "1.8." ) ) {
+            // This should only be tried on VMs we know it may work
+            // CHECKSTYLE:OFF
             try {
-                Field f = unsafeClass.getDeclaredField( "theUnsafe" );
-                f.setAccessible( true );
-                unsafe = f.get( null );
-                LOGGER.info( "Got unsafe memory access" );
-            } catch ( Exception e ) {
+                Class unsafeClass = Class.forName( "sun.misc.Unsafe" );
+
+                try {
+                    Field f = unsafeClass.getDeclaredField( "theUnsafe" );
+                    f.setAccessible( true );
+                    unsafe = f.get( null );
+                    LOGGER.info( "Got unsafe memory access" );
+                } catch ( Exception e ) {
+                    // Ignore this, this is optional unsafe getting stuff
+                }
+            } catch ( ClassNotFoundException e ) {
                 // Ignore this, this is optional unsafe getting stuff
             }
-        } catch ( ClassNotFoundException e ) {
-            // Ignore this, this is optional unsafe getting stuff
+            // CHECKSTYLE:ON
         }
-        // CHECKSTYLE:ON
     }
 
     /**

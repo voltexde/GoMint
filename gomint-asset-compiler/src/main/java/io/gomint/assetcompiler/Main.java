@@ -59,6 +59,23 @@ public class Main {
             e.printStackTrace();
         }
 
+        // Load 1.8 entity strings to network id (PE)
+        try {
+            List<Object> converterItems = assetsCompound.getList( "JEtoPEEntityIDs", true );
+
+            List<String> input = Files.readAllLines( Paths.get( "gomint-asset-compiler/entity_ids.txt" ) );
+            for ( String line : input ) {
+                String[] split = line.split( " " );
+
+                NBTTagCompound idPairCompound = new NBTTagCompound( "" );
+                idPairCompound.addValue( "s", split[0] );
+                idPairCompound.addValue( "t", Integer.parseInt( split[1] ) );
+                converterItems.add( idPairCompound );
+            }
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+
         // Check the in-ids.txt
         try {
             List<Object> converterItems = assetsCompound.getList( "converterItems", true );

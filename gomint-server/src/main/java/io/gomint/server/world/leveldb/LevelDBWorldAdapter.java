@@ -409,7 +409,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                 entityKey.release();
 
                 if ( entityData != null ) {
-                    // loadingChunk.loadEntities( entityData );
+                    loadingChunk.loadEntities( entityData );
                 }
             } catch ( Exception ignored ) {
                 ignored.printStackTrace();

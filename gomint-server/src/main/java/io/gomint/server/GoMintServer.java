@@ -49,6 +49,7 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.WorldManager;
 import io.gomint.server.world.block.Blocks;
+import io.gomint.server.world.converter.anvil.AnvilConverter;
 import io.gomint.world.World;
 import io.gomint.world.WorldType;
 import io.gomint.world.block.Block;
@@ -172,25 +173,28 @@ public class GoMintServer implements GoMint, InventoryHolder {
     public GoMintServer( OptionSet args ) {
         long start = System.currentTimeMillis();
 
-        // ------------------------------------ //
-        // Executor Initialization
-        // ------------------------------------ //
-        this.executorService = MoreExecutors.listeningDecorator( Executors.newScheduledThreadPool( 4, new ThreadFactory() {
-            private final AtomicLong counter = new AtomicLong( 0 );
+        if ( !args.has( "convertOnly" ) ) {
 
-            @Override
-            public Thread newThread( Runnable r ) {
-                Thread thread = new Thread( r );
-                thread.setName( "GoMint Thread #" + counter.incrementAndGet() );
-                return thread;
-            }
-        } ) );
-        this.watchdog = new Watchdog( this );
+            // ------------------------------------ //
+            // Executor Initialization
+            // ------------------------------------ //
+            this.executorService = MoreExecutors.listeningDecorator( Executors.newScheduledThreadPool( 4, new ThreadFactory() {
+                private final AtomicLong counter = new AtomicLong( 0 );
 
-        this.watchdog.add( 30, TimeUnit.SECONDS );
+                @Override
+                public Thread newThread( Runnable r ) {
+                    Thread thread = new Thread( r );
+                    thread.setName( "GoMint Thread #" + counter.incrementAndGet() );
+                    return thread;
+                }
+            } ) );
 
-        GoMintServer.mainThread = Thread.currentThread().getId();
-        GoMintInstanceHolder.setInstance( this );
+            this.watchdog = new Watchdog( this );
+            this.watchdog.add( 30, TimeUnit.SECONDS );
+
+            GoMintServer.mainThread = Thread.currentThread().getId();
+            GoMintInstanceHolder.setInstance( this );
+        }
 
         // Extract information from the manifest
         String buildVersion = "dev/unsupported";
@@ -221,16 +225,18 @@ public class GoMintServer implements GoMint, InventoryHolder {
             return;
         }
 
-        LOGGER.info( "Loading block, item and entity registers" );
+        if ( !args.has( "convertOnly" ) ) {
+            LOGGER.info( "Loading block, item and entity registers" );
 
-        // ------------------------------------ //
-        // Build up registries
-        // ------------------------------------ //
-        this.blocks = new Blocks( this.classPath );
-        this.items = new Items( this.classPath, null );
-        this.entities = new Entities( this.classPath );
-        this.effects = new Effects( this.classPath );
-        this.enchantments = new Enchantments( this.classPath );
+            // ------------------------------------ //
+            // Build up registries
+            // ------------------------------------ //
+            this.blocks = new Blocks( this.classPath );
+            this.items = new Items( this.classPath, null );
+            this.entities = new Entities( this.classPath );
+            this.effects = new Effects( this.classPath );
+            this.enchantments = new Enchantments( this.classPath );
+        }
 
         // Load assets from file:
         LOGGER.info( "Loading assets library..." );
@@ -243,243 +249,258 @@ public class GoMintServer implements GoMint, InventoryHolder {
             return;
         }
 
-        this.assets.getBlockPalette().sort( ( o1, o2 ) -> {
-            if ( o1.getBlockId().equals( o2.getBlockId() ) ) {
-                return Short.compare( o1.getData(), o2.getData() );
-            }
+        if ( !args.has( "convertOnly" ) ) {
+            this.assets.getBlockPalette().sort( ( o1, o2 ) -> {
+                if ( o1.getBlockId().equals( o2.getBlockId() ) ) {
+                    return Short.compare( o1.getData(), o2.getData() );
+                }
 
-            return o1.getBlockId().compareTo( o2.getBlockId() );
-        } );
+                return o1.getBlockId().compareTo( o2.getBlockId() );
+            } );
 
-        BlockRuntimeIDs.init( this.assets.getBlockPalette() );
+            BlockRuntimeIDs.init( this.assets.getBlockPalette() );
+        }
 
         startAfterRegistryInit( args, start );
     }
 
     private void startAfterRegistryInit( OptionSet args, long start ) {
-        // ------------------------------------ //
-        // jLine setup
-        // ------------------------------------ //
-        BlockingQueue<String> inputLines = new LinkedBlockingQueue<>();
-        LineReader reader = null;
-        Terminal terminal = TerminalConsoleAppender.getTerminal();
-        if ( terminal != null ) {
-            reader = LineReaderBuilder.builder()
-                .appName( "GoMint" )
-                .terminal( terminal )
-                .completer( ( lineReader, parsedLine, list ) -> {
-                    List<String> suggestions = pluginManager.getCommandManager().completeSystem( parsedLine.line() );
-                    for ( String suggestion : suggestions ) {
-                        LOGGER.info( suggestion );
+        if ( !args.has( "convertOnly" ) ) {
+            // ------------------------------------ //
+            // jLine setup
+            // ------------------------------------ //
+            BlockingQueue<String> inputLines = new LinkedBlockingQueue<>();
+            LineReader reader = null;
+            Terminal terminal = TerminalConsoleAppender.getTerminal();
+            if ( terminal != null ) {
+                reader = LineReaderBuilder.builder()
+                    .appName( "GoMint" )
+                    .terminal( terminal )
+                    .completer( ( lineReader, parsedLine, list ) -> {
+                        List<String> suggestions = pluginManager.getCommandManager().completeSystem( parsedLine.line() );
+                        for ( String suggestion : suggestions ) {
+                            LOGGER.info( suggestion );
+                        }
+                    } )
+                    .build();
+
+                reader.setKeyMap( "emacs" );
+
+                TerminalConsoleAppender.setReader( reader );
+            }
+
+            // ------------------------------------ //
+            // Setup jLine reader thread
+            // ------------------------------------ //
+            if ( reader != null ) {
+                LineReader finalReader = reader;
+                AtomicBoolean reading = new AtomicBoolean( false );
+
+                this.readerThread = new Thread( () -> {
+                    String line;
+                    while ( running.get() ) {
+                        // Read jLine
+                        reading.set( true );
+                        try {
+                            line = finalReader.readLine( "\u001b[32;0mGoMint\u001b[39;0m> " );
+                            inputLines.offer( line );
+                        } catch ( UserInterruptException e ) {
+                            GoMintServer.this.shutdown();
+                        } catch ( Exception e ) {
+                            LOGGER.error( "jLine failed with following exception", e );
+                        }
                     }
-                } )
-                .build();
+                } );
 
-            reader.setKeyMap( "emacs" );
+                this.readerThread.setName( "GoMint CLI reader" );
+                this.readerThread.start();
 
-            TerminalConsoleAppender.setReader( reader );
-        }
-
-        // ------------------------------------ //
-        // Setup jLine reader thread
-        // ------------------------------------ //
-        if ( reader != null ) {
-            LineReader finalReader = reader;
-            AtomicBoolean reading = new AtomicBoolean( false );
-
-            this.readerThread = new Thread( () -> {
-                String line;
-                while ( running.get() ) {
-                    // Read jLine
-                    reading.set( true );
+                while ( !reading.get() ) {
                     try {
-                        line = finalReader.readLine( "\u001b[32;0mGoMint\u001b[39;0m> " );
-                        inputLines.offer( line );
-                    } catch ( UserInterruptException e ) {
-                        GoMintServer.this.shutdown();
-                    } catch ( Exception e ) {
-                        LOGGER.error( "jLine failed with following exception", e );
+                        Thread.sleep( 10 );
+                    } catch ( InterruptedException e ) {
+                        // Ignored .-.
                     }
-                }
-            } );
-
-            this.readerThread.setName( "GoMint CLI reader" );
-            this.readerThread.start();
-
-            while ( !reading.get() ) {
-                try {
-                    Thread.sleep( 10 );
-                } catch ( InterruptedException e ) {
-                    // Ignored .-.
                 }
             }
-        }
 
-        // ------------------------------------ //
-        // Configuration Initialization
-        // ------------------------------------ //
-        this.loadConfig();
-        this.defaultWorld = this.serverConfig.getDefaultWorld();
+            // ------------------------------------ //
+            // Configuration Initialization
+            // ------------------------------------ //
+            this.loadConfig();
+            this.defaultWorld = this.serverConfig.getDefaultWorld();
 
-        // ------------------------------------ //
-        // Start of encryption helpers
-        // ------------------------------------ //
-        this.encryptionKeyFactory = new EncryptionKeyFactory( this );
+            // ------------------------------------ //
+            // Start of encryption helpers
+            // ------------------------------------ //
+            this.encryptionKeyFactory = new EncryptionKeyFactory( this );
 
-        // ------------------------------------ //
-        // Scheduler + WorldManager + PluginManager Initialization
-        // ------------------------------------ //
-        this.syncTaskManager = new SyncTaskManager( this );
-        this.scheduler = new CoreScheduler( this.getExecutorService(), this.getSyncTaskManager() );
+            // ------------------------------------ //
+            // Scheduler + WorldManager + PluginManager Initialization
+            // ------------------------------------ //
+            this.syncTaskManager = new SyncTaskManager( this );
+            this.scheduler = new CoreScheduler( this.getExecutorService(), this.getSyncTaskManager() );
 
-        this.worldManager = new WorldManager( this );
+            this.worldManager = new WorldManager( this );
 
-        this.pluginManager = new SimplePluginManager( this );
-        this.pluginManager.detectPlugins();
-        this.pluginManager.loadPlugins( StartupPriority.STARTUP );
+            this.pluginManager = new SimplePluginManager( this );
+            this.pluginManager.detectPlugins();
+            this.pluginManager.loadPlugins( StartupPriority.STARTUP );
 
-        if ( !this.isRunning() ) {
-            this.internalShutdown();
-            return;
-        }
-
-        // ------------------------------------ //
-        // Pre World Initialization
-        // ------------------------------------ //
-
-        LOGGER.info( "Initializing recipes..." );
-        this.recipeManager = new RecipeManager();
-
-        // Add all recipes from asset library:
-        for ( Recipe recipe : this.assets.getRecipes() ) {
-            this.recipeManager.registerRecipe( recipe );
-        }
-
-        this.recipeManager.fixMCPEBugs();
-
-        this.creativeInventory = this.assets.getCreativeInventory();
-        this.permissionGroupManager = new PermissionGroupManager();
-
-        // ------------------------------------ //
-        // World Initialization
-        // ------------------------------------ //
-        // CHECKSTYLE:OFF
-        try {
-            this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
-        } catch ( WorldLoadException e ) {
-            // Try to generate world
-            if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ).worldType( WorldType.PERSISTENT ) ) == null ) {
-                LOGGER.error( "Failed to load or generate default world", e );
+            if ( !this.isRunning() ) {
                 this.internalShutdown();
                 return;
             }
-        }
-        // CHECKSTYLE:ON
 
-        // ------------------------------------ //
-        // Networking Initialization
-        // ------------------------------------ //
-        int port = args.has( "lp" ) ? (int) args.valueOf( "lp" ) : this.serverConfig.getListener().getPort();
-        String host = args.has( "lh" ) ? (String) args.valueOf( "lh" ) : this.serverConfig.getListener().getIp();
+            // ------------------------------------ //
+            // Pre World Initialization
+            // ------------------------------------ //
 
-        this.networkManager = new NetworkManager( this );
-        if ( !this.initNetworking( host, port ) ) {
-            this.internalShutdown();
-            return;
-        }
+            LOGGER.info( "Initializing recipes..." );
+            this.recipeManager = new RecipeManager();
 
-        setMotd( this.getServerConfig().getMotd() );
+            // Add all recipes from asset library:
+            for ( Recipe recipe : this.assets.getRecipes() ) {
+                this.recipeManager.registerRecipe( recipe );
+            }
 
-        // ------------------------------------ //
-        // Load plugins with StartupPriority LOAD
-        // ------------------------------------ //
-        this.pluginManager.loadPlugins( StartupPriority.LOAD );
-        if ( !this.isRunning() ) {
-            this.internalShutdown();
-            return;
-        }
+            this.recipeManager.fixMCPEBugs();
 
-        this.pluginManager.installPlugins();
+            this.creativeInventory = this.assets.getCreativeInventory();
+            this.permissionGroupManager = new PermissionGroupManager();
 
-        if ( !this.isRunning() ) {
-            this.internalShutdown();
-            return;
-        }
-
-        init.set( false );
-        LOGGER.info( "Done in {} ms", ( System.currentTimeMillis() - start ) );
-        this.watchdog.done();
-
-        // ------------------------------------ //
-        // Main Loop
-        // ------------------------------------ //
-
-        // Calculate the nanoseconds we need for the tick loop
-        int targetTPS = this.getServerConfig().getTargetTPS();
-        if ( targetTPS > 1000 ) {
-            LOGGER.warn( "Setting target TPS above 1k is not supported, target TPS has been set to 1k" );
-            targetTPS = 1000;
-        }
-
-        long skipMillis = TimeUnit.SECONDS.toMillis( 1 ) / targetTPS;
-        LOGGER.info( "Setting skipMillis to: {}", skipMillis );
-
-        // Tick loop
-        float lastTickTime = Float.MIN_NORMAL;
-
-        while ( this.running.get() ) {
+            // ------------------------------------ //
+            // World Initialization
+            // ------------------------------------ //
+            // CHECKSTYLE:OFF
             try {
-                // Tick all major subsystems:
-                this.currentTickTime = System.currentTimeMillis();
-                this.watchdog.add( this.currentTickTime, 30, TimeUnit.SECONDS );
+                this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
+            } catch ( WorldLoadException e ) {
+                // Try to generate world
+                if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ).worldType( WorldType.PERSISTENT ) ) == null ) {
+                    LOGGER.error( "Failed to load or generate default world", e );
+                    this.internalShutdown();
+                    return;
+                }
+            }
+            // CHECKSTYLE:ON
 
-                // Drain input lines
-                while ( !inputLines.isEmpty() ) {
-                    String line = inputLines.poll();
-                    if ( line != null ) {
-                        this.pluginManager.getCommandManager().executeSystem( line );
+            // ------------------------------------ //
+            // Networking Initialization
+            // ------------------------------------ //
+            int port = args.has( "lp" ) ? (int) args.valueOf( "lp" ) : this.serverConfig.getListener().getPort();
+            String host = args.has( "lh" ) ? (String) args.valueOf( "lh" ) : this.serverConfig.getListener().getIp();
+
+            this.networkManager = new NetworkManager( this );
+            if ( !this.initNetworking( host, port ) ) {
+                this.internalShutdown();
+                return;
+            }
+
+            setMotd( this.getServerConfig().getMotd() );
+
+            // ------------------------------------ //
+            // Load plugins with StartupPriority LOAD
+            // ------------------------------------ //
+            this.pluginManager.loadPlugins( StartupPriority.LOAD );
+            if ( !this.isRunning() ) {
+                this.internalShutdown();
+                return;
+            }
+
+            this.pluginManager.installPlugins();
+
+            if ( !this.isRunning() ) {
+                this.internalShutdown();
+                return;
+            }
+
+            init.set( false );
+            LOGGER.info( "Done in {} ms", ( System.currentTimeMillis() - start ) );
+            this.watchdog.done();
+
+            // ------------------------------------ //
+            // Main Loop
+            // ------------------------------------ //
+
+            // Calculate the nanoseconds we need for the tick loop
+            int targetTPS = this.getServerConfig().getTargetTPS();
+            if ( targetTPS > 1000 ) {
+                LOGGER.warn( "Setting target TPS above 1k is not supported, target TPS has been set to 1k" );
+                targetTPS = 1000;
+            }
+
+            long skipMillis = TimeUnit.SECONDS.toMillis( 1 ) / targetTPS;
+            LOGGER.info( "Setting skipMillis to: {}", skipMillis );
+
+            // Tick loop
+            float lastTickTime = Float.MIN_NORMAL;
+
+            while ( this.running.get() ) {
+                try {
+                    // Tick all major subsystems:
+                    this.currentTickTime = System.currentTimeMillis();
+                    this.watchdog.add( this.currentTickTime, 30, TimeUnit.SECONDS );
+
+                    // Drain input lines
+                    while ( !inputLines.isEmpty() ) {
+                        String line = inputLines.poll();
+                        if ( line != null ) {
+                            this.pluginManager.getCommandManager().executeSystem( line );
+                        }
                     }
-                }
 
-                // Tick remaining work
-                while ( !this.mainThreadWork.isEmpty() ) {
-                    Runnable runnable = this.mainThreadWork.poll();
-                    if ( runnable != null ) {
-                        runnable.run();
+                    // Tick remaining work
+                    while ( !this.mainThreadWork.isEmpty() ) {
+                        Runnable runnable = this.mainThreadWork.poll();
+                        if ( runnable != null ) {
+                            runnable.run();
+                        }
                     }
+
+                    // Tick networking at every tick
+                    this.networkManager.update( this.currentTickTime, lastTickTime );
+
+                    this.syncTaskManager.update( this.currentTickTime );
+                    this.worldManager.update( this.currentTickTime, lastTickTime );
+                    this.permissionGroupManager.update( this.currentTickTime, lastTickTime );
+
+                    this.watchdog.done();
+
+                    // Check if we got shutdown
+                    if ( !this.running.get() ) {
+                        break;
+                    }
+
+                    long diff = System.currentTimeMillis() - this.currentTickTime;
+                    if ( diff < skipMillis ) {
+                        Thread.sleep( skipMillis - diff );
+
+                        lastTickTime = (float) skipMillis / TimeUnit.SECONDS.toMillis( 1 );
+                        this.tps = ( 1 / (double) lastTickTime );
+                    } else {
+                        lastTickTime = (float) diff / TimeUnit.SECONDS.toMillis( 1 );
+                        this.tps = ( 1 / (double) lastTickTime );
+                        LOGGER.warn( "Running behind: {} / {} tps", this.tps, ( 1 / ( skipMillis / (float) TimeUnit.SECONDS.toMillis( 1 ) ) ) );
+                    }
+                } catch ( InterruptedException e ) {
+                    // Ignored ._.
                 }
+            }
 
-                // Tick networking at every tick
-                this.networkManager.update( this.currentTickTime, lastTickTime );
+            this.internalShutdown();
+        } else {
+            // Scan all folders and convert them
+            File[] folderContent = new File( "." ).listFiles();
+            for ( File file : folderContent ) {
+                if ( file.isDirectory() && new File( file, "region" ).exists() ) {
+                    LOGGER.info( "Start converting process for {}", file.getName() );
 
-                this.syncTaskManager.update( this.currentTickTime );
-                this.worldManager.update( this.currentTickTime, lastTickTime );
-                this.permissionGroupManager.update( this.currentTickTime, lastTickTime );
-
-                this.watchdog.done();
-
-                // Check if we got shutdown
-                if ( !this.running.get() ) {
-                    break;
+                    AnvilConverter anvilConverter = new AnvilConverter( this.assets, new Items( this.getClassPath(), this.getAssets().getJeTopeItems() ), file );
+                    anvilConverter.done();
                 }
-
-                long diff = System.currentTimeMillis() - this.currentTickTime;
-                if ( diff < skipMillis ) {
-                    Thread.sleep( skipMillis - diff );
-
-                    lastTickTime = (float) skipMillis / TimeUnit.SECONDS.toMillis( 1 );
-                    this.tps = ( 1 / (double) lastTickTime );
-                } else {
-                    lastTickTime = (float) diff / TimeUnit.SECONDS.toMillis( 1 );
-                    this.tps = ( 1 / (double) lastTickTime );
-                    LOGGER.warn( "Running behind: {} / {} tps", this.tps, ( 1 / ( skipMillis / (float) TimeUnit.SECONDS.toMillis( 1 ) ) ) );
-                }
-            } catch ( InterruptedException e ) {
-                // Ignored ._.
             }
         }
-
-        this.internalShutdown();
     }
 
     private void internalShutdown() {

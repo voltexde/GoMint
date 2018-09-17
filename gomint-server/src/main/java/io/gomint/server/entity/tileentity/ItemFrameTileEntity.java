@@ -39,16 +39,7 @@ public class ItemFrameTileEntity extends TileEntity {
         this.itemRotation = tagCompound.getByte( "ItemRotation", (byte) 0 );
 
         //
-        NBTTagCompound itemCompound = tagCompound.getCompound( "Item", false );
-        if ( itemCompound != null ) {
-            this.holdingItem = world.getServer().getItems().create(
-                itemCompound.getShort( "id", (short) 0 ),
-                itemCompound.getShort( "Damage", (short) 0 ),
-                itemCompound.getByte( "Count", (byte) 1 ),
-                itemCompound.getCompound( "tag", false ) );
-        } else {
-            this.holdingItem = world.getServer().getItems().create( 0, (short) 0, (byte) 0, null );
-        }
+        this.holdingItem = getItemStack( tagCompound.getCompound( "Item", false ) );
     }
 
     @Override

@@ -60,6 +60,7 @@ public class Bootstrap {
         parser.accepts( "lp" ).withRequiredArg().ofType( Integer.class );
         parser.accepts( "lh" ).withRequiredArg();
         parser.accepts( "slc" );
+        parser.accepts( "convertOnly", "Scans root dir for folders with a anvil based world in it and converts it. After converting the process dies" );
 
         OptionSet options = parser.parse( args );
 
@@ -91,8 +92,8 @@ public class Bootstrap {
             Constructor constructor = coreClass.getDeclaredConstructor( OptionSet.class );
             constructor.newInstance( new Object[]{ options } );
         } catch ( Throwable t ) {
-            ReportUploader.create().exception( t ).property( "crash", "true" ).upload();
             LOGGER.error( "GoMint crashed: ", t );
+            ReportUploader.create().exception( t ).property( "crash", "true" ).upload();
         }
     }
 

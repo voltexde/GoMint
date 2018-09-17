@@ -309,7 +309,15 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         while ( nbtReader.hasMoreToRead() ) {
             try {
                 NBTTagCompound compound = nbtReader.parse();
+                String identifier = compound.getString( "identifier", null );
+                if ( identifier == null ) {
+                    System.out.println( "WTF" );
+                } else {
+                    System.out.println( identifier );
+                }
+
                 Integer id = compound.getInteger( "id", 0 );
+
                 Entity entity = this.world.getServer().getEntities().create( id & 0xFF );
                 if ( entity != null ) {
                     entity.initFromNBT( compound );

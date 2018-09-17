@@ -44,14 +44,16 @@ public class TileEntities implements TileEntityConverters {
     private ComparatorConverter comparatorConverter;
     private CauldronConverter cauldronConverter;
     private DropperConverter dropperConverter;
+    private MobSpawnerConverter mobSpawnerConverter;
 
     /**
      * Construct 1.8 converter for the given world
      *
-     * @param items        which can be used by this converter
-     * @param itemConverter mappings for string -> int ids
+     * @param items           which can be used by this converter
+     * @param itemConverter   mappings for string -> int ids
+     * @param entityConverter mappings for string -> int ids
      */
-    public TileEntities( Items items, Object2IntMap<String> itemConverter ) {
+    public TileEntities( Items items, Object2IntMap<String> itemConverter, Object2IntMap<String> entityConverter ) {
         this.signConverter = new SignConverter( items, itemConverter );
         this.skullConverter = new SkullConverter( items, itemConverter );
         this.chestConverter = new ChestConverter( items, itemConverter );
@@ -72,12 +74,17 @@ public class TileEntities implements TileEntityConverters {
         this.comparatorConverter = new ComparatorConverter( items, itemConverter );
         this.cauldronConverter = new CauldronConverter( items, itemConverter );
         this.dropperConverter = new DropperConverter( items, itemConverter );
+        this.mobSpawnerConverter = new MobSpawnerConverter( items, itemConverter, entityConverter );
     }
 
     @Override
     public TileEntity read( NBTTagCompound compound ) {
         String id = compound.getString( "id", "" );
         switch ( id ) {
+            case "MobSpawner":
+                return this.mobSpawnerConverter.readFrom( compound );
+            case "Piston":
+                return null; // We generate those in block converting
             case "Dropper":
                 return this.dropperConverter.readFrom( compound );
             case "Cauldron":
