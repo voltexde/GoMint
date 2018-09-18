@@ -1,6 +1,9 @@
 package io.gomint.server.world.block;
 
+import io.gomint.server.entity.tileentity.DropperTileEntity;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.inventory.item.*;
@@ -10,12 +13,12 @@ import io.gomint.server.registry.RegisterInfo;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 125 )
+@RegisterInfo( sId = "minecraft:dropper" )
 public class Dropper extends Block implements io.gomint.world.block.BlockDropper {
 
     @Override
-    public int getBlockId() {
-        return 125;
+    public String getBlockId() {
+        return "minecraft:dropper";
     }
 
     @Override
@@ -41,6 +44,17 @@ public class Dropper extends Block implements io.gomint.world.block.BlockDropper
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
+    }
+
+    @Override
+    public boolean needsTileEntity() {
+        return true;
+    }
+
+    @Override
+    TileEntity createTileEntity( NBTTagCompound compound ) {
+        super.createTileEntity( compound );
+        return new DropperTileEntity( compound, this.world, this.world.getServer().getItems() );
     }
 
 }

@@ -10,6 +10,10 @@ import io.gomint.server.registry.RegisterInfo;
 @RegisterInfo( id = 196 )
 public class ItemAcaciaDoorBlock extends ItemStack {
 
+    @Override
+    public String getBlockId() {
+        return "minecraft:acacia_door";
+    }
 
     @Override
     public ItemType getType() {

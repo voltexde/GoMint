@@ -1,6 +1,8 @@
 package io.gomint.server.world;
 
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -121,6 +123,7 @@ public enum SoundMagicNumbers {
     RECORD_WARD( 110 ),
     RECORD_11( 111 ),
     RECORD_WAIT( 112 ),
+    STOP_JUKEBOX( 113 ),
     GUARDIAN_FLOP( 114 ),
     ELDERGUARDIAN_CURSE( 115 ),
     MOB_WARNING( 116 ),
@@ -185,6 +188,8 @@ public enum SoundMagicNumbers {
     BOTTLE_DRAGONBREATH( 176 ),
     PORTAL_TRAVEL( 177 );
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( SoundMagicNumbers.class );
+
     @Getter
     private final byte soundId;
 
@@ -199,6 +204,7 @@ public enum SoundMagicNumbers {
             }
         }
 
+        LOGGER.warn( "Unknown sound: {}", id );
         return null;
     }
 

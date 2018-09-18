@@ -1,7 +1,10 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.server.entity.tileentity.HopperTileEntity;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.registry.RegisterInfo;
@@ -10,12 +13,12 @@ import io.gomint.server.registry.RegisterInfo;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 154 )
+@RegisterInfo( sId = "minecraft:hopper" )
 public class Hopper extends Block implements io.gomint.world.block.BlockHopper {
 
     @Override
-    public int getBlockId() {
-        return 154;
+    public String getBlockId() {
+        return "minecraft:hopper";
     }
 
     @Override
@@ -47,4 +50,16 @@ public class Hopper extends Block implements io.gomint.world.block.BlockHopper {
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.PICKAXE;
     }
+
+    @Override
+    public boolean needsTileEntity() {
+        return true;
+    }
+
+    @Override
+    TileEntity createTileEntity( NBTTagCompound compound ) {
+        super.createTileEntity( compound );
+        return new HopperTileEntity( compound, this.world, this.world.getServer().getItems() );
+    }
+
 }

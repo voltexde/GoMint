@@ -11,7 +11,8 @@ import io.gomint.entity.Entity;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.InventoryHolder;
-import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.inventory.item.Items;
+import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
@@ -24,17 +25,17 @@ import lombok.Getter;
 @Getter
 public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
 
-    private ItemStack holdingItem;
+    private BlockIdentifier holding;
 
     /**
      * Create a new flower pot with the item given as content
      *
-     * @param itemStack which should be inside the flower pot
-     * @param position  of the flower pot
+     * @param holding  which should be inside the flower pot
+     * @param position of the flower pot
      */
-    public FlowerPotTileEntity( ItemStack itemStack, Location position ) {
+    public FlowerPotTileEntity( BlockIdentifier holding, Location position ) {
         super( position );
-        this.holdingItem = itemStack;
+        this.holding = holding;
     }
 
     /**
@@ -42,24 +43,12 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
      *
      * @param tagCompound The TagCompound which should be used to read data from
      * @param world       The world in which this TileEntity resides
+     * @param items       which should be used for generating item stacks
      */
-    public FlowerPotTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
-        super( tagCompound, world );
+    public FlowerPotTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
+        super( tagCompound, world, items );
 
-        int material = tagCompound.getShort( "item", (short) 0 );
-
-        // Skip non existent items for PE
-        if ( material == 0 ) {
-            this.holdingItem = world.getServer().getItems().create( 0, (short) 0, (byte) 1, null );
-            return;
-        }
-
-        short data = tagCompound.getInteger( "mData", -1 ).shortValue();
-        if ( data == -1 ) {
-            data = tagCompound.getInteger( "Data", -1 ).shortValue();
-        }
-
-        this.holdingItem = world.getServer().getItems().create( material, data, (byte) 1, null );
+        this.holding = getBlockIdentifier( tagCompound.getCompound( "PlantBlock", false ) );
     }
 
     @Override
@@ -78,8 +67,10 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
 
         compound.addValue( "id", "FlowerPot" );
 
-        compound.addValue( "item", (short) this.holdingItem.getMaterial() );
-        compound.addValue( "mData", (int) this.holdingItem.getData() );
+        if ( this.holding != null ) {
+            NBTTagCompound block = compound.getCompound( "PlantBlock", true );
+            putBlockIdentifier( this.holding, block );
+        }
     }
 
 }

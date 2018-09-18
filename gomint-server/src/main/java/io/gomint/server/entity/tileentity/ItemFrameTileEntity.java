@@ -10,6 +10,7 @@ package io.gomint.server.entity.tileentity;
 import io.gomint.entity.Entity;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.item.ItemStack;
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
@@ -30,24 +31,15 @@ public class ItemFrameTileEntity extends TileEntity {
      * @param tagCompound The TagCompound which should be used to read data from
      * @param world       The world in which this TileEntity resides
      */
-    public ItemFrameTileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
-        super( tagCompound, world );
+    public ItemFrameTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
+        super( tagCompound, world, items );
 
         //
         this.itemDropChance = tagCompound.getFloat( "ItemDropChance", 1.0f );
         this.itemRotation = tagCompound.getByte( "ItemRotation", (byte) 0 );
 
         //
-        NBTTagCompound itemCompound = tagCompound.getCompound( "Item", false );
-        if ( itemCompound != null ) {
-            this.holdingItem = world.getServer().getItems().create(
-                itemCompound.getShort( "id", (short) 0 ),
-                itemCompound.getShort( "Damage", (short) 0 ),
-                itemCompound.getByte( "Count", (byte) 1 ),
-                itemCompound.getCompound( "tag", false ) );
-        } else {
-            this.holdingItem = world.getServer().getItems().create( 0, (short) 0, (byte) 0, null );
-        }
+        this.holdingItem = getItemStack( tagCompound.getCompound( "Item", false ) );
     }
 
     @Override

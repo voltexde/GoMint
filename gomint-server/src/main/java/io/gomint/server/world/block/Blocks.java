@@ -1,5 +1,6 @@
 package io.gomint.server.world.block;
 
+import com.google.common.reflect.ClassPath;
 import io.gomint.entity.Entity;
 import io.gomint.event.world.BlockPlaceEvent;
 import io.gomint.inventory.item.ItemStack;
@@ -12,7 +13,9 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.registry.StringRegistry;
 import io.gomint.server.util.performance.ObjectConstructionFactory;
+import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.WorldAdapter;
 import org.slf4j.Logger;
@@ -29,15 +32,15 @@ public class Blocks {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Blocks.class );
     private static long lastReport = 0;
-    private final Registry<Block> generators;
+    private final StringRegistry<Block> generators;
 
     /**
      * Create a new block registry
      *
-     * @param server which builds this registry
+     * @param classPath which builds this registry
      */
-    public Blocks( GoMintServer server ) {
-        this.generators = new Registry<>( server, clazz -> {
+    public Blocks( ClassPath classPath ) {
+        this.generators = new StringRegistry<>( classPath, clazz -> {
             ObjectConstructionFactory factory = new ObjectConstructionFactory( clazz );
             return () -> (Block) factory.newInstance();
         } );
@@ -45,7 +48,7 @@ public class Blocks {
         this.generators.register( "io.gomint.server.world.block" );
     }
 
-    public <T extends Block> T get( int blockId, byte blockData, byte skyLightLevel, byte blockLightLevel,
+    public <T extends Block> T get( String blockId, short blockData, byte skyLightLevel, byte blockLightLevel,
                                     TileEntity tileEntity, Location location, int layer ) {
         Generator<Block> instance = this.generators.getGenerator( blockId );
         if ( instance != null ) {
@@ -69,7 +72,7 @@ public class Blocks {
         return null;
     }
 
-    public Block get( int blockId ) {
+    public Block get( String blockId ) {
         Generator<Block> instance = this.generators.getGenerator( blockId );
         if ( instance != null ) {
             return instance.generate();
@@ -88,13 +91,17 @@ public class Blocks {
         return null;
     }
 
-    public int getID( Class<?> block ) {
+    public String getID( Class<?> block ) {
         return this.generators.getId( block );
     }
 
     public boolean replaceWithItem( EntityPlayer entity, Block clickedBlock, Block block, ItemStack item, Vector clickVector ) {
         // We need to change the block id first
-        int id = ( (io.gomint.server.inventory.item.ItemStack) item ).getBlockId();
+        String id = ( (io.gomint.server.inventory.item.ItemStack) item ).getBlockId();
+        if ( id == null ) {
+            return false;
+        }
+
         Generator<Block> blockGenerator = this.generators.getGenerator( id );
         Block newBlock = blockGenerator.generate();
         if ( !newBlock.beforePlacement( entity, item, block.location ) ) {
@@ -107,7 +114,7 @@ public class Blocks {
         // Check only solid blocks for bounding box intersects
         if ( newBlock.isSolid() ) {
             newBlock.setLocation( block.location ); // Temp setting, needed for getting bounding boxes
-            newBlock.setBlockData( data.getMetaData() );
+            newBlock.setBlockData( data.getBlockIdentifier().getData() );
             newBlock.generateBlockStates();
 
             for ( AxisAlignedBB bb : newBlock.getBoundingBox() ) {

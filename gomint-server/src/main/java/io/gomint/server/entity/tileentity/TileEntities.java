@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
+import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
@@ -96,8 +97,6 @@ public enum TileEntities {
      */
     DISPENSER( "Dispenser", DispenserTileEntity.class ),
 
-    // DROPPER( "Dropper", )
-
     /**
      * Data for beacon
      */
@@ -111,7 +110,37 @@ public enum TileEntities {
     /**
      * Data for banner
      */
-    //BANNER( "Banner", BannerTileEntity.class );
+    BANNER( "Banner", BannerTileEntity.class ),
+
+    /**
+     * Data for mob spawner
+     */
+    MOB_SPAWNER( "MobSpawner", MobSpawnerTileEntity.class ),
+
+    /**
+     * Data for a jukebox
+     */
+    JUKEBOX( "Jukebox", JukeboxTileEntity.class ),
+
+    /**
+     * Data for a hopper
+     */
+    HOPPER( "Hopper", HopperTileEntity.class ),
+
+    /**
+     * Data for a comparator
+     */
+    COMPARATOR( "Comparator", ComparatorTileEntity.class ),
+
+    /**
+     * Data for a cauldron
+     */
+    CAULDRON( "Cauldron", CauldronTileEntity.class ),
+
+    /**
+     * Data for a dropper
+     */
+    DROPPER( "Dropper", DropperTileEntity.class );
 
     MOB_SPAWNER( "MobSpawner", MobSpawnerTileEntity.class );
 
@@ -129,7 +158,7 @@ public enum TileEntities {
         this.nbtID = nbtID;
 
         try {
-            this.tileEntityConstructor = MethodHandles.lookup().unreflectConstructor( tileEntityClass.getConstructor( NBTTagCompound.class, WorldAdapter.class ) );
+            this.tileEntityConstructor = MethodHandles.lookup().unreflectConstructor( tileEntityClass.getConstructor( NBTTagCompound.class, WorldAdapter.class, Items.class ) );
         } catch ( IllegalAccessException | NoSuchMethodException e ) {
             e.printStackTrace();
             this.tileEntityConstructor = null;
@@ -154,7 +183,7 @@ public enum TileEntities {
         for ( TileEntities tileEntities : values() ) {
             if ( tileEntities.nbtID.equals( id ) ) {
                 try {
-                    return (TileEntity) tileEntities.tileEntityConstructor.invoke( compound, world );
+                    return (TileEntity) tileEntities.tileEntityConstructor.invoke( compound, world, world.getServer().getItems() );
                 } catch ( Throwable throwable ) {
                     LOGGER.warn( "Could not build up tile entity: ", throwable );
                     return null;

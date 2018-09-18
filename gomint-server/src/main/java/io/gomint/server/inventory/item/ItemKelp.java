@@ -12,4 +12,10 @@ public class ItemKelp extends ItemStack implements io.gomint.inventory.item.Item
     public ItemType getType() {
         return ItemType.KELP;
     }
+
+    @Override
+    public String getBlockId() {
+        return "minecraft:kelp";
+    }
+
 }

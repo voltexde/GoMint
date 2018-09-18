@@ -311,11 +311,20 @@ public class PlayerConnection {
                 // Check if we have a slot
                 Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
                 List<ChunkAdapter> recheck = null;
+                int sent = 0;
 
-                while ( !queue.isEmpty() ) {
+                int maxSent = this.server.getServerConfig().getSendChunksPerTick();
+                if ( this.server.getServerConfig().isEnableFastJoin() && this.state == PlayerConnectionState.LOGIN ) {
+                    maxSent = Integer.MAX_VALUE;
+                }
+
+                while ( !queue.isEmpty() && sent <= maxSent ) {
                     ChunkAdapter chunk = queue.poll();
-                    if ( chunk == null ||
-                        Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
+                    if ( chunk == null ) {
+                        break;
+                    }
+
+                    if ( Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
                         Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ||
                         !chunk.getWorld().equals( this.entity.getWorld() ) ) {
                         LOGGER.debug( "Removed chunk from sending due to out of scope" );
@@ -328,11 +337,13 @@ public class PlayerConnection {
                             recheck = new ArrayList<>();
                         }
 
+                        LOGGER.debug( "Chunk not populated" );
                         recheck.add( chunk );
                         continue;
                     }
 
                     this.sendWorldChunk( chunk );
+                    sent++;
                 }
 
                 if ( recheck != null ) {
@@ -756,7 +767,7 @@ public class PlayerConnection {
         LOGGER.debug( "Requesting chunk {} {} for {}", x, z, this.entity );
         this.entity.getWorld().sendChunk( x, z,
             false, ( chunkHash, loadedChunk ) -> {
-                LOGGER.debug( "Loaded chunk: {} - > {}", this.entity, loadedChunk );
+                LOGGER.debug( "Loaded chunk: {} -> {}", this.entity, loadedChunk );
                 if ( this.entity != null ) { // It can happen that the server loads longer and the client has disconnected
                     if ( !this.entity.getChunkSendQueue().offer( loadedChunk ) ) {
                         LOGGER.warn( "Could not add chunk to send queue" );

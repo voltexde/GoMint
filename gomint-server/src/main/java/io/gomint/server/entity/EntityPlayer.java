@@ -80,6 +80,7 @@ import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
 import io.gomint.server.scoreboard.Scoreboard;
+import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.WorldAdapter;
@@ -798,6 +799,8 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
             add( new PacketPlayerlist.Entry( EntityPlayer.this ) );
         }} );
         this.getConnection().addToSendQueue( playerlist );
+
+        LOGGER.debug( "Did send all prepare entity data" );
     }
 
     @Override
@@ -1573,7 +1576,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public Packet createSpawnPacket( EntityPlayer receiver ) {
         PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
         packetSpawnPlayer.setUuid( this.getUUID() );
-        packetSpawnPlayer.setName( receiver.getConnection().getProtocolID() > Protocol.MINECRAFT_PE_PROTOCOL_VERSION ? this.getNameTag() : this.getName() ); // TODO: MJ BUG / 1.5.0.14 / Nametags don't change according to metadata index 4 (nametag) anymore, the client uses the name set in the spawn player packet
+        packetSpawnPlayer.setName( receiver.getConnection().getProtocolID() < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ? this.getNameTag() : this.getName() ); // TODO: MJ BUG / 1.5.0.14 / Nametags don't change according to metadata index 4 (nametag) anymore, the client uses the name set in the spawn player packet
         packetSpawnPlayer.setEntityId( this.getEntityId() );
         packetSpawnPlayer.setRuntimeEntityId( this.getEntityId() );
 

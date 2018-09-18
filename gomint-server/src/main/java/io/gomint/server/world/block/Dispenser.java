@@ -13,12 +13,12 @@ import io.gomint.server.registry.RegisterInfo;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 23 )
+@RegisterInfo( sId = "minecraft:dispenser" )
 public class Dispenser extends Block implements io.gomint.world.block.BlockDispenser {
 
     @Override
-    public int getBlockId() {
-        return 23;
+    public String getBlockId() {
+        return "minecraft:dispenser";
     }
 
     @Override
@@ -48,6 +48,7 @@ public class Dispenser extends Block implements io.gomint.world.block.BlockDispe
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
+        super.createTileEntity( compound );
         return new DispenserTileEntity( null, this.location );
     }
 

@@ -15,7 +15,7 @@ import io.gomint.world.block.BlockType;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 393 )
+@RegisterInfo( sId = "minecraft:kelp" )
 public class Kelp extends Block implements BlockKelp {
 
     @Override

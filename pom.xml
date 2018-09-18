@@ -33,6 +33,8 @@
         <module>gomint-performance-viewer</module>
         <module>gomint-native</module>
         <module>gomint-emulator</module>
+        <module>gomint-asset-compiler</module>
+        <module>gomint-converter</module>
     </modules>
 
     <properties>

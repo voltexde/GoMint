@@ -11,10 +11,10 @@ import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
-import io.gomint.server.inventory.MaterialMagicNumbers;
+import io.gomint.server.inventory.item.Items;
+import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
-import io.gomint.server.world.block.BurningFurnace;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import lombok.Getter;
@@ -28,6 +28,7 @@ public abstract class TileEntity {
     // CHECKSTYLE:OFF
     @Getter
     protected Location location;
+    protected Items items;
     private byte moveable;
     protected boolean needsPersistance;
     // CHECKSTYLE:ON
@@ -47,8 +48,10 @@ public abstract class TileEntity {
      *
      * @param tagCompound The TagCompound which should be used to read data from
      * @param world       The world in which this TileEntity resides
+     * @param items       which generates item instances
      */
-    TileEntity( NBTTagCompound tagCompound, WorldAdapter world ) {
+    TileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
+        this.items = items;
         this.location = new Location(
             world,
             tagCompound.getInteger( "x", 0 ),
@@ -59,29 +62,45 @@ public abstract class TileEntity {
         this.moveable = tagCompound.getByte( "isMovable", (byte) 1 );
     }
 
+    BlockIdentifier getBlockIdentifier( NBTTagCompound compound ) {
+        if ( compound == null ) {
+            return null;
+        }
+
+        return new BlockIdentifier( compound.getString( "name", "minecraft:air" ), compound.getShort( "val", (short) 0 ) );
+    }
+
+    void putBlockIdentifier( BlockIdentifier identifier, NBTTagCompound compound ) {
+        compound.addValue( "name", identifier.getBlockId() );
+        compound.addValue( "val", identifier.getData() );
+    }
+
     io.gomint.server.inventory.item.ItemStack getItemStack( NBTTagCompound compound ) {
         // Check for correct ids
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
-
-        // This is needed since minecraft changed from storing raw ids to string keys somewhere in 1.7 / 1.8
-        int material;
-        try {
-            material = compound.getShort( "id", (short) 0 );
-        } catch ( ClassCastException e ) {
-            material = MaterialMagicNumbers.valueOfWithId( compound.getString( "id", "minecraft:air" ) );
+        if ( this.items == null ) {
+            this.items = worldAdapter.getServer().getItems();
         }
 
-        // Skip non existent items for PE
-        if ( material == 0 ) {
-            return worldAdapter.getServer().getItems().create( 0, (short) 0, (byte) 0, null );
+        // Item not there?
+        if ( compound == null ) {
+            return this.items.create( 0, (short) 0, (byte) 0, null );
         }
 
         short data = compound.getShort( "Damage", (short) 0 );
-        byte amount = compound.getByte( "Count", (byte) 1 );
+        byte amount = compound.getByte( "Count", (byte) 0 );
 
-        return worldAdapter.getServer().getItems().create( material, data, amount, compound.getCompound( "tag", false ) );
+        // This is needed since minecraft changed from storing raw ids to string keys somewhere in 1.7 / 1.8
+        try {
+            return this.items.create( compound.getShort( "id", (short) 0 ), data, amount, compound.getCompound( "tag", false ) );
+        } catch ( ClassCastException e ) {
+            try {
+                return this.items.create( compound.getString( "id", "minecraft:air" ), data, amount, compound.getCompound( "tag", false ) );
+            } catch ( ClassCastException e1 ) {
+                return this.items.create( compound.getInteger( "id", 0 ), data, amount, compound.getCompound( "tag", false ) );
+            }
+        }
     }
-
 
     void putItemStack( io.gomint.server.inventory.item.ItemStack itemStack, NBTTagCompound compound ) {
         compound.addValue( "id", (short) itemStack.getMaterial() );
