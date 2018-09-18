@@ -12,6 +12,7 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.item.Items;
+import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
@@ -59,6 +60,19 @@ public abstract class TileEntity {
         );
 
         this.moveable = tagCompound.getByte( "isMovable", (byte) 1 );
+    }
+
+    BlockIdentifier getBlockIdentifier( NBTTagCompound compound ) {
+        if ( compound == null ) {
+            return null;
+        }
+
+        return new BlockIdentifier( compound.getString( "name", "minecraft:air" ), compound.getShort( "val", (short) 0 ) );
+    }
+
+    void putBlockIdentifier( BlockIdentifier identifier, NBTTagCompound compound ) {
+        compound.addValue( "name", identifier.getBlockId() );
+        compound.addValue( "val", identifier.getData() );
     }
 
     io.gomint.server.inventory.item.ItemStack getItemStack( NBTTagCompound compound ) {

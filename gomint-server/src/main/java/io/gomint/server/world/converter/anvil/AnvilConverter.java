@@ -1,6 +1,7 @@
 package io.gomint.server.world.converter.anvil;
 
 import io.gomint.server.assets.AssetsLibrary;
+import io.gomint.server.entity.tileentity.FlowerPotTileEntity;
 import io.gomint.server.entity.tileentity.ItemFrameTileEntity;
 import io.gomint.server.entity.tileentity.PistonArmTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -393,10 +394,77 @@ public class AnvilConverter extends BaseConverter {
                         // Is this a piston? (they may lack tiles)
                         String block = converted.getBlockId();
                         switch ( block ) {
-                            case "minecraft:pistonArmCollision":
+                            case "minecraft:flower_pot":
                                 int fullX = i + ( chunkX << 4 );
                                 int fullY = j + ( sectionY << 4 );
                                 int fullZ = k + ( chunkZ << 4 );
+
+                                NBTTagCompound tile = new NBTTagCompound( "" );
+                                tile.addValue( "x", fullX );
+                                tile.addValue( "y", fullY );
+                                tile.addValue( "z", fullZ );
+                                tile.addValue( "id", "FlowerPot" );
+                                tile.addValue( "isMovable", (byte) 1 );
+
+                                if ( converted.getData() > 0 ) {
+                                    NBTTagCompound convertedPlant = tile.getCompound( "PlantBlock", true );
+
+                                    switch ( converted.getData() ) {
+                                        case 1: // Red flower
+                                            convertedPlant.addValue( "name", "minecraft:red_flower" );
+                                            convertedPlant.addValue( "val", (short) 0 );
+                                            break;
+                                        case 2: // Yellow flower
+                                            convertedPlant.addValue( "name", "minecraft:yellow_flower" );
+                                            convertedPlant.addValue( "val", (short) 0 );
+                                            break;
+                                        case 3: // Sapling
+                                        case 4: // Sapling
+                                        case 5: // Sapling
+                                        case 6: // Sapling
+                                            convertedPlant.addValue( "name", "minecraft:sapling" );
+                                            convertedPlant.addValue( "val", (short) ( converted.getData() - 3 ) );
+                                            break;
+                                        case 7: // Red mushroom
+                                            convertedPlant.addValue( "name", "minecraft:red_mushroom" );
+                                            convertedPlant.addValue( "val", (short) 0 );
+                                            break;
+                                        case 8: // Brown mushroom
+                                            convertedPlant.addValue( "name", "minecraft:brown_mushroom" );
+                                            convertedPlant.addValue( "val", (short) 0 );
+                                            break;
+                                        case 9: // Cactus
+                                            convertedPlant.addValue( "name", "minecraft:cactus" );
+                                            convertedPlant.addValue( "val", (short) 0 );
+                                            break;
+                                        case 10: // Brown mushroom
+                                            convertedPlant.addValue( "name", "minecraft:deadbush" );
+                                            convertedPlant.addValue( "val", (short) 0 );
+                                            break;
+                                        case 11: // Tall grass
+                                            convertedPlant.addValue( "name", "minecraft:tallgrass" );
+                                            convertedPlant.addValue( "val", (short) 3 );
+                                            break;
+                                        case 12: // Sapling
+                                        case 13: // Sapling
+                                            convertedPlant.addValue( "name", "minecraft:sapling" );
+                                            convertedPlant.addValue( "val", (short) ( converted.getData() - 8 ) );
+                                            break;
+                                    }
+                                }
+
+                                if ( tiles == null ) {
+                                    tiles = new ArrayList<>();
+                                }
+
+                                tiles.add( new FlowerPotTileEntity( tile, null, this.items ) );
+
+                                break;
+
+                            case "minecraft:pistonArmCollision":
+                                fullX = i + ( chunkX << 4 );
+                                fullY = j + ( sectionY << 4 );
+                                fullZ = k + ( chunkZ << 4 );
 
                                 pistonHeadPositions.add( fullX + ":" + fullY + ":" + fullZ );
                                 break;

@@ -71,7 +71,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -257,6 +256,12 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
                 return o1.getBlockId().compareTo( o2.getBlockId() );
             } );
+
+            for ( BlockIdentifier identifier : this.assets.getBlockPalette() ) {
+                if ( identifier.getBlockId().equals( "minecraft:tallgrass" ) ) {
+                    System.out.println( identifier.getBlockId() + ":" + identifier.getData() );
+                }
+            }
 
             BlockRuntimeIDs.init( this.assets.getBlockPalette() );
         }
