@@ -6,7 +6,6 @@ import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.util.BlockIdentifier;
 
 import io.gomint.server.world.PlacementData;
@@ -22,7 +21,6 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public abstract class Liquid extends Block implements BlockLiquid {
 
     private static Facing[] FACES_TO_CHECK = Facing.values();

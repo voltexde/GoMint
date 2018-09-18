@@ -7,7 +7,6 @@ import io.gomint.math.Vector;
 import io.gomint.math.Vector2;
 import io.gomint.server.entity.Entity;
 
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.util.BlockIdentifier;
 
 import io.gomint.server.world.PlacementData;
@@ -19,7 +18,6 @@ import io.gomint.world.block.BlockFace;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public abstract class Door extends Block implements io.gomint.world.block.BlockDoor {
 
     @Override

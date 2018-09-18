@@ -53,14 +53,9 @@ public class StringRegistry<R> {
     }
 
     private void register( Class<?> clazz ) {
-        // Check if we skip registration
-        if ( clazz.isAnnotationPresent( SkipRegister.class ) ) {
-            return;
-        }
-
         // We need register info
         if ( !clazz.isAnnotationPresent( RegisterInfo.class ) && !clazz.isAnnotationPresent( RegisterInfos.class ) ) {
-            LOGGER.warn( "No register info annotation present: {}", clazz.getName() );
+            LOGGER.debug( "No register info annotation present: {}", clazz.getName() );
             return;
         }
 

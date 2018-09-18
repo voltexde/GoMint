@@ -142,8 +142,6 @@ public enum TileEntities {
      */
     DROPPER( "Dropper", DropperTileEntity.class );
 
-    MOB_SPAWNER( "MobSpawner", MobSpawnerTileEntity.class );
-
     private static final Logger LOGGER = LoggerFactory.getLogger( TileEntities.class );
     private final String nbtID;
     private MethodHandle tileEntityConstructor;

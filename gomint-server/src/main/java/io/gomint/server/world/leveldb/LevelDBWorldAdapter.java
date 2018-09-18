@@ -7,15 +7,10 @@
 
 package io.gomint.server.world.leveldb;
 
-<<<<<<< HEAD
-import io.gomint.leveldb.DB;
-import io.gomint.leveldb.NativeLoader;
-=======
 import com.google.common.io.Files;
 import io.gomint.leveldb.DB;
 import io.gomint.leveldb.NativeLoader;
 import io.gomint.math.BlockPosition;
->>>>>>> origin/WIP
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
@@ -33,11 +28,8 @@ import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.GeneratorContext;
 import io.gomint.world.generator.integrated.LayeredGenerator;
 import io.gomint.world.generator.integrated.NormalGenerator;
-<<<<<<< HEAD
-=======
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
->>>>>>> origin/WIP
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -138,8 +130,8 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     }
 
     /**
-<<<<<<< HEAD
-=======
+     * <<<<<<< HEAD
+     * =======
      * Create a new leveldb based world. This will not override old worlds. It will fail with a WorldCreateException when
      * a folder has been found with the same name (regardless of the content of that folder)
      *
@@ -206,7 +198,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     }
 
     /**
->>>>>>> origin/WIP
+     * >>>>>>> origin/WIP
      * Loads an leveldb world given the path to the world's directory. This operation
      * performs synchronously and will at least load the entire spawn region before
      * completing.
@@ -276,24 +268,9 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         }
     }
 
-<<<<<<< HEAD
-    private byte[] getKey( int chunkX, int chunkZ, byte dataType ) {
-        return new byte[]{
-            (byte) ( chunkX & 0xFF ),
-            (byte) ( ( chunkX >>> 8 ) & 0xFF ),
-            (byte) ( ( chunkX >>> 16 ) & 0xFF ),
-            (byte) ( ( chunkX >>> 24 ) & 0xFF ),
-            (byte) ( chunkZ & 0xFF ),
-            (byte) ( ( chunkZ >>> 8 ) & 0xFF ),
-            (byte) ( ( chunkZ >>> 16 ) & 0xFF ),
-            (byte) ( ( chunkZ >>> 24 ) & 0xFF ),
-            dataType
-        };
-=======
     public ByteBuf getKey( int chunkX, int chunkZ, byte dataType ) {
         ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( 9 );
         return buf.writeIntLE( chunkX ).writeIntLE( chunkZ ).writeByte( dataType );
->>>>>>> origin/WIP
     }
 
     public ByteBuf getKeySubChunk( int chunkX, int chunkZ, byte dataType, byte subChunk ) {
@@ -371,14 +348,10 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             DB.Snapshot snapshot = this.db.getSnapshot();
 
             // Get version bit
-<<<<<<< HEAD
-            byte[] version = this.db.get( snapshot, this.getKey( x, z, (byte) 0x76 ) );
-=======
             ByteBuf versionKey = this.getKey( x, z, (byte) 0x76 );
             byte[] version = this.db.get( snapshot, versionKey );
             versionKey.release();
 
->>>>>>> origin/WIP
             if ( version == null ) {
                 if ( generate ) {
                     return this.generate( x, z );
@@ -407,43 +380,21 @@ public class LevelDBWorldAdapter extends WorldAdapter {
 
             for ( int sectionY = 0; sectionY < 16; sectionY++ ) {
                 try {
-<<<<<<< HEAD
-                    byte[] chunkData = this.db.get( snapshot, this.getKeySubChunk( x, z, (byte) 0x2f, (byte) sectionY ) );
-=======
                     ByteBuf chunkKey = this.getKeySubChunk( x, z, (byte) 0x2f, (byte) sectionY );
                     byte[] chunkData = this.db.get( snapshot, chunkKey );
                     chunkKey.release();
 
->>>>>>> origin/WIP
                     if ( chunkData != null ) {
                         loadingChunk.loadSection( sectionY, chunkData );
                     } else {
                         break;
                     }
-<<<<<<< HEAD
-                } catch ( Exception ignored ) {
-                    break;
-=======
                 } catch ( Exception e ) {
                     this.logger.warn( "Could not load subchunk", e );
->>>>>>> origin/WIP
                 }
             }
 
             try {
-<<<<<<< HEAD
-                byte[] tileEntityData = this.db.get( snapshot, this.getKey( x, z, (byte) 0x31 ) );
-                if ( tileEntityData != null ) {
-                    loadingChunk.loadTileEntities( tileEntityData );
-                }
-            } catch ( Exception ignored ) {
-                ignored.printStackTrace();
-                // TODO: Implement proper error handling here
-            }
-
-            try {
-                byte[] entityData = this.db.get( snapshot, this.getKey( x, z, (byte) 0x32 ) );
-=======
                 ByteBuf tileEntityKey = this.getKey( x, z, (byte) 0x31 );
                 byte[] tileEntityData = this.db.get( snapshot, tileEntityKey );
                 tileEntityKey.release();
@@ -460,7 +411,6 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                 byte[] entityData = this.db.get( snapshot, entityKey );
                 entityKey.release();
 
->>>>>>> origin/WIP
                 if ( entityData != null ) {
                     // loadingChunk.loadEntities( entityData );
                 }
@@ -484,16 +434,12 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             // Register entities
             this.registerEntitiesFromChunk( loadingChunk );
 
-<<<<<<< HEAD
-=======
             // Do some work on the chunk if needed (like population)
             if ( !populated ) {
                 this.addPopulateTask( loadingChunk );
             }
 
             this.chunkCache.putChunk( loadingChunk );
-
->>>>>>> origin/WIP
             return loadingChunk;
         }
 
@@ -515,11 +461,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         try {
             this.db.close();
         } catch ( Exception e ) {
-<<<<<<< HEAD
-            e.printStackTrace();
-=======
             this.logger.error( "Could not close leveldb", e );
->>>>>>> origin/WIP
         }
     }
 

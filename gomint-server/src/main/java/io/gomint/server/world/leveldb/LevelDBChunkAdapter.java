@@ -21,10 +21,6 @@ import io.gomint.server.util.Palette;
 import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkSlice;
-<<<<<<< HEAD
-import io.gomint.server.world.HeapNibbleArray;
-=======
->>>>>>> origin/WIP
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTReaderNoBuffer;
@@ -72,11 +68,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
     public LevelDBChunkAdapter( WorldAdapter worldAdapter, int x, int z, byte chunkVersion, boolean populated ) {
         super( worldAdapter, x, z );
         this.chunkVersion = chunkVersion;
-<<<<<<< HEAD
-        this.setPopulated( true );
-=======
         this.setPopulated( populated );
->>>>>>> origin/WIP
         this.loadedTime = worldAdapter.getServer().getCurrentTickTime();
     }
 
@@ -105,7 +97,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         writeBatch.put( key, val );
 
         key = ( (LevelDBWorldAdapter) this.world ).getKey( this.x, this.z, (byte) 0x36 );
-        val = Allocator.allocate( isPopulated() ? new byte[]{2,0,0,0} : new byte[]{0,0,0,0} );
+        val = Allocator.allocate( isPopulated() ? new byte[]{ 2, 0, 0, 0 } : new byte[]{ 0, 0, 0, 0 } );
         writeBatch.put( key, val );
 
         // Save tiles
@@ -282,14 +274,8 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
 
                     ChunkSlice slice = this.ensureSlice( sectionY );
                     for ( short i = 0; i < indexes.length; i++ ) {
-<<<<<<< HEAD
-                        Pair<Integer, Byte> dataPair = chunkPalette.get( indexes[i] );
-                        slice.setBlockInternal( i, sI, dataPair.getFirst() );
-                        slice.setDataInternal( i, sI, dataPair.getSecond() );
-=======
                         int runtimeID = chunkPalette.get( indexes[i] );
                         slice.setRuntimeIdInternal( i, sI, runtimeID );
->>>>>>> origin/WIP
                     }
                 }
 

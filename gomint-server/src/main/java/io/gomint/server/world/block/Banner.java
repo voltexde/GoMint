@@ -4,7 +4,6 @@ import io.gomint.inventory.item.ItemStack;
 
 import io.gomint.server.entity.tileentity.BannerTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.registry.SkipRegister;
 
 import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.taglib.NBTTagCompound;
@@ -13,7 +12,6 @@ import io.gomint.taglib.NBTTagCompound;
  * @author geNAZt
  * @version 1.0
  */
-@SkipRegister
 public abstract class Banner extends Block {
 
     @Override

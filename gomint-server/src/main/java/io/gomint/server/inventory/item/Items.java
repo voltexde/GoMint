@@ -5,7 +5,6 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.registry.Registry;
-import io.gomint.server.registry.SkipRegister;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.taglib.NBTTagCompound;
