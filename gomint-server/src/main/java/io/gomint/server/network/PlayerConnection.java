@@ -310,11 +310,15 @@ public class PlayerConnection {
                 // Check if we have a slot
                 Queue<ChunkAdapter> queue = this.entity.getChunkSendQueue();
                 List<ChunkAdapter> recheck = null;
+                int sent = 0;
 
-                while ( !queue.isEmpty() ) {
+                while ( !queue.isEmpty() && sent <= this.server.getServerConfig().getSendChunksPerTick() ) {
                     ChunkAdapter chunk = queue.poll();
-                    if ( chunk == null ||
-                        Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
+                    if ( chunk == null ) {
+                        break;
+                    }
+
+                    if ( Math.abs( chunk.getX() - currentX ) > this.entity.getViewDistance() ||
                         Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ||
                         !chunk.getWorld().equals( this.entity.getWorld() ) ) {
                         LOGGER.debug( "Removed chunk from sending due to out of scope" );
@@ -333,6 +337,7 @@ public class PlayerConnection {
                     }
 
                     this.sendWorldChunk( chunk );
+                    sent++;
                 }
 
                 if ( recheck != null ) {

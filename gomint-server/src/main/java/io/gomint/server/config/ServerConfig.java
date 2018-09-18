@@ -78,6 +78,6 @@ public class ServerConfig extends YamlConfig {
     private boolean loadChunksForEntities = true;
 
     @Comment( "How much chunks do you want to send to the client per client tick (50ms). Vanilla defaults to 4, but i tested its more or less save to up to 1024 per tick for Windows 10 Client and Android on a LG G2")
-    private int sendChunksPerTick = 4;
+    private int sendChunksPerTick = 16;
 
 }
