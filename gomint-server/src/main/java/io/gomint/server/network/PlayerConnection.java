@@ -312,7 +312,12 @@ public class PlayerConnection {
                 List<ChunkAdapter> recheck = null;
                 int sent = 0;
 
-                while ( !queue.isEmpty() && sent <= this.server.getServerConfig().getSendChunksPerTick() ) {
+                int maxSent = this.server.getServerConfig().getSendChunksPerTick();
+                if ( this.server.getServerConfig().isEnableFastJoin() && this.state == PlayerConnectionState.LOGIN ) {
+                    maxSent = Integer.MAX_VALUE;
+                }
+
+                while ( !queue.isEmpty() && sent <= maxSent ) {
                     ChunkAdapter chunk = queue.poll();
                     if ( chunk == null ) {
                         break;
