@@ -193,16 +193,13 @@ public class BaseConverter {
         buffer.setPosition( 0 );
     }
 
-    protected void storeTileEntities( int chunkX, int chunkZ, List<TileEntity> newTileEntities ) {
+    protected void storeTileEntities( int chunkX, int chunkZ, List<NBTTagCompound> newTileEntities ) {
         WriteBatch batch = this.getWriteBatch();
 
         // Safe tiles
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
-        for ( TileEntity tileEntity : newTileEntities ) {
-            NBTTagCompound compound = new NBTTagCompound( "" );
-            tileEntity.toCompound( compound, SerializationReason.PERSIST );
-
+        for ( NBTTagCompound compound : newTileEntities ) {
             try {
                 nbtWriter.write( compound );
             } catch ( IOException e ) {

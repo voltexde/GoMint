@@ -1,9 +1,7 @@
 package io.gomint.server.world.converter.anvil;
 
 import io.gomint.server.assets.AssetsLibrary;
-import io.gomint.server.entity.tileentity.FlowerPotTileEntity;
-import io.gomint.server.entity.tileentity.ItemFrameTileEntity;
-import io.gomint.server.entity.tileentity.PistonArmTileEntity;
+import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
@@ -46,6 +44,7 @@ public class AnvilConverter extends BaseConverter {
     private static final Logger LOGGER = LoggerFactory.getLogger( AnvilConverter.class );
 
     private BlockConverter converter;
+    private PEBlockConverter peConverter;
     private TileEntityConverters tileEntityConverter;
 
     private boolean nukkitPMMPConverted = false;
@@ -99,6 +98,7 @@ public class AnvilConverter extends BaseConverter {
 
         // Setup block converter
         this.converter = new BlockConverter( assets.getConverterData() );
+        this.peConverter = new PEBlockConverter( assets.getPeConverter() );
 
         // Setup item converter
         Object2IntMap<String> itemConverter = new Object2IntOpenHashMap<>();
@@ -255,13 +255,13 @@ public class AnvilConverter extends BaseConverter {
 
         this.startChunk( chunkX, chunkZ );
 
-        List<TileEntity> newTileEntities = new ArrayList<>();
+        List<NBTTagCompound> newTileEntities = new ArrayList<>();
         Set<String> pistonHeadPositions = new HashSet<>();
 
         List<Object> sections = levelCompound.getList( "Sections", false );
         for ( Object section : sections ) {
             NBTTagCompound sectionCompound = (NBTTagCompound) section;
-            List<TileEntity> needsMergingTiles = this.readAndConvertSubchunk( chunkX, chunkZ, sectionCompound, pistonHeadPositions );
+            List<NBTTagCompound> needsMergingTiles = this.readAndConvertSubchunk( chunkX, chunkZ, sectionCompound, pistonHeadPositions, levelCompound.containsKey( "GoMintConverted" ) );
             if ( needsMergingTiles != null ) {
                 newTileEntities.addAll( needsMergingTiles );
             }
@@ -269,33 +269,35 @@ public class AnvilConverter extends BaseConverter {
             amountOfChunksDone.incrementAndGet();
         }
 
-        List<Object> entities = levelCompound.getList( "Entities", false );
-        if ( entities != null && !entities.isEmpty() ) {
-            for ( Object entity : entities ) {
-                NBTTagCompound entityCompound = (NBTTagCompound) entity;
-                String id = entityCompound.getString( "id", null );
-                if ( id != null ) {
-                    if ( id.equals( "ItemFrame" ) ) {
-                        NBTTagCompound tileCompound = new NBTTagCompound( "" );
-                        tileCompound.addValue( "x", entityCompound.getInteger( "TileX", 0 ) );
-                        tileCompound.addValue( "y", entityCompound.getInteger( "TileY", 0 ) );
-                        tileCompound.addValue( "z", entityCompound.getInteger( "TileZ", 0 ) );
-                        tileCompound.addValue( "id", "ItemFrame" );
+        if ( !this.nukkitPMMPConverted && !levelCompound.containsKey( "GoMintConverted" ) ) {
+            List<Object> entities = levelCompound.getList( "Entities", false );
+            if ( entities != null && !entities.isEmpty() ) {
+                for ( Object entity : entities ) {
+                    NBTTagCompound entityCompound = (NBTTagCompound) entity;
+                    String id = entityCompound.getString( "id", null );
+                    if ( id != null ) {
+                        if ( id.equals( "ItemFrame" ) ) {
+                            NBTTagCompound tileCompound = new NBTTagCompound( "" );
+                            tileCompound.addValue( "x", entityCompound.getInteger( "TileX", 0 ) );
+                            tileCompound.addValue( "y", entityCompound.getInteger( "TileY", 0 ) );
+                            tileCompound.addValue( "z", entityCompound.getInteger( "TileZ", 0 ) );
+                            tileCompound.addValue( "id", "ItemFrame" );
 
-                        ItemStack itemStack = getItemStack( entityCompound.getCompound( "Item", false ) );
-                        NBTTagCompound itemCompound = tileCompound.getCompound( "Item", true );
-                        itemCompound.addValue( "id", itemStack.getMaterial() );
-                        itemCompound.addValue( "Data", itemStack.getData() );
-                        itemCompound.addValue( "Amount", itemStack.getAmount() );
+                            ItemStack itemStack = getItemStack( entityCompound.getCompound( "Item", false ) );
+                            NBTTagCompound itemCompound = tileCompound.getCompound( "Item", true );
+                            itemCompound.addValue( "id", itemStack.getMaterial() );
+                            itemCompound.addValue( "Data", itemStack.getData() );
+                            itemCompound.addValue( "Amount", itemStack.getAmount() );
 
-                        if ( itemStack.getNbtData() != null ) {
-                            itemCompound.addValue( "tag", itemStack.getNbtData().deepClone( "tag" ) );
+                            if ( itemStack.getNbtData() != null ) {
+                                itemCompound.addValue( "tag", itemStack.getNbtData().deepClone( "tag" ) );
+                            }
+
+                            tileCompound.addValue( "ItemDropChange", entityCompound.getFloat( "ItemDropChange", 1f ) );
+                            tileCompound.addValue( "ItemRotation", entityCompound.getByte( "ItemRotation", (byte) 0 ) );
+
+                            newTileEntities.add( tileCompound );
                         }
-
-                        tileCompound.addValue( "ItemDropChange", entityCompound.getFloat( "ItemDropChange", 1f ) );
-                        tileCompound.addValue( "ItemRotation", entityCompound.getByte( "ItemRotation", (byte) 0 ) );
-
-                        newTileEntities.add( new ItemFrameTileEntity( tileCompound, null, this.items ) );
                     }
                 }
             }
@@ -305,9 +307,15 @@ public class AnvilConverter extends BaseConverter {
         if ( tileEntities != null && !tileEntities.isEmpty() ) {
             for ( Object entity : tileEntities ) {
                 NBTTagCompound tileCompound = (NBTTagCompound) entity;
-                TileEntity tileEntity = this.tileEntityConverter.read( tileCompound );
-                if ( tileEntity != null ) {
-                    newTileEntities.add( tileEntity );
+                if ( this.nukkitPMMPConverted || levelCompound.containsKey( "GoMintConverted" ) ) {
+                    newTileEntities.add( tileCompound );
+                } else {
+                    TileEntity tileEntity = this.tileEntityConverter.read( tileCompound );
+                    if ( tileEntity != null ) {
+                        NBTTagCompound finalCompound = new NBTTagCompound( "" );
+                        tileEntity.toCompound( finalCompound, SerializationReason.PERSIST );
+                        newTileEntities.add( finalCompound );
+                    }
                 }
             }
         }
@@ -343,8 +351,8 @@ public class AnvilConverter extends BaseConverter {
         return this.items.create( material, data, amount, compound.getCompound( "tag", false ) );
     }
 
-    private List<TileEntity> readAndConvertSubchunk( int chunkX, int chunkZ, NBTTagCompound section, Set<String> pistonHeadPositions ) {
-        List<TileEntity> tiles = null;
+    private List<NBTTagCompound> readAndConvertSubchunk( int chunkX, int chunkZ, NBTTagCompound section, Set<String> pistonHeadPositions, boolean gomintConverted ) {
+        List<NBTTagCompound> tiles = null;
 
         byte[] blocks = section.getByteArray( "Blocks", new byte[0] );
         byte[] addBlocks = section.getByteArray( "Add", new byte[0] );
@@ -368,156 +376,163 @@ public class AnvilConverter extends BaseConverter {
                     int blockId = ( ( ( add != null ? add.get( blockIndex ) << 8 : 0 ) | blocks[blockIndex] ) & 0xFF );
                     byte blockData = data.get( blockIndex );
 
-                    // Block data converter
-                    if ( blockId == 3 && blockData == 1 ) {
-                        blockId = 198;
-                        blockData = 0;
-                    } else if ( blockId == 3 && blockData == 2 ) {
-                        blockId = 243;
-                        blockData = 0;
-                    }
-
-                    // Fix water & lava at the bottom of a chunk
-                    if ( sectionY + j == 0 && ( blockId == 8 || blockId == 9 || blockId == 10 || blockId == 11 ) ) {
-                        blockId = 7;
-                        blockData = 0;
-                    }
-
                     short newIndex = (short) ( ( i << 8 ) + ( k << 4 ) + j );
-                    BlockIdentifier converted = this.converter.convert( blockId, blockData );
-                    if ( converted == null ) {
-                        newBlocks[newIndex] = new BlockIdentifier( "minecraft:air", (short) 0 );
-                        LOGGER.warn( "Could not convert block {}:{}", blockId, blockData );
+
+                    if ( this.nukkitPMMPConverted || gomintConverted ) {
+                        newBlocks[newIndex] = new BlockIdentifier( this.peConverter.convert( blockId ), (short) blockData );
                     } else {
-                        newBlocks[newIndex] = converted;
+                        // Block data converter
+                        if ( blockId == 3 && blockData == 1 ) {
+                            blockId = 198;
+                            blockData = 0;
+                        } else if ( blockId == 3 && blockData == 2 ) {
+                            blockId = 243;
+                            blockData = 0;
+                        }
 
-                        // Is this a piston? (they may lack tiles)
-                        String block = converted.getBlockId();
-                        switch ( block ) {
-                            case "minecraft:flower_pot":
-                                int fullX = i + ( chunkX << 4 );
-                                int fullY = j + ( sectionY << 4 );
-                                int fullZ = k + ( chunkZ << 4 );
+                        // Fix water & lava at the bottom of a chunk
+                        if ( sectionY + j == 0 && ( blockId == 8 || blockId == 9 || blockId == 10 || blockId == 11 ) ) {
+                            blockId = 7;
+                            blockData = 0;
+                        }
 
-                                NBTTagCompound tile = new NBTTagCompound( "" );
-                                tile.addValue( "x", fullX );
-                                tile.addValue( "y", fullY );
-                                tile.addValue( "z", fullZ );
-                                tile.addValue( "id", "FlowerPot" );
-                                tile.addValue( "isMovable", (byte) 1 );
+                        BlockIdentifier converted = this.converter.convert( blockId, blockData );
+                        if ( converted == null ) {
+                            newBlocks[newIndex] = new BlockIdentifier( "minecraft:air", (short) 0 );
+                            LOGGER.warn( "Could not convert block {}:{}", blockId, blockData );
+                        } else {
+                            newBlocks[newIndex] = converted;
 
-                                if ( converted.getData() > 0 ) {
-                                    NBTTagCompound convertedPlant = tile.getCompound( "PlantBlock", true );
+                            // Is this a piston? (they may lack tiles)
+                            String block = converted.getBlockId();
+                            switch ( block ) {
+                                case "minecraft:flower_pot":
+                                    int fullX = i + ( chunkX << 4 );
+                                    int fullY = j + ( sectionY << 4 );
+                                    int fullZ = k + ( chunkZ << 4 );
 
-                                    switch ( converted.getData() ) {
-                                        case 1: // Red flower
-                                            convertedPlant.addValue( "name", "minecraft:red_flower" );
-                                            convertedPlant.addValue( "val", (short) 0 );
-                                            break;
-                                        case 2: // Yellow flower
-                                            convertedPlant.addValue( "name", "minecraft:yellow_flower" );
-                                            convertedPlant.addValue( "val", (short) 0 );
-                                            break;
-                                        case 3: // Sapling
-                                        case 4: // Sapling
-                                        case 5: // Sapling
-                                        case 6: // Sapling
-                                            convertedPlant.addValue( "name", "minecraft:sapling" );
-                                            convertedPlant.addValue( "val", (short) ( converted.getData() - 3 ) );
-                                            break;
-                                        case 7: // Red mushroom
-                                            convertedPlant.addValue( "name", "minecraft:red_mushroom" );
-                                            convertedPlant.addValue( "val", (short) 0 );
-                                            break;
-                                        case 8: // Brown mushroom
-                                            convertedPlant.addValue( "name", "minecraft:brown_mushroom" );
-                                            convertedPlant.addValue( "val", (short) 0 );
-                                            break;
-                                        case 9: // Cactus
-                                            convertedPlant.addValue( "name", "minecraft:cactus" );
-                                            convertedPlant.addValue( "val", (short) 0 );
-                                            break;
-                                        case 10: // Brown mushroom
-                                            convertedPlant.addValue( "name", "minecraft:deadbush" );
-                                            convertedPlant.addValue( "val", (short) 0 );
-                                            break;
-                                        case 11: // Tall grass
-                                            convertedPlant.addValue( "name", "minecraft:tallgrass" );
-                                            convertedPlant.addValue( "val", (short) 3 );
-                                            break;
-                                        case 12: // Sapling
-                                        case 13: // Sapling
-                                            convertedPlant.addValue( "name", "minecraft:sapling" );
-                                            convertedPlant.addValue( "val", (short) ( converted.getData() - 8 ) );
-                                            break;
+                                    NBTTagCompound tile = new NBTTagCompound( "" );
+                                    tile.addValue( "x", fullX );
+                                    tile.addValue( "y", fullY );
+                                    tile.addValue( "z", fullZ );
+                                    tile.addValue( "id", "FlowerPot" );
+                                    tile.addValue( "isMovable", (byte) 1 );
+
+                                    if ( converted.getData() > 0 ) {
+                                        NBTTagCompound convertedPlant = tile.getCompound( "PlantBlock", true );
+
+                                        switch ( converted.getData() ) {
+                                            case 1: // Red flower
+                                                convertedPlant.addValue( "name", "minecraft:red_flower" );
+                                                convertedPlant.addValue( "val", (short) 0 );
+                                                break;
+                                            case 2: // Yellow flower
+                                                convertedPlant.addValue( "name", "minecraft:yellow_flower" );
+                                                convertedPlant.addValue( "val", (short) 0 );
+                                                break;
+                                            case 3: // Sapling
+                                            case 4: // Sapling
+                                            case 5: // Sapling
+                                            case 6: // Sapling
+                                                convertedPlant.addValue( "name", "minecraft:sapling" );
+                                                convertedPlant.addValue( "val", (short) ( converted.getData() - 3 ) );
+                                                break;
+                                            case 7: // Red mushroom
+                                                convertedPlant.addValue( "name", "minecraft:red_mushroom" );
+                                                convertedPlant.addValue( "val", (short) 0 );
+                                                break;
+                                            case 8: // Brown mushroom
+                                                convertedPlant.addValue( "name", "minecraft:brown_mushroom" );
+                                                convertedPlant.addValue( "val", (short) 0 );
+                                                break;
+                                            case 9: // Cactus
+                                                convertedPlant.addValue( "name", "minecraft:cactus" );
+                                                convertedPlant.addValue( "val", (short) 0 );
+                                                break;
+                                            case 10: // Brown mushroom
+                                                convertedPlant.addValue( "name", "minecraft:deadbush" );
+                                                convertedPlant.addValue( "val", (short) 0 );
+                                                break;
+                                            case 11: // Tall grass
+                                                convertedPlant.addValue( "name", "minecraft:tallgrass" );
+                                                convertedPlant.addValue( "val", (short) 3 );
+                                                break;
+                                            case 12: // Sapling
+                                            case 13: // Sapling
+                                                convertedPlant.addValue( "name", "minecraft:sapling" );
+                                                convertedPlant.addValue( "val", (short) ( converted.getData() - 8 ) );
+                                                break;
+                                        }
                                     }
-                                }
 
-                                if ( tiles == null ) {
-                                    tiles = new ArrayList<>();
-                                }
+                                    if ( tiles == null ) {
+                                        tiles = new ArrayList<>();
+                                    }
 
-                                tiles.add( new FlowerPotTileEntity( tile, null, this.items ) );
+                                    tiles.add( tile );
 
-                                break;
+                                    break;
 
-                            case "minecraft:pistonArmCollision":
-                                fullX = i + ( chunkX << 4 );
-                                fullY = j + ( sectionY << 4 );
-                                fullZ = k + ( chunkZ << 4 );
+                                case "minecraft:pistonArmCollision":
+                                    fullX = i + ( chunkX << 4 );
+                                    fullY = j + ( sectionY << 4 );
+                                    fullZ = k + ( chunkZ << 4 );
 
-                                pistonHeadPositions.add( fullX + ":" + fullY + ":" + fullZ );
-                                break;
+                                    pistonHeadPositions.add( fullX + ":" + fullY + ":" + fullZ );
+                                    break;
 
-                            case "minecraft:sticky_piston":
-                            case "minecraft:piston":
-                                fullX = i + ( chunkX << 4 );
-                                fullY = j + ( sectionY << 4 );
-                                fullZ = k + ( chunkZ << 4 );
+                                case "minecraft:sticky_piston":
+                                case "minecraft:piston":
+                                    fullX = i + ( chunkX << 4 );
+                                    fullY = j + ( sectionY << 4 );
+                                    fullZ = k + ( chunkZ << 4 );
 
-                                pistons.add( fullX + ":" + fullY + ":" + fullZ + ":" + ( block.equals( "minecraft:sticky_piston" ) ? 1 : 0 ) );
+                                    pistons.add( fullX + ":" + fullY + ":" + fullZ + ":" + ( block.equals( "minecraft:sticky_piston" ) ? 1 : 0 ) );
 
-                                break;
+                                    break;
+                            }
                         }
                     }
                 }
             }
         }
 
-        for ( String piston : pistons ) {
-            String[] split = piston.split( ":" );
+        if ( !this.nukkitPMMPConverted && !gomintConverted ) {
+            for ( String piston : pistons ) {
+                String[] split = piston.split( ":" );
 
-            int fullX = Integer.parseInt( split[0] );
-            int fullY = Integer.parseInt( split[1] );
-            int fullZ = Integer.parseInt( split[2] );
-            boolean sticky = split[3].equals( "1" );
+                int fullX = Integer.parseInt( split[0] );
+                int fullY = Integer.parseInt( split[1] );
+                int fullZ = Integer.parseInt( split[2] );
+                boolean sticky = split[3].equals( "1" );
 
-            if ( tiles == null ) {
-                tiles = new ArrayList<>();
+                if ( tiles == null ) {
+                    tiles = new ArrayList<>();
+                }
+
+                NBTTagCompound compound = new NBTTagCompound( "" );
+                compound.addValue( "x", fullX );
+                compound.addValue( "y", fullY );
+                compound.addValue( "z", fullZ );
+                compound.addValue( "id", "PistonArm" );
+                compound.addValue( "Sticky", (byte) ( sticky ? 1 : 0 ) );
+
+                if ( pistonHeadPositions.contains( fullX + ":" + ( fullY + 1 ) + ":" + fullZ ) ) {
+                    compound.addValue( "State", (byte) 1 );
+                    compound.addValue( "NewState", (byte) 1 );
+
+                    compound.addValue( "Progress", 1F );
+                    compound.addValue( "LastProgress", 1F );
+                } else {
+                    compound.addValue( "State", (byte) 0 );
+                    compound.addValue( "NewState", (byte) 0 );
+
+                    compound.addValue( "Progress", 0F );
+                    compound.addValue( "LastProgress", 0F );
+                }
+
+                tiles.add( compound );
             }
-
-            NBTTagCompound compound = new NBTTagCompound( "" );
-            compound.addValue( "x", fullX );
-            compound.addValue( "y", fullY );
-            compound.addValue( "z", fullZ );
-            compound.addValue( "id", "PistonArm" );
-            compound.addValue( "Sticky", (byte) ( sticky ? 1 : 0 ) );
-
-            if ( pistonHeadPositions.contains( fullX + ":" + ( fullY + 1 ) + ":" + fullZ ) ) {
-                compound.addValue( "State", (byte) 1 );
-                compound.addValue( "NewState", (byte) 1 );
-
-                compound.addValue( "Progress", 1F );
-                compound.addValue( "LastProgress", 1F );
-            } else {
-                compound.addValue( "State", (byte) 0 );
-                compound.addValue( "NewState", (byte) 0 );
-
-                compound.addValue( "Progress", 0F );
-                compound.addValue( "LastProgress", 0F );
-            }
-
-            tiles.add( new PistonArmTileEntity( compound, null, null ) );
         }
 
         this.storeSubChunkBlocks( sectionY, chunkX, chunkZ, newBlocks );

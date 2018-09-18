@@ -53,6 +53,7 @@ public class AssetsLibrary {
     @Getter private List<NBTTagCompound> converterItemsData;
     @Getter private List<NBTTagCompound> jeTopeItems;
     @Getter private List<NBTTagCompound> jeTopeEntities;
+    @Getter private List<NBTTagCompound> peConverter;
 
     // Statistics
     private int shapelessRecipes;
@@ -89,6 +90,7 @@ public class AssetsLibrary {
         this.converterItemsData = ( (List<NBTTagCompound>) ( (List) root.getList( "converterItems", false ) ) );
         this.jeTopeItems = ( (List<NBTTagCompound>) ( (List) root.getList( "JEtoPEItems", false ) ) );
         this.jeTopeEntities = ( (List<NBTTagCompound>) ( (List) root.getList( "JEtoPEEntityIDs", false ) ) );
+        this.peConverter = ( (List<NBTTagCompound>) ( (List) root.getList( "PEconverter", false ) ) );
     }
 
     private void loadBlockPalette( List<NBTTagCompound> blockPaletteCompounds ) {

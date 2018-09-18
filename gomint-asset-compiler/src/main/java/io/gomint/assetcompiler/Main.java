@@ -1,15 +1,24 @@
 package io.gomint.assetcompiler;
 
 import io.gomint.taglib.NBTTagCompound;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author geNAZt
@@ -90,6 +99,29 @@ public class Main {
                 converterItems.add( idPairCompound );
             }
         } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+
+        // Check pe_convert.json
+        try {
+            List<Object> peConverter = assetsCompound.getList( "PEconverter", true );
+
+            JSONParser parser = new JSONParser();
+            JSONArray array = (JSONArray) parser.parse( new InputStreamReader( new FileInputStream( new File( "gomint-asset-compiler/pe_convert.json" ) ) ) );
+            for ( Object o : array ) {
+                JSONObject obj = (JSONObject) o;
+
+                int id = ((Long) obj.get( "id" )).intValue();
+                short data = ((Long) obj.get( "data" )).shortValue();
+                String newId = (String) obj.get( "name" );
+
+                NBTTagCompound compound = new NBTTagCompound( "" );
+                compound.addValue( "i", id );
+                compound.addValue( "d", data );
+                compound.addValue( "ni", newId );
+                peConverter.add( compound );
+            }
+        } catch ( Exception e ) {
             e.printStackTrace();
         }
 
