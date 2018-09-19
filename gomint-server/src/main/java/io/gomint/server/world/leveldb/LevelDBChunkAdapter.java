@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -77,6 +78,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
         this.chunkVersion = 7;
 
         this.loadedTime = worldAdapter.getServer().getCurrentTickTime();
+        this.flagNeedsPersistance();
     }
 
     void save( DB db ) {
@@ -180,9 +182,6 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             // Prepare palette
             int amountOfBlocks = MathUtils.fastFloor( 32f / (float) numberOfBits );
 
-            buffer.writeByte( (byte) 8 );
-            buffer.writeByte( (byte) 1 );
-
             Palette palette = new Palette( buffer, amountOfBlocks, false );
 
             byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );
@@ -219,7 +218,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             }
         }
 
-        ByteBuf key = ( (LevelDBWorldAdapter) this.world ).getKeySubChunk( this.x, this.z, (byte) 0x27, (byte) i );
+        ByteBuf key = ( (LevelDBWorldAdapter) this.world ).getKeySubChunk( this.x, this.z, (byte) 0x2f, (byte) i );
         ByteBuf val = Allocator.allocate( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
 
         writeBatch.put( key, val );

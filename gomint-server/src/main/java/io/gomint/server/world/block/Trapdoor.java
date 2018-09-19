@@ -180,4 +180,5 @@ public class Trapdoor extends Block implements io.gomint.world.block.BlockTrapdo
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.AXE;
     }
+
 }

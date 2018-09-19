@@ -21,4 +21,23 @@ public class BlockIdentifier {
     private final String blockId;
     private final short data;
 
+    @Override
+    public int hashCode() {
+        return this.blockId.hashCode() + this.data;
+    }
+
+    public long longHashCode() {
+        return (long) this.blockId.hashCode() << 32 | this.data;
+    }
+
+    @Override
+    public boolean equals( Object obj ) {
+        if ( obj instanceof BlockIdentifier ) {
+            BlockIdentifier other = (BlockIdentifier) obj;
+            return other.blockId.equals( this.blockId ) && other.data == this.data;
+        }
+
+        return false;
+    }
+
 }

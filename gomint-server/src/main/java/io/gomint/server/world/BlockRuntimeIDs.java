@@ -11,8 +11,8 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.server.util.BlockIdentifier;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public class BlockRuntimeIDs {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( BlockRuntimeIDs.class );
 
-    private static Object2IntMap<String> BLOCK_TO_RUNTIME = new Object2IntOpenHashMap<>();
+    private static final Long2IntMap BLOCK_TO_RUNTIME = new Long2IntOpenHashMap();
     private static Int2ObjectMap<BlockIdentifier> RUNTIME_TO_BLOCK = new Int2ObjectOpenHashMap<>();
 
     //
@@ -43,8 +43,7 @@ public class BlockRuntimeIDs {
         for ( BlockIdentifier identifier : blockPalette ) {
             int runtime = RUNTIME_ID.getAndIncrement();
 
-            String full = identifier.getBlockId() + "[" + identifier.getData() + "]";
-            BLOCK_TO_RUNTIME.put( full, runtime );
+            BLOCK_TO_RUNTIME.put( identifier.longHashCode(), runtime );
             RUNTIME_TO_BLOCK.put( runtime, identifier );
         }
 
@@ -76,7 +75,7 @@ public class BlockRuntimeIDs {
      */
     public static int from( String blockId, short dataValue ) {
         // Get lookup array
-        Object2IntMap<String> lookup = BLOCK_TO_RUNTIME;
+        Long2IntMap lookup = BLOCK_TO_RUNTIME;
 
         // We first lookup the wanted values
         int runtimeID = lookup( blockId, dataValue, lookup );
@@ -98,8 +97,9 @@ public class BlockRuntimeIDs {
         return RUNTIME_TO_BLOCK.get( runtimeId );
     }
 
-    private static int lookup( String blockId, short dataValue, Object2IntMap<String> lookup ) {
-        int runtimeId = lookup.getInt( blockId + "[" + dataValue + "]" );
+    private static int lookup( String blockId, short dataValue, Long2IntMap lookup ) {
+        long hash = (long) blockId.hashCode() << 32 | dataValue;
+        int runtimeId = lookup.get( hash );
         if ( runtimeId == -1 ) {
             return -1;
         }

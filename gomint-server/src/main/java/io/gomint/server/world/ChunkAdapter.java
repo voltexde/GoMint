@@ -180,6 +180,20 @@ public class ChunkAdapter implements Chunk {
         ChunkSlice slice = this.chunkSlices[y];
         if ( slice != null ) {
             return slice;
+        }
+
+        // Ensure all chunk slices till y
+        for ( int i = 0; i < y; i++ ) {
+            this.internalEnsureChunkSlice( i );
+        }
+
+        return this.internalEnsureChunkSlice( y );
+    }
+
+    private ChunkSlice internalEnsureChunkSlice( int y ) {
+        ChunkSlice slice = this.chunkSlices[y];
+        if ( slice != null ) {
+            return slice;
         } else {
             this.chunkSlices[y] = PerformanceHacks.isUnsafeEnabled() ? new UnsafeChunkSlice( this, y ) : new ChunkSlice( this, y );
             return this.chunkSlices[y];

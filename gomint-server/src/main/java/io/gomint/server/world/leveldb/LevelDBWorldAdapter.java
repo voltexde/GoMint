@@ -130,8 +130,6 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     }
 
     /**
-     * <<<<<<< HEAD
-     * =======
      * Create a new leveldb based world. This will not override old worlds. It will fail with a WorldCreateException when
      * a folder has been found with the same name (regardless of the content of that folder)
      *
@@ -194,11 +192,19 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     }
 
     private void saveGenerator( NBTTagCompound compound ) {
+        if ( this.chunkGenerator instanceof NormalGenerator ) {
+            compound.addValue( "Generator", 1 );
+            compound.addValue( "RandomSeed", (long) this.chunkGenerator.getContext().get( "seed" ) );
+        } else if ( this.chunkGenerator instanceof LayeredGenerator ) {
+            compound.addValue( "Generator", 2 );
+        } else {
+
+        }
+
         // TODO: Save generator
     }
 
     /**
-     * >>>>>>> origin/WIP
      * Loads an leveldb world given the path to the world's directory. This operation
      * performs synchronously and will at least load the entire spawn region before
      * completing.
