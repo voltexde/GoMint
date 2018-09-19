@@ -257,12 +257,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 return o1.getBlockId().compareTo( o2.getBlockId() );
             } );
 
-            for ( BlockIdentifier identifier : this.assets.getBlockPalette() ) {
-                if ( identifier.getBlockId().equals( "minecraft:tallgrass" ) ) {
-                    System.out.println( identifier.getBlockId() + ":" + identifier.getData() );
-                }
-            }
-
             BlockRuntimeIDs.init( this.assets.getBlockPalette() );
         }
 
