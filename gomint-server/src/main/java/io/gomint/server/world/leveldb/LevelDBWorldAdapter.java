@@ -14,6 +14,7 @@ import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.plugin.PluginClassloader;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkCache;
 import io.gomint.server.world.WorldAdapter;
@@ -42,6 +43,7 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * @author geNAZt
@@ -64,6 +66,10 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     private int generatorVersion;
     private String generatorOptions;
     private long generatorSeed;
+
+    // Custom generators
+    private Class<? extends ChunkGenerator> generatorClass;
+    private GeneratorContext generatorContext;
 
     private LevelDBWorldAdapter( final GoMintServer server, final String name, final Class<? extends ChunkGenerator> generator ) throws WorldCreateException {
         super( server, new File( name ) );
@@ -198,10 +204,10 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         } else if ( this.chunkGenerator instanceof LayeredGenerator ) {
             compound.addValue( "Generator", 2 );
         } else {
-
+            compound.addValue( "Generator", -1 );
+            compound.addValue( "GeneratorClass", this.chunkGenerator.getClass().getName() );
+            compound.addValue( "GeneratorContext", this.chunkGenerator.getContext().toString() );
         }
-
-        // TODO: Save generator
     }
 
     /**
@@ -220,56 +226,64 @@ public class LevelDBWorldAdapter extends WorldAdapter {
 
     @Override
     protected void prepareGenerator() {
-        Generators generators = Generators.valueOf( this.generatorType );
-        if ( generators != null ) {
-            switch ( generators ) {
-                case NORMAL:
-                    GeneratorContext context = new GeneratorContext();
-                    context.put( "seed", this.generatorSeed );
-                    this.chunkGenerator = new NormalGenerator( this, context );
-                    break;
+        if ( this.generatorType == -1 ) { // Custom generators
+            try {
+                constructGenerator( this.generatorClass, this.generatorContext );
+            } catch ( WorldCreateException e ) {
+                this.getLogger().error( "Could not reconstruct generator class", e );
+            }
+        } else {
+            Generators generators = Generators.valueOf( this.generatorType );
+            if ( generators != null ) {
+                switch ( generators ) {
+                    case NORMAL:
+                        GeneratorContext context = new GeneratorContext();
+                        context.put( "seed", this.generatorSeed );
+                        this.chunkGenerator = new NormalGenerator( this, context );
+                        break;
 
-                case FLAT:
-                    context = new GeneratorContext();
+                    case FLAT:
+                        context = new GeneratorContext();
 
-                    // Check for flat configuration
-                    JSONParser parser = new JSONParser();
-                    try {
-                        List<Block> blocks = new ArrayList<>();
+                        // Check for flat configuration
+                        JSONParser parser = new JSONParser();
+                        try {
+                            List<Block> blocks = new ArrayList<>();
 
-                        JSONObject jsonObject = (JSONObject) parser.parse( this.generatorOptions );
-                        if ( jsonObject.containsKey( "block_layers" ) ) {
-                            JSONArray blockLayers = (JSONArray) jsonObject.get( "block_layers" );
-                            for ( Object layer : blockLayers ) {
-                                JSONObject layerConfig = (JSONObject) layer;
-                                int count = 1;
-                                if ( layerConfig.containsKey( "count" ) ) {
-                                    count = ( (Long) layerConfig.get( "count" ) ).intValue();
-                                }
+                            JSONObject jsonObject = (JSONObject) parser.parse( this.generatorOptions );
+                            if ( jsonObject.containsKey( "block_layers" ) ) {
+                                JSONArray blockLayers = (JSONArray) jsonObject.get( "block_layers" );
+                                for ( Object layer : blockLayers ) {
+                                    JSONObject layerConfig = (JSONObject) layer;
+                                    int count = 1;
+                                    if ( layerConfig.containsKey( "count" ) ) {
+                                        count = ( (Long) layerConfig.get( "count" ) ).intValue();
+                                    }
 
-                                // TODO: look at new format of the flat layers
-                                int blockId = ( (Long) layerConfig.get( "block_id" ) ).intValue();
-                                byte blockData = ( (Long) layerConfig.get( "block_data" ) ).byteValue();
+                                    // TODO: look at new format of the flat layers
+                                    int blockId = ( (Long) layerConfig.get( "block_id" ) ).intValue();
+                                    byte blockData = ( (Long) layerConfig.get( "block_data" ) ).byteValue();
 
                                 /*Block block = this.server.getBlocks().get( blockId, blockData, (byte) 0, (byte) 0, null, null, 0 );
                                 for ( int i = 0; i < count; i++ ) {
                                     blocks.add( block );
                                 }*/
+                                }
                             }
+
+                            context.put( "amountOfLayers", blocks.size() );
+                            int i = 0;
+                            for ( Block block : blocks ) {
+                                context.put( "layer." + ( i++ ), block );
+                            }
+                        } catch ( ParseException e ) {
+                            // Ignore this, if this happens the context is empty and the generator will fallback to default
+                            // behaviour
                         }
 
-                        context.put( "amountOfLayers", blocks.size() );
-                        int i = 0;
-                        for ( Block block : blocks ) {
-                            context.put( "layer." + ( i++ ), block );
-                        }
-                    } catch ( ParseException e ) {
-                        // Ignore this, if this happens the context is empty and the generator will fallback to default
-                        // behaviour
-                    }
-
-                    this.chunkGenerator = new LayeredGenerator( this, context );
-                    break;
+                        this.chunkGenerator = new LayeredGenerator( this, context );
+                        break;
+                }
             }
         }
     }
@@ -303,6 +317,18 @@ public class LevelDBWorldAdapter extends WorldAdapter {
             nbtStream.addListener( ( path, value ) -> {
 
                 switch ( path ) {
+                    case ".GeneratorClass":
+                        LevelDBWorldAdapter.this.generatorClass = (Class<? extends ChunkGenerator>) PluginClassloader.find( (String) value );
+                        break;
+                    case ".GeneratorContext":
+                        LevelDBWorldAdapter.this.generatorContext = new GeneratorContext();
+
+                        String jsonContext = (String) value;
+                        JSONParser parser = new JSONParser();
+                        JSONObject jsonObject = (JSONObject) parser.parse( jsonContext );
+                        jsonObject.forEach( ( o, o2 ) -> LevelDBWorldAdapter.this.generatorContext.put( (String) o, o2 ) );
+
+                        break;
                     case ".RandomSeed":
                         LevelDBWorldAdapter.this.generatorSeed = (long) value;
                         break;

@@ -44,15 +44,6 @@ public class GeneratorContext {
         this.contextData.put( key, value );
     }
 
-    /**
-     * Only for serialize purposes
-     *
-     * @return copy of the data maps
-     */
-    public Map<String, Object> asMap() {
-        return new HashMap<>( this.contextData );
-    }
-
     @Override
     public String toString() {
         return JSONObject.toJSONString( this.contextData );
