@@ -164,6 +164,7 @@ public class MinecraftFormattingConverter extends LogEventPatternConverter {
             LOGGER.error( "Incorrect number of options on minecraftFormatting. Expected at least 1, max 2 received " + options.length );
             return null;
         }
+
         if ( options[0] == null ) {
             LOGGER.error( "No pattern supplied on minecraftFormatting" );
             return null;

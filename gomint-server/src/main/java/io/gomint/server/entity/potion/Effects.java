@@ -7,12 +7,11 @@
 
 package io.gomint.server.entity.potion;
 
-import com.google.common.reflect.ClassPath;
-import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.potion.effect.Effect;
 import io.gomint.server.player.EffectManager;
 import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.util.ClassPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,35 +1,16 @@
 package io.gomint.server.registry;
 
-import com.google.common.reflect.ClassPath;
-import io.gomint.server.inventory.item.ItemStack;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import io.gomint.server.util.ClassPath;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 public class Registry<R> {
-
-    private static final String FROM = "    @Override\n" +
-        "    public ItemType getType() {";
-
-    private static final String TO = "    @Override\n" +
-        "    public String getBlockId() {\n" +
-        "        return \"{PLACEHOLDER}\";\n" +
-        "    }\n" +
-        "\n" +
-        "    @Override\n" +
-        "    public ItemType getType() {";
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
@@ -62,9 +43,7 @@ public class Registry<R> {
     public void register( String classPath ) {
         LOGGER.debug( "Going to scan: {}", classPath );
 
-        for ( ClassPath.ClassInfo classInfo : this.classPath.getTopLevelClasses( classPath ) ) {
-            register( classInfo.load() );
-        }
+        this.classPath.getTopLevelClasses( classPath, classInfo -> register( classInfo.load() ) );
     }
 
     private void register( Class<?> clazz ) {

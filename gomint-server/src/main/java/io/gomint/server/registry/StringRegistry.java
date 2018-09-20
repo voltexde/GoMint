@@ -7,12 +7,15 @@
 
 package io.gomint.server.registry;
 
-import com.google.common.reflect.ClassPath;
+import io.gomint.server.util.ClassPath;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -25,7 +28,7 @@ public class StringRegistry<R> {
     private final ClassPath classPath;
     private final GeneratorCallback<R> generatorCallback;
 
-    private final Map<String, Generator<R>> generators = new HashMap<>();
+    private final Int2ObjectMap<Generator<R>> generators = new Int2ObjectOpenHashMap<>();
     private final Map<Class<?>, String> apiReferences = new HashMap<>();
 
     /**
@@ -47,9 +50,7 @@ public class StringRegistry<R> {
     public void register( String classPath ) {
         LOGGER.debug( "Going to scan: {}", classPath );
 
-        for ( ClassPath.ClassInfo classInfo : this.classPath.getTopLevelClasses( classPath ) ) {
-            register( classInfo.load() );
-        }
+        this.classPath.getTopLevelClasses( classPath, classInfo -> register( classInfo.load() ) );
     }
 
     private void register( Class<?> clazz ) {
@@ -93,7 +94,12 @@ public class StringRegistry<R> {
     }
 
     private void storeGeneratorForId( String id, Generator<R> generator ) {
-        this.generators.put( id, generator );
+        int hash = id.hashCode();
+        if ( this.generators.containsKey( hash ) ) {
+            LOGGER.warn( "Detected hash collision for {}", id );
+        } else {
+            this.generators.put( hash, generator );
+        }
     }
 
     public Generator<R> getGenerator( Class<?> clazz ) {
@@ -107,7 +113,7 @@ public class StringRegistry<R> {
     }
 
     public final Generator<R> getGenerator( String id ) {
-        return this.generators.get( id );
+        return this.generators.get( id.hashCode() );
     }
 
     public String getId( Class<?> clazz ) {

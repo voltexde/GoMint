@@ -1,6 +1,5 @@
 package io.gomint.server.world.block;
 
-import com.google.common.reflect.ClassPath;
 import io.gomint.entity.Entity;
 import io.gomint.event.world.BlockPlaceEvent;
 import io.gomint.inventory.item.ItemStack;
@@ -12,6 +11,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.StringRegistry;
+import io.gomint.server.util.ClassPath;
 import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.WorldAdapter;

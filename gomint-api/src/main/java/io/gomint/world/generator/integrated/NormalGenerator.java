@@ -14,6 +14,7 @@ import io.gomint.world.Biome;
 import io.gomint.world.Chunk;
 import io.gomint.world.World;
 import io.gomint.world.WorldLayer;
+import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockBedrock;
 import io.gomint.world.block.BlockCoalOre;
 import io.gomint.world.block.BlockDiamondOre;
@@ -46,12 +47,17 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class NormalGenerator extends ChunkGenerator {
 
+    // Used blocks for terrain
+    private static final Block WATER = GoMint.instance().createBlock( BlockStationaryWater.class );
+    private static final Block BEDROCK = GoMint.instance().createBlock( BlockBedrock.class );
+    private static final Block STONE = GoMint.instance().createBlock( BlockStone.class );
+
     private static final int SMOOTH_SIZE = 2;
     private static final double[][] GAUSSIAN = new double[SMOOTH_SIZE * 2 + 1][SMOOTH_SIZE * 2 + 1];
 
     static {
         double bellSize = 1 / (double) SMOOTH_SIZE;
-        double bellHeight = 2 * SMOOTH_SIZE;
+        double bellHeight = 2 * (double) SMOOTH_SIZE;
 
         for ( int sx = -SMOOTH_SIZE; sx <= SMOOTH_SIZE; ++sx ) {
             for ( int sz = -SMOOTH_SIZE; sz <= SMOOTH_SIZE; ++sz ) {
@@ -202,15 +208,15 @@ public class NormalGenerator extends ChunkGenerator {
                 // We currently only care about noise generation with stones
                 for ( int y = 0; y < correctedMax; ++y ) {
                     if ( y == 0 ) {
-                        chunk.setBlock( x, y, z, WorldLayer.NORMAL, GoMint.instance().createBlock( BlockBedrock.class ) );
+                        chunk.setBlock( x, y, z, WorldLayer.NORMAL, BEDROCK );
                         continue;
                     }
 
                     double noiseValue = noiseValues[x][z][y] - 1 / smoothHeight[x][z] * ( y - smoothHeight[x][z] - minHeight[x][z] );
                     if ( noiseValue > 0 ) {
-                        chunk.setBlock( x, y, z, GoMint.instance().createBlock( BlockStone.class ) );
+                        chunk.setBlock( x, y, z, STONE );
                     } else if ( y <= this.waterHeight ) {
-                        chunk.setBlock( x, y, z, GoMint.instance().createBlock( BlockStationaryWater.class ) );
+                        chunk.setBlock( x, y, z, WATER );
                     }
                 }
             }

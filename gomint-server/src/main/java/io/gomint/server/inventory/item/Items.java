@@ -1,10 +1,10 @@
 package io.gomint.server.inventory.item;
 
-import com.google.common.reflect.ClassPath;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.util.ClassPath;
 import io.gomint.server.util.Pair;
 import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.taglib.NBTTagCompound;

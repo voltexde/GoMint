@@ -7,7 +7,6 @@
 
 package io.gomint.server;
 
-import com.google.common.reflect.ClassPath;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.gomint.GoMint;
@@ -42,7 +41,7 @@ import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.CoreScheduler;
 import io.gomint.server.scheduler.SyncTaskManager;
-import io.gomint.server.util.BlockIdentifier;
+import io.gomint.server.util.ClassPath;
 import io.gomint.server.util.Watchdog;
 import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.WorldAdapter;
@@ -173,7 +172,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
         long start = System.currentTimeMillis();
 
         if ( !args.has( "convertOnly" ) ) {
-
             // ------------------------------------ //
             // Executor Initialization
             // ------------------------------------ //
@@ -218,7 +216,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         Thread.currentThread().setName( "GoMint Main Thread" );
 
         try {
-            this.classPath = ClassPath.from( GoMintServer.class.getClassLoader() );
+            this.classPath = new ClassPath( "io.gomint.server" );
         } catch ( IOException e ) {
             LOGGER.error( "Could not init classpath reader", e );
             return;

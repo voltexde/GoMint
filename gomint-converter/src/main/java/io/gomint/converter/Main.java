@@ -7,9 +7,9 @@
 
 package io.gomint.converter;
 
-import com.google.common.reflect.ClassPath;
 import io.gomint.server.assets.AssetsLibrary;
 import io.gomint.server.inventory.item.Items;
+import io.gomint.server.util.ClassPath;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class Main {
 
         ClassPath classPath;
         try {
-            classPath = ClassPath.from( Main.class.getClassLoader() );
+            classPath = new ClassPath( "io.gomint.server" );
         } catch ( IOException e ) {
             LOGGER.warn( "Could not create class path scanner", e );
             return;

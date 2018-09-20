@@ -30,7 +30,7 @@ public class GroundPopulator implements Populator {
                 List<Block> ground = biome.getGround();
                 if ( ground != null ) {
                     // Find highest point in column
-                    int y = 128;
+                    int y = biome.getMaxElevation();
                     for ( ; y > 0; --y ) {
                         Block block = chunk.getBlockAt( x, y, z );
                         if ( !block.isTransparent() && block.getType() != BlockType.AIR ) {

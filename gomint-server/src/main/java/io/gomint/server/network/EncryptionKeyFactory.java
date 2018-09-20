@@ -25,7 +25,6 @@ import java.util.Base64;
  * @author geNAZt
  * @version 1.0
  */
-@Getter
 public class EncryptionKeyFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EncryptionKeyFactory.class );
@@ -35,12 +34,18 @@ public class EncryptionKeyFactory {
     private KeyFactory keyFactory;
     private KeyPair keyPair;
 
+    private final GoMintServer server;
+
     /**
      * Create a new factory which holds / creates a ECDH key factory and a optional keypair
      *
      * @param server The server for which this factory is
      */
     public EncryptionKeyFactory( GoMintServer server ) {
+        this.server = server;
+    }
+
+    private void ensureKeyFactory() {
         // Create the key factory
         try {
             this.keyFactory = KeyFactory.getInstance( "EC" );
@@ -49,6 +54,10 @@ public class EncryptionKeyFactory {
             System.err.println( "Could not find ECDH Key Factory - please ensure that you have installed the latest version of BouncyCastle" );
             System.exit( -1 );
         }
+    }
+
+    private void ensureMojangRootKey() {
+        this.ensureKeyFactory();
 
         // Unserialize the Mojang root key
         try {
@@ -59,11 +68,12 @@ public class EncryptionKeyFactory {
             e.printStackTrace();
             System.err.println( "Could not generated public key for trusted Mojang key; please report this error in the GoMint.io discord for further assistance" );
             System.exit( -1 );
-
         }
+    }
 
+    private void ensureKey() {
         // If needed (for connection encryption) generate a keypair
-        if ( server.getServerConfig().getConnection().isEnableEncryption() && !server.getServerConfig().getListener().isUseTCP() ) {
+        if ( this.keyPair == null && this.server.getServerConfig().getConnection().isEnableEncryption() && !this.server.getServerConfig().getListener().isUseTCP() ) {
             // Setup KeyPairGenerator:
             KeyPairGenerator generator;
             try {
@@ -82,6 +92,11 @@ public class EncryptionKeyFactory {
         }
     }
 
+    public KeyPair getKeyPair() {
+        this.ensureKey();
+        return this.keyPair;
+    }
+
     /**
      * Return base 64 representation of the mojang public key
      *
@@ -91,8 +106,14 @@ public class EncryptionKeyFactory {
         return this.mojangRootKeyBase64;
     }
 
+    public PublicKey getMojangRootKey() {
+        this.ensureMojangRootKey();
+        return this.mojangRootKey;
+    }
+
     public PublicKey createPublicKey( String base64 ) {
         try {
+            this.ensureKeyFactory();
             return this.keyFactory.generatePublic( new X509EncodedKeySpec( Base64.getDecoder().decode( base64 ) ) );
         } catch ( InvalidKeySpecException e ) {
             e.printStackTrace();

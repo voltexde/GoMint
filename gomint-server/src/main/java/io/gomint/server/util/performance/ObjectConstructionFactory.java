@@ -7,7 +7,7 @@
 
 package io.gomint.server.util.performance;
 
-import io.gomint.server.util.PerformanceHacks;
+import java.lang.reflect.Constructor;
 
 /**
  * @author geNAZt
@@ -15,11 +15,22 @@ import io.gomint.server.util.PerformanceHacks;
  */
 public class ObjectConstructionFactory implements ConstructionFactory {
 
+    private static boolean USE_SUN;
+
+    static {
+        try {
+            Class test = Class.forName( "sun.reflect.ReflectionFactory" );
+            test.getDeclaredMethod( "newConstructorAccessor", Constructor.class );
+            USE_SUN = true;
+        } catch ( Exception e ) {
+            USE_SUN = false;
+        }
+    }
+
     private final ConstructionFactory factory;
 
     public ObjectConstructionFactory( Class<?> clazz ) {
-        if ( PerformanceHacks.isUnsafeEnabled() ) {
-            // I simply assume that when we have sun unsafe we have the rest of the sun "API"
+        if ( USE_SUN ) {
             this.factory = new ConstructorAccessFactory( clazz );
         } else {
             this.factory = new ReflectionAccessFactory( clazz );
