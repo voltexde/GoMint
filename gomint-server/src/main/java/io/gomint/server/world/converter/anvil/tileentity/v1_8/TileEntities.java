@@ -116,7 +116,7 @@ public class TileEntities implements TileEntityConverters {
             case "EnchantTable":
                 return this.enchantTableConverter.readFrom( compound );
             case "FlowerPot":
-                return this.flowerPotConverter.readFrom( compound );
+                return null;
             case "Chest":
                 return this.chestConverter.readFrom( compound );
             case "Skull":
