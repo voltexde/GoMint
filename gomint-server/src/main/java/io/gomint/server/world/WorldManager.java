@@ -111,9 +111,17 @@ public class WorldManager {
             LOGGER.warn( "Loading worlds from an async thread. This is not safe and can lead to CME", new Exception() );
         }
 
-        LOGGER.info( "Attempting to load world '{}'", path );
+
 
         File file = new File( path );
+
+        // Check if we already loaded
+        if ( this.loadedWorlds.containsKey( file.getName() ) ) {
+            return this.loadedWorlds.get( file.getName() );
+        }
+
+        LOGGER.info( "Attempting to load world '{}'", path );
+
         if ( file.exists() ) {
             if ( file.isDirectory() ) {
                 // LevelDB world:
