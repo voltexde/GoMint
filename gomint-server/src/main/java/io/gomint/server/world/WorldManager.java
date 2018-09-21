@@ -8,6 +8,7 @@
 package io.gomint.server.world;
 
 import io.gomint.GoMint;
+import io.gomint.event.world.WorldConvertedEvent;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
@@ -111,8 +112,6 @@ public class WorldManager {
             LOGGER.warn( "Loading worlds from an async thread. This is not safe and can lead to CME", new Exception() );
         }
 
-
-
         File file = new File( path );
 
         // Check if we already loaded
@@ -158,7 +157,10 @@ public class WorldManager {
 
         AnvilConverter converter = new AnvilConverter( this.server.getAssets(), new Items( this.server.getClassPath(), this.server.getAssets().getJeTopeItems() ), file );
         converter.done();
-        return loadLevelDBWorld( file );
+
+        World world = loadLevelDBWorld( file );
+        this.server.getPluginManager().callEvent( new WorldConvertedEvent( world ) );
+        return world;
     }
 
     private World loadZippedLevelDBWorld( File path, String name ) throws WorldLoadException {
