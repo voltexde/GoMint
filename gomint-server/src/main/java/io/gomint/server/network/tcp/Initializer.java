@@ -10,9 +10,11 @@ package io.gomint.server.network.tcp;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelException;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.socket.SocketChannel;
 
 import java.util.function.Consumer;
@@ -22,6 +24,10 @@ import java.util.function.Consumer;
  * @version 1.0
  */
 public class Initializer {
+
+    private static final int LOW_MARK = Integer.getInteger( "io.gomint.low_mark", 2 << 18 );   // 0.5 mb
+    private static final int HIGH_MARK = Integer.getInteger( "io.gomint.high_mark", 2 << 20 ); // 2 mb
+    private static final WriteBufferWaterMark MARK = new WriteBufferWaterMark( LOW_MARK, HIGH_MARK );
 
     private static final EventLoopGroup EVENT_LOOP_GROUP;
 
@@ -40,13 +46,21 @@ public class Initializer {
             .group( EVENT_LOOP_GROUP )
             .channel( Pipeline.getServerChannel() )
             .childOption( ChannelOption.TCP_NODELAY, true )
-            .childOption( ChannelOption.SO_LINGER, 0 )
-            .childOption( ChannelOption.SO_KEEPALIVE, true )
-            .childOption( ChannelOption.ALLOCATOR, new PooledByteBufAllocator( true ) )
+            .childOption( ChannelOption.SO_REUSEADDR, true )
             .childHandler( new ChannelInitializer<SocketChannel>() {
                                @Override
                                public void initChannel( SocketChannel ch ) throws Exception {
                                    final ConnectionHandler connectionHandler = new ConnectionHandler();
+
+                                   try {
+                                       ch.config().setOption( ChannelOption.IP_TOS, 0x18 );
+                                   } catch ( ChannelException ex ) {
+                                       // Ignored
+                                   }
+
+                                   ch.config().setAllocator( PooledByteBufAllocator.DEFAULT );
+                                   ch.config().setWriteBufferWaterMark( MARK );
+
                                    Pipeline.prepare( ch.pipeline(), connectionHandler );
 
                                    connectionHandler.whenConnected( aVoid -> newConnection.accept( connectionHandler ) );
