@@ -1417,10 +1417,12 @@ public abstract class WorldAdapter implements World {
      * Adjust the spawn level to the first in air block
      */
     protected void adjustSpawn() {
+        int airRuntime = BlockRuntimeIDs.from( "minecraft:air", (short) 0 );
+
         BlockPosition check = new BlockPosition( (int) this.spawn.getX(), 0, (int) this.spawn.getZ() );
         for ( int i = 255; i > 0; i-- ) {
             check.setY( i );
-            if ( this.getRuntimeID( check, 0 ) != 0 ) {
+            if ( this.getRuntimeID( check, 0 ) != airRuntime ) {
                 this.spawn.setY( 1 + i );
                 break;
             }
