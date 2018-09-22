@@ -34,6 +34,7 @@ pipeline {
     stage('Store') {
       steps {
         archiveArtifacts 'gomint-server/target/GoMint.jar'
+        archiveArtifacts 'gomint-converter/target/Converter.jar'
       }
     }
   }
