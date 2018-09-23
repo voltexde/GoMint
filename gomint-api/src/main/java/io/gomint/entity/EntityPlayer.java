@@ -151,10 +151,10 @@ public interface EntityPlayer extends EntityHuman {
      * Set the server settings form
      *
      * @param form which will be set as the new settings form
-     * @param <T>  type of return value from the response
+     * @param <R>  type of return value from the response
      * @return form listener to attaching for response
      */
-    <T> FormListener<T> setSettingsForm( Form form );
+    <R> FormListener<R> setSettingsForm( Form<R> form );
 
     /**
      * Remove the current stored settings form
