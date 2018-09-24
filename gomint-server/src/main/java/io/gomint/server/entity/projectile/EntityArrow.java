@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 80 )
+@RegisterInfo( sId = "minecraft:arrow" )
 public class EntityArrow extends EntityProjectile implements io.gomint.entity.projectile.EntityArrow {
 
     private boolean firedHitEvent = false;

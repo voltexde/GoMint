@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 47 )
+@RegisterInfo( sId = "minecraft:husk" )
 public class EntityHusk extends EntityLiving implements io.gomint.entity.monster.EntityHusk{
 
     /**

@@ -6,7 +6,11 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 24 )
+/**
+ * @author geNAZt
+ * @version 1.0
+ */
+@RegisterInfo( sId = "minecraft:donkey" )
 public class EntityDonkey extends EntityLiving implements io.gomint.entity.passive.EntityDonkey {
 
     /**
@@ -38,4 +42,5 @@ public class EntityDonkey extends EntityLiving implements io.gomint.entity.passi
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
     }
+
 }

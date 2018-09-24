@@ -8,7 +8,7 @@ import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 50 )
+@RegisterInfo( sId = "minecraft:elder_guardian" )
 public class EntityElderGuardian extends EntityLiving implements io.gomint.entity.monster.EntityElderGuardian {
 
     /**

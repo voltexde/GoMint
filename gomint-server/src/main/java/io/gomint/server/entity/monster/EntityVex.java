@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 105 )
+@RegisterInfo( sId = "minecraft:vex" )
 public class EntityVex extends EntityLiving implements io.gomint.entity.monster.EntityVex {
 
     /**

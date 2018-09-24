@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Predicate;
 
 /**
  * Base class for all entities. Defines accessors to attributes and components that are
@@ -59,44 +58,34 @@ import java.util.function.Predicate;
 public abstract class Entity implements io.gomint.entity.Entity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Entity.class );
-
-    // Useful stuff for movement. Those are values for per client tick
-    protected float GRAVITY = 0.08f;
-    protected float DRAG = 0.02f;
-
     private static final AtomicLong ENTITY_ID = new AtomicLong( 0 );
-
     /**
      * The id of this entity
      */
     protected final long id;
-
     /**
      * Type of the entity
      */
     protected final EntityType type;
-
     /**
      * Metadata
      */
     protected final MetadataContainer metadataContainer;
-
+    // Useful stuff for movement. Those are values for per client tick
+    protected float GRAVITY = 0.08f;
+    protected float DRAG = 0.02f;
     /**
      * Bounding Box
      */
     protected AxisAlignedBB boundingBox;
     @Getter
-    private float width;
-    @Getter
     protected float height;
-
     /**
      * How high can this entity "climb" in one movement?
      */
     protected float stepHeight = 0;
     @Setter
     protected boolean onGround;
-
     /**
      * Collision states
      */
@@ -105,42 +94,38 @@ public abstract class Entity implements io.gomint.entity.Entity {
     protected boolean isCollidedHorizontally;
     protected boolean isCollided;
     protected Set<Block> collidedWith = new HashSet<>();
-    private boolean stuckInBlock = false;
-    // CHECKSTYLE:ON
-
     /**
      * Fall distance tracking
      */
     @Getter
     @Setter
     protected float fallDistance = 0;
-
     /**
      * Since MC:PE movements are eye instead of foot based we need to offset by this amount
      */
     @Getter
     protected float eyeHeight;
+    // CHECKSTYLE:ON
     @Getter
     protected float offsetY;
-
+    protected int age;
+    protected WorldAdapter world;
+    @Setter
+    @Getter
+    protected boolean ticking = true;
+    @Getter
+    private float width;
+    private boolean stuckInBlock = false;
     /**
      * Dead status
      */
     @Getter
     @Setter
     private boolean dead;
-    protected int age;
-
-    protected WorldAdapter world;
     private TransformComponent transform;
     private float lastUpdateDt;
     @Getter
     private List<EntityLink> links;
-
-    @Setter
-    @Getter
-    protected boolean ticking = true;
-
     // Some tracker for "smooth" movement
     private int stuckInBlockTicks = 0;
 
@@ -209,6 +194,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.world;
     }
 
+    public void setWorld( WorldAdapter world ) {
+        LOGGER.info( "Setting world of {} to {}", this, world.toString() );
+        this.world = world;
+    }
+
     /**
      * Gets a metadata container containing all metadata values of this entity.
      *
@@ -218,14 +208,14 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.metadataContainer;
     }
 
+    // ==================================== UPDATING ==================================== //
+
     /**
      * Despawns this entity if it is currently spawned into any world.
      */
     public void despawn() {
         this.dead = true;
     }
-
-    // ==================================== UPDATING ==================================== //
 
     /**
      * Updates the entity and all components attached to it.
@@ -515,9 +505,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
      * @param movX the amount of x which the entity has moved
      * @param movY the amount of y which the entity has moved
      * @param movZ the amount of z which the entity has moved
-     * @param dX the amount of x which the entity should have moved
-     * @param dY the amount of y which the entity should have moved
-     * @param dZ the amount of z which the entity should have moved
+     * @param dX   the amount of x which the entity should have moved
+     * @param dY   the amount of y which the entity should have moved
+     * @param dZ   the amount of z which the entity should have moved
      */
     protected void checkIfCollided( float movX, float movY, float movZ, float dX, float dY, float dZ ) {
         // Check if we collided with something
@@ -526,6 +516,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.isCollided = ( this.isCollidedHorizontally || this.isCollidedVertically );
         this.onGround = ( movY != dY && movY < 0 );
     }
+
+    // ==================================== TRANSFORMATION ==================================== //
 
     private void checkInsideBlock() {
         // Check in which block we are
@@ -629,8 +621,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
         }
     }
 
-    // ==================================== TRANSFORMATION ==================================== //
-
     /**
      * Gets the entity's transform as a Transformable.
      *
@@ -645,16 +635,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
         return this.transform.toLocation( this.world );
     }
 
-    @Override
-    public void setVelocity( Vector velocity ) {
-        this.setVelocity( velocity, true );
-    }
-
     /**
      * Set the given velocity
      *
      * @param velocity which should be applied to the entity
-     * @param send true when the entity should get the velocity
+     * @param send     true when the entity should get the velocity
      */
     public void setVelocity( Vector velocity, boolean send ) {
         EntityVelocityEvent event = new EntityVelocityEvent( this, velocity );
@@ -957,21 +942,21 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     @Override
-    public void setImmobile( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.IMMOBILE, value );
-    }
-
-    @Override
     public boolean isImmobile() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.IMMOBILE );
     }
 
-    public void setAffectedByGravity( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.AFFECTED_BY_GRAVITY, value );
+    @Override
+    public void setImmobile( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.IMMOBILE, value );
     }
 
     public boolean isAffectedByGravity() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.AFFECTED_BY_GRAVITY );
+    }
+
+    public void setAffectedByGravity( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.AFFECTED_BY_GRAVITY, value );
     }
 
     @Override
@@ -985,18 +970,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     @Override
-    public void setNameTagAlwaysVisible( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ALWAYS_SHOW_NAMETAG, value );
-    }
-
-    @Override
     public boolean isNameTagAlwaysVisible() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ALWAYS_SHOW_NAMETAG );
     }
 
     @Override
-    public void setNameTagVisible( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_SHOW_NAMETAG, value );
+    public void setNameTagAlwaysVisible( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ALWAYS_SHOW_NAMETAG, value );
     }
 
     @Override
@@ -1005,8 +985,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     @Override
-    public void setOnFire( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ONFIRE, value );
+    public void setNameTagVisible( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_SHOW_NAMETAG, value );
     }
 
     @Override
@@ -1015,13 +995,18 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     @Override
-    public void setInvisible( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE, value );
+    public void setOnFire( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.ONFIRE, value );
     }
 
     @Override
     public boolean isInvisible() {
         return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE );
+    }
+
+    @Override
+    public void setInvisible( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.INVISIBLE, value );
     }
 
     /**
@@ -1064,6 +1049,11 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     public Vector getVelocity() {
         return this.transform.getMotion();
+    }
+
+    @Override
+    public void setVelocity( Vector velocity ) {
+        this.setVelocity( velocity, true );
     }
 
     protected boolean isOnLadder() {
@@ -1239,13 +1229,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     @Override
-    public void setScale( float scale ) {
-        this.metadataContainer.putFloat( MetadataContainer.DATA_SCALE, scale );
+    public float getScale() {
+        return this.metadataContainer.getFloat( MetadataContainer.DATA_SCALE );
     }
 
     @Override
-    public float getScale() {
-        return this.metadataContainer.getFloat( MetadataContainer.DATA_SCALE );
+    public void setScale( float scale ) {
+        this.metadataContainer.putFloat( MetadataContainer.DATA_SCALE, scale );
     }
 
     @Override
@@ -1346,6 +1336,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.fallDistance = compound.getFloat( "FallDistance", 0f );
         this.setAffectedByGravity( compound.getByte( "NoGravity", (byte) 0 ) == 0 );
         this.onGround = compound.getByte( "OnGround", (byte) 1 ) == 1;
+
+        // Age
+        this.age = compound.getShort( "Age", (short) 0 );
     }
 
     public NBTTagCompound persistToNBT() {
@@ -1376,6 +1369,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
         compound.addValue( "NoGravity", (byte) ( this.isAffectedByGravity() ? 0 : 1 ) );
         compound.addValue( "OnGround", (byte) ( this.isOnGround() ? 1 : 0 ) );
 
+        // Age
+        compound.addValue( "Age", (short) this.age );
+
         return compound;
     }
 
@@ -1395,11 +1391,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
     public void updateOldPosition() {
         this.oldPosition = this.getLocation();
-    }
-
-    public void setWorld( WorldAdapter world ) {
-        LOGGER.info( "Setting world of {} to {}", this, world.toString() );
-        this.world = world;
     }
 
 }

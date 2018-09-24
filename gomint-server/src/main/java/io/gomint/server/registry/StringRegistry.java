@@ -7,12 +7,17 @@
 
 package io.gomint.server.registry;
 
+import io.gomint.server.entity.EntityType;
 import io.gomint.server.util.ClassPath;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -60,9 +65,12 @@ public class StringRegistry<R> {
             return;
         }
 
-
         if ( clazz.isAnnotationPresent( RegisterInfo.class ) ) {
             String id = clazz.getAnnotation( RegisterInfo.class ).sId();
+            if ( id.isEmpty() ) {
+                System.out.println( clazz.getName() );
+            }
+
             Generator<R> generator = this.generatorCallback.generate( clazz );
             if ( generator != null ) {
                 this.storeGeneratorForId( id, generator );

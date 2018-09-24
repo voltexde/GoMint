@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 30 )
+@RegisterInfo( sId = "minecraft:parrot" )
 public class EntityParrot extends EntityLiving implements io.gomint.entity.passive.EntityParrot {
 
     /**

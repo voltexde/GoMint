@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 40 )
+@RegisterInfo( sId = "minecraft:cave_spider" )
 public class EntityCaveSpider extends EntityLiving implements io.gomint.entity.monster.EntityCaveSpider {
 
     /**
@@ -15,7 +15,7 @@ public class EntityCaveSpider extends EntityLiving implements io.gomint.entity.m
      * @param world The world in which this entity is in
      */
     public EntityCaveSpider( WorldAdapter world ) {
-        super( EntityType.CAVESPIDER, world );
+        super( EntityType.CAVE_SPIDER, world );
         this.initEntity();
     }
 
@@ -23,7 +23,7 @@ public class EntityCaveSpider extends EntityLiving implements io.gomint.entity.m
      * Create new entity cave spider for API
      */
     public EntityCaveSpider() {
-        super( EntityType.CAVESPIDER, null );
+        super( EntityType.CAVE_SPIDER, null );
         this.initEntity();
     }
 

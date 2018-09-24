@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 64 )
+@RegisterInfo( sId = "item" )
 @ToString
 public class EntityItem extends Entity implements EntityItemDrop {
 
@@ -182,7 +182,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
         super.initFromNBT( compound );
 
 
-        DumpUtil.dumpNBTCompund( compound );
+        // DumpUtil.dumpNBTCompund( compound );
     }
 
 }

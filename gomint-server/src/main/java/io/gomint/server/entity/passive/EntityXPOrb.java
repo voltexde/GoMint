@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 69 )
+@RegisterInfo( sId = "minecraft:xp_orb" )
 public class EntityXPOrb extends Entity implements io.gomint.entity.passive.EntityXPOrb {
 
     @Setter

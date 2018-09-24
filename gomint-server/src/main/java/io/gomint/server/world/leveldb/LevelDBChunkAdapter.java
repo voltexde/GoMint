@@ -17,6 +17,7 @@ import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Allocator;
 import io.gomint.server.util.BlockIdentifier;
+import io.gomint.server.util.DumpUtil;
 import io.gomint.server.util.Palette;
 import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.ChunkAdapter;
@@ -309,15 +310,8 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             try {
                 NBTTagCompound compound = nbtReader.parse();
                 String identifier = compound.getString( "identifier", null );
-                if ( identifier == null ) {
-                    System.out.println( "WTF" );
-                } else {
-                    System.out.println( identifier );
-                }
 
-                Integer id = compound.getInteger( "id", 0 );
-
-                Entity entity = this.world.getServer().getEntities().create( id & 0xFF );
+                Entity entity = this.world.getServer().getEntities().create( identifier );
                 if ( entity != null ) {
                     entity.initFromNBT( compound );
                 }

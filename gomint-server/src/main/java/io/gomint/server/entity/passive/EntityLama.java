@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 29 )
+@RegisterInfo( sId = "minecraft:llama" )
 public class EntityLama extends EntityLiving implements io.gomint.entity.passive.EntityLama {
 
     /**
@@ -15,7 +15,7 @@ public class EntityLama extends EntityLiving implements io.gomint.entity.passive
      * @param world The world in which this entity is in
      */
     public EntityLama( WorldAdapter world ) {
-        super( EntityType.LAMA, world );
+        super( EntityType.LLAMA, world );
         this.initEntity();
     }
 
@@ -23,7 +23,7 @@ public class EntityLama extends EntityLiving implements io.gomint.entity.passive
      * Create new entity lama for API
      */
     public EntityLama() {
-        super( EntityType.LAMA, null );
+        super( EntityType.LLAMA, null );
         this.initEntity();
     }
 

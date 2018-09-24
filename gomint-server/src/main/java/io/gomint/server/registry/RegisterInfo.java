@@ -13,6 +13,5 @@ public @interface RegisterInfo {
 
     int id() default -1;
     String sId() default "";
-    int itemId() default -1;
 
 }

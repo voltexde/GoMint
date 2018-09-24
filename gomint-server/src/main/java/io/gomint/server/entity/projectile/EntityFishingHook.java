@@ -22,7 +22,7 @@ import io.gomint.util.random.FastRandom;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 77 )
+@RegisterInfo( sId = "minecraft:fishing_hook" )
 public class EntityFishingHook extends EntityProjectile implements io.gomint.entity.projectile.EntityFishingHook {
 
     private static final Vector WATER_FLOATING_MOTION = new Vector( 0, 0.1f, 0 );

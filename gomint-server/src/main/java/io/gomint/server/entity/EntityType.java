@@ -7,398 +7,475 @@
 
 package io.gomint.server.entity;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * An enumeration of all entity types known. Those values are needed for the AddEntityPackets
  *
  * @author BlackyPaw
  * @version 1.0
  */
+@RequiredArgsConstructor
+@Getter
 public enum EntityType {
 
     /**
-     * Entity type value for a xp orb.
+     * Entity type value for a chicken.
      */
-    XP_ORB( 69 ),
+    CHICKEN( "minecraft:chicken", 10 ),
 
     /**
-     * Entity type value for a exp potion projectile.
+     * Entity type value for a cow.
      */
-    EXP_BOTTLE_PROJECTILE( 68 ),
+    COW( "minecraft:cow", 11 ),
 
     /**
-     * Entity type value for a primed tnt.
+     * Entity type value for a pig.
      */
-    PRIMED_TNT( 65 ),
+    PIG( "minecraft:pig", 12 ),
 
     /**
-     * Entity Type value for a item drop.
+     * Entity type value for a sheep.
      */
-    ITEM_DROP( 64 ),
+    SHEEP( "minecraft:sheep", 13 ),
 
     /**
-     * Entity Type value for a chicken.
+     * Entity type value for a wolf.
      */
-    CHICKEN( 10 ),
+    WOLF( "minecraft:wolf", 14 ),
 
     /**
-     * Entity Type value for a cow.
+     * Entity type value for a villager.
      */
-    COW( 11 ),
+    VILLAGER( "minecraft:villager", 15 ),
 
     /**
-     * Entity Type value for a pig.
+     * Entity type value for a mushroom cow.
      */
-    PIG( 12 ),
+    MUSHROOM_COW( "minecraft:mooshroom", 16 ),
 
     /**
-     * Entity Type value for a sheep.
+     * Entity type value for a squid.
      */
-    SHEEP( 13 ),
+    SQUID( "minecraft:squid", 17 ),
 
     /**
-     * Entity Type value for a wolf.
+     * Entity type value for a rabbit.
      */
-    WOLF( 14 ),
+    RABBIT( "minecraft:rabbit", 18 ),
 
     /**
-     * Entity Type value for a villager.
+     * Entity type value for a bat.
      */
-    VILLAGER( 15 ),
+    BAT( "minecraft:bat", 19 ),
 
     /**
-     * Entity Type value for a mushroom cow.
+     * Entity type value for an iron golem.
      */
-    MUSHROOM_COW( 16 ),
+    IRON_GOLEM( "minecraft:iron_golem", 20 ),
 
     /**
-     * Entity Type value for a squid.
+     * Entity type value for a snow golem.
      */
-    SQUID( 17 ),
+    SNOW_GOLEM( "minecraft:snow_golem", 21 ),
 
     /**
-     * Entity Type value for a rabbit.
+     * Entity type value for a ocelot.
      */
-    RABBIT( 18 ),
+    OCELOT( "minecraft:ocelot", 22 ),
 
     /**
-     * Entity Type value for a bat.
+     * Entity type value for a horse.
      */
-    BAT( 19 ),
+    HORSE( "minecraft:horse", 23 ),
 
     /**
-     * Entity Type value for an iron golem.
+     * Entity type value for a donkey.
      */
-    IRON_GOLEM( 20 ),
+    DONKEY( "minecraft:donkey", 24 ),
 
     /**
-     * Entity Type value for a snow golem.
+     * Entity type value for a mule.
      */
-    SNOW_GOLEM( 21 ),
+    MULE( "minecraft:mule", 25 ),
 
     /**
-     * Entity Type value for a zombie.
+     * Entity type value for a skeleton horse.
      */
-    ZOMBIE( 32 ),
+    SKELETON_HORSE( "minecraft:skeleton_horse", 26 ),
 
     /**
-     * Entity Type value for a creeper.
+     * Entity type value for a zombie horse.
      */
-    CREEPER( 33 ),
+    ZOMBIE_HORSE( "minecraft:zombie_horse", 27 ),
 
     /**
-     * Entity Type value for a skeleton.
+     * Entity type value for a polar bear.
      */
-    SKELETON( 34 ),
+    POLAR_BEAR( "minecraft:polar_bear", 28 ),
 
     /**
-     * Entity Type value for a spider.
+     * Entity type value for a llama.
      */
-    SPIDER( 35 ),
+    LLAMA( "minecraft:llama", 29 ),
 
     /**
-     * Entity Type value for a pig zombie.
+     * Entity type value for a parrot
      */
-    PIG_ZOMBIE( 36 ),
+    PARROT( "minecraft:parrot", 30 ),
 
     /**
-     * Entity Type value for a slime.
+     * Entity type value for a dolphin
      */
-    SLIME( 37 ),
+    DOLPHIN( "minecraft:dolphin", 31 ),
 
     /**
-     * Entity Type value for an enderman.
+     * Entity type value for a zombie.
      */
-    ENDERMAN( 38 ),
+    ZOMBIE( "minecraft:zombie", 32 ),
 
     /**
-     * Entity Type value for a silverfish.
+     * Entity type value for a creeper.
      */
-    SILVERFISH( 39 ),
+    CREEPER( "minecraft:creeper", 33 ),
 
     /**
-     * Entity Type value for a cavespider.
+     * Entity type value for a skeleton.
      */
-    CAVESPIDER( 40 ),
+    SKELETON( "minecraft:skeleton", 34 ),
 
     /**
-     * Entity Type value for a ghast.
+     * Entity type value for a spider.
      */
-    GHAST( 41 ),
+    SPIDER( "minecraft:spider", 35 ),
 
     /**
-     * Entity Type value for a lava slime.
+     * Entity type value for a zombie pigman.
      */
-    LAVA_SLIME( 0x000B2A ),
+    ZOMBIE_PIGMAN( "minecraft:zombie_pigman", 36 ),
 
     /**
-     * Entity Type value for a blaze.
+     * Entity type value for a slime.
      */
-    BLAZE( 43 ),
+    SLIME( "minecraft:slime", 37 ),
 
     /**
-     * Entity Type value for a zombified villager.
+     * Entity type value for an enderman.
      */
-    ZOMBIE_VILLAGER( 44 ),
+    ENDERMAN( "minecraft:enderman", 38 ),
 
     /**
-     * Entity Type value for a witch.
+     * Entity type value for a silverfish.
      */
-    WITCH( 45 ),
+    SILVERFISH( "minecraft:silverfish", 39 ),
 
     /**
-     * Entity Type value for a player.
+     * Entity type value for a cave spider.
      */
-    PLAYER( 63 ),
+    CAVE_SPIDER( "minecraft:cave_spider", 40 ),
 
     /**
-     * Entity Type value for a fishing hook floating on water.
+     * Entity type value for a ghast.
      */
-    FISHING_HOOK( 77 ),
+    GHAST( "minecraft:ghast", 41 ),
 
     /**
-     * Entity Type value for an arrow.
+     * Entity type value for a magma cube.
      */
-    ARROW( 80 ),
+    MAGMA_CUBE( "minecraft:magma_cube", 42 ),
 
     /**
-     * Entity Type value for a snowball which has been thrown.
+     * Entity type value for a blaze.
      */
-    SNOWBALL( 0x000051 ),
+    BLAZE( "minecraft:blaze", 43 ),
 
     /**
-     * Entity Type value for an egg which has been thrown.
+     * Entity type value for a zombified villager.
      */
-    THROWN_EGG( 0x000052 ),
+    ZOMBIE_VILLAGER( "minecraft:zombie_villager", 44 ),
 
     /**
-     * Entity Type value for a painting hanging on a wall.
+     * Entity type value for a witch.
      */
-    PAINTING( 0x000053 ),
+    WITCH( "minecraft:witch", 45 ),
 
     /**
-     * Entity Type value for a rideable minecart.
+     * Entity type value for a stray.
      */
-    MINECART_RIDEABLE( 0x080054 ),
+    STRAY( "minecraft:stray", 46 ),
 
     /**
-     * Entity Type value for a large fireball as thrown by ghasts.
+     * Entity type value for a husk.
      */
-    LARGE_FIREBALL( 0x000055 ),
+    HUSK( "minecraft:husk", 47 ),
 
     /**
-     * Entity Type value for a potion which has been thrown.
+     * Entity type value for a wither skeleton.
      */
-    THROWN_POTION( 0x000056 ),
+    WITHER_SKELETON( "minecraft:wither_skeleton", 48 ),
 
     /**
-     * Entity type value for a thrown enderpearl
+     * Entity type value for a guardian.
      */
-    THROWN_ENDERPEARL( 87 ),
+    GUARDIAN( "minecraft:guardian", 49 ),
 
     /**
-     * Entity Type value for a rideable boat.
+     * Entity type value for a elder guardian.
      */
-    BOAT_RIDEABLE( 0x00005A ),
+    ELDER_GUARDIAN( "minecraft:elder_guardian", 50 ),
 
     /**
-     * Entity Type value for a lightning strike.
+     * Entity type value for a wither.
      */
-    LIGHTNING( 0x00005D ),
+    WITHER( "minecraft:wither", 52 ),
 
     /**
-     * Entity Type value for a small fireball as thrown by blazes.
+     * Entity type value for a ender dragon.
      */
-    SMALL_FIREBALL( 0x00005E ),
+    ENDER_DRAGON( "minecraft:ender_dragon", 53 ),
 
     /**
-     * Entity Type value for a donkey.
+     * Entity type value for a shulker.
      */
-    DONKEY( 24 ),
+    SHULKER( "minecraft:shulker", 54 ),
 
     /**
-     * Entity Type value for a horse.
+     * Entity type value for a endermite.
      */
-    HORSE( 23 ),
-
-    /**
-     * Entity Type value for a lama.
-     */
-    LAMA( 29 ),
-
-    /**
-     * Entity Type value for a mule.
-     */
-    MULE( 25 ),
-
-    /**
-     * Entity Type value for a ocelot.
-     */
-    OCELOT( 22 ),
-
-    /**
-     * Entity Type value for a polar bear.
-     */
-    POLAR_BEAR( 28 ),
-
-    /**
-     * Entity Type value for a skeleton horse.
-     */
-    SKELETON_HORSE( 26 ),
-
-    /**
-     * Entity Type value for a zombie horse.
-     */
-    ZOMBIE_HORSE( 27 ),
-
-    /**
-     * Entity Type value for a elder guardian.
-     */
-    ELDER_GUARDIAN( 50 ),
-
-    /**
-     * Entity Type value for a ender dragon.
-     */
-    ENDER_DRAGON( 53 ),
-
-    /**
-     * Entity Type value for a endermite.
-     */
-    ENDERMITE( 55 ),
-
-    /**
-     * Entity Type value for a guardian.
-     */
-    GUARDIAN( 49 ),
-
-    /**
-     * Entity Type value for a husk.
-     */
-    HUSK( 47 ),
-
-    /**
-     * Entity Type value for a magma cube.
-     */
-    MAGMA_CUBE( 42 ),
-
-    /**
-     * Entity Type value for a shulker.
-     */
-    SHULKER( 54 ),
-
-    /**
-     * Entity Type value for a stray.
-     */
-    STRAY( 46 ),
-
-    /**
-     * Entity Type value for a wither.
-     */
-    WITHER( 52 ),
-
-    /**
-     * Entity Type value for a wither skeleton.
-     */
-    WITHER_SKELETON( 48 ),
-
-    /**
-     * Entity Type value for a vex.
-     */
-    VEX( 105 ),
-
-    /**
-     * Entity Type value for a armor stand.
-     */
-    ARMOR_STAND( 61 ),
-
-    /**
-     * Entity type value for a falling block.
-     */
-    FALLING_BLOCK( 66 ),
-
-    /**
-     * Entity type value for a drowned.
-     */
-    DROWNED( 110 ),
+    ENDERMITE( "minecraft:endermite", 55 ),
 
     /**
      * Entity type value for a vindicator.
      */
-    VINDICATOR( 57 ),
+    VINDICATOR( "minecraft:vindicator", 57 ),
 
     /**
-     * Entity type value for a evoker.
+     * Entity type value for a phantom.
      */
-    EVOKER( 104 ),
+    PHANTOM( "minecraft:phantom", 58 ),
 
     /**
-     * Entity type value for a pufferfish.
+     * Entity type value for a armor stand.
      */
-    PUFFERFISH( 108 ),
+    ARMOR_STAND( "minecraft:armor_stand", 61 ),
 
     /**
-     * Entity type value for a salmon.
+     * Entity type value for a player.
      */
-    SALMON( 109 ),
+    PLAYER( "minecraft:player", 63 ),
 
     /**
-     * Entity type value for a tropcial fish.
+     * Entity type value for a item drop.
      */
-    TROPICALFISH( 111 ),
+    ITEM_DROP( "item", 64 ), // TODO: check why this has no minecraft: prefix
 
     /**
-     * Entity type value for a cod.
+     * Entity type value for a primed tnt.
      */
-    COD( 112 ),
+    PRIMED_TNT( "minecraft:tnt", 65 ),
+
+    /**
+     * Entity type value for a falling block.
+     */
+    FALLING_BLOCK( "minecraft:falling_block", 66 ),
+
+    /**
+     * Entity type value for a exp potion projectile.
+     */
+    EXP_BOTTLE_PROJECTILE( "minecraft:xp_bottle", 68 ),
+
+    /**
+     * Entity type value for a xp orb.
+     */
+    XP_ORB( "minecraft:xp_orb", 69 ),
+
+    /**
+     * Entity type value for a eye of ender signal.
+     */
+    EYE_OF_ENDER( "minecraft:eye_of_ender_signal", 70 ),
+
+    /**
+     * Entity type value for a ender crystal.
+     */
+    ENDER_CRYSTAL( "minecraft:ender_crystal", 71 ),
+
+    /**
+     * Entity type value for a firework.
+     */
+    FIREWORK( "minecraft:fireworks_rocket", 72 ),
+
+    /**
+     * Entity type value for a thrown trident.
+     */
+    THROWN_TRIDENT( "minecraft:thrown_trident", 73 ),
 
     /**
      * Entity type value for a turtle.
      */
-    TURTLE( 74 ),
+    TURTLE( "minecraft:turtle", 74 ),
 
     /**
-     * Entity type value for a parrot.
+     * Entity type value for a shulker bullet.
      */
-    PARROT( 30 );
-
-
-    private final int id;
+    SHULKER_BULLET( "minecraft:shulker_bullet", 76 ),
 
     /**
-     * New enum value for EntityType
-     *
-     * @param id The MC:PE id of this EntityType
+     * Entity type value for a fishing hook floating on water.
      */
-    EntityType( int id ) {
-        this.id = id;
-    }
+    FISHING_HOOK( "minecraft:fishing_hook", 77 ),
 
     /**
-     * Gets the complete ID of this entity type.
-     *
-     * @return The complete ID of this entity type
+     * Entity type value for a dragon fireball.
      */
-    public int getId() {
-        return this.id;
-    }
+    DRAGON_FIREBALL( "minecraft:dragon_fireball", 79 ),
+
+    /**
+     * Entity type value for an arrow.
+     */
+    ARROW( "minecraft:arrow", 80 ),
+
+    /**
+     * Entity type value for a snowball which has been thrown.
+     */
+    SNOWBALL( "minecraft:snowball", 81 ),
+
+    /**
+     * Entity type value for an egg which has been thrown.
+     */
+    THROWN_EGG( "minecraft:egg", 82 ),
+
+    /**
+     * Entity type value for a painting hanging on a wall.
+     */
+    PAINTING( "minecraft:painting", 83 ),
+
+    /**
+     * Entity type value for a rideable minecart.
+     */
+    MINECART( "minecraft:minecart", 84 ),
+
+    /**
+     * Entity type value for a large fireball as thrown by ghasts.
+     */
+    LARGE_FIREBALL( "minecraft:large_fireball", 85 ),
+
+    /**
+     * Entity type value for a potion which has been thrown.
+     */
+    THROWN_POTION( "minecraft:splash_potion", 86 ),
+
+    /**
+     * Entity type value for a thrown enderpearl
+     */
+    THROWN_ENDERPEARL( "minecraft:ender_pearl", 87 ),
+
+    /**
+     * Entity type value for a leash knot.
+     */
+    LEASH_KNOT( "minecraft:leash_knot", 88 ),
+
+    /**
+     * Entity type value for a wither skull.
+     */
+    WITHER_SKULL( "minecraft:wither_skull", 89 ),
+
+    /**
+     * Entity type value for a rideable boat.
+     */
+    BOAT( "minecraft:boat", 90 ),
+
+    /**
+     * Entity type value for a blue wither skull.
+     */
+    BLUE_WITHER_SKULL( "minecraft:wither_skull_dangerous", 91 ),
+
+    /**
+     * Entity type value for a lightning strike.
+     */
+    LIGHTNING( "minecraft:lightning_bolt", 93 ),
+
+    /**
+     * Entity type value for a small fireball as thrown by blazes.
+     */
+    SMALL_FIREBALL( "minecraft:small_fireball", 94 ),
+
+    /**
+     * Entity type value for a area effect cloud.
+     */
+    AREA_EFFECT_CLOUD( "minecraft:area_effect_cloud", 95 ),
+
+    /**
+     * Entity type value for a hopper minecraft.
+     */
+    HOPPER_MINECART( "minecraft:hopper_minecart", 96 ),
+
+    /**
+     * Entity type value for a tnt minecart.
+     */
+    TNT_MINECART( "minecraft:tnt_minecart", 97 ),
+
+    /**
+     * Entity type value for a chest minecart.
+     */
+    CHEST_MINECART( "minecraft:chest_minecart", 98 ),
+
+    /**
+     * Entity type value for a command block minecart.
+     */
+    COMMAND_BLOCK_MINECART( "minecraft:command_block_minecart", 100 ),
+
+    /**
+     * Entity type value for a lingering potion.
+     */
+    LINGERING_POTION( "minecraft:lingering_potion", 101 ),
+
+    /**
+     * Entity type value for a llama spit.
+     */
+    LLAMA_SPIT( "minecraft:llama_spit", 102 ),
+
+    /**
+     * Entity type value for a evoker fang.
+     */
+    EVOKATION_FANG( "minecraft:evocation_fang", 103 ),
+
+    /**
+     * Entity type value for a evoker.
+     */
+    EVOKER( "minecraft:evocation_illager", 104 ),
+
+    /**
+     * Entity type value for a vex.
+     */
+    VEX( "minecraft:vex", 105 ),
+
+    /**
+     * Entity type value for a pufferfish.
+     */
+    PUFFERFISH( "minecraft:pufferfish", 108 ),
+
+    /**
+     * Entity type value for a salmon.
+     */
+    SALMON( "minecraft:salmon", 109 ),
+
+    /**
+     * Entity type value for a drowned.
+     */
+    DROWNED( "minecraft:drowned", 110 ),
+
+    /**
+     * Entity type value for a tropcial fish.
+     */
+    TROPICALFISH( "minecraft:tropicalfish", 111 ),
+
+    /**
+     * Entity type value for a cod.
+     */
+    COD( "minecraft:cod", 112 );
+
+    private final String persistantId;
+    private final int networkId;
 
 }

@@ -444,11 +444,10 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                 entityKey.release();
 
                 if ( entityData != null ) {
-                    // loadingChunk.loadEntities( entityData );
+                    loadingChunk.loadEntities( entityData );
                 }
-            } catch ( Exception ignored ) {
-                ignored.printStackTrace();
-                // TODO: Implement proper error handling here
+            } catch ( Exception e ) {
+                this.logger.warn( "Could not load entities", e );
             }
 
             /*byte[] extraData = null;

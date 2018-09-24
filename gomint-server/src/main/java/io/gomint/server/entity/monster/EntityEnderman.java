@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 38 )
+@RegisterInfo( sId = "minecraft:enderman" )
 public class EntityEnderman extends EntityLiving implements io.gomint.entity.monster.EntityEnderman {
 
     /**

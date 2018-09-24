@@ -11,7 +11,7 @@ import io.gomint.server.world.WorldAdapter;
  * @author LucGames
  * @version 1.0
  */
-@RegisterInfo( id = 42 )
+@RegisterInfo( sId = "minecraft:magma_cube" )
 public class EntityMagmaCube extends EntityLiving implements io.gomint.entity.monster.EntityMagmaCube {
 
     /**

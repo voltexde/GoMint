@@ -22,7 +22,7 @@ import io.gomint.world.Particle;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 68 )
+@RegisterInfo( sId = "minecraft:xp_bottle" )
 public class EntityExpBottle extends EntityThrowable implements io.gomint.entity.projectile.EntityExpBottle {
 
     private float lastUpdatedT;

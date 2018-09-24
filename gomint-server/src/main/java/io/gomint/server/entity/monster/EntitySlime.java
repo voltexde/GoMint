@@ -11,7 +11,7 @@ import io.gomint.server.world.WorldAdapter;
  * @author LucGames
  * @version 1.0
  */
-@RegisterInfo( id = 37 )
+@RegisterInfo( sId = "minecraft:slime" )
 public class EntitySlime extends EntityLiving implements io.gomint.entity.monster.EntitySlime {
 
     /**

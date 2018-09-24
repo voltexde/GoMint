@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 57 )
+@RegisterInfo( sId = "minecraft:vindicator" )
 public class EntityVindicator extends EntityLiving implements io.gomint.entity.monster.EntityVindicator {
 
     /**

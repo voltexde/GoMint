@@ -10,6 +10,7 @@ package io.gomint.server.entity;
 import io.gomint.entity.Entity;
 import io.gomint.server.registry.Generator;
 import io.gomint.server.registry.Registry;
+import io.gomint.server.registry.StringRegistry;
 import io.gomint.server.util.ClassPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +22,10 @@ import org.slf4j.LoggerFactory;
 public class Entities {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Entities.class );
-    private final Registry<io.gomint.server.entity.Entity> generators;
+    private final StringRegistry<io.gomint.server.entity.Entity> generators;
 
     public Entities( ClassPath classPath ) {
-        this.generators = new Registry<>( classPath, clazz -> () -> {
+        this.generators = new StringRegistry<>( classPath, clazz -> () -> {
             try {
                 return (io.gomint.server.entity.Entity) clazz.newInstance();
             } catch ( InstantiationException | IllegalAccessException e ) {
@@ -51,7 +52,7 @@ public class Entities {
         return (T) entityGenerator.generate();
     }
 
-    public <T extends Entity> T create( int entityId ) {
+    public <T extends Entity> T create( String entityId ) {
         Generator<io.gomint.server.entity.Entity> entityGenerator = this.generators.getGenerator( entityId );
         if ( entityGenerator == null ) {
             LOGGER.warn( "Could not find entity generator for id {}", entityId );

@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 28 )
+@RegisterInfo( sId = "minecraft:polar_bear" )
 public class EntityPolarBear extends EntityLiving implements io.gomint.entity.monster.EntityPolarBear {
 
     /**

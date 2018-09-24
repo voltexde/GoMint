@@ -218,7 +218,9 @@ public class ClassPath {
 
     public void getTopLevelClasses( String classPath, Consumer<ClassInfo> classInfoConsumer ) {
         for ( ClassInfo info : this.classes ) {
-            if ( info.className.startsWith( classPath ) ) {
+            String replaced = info.className.replace( classPath, "" ).substring( 1 );
+
+            if ( info.className.startsWith( classPath ) && !replaced.contains( "." ) ) {
                 classInfoConsumer.accept( info );
             }
         }

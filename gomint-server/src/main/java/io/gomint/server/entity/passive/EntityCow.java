@@ -11,7 +11,7 @@ import io.gomint.server.world.WorldAdapter;
  * @author geNAZt
  * @version 1.2
  */
-@RegisterInfo( id = 11 )
+@RegisterInfo( sId = "minecraft:cow" )
 public class EntityCow extends EntityLiving implements io.gomint.entity.passive.EntityCow {
 
     /**

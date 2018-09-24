@@ -50,7 +50,7 @@ import java.util.UUID;
  */
 @EqualsAndHashCode( callSuper = false, of = { "uuid" } )
 @ToString( of = { "uuid", "username" } )
-@RegisterInfo( id = 63 )
+@RegisterInfo( sId = "minecraft:player" )
 public class EntityHuman extends EntityCreature implements io.gomint.entity.passive.EntityHuman {
 
     private static final int DATA_PLAYER_BED_POSITION = 29;

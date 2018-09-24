@@ -12,7 +12,7 @@ import io.gomint.taglib.NBTTagCompound;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 15 )
+@RegisterInfo( sId = "minecraft:villager" )
 public class EntityVillager extends EntityLiving implements io.gomint.entity.passive.EntityVillager {
 
     /**
@@ -39,14 +39,19 @@ public class EntityVillager extends EntityLiving implements io.gomint.entity.pas
         this.addAttribute( Attribute.HEALTH );
         this.setMaxHealth( 20 );
         this.setHealth( 20 );
-//        this.setProfession( Profession.FARMER );
+        this.setProfession( Profession.FARMER );
     }
 
     @Override
     public void initFromNBT( NBTTagCompound compound ) {
         super.initFromNBT( compound );
 
-        this.metadataContainer.putInt( MetadataContainer.DATA_VARIANT, compound.getInteger( "Profession", 0 ) );
+        this.metadataContainer.putInt( MetadataContainer.DATA_VARIANT, compound.getInteger( "Variant", 0 ) );
+    }
+
+    @Override
+    public NBTTagCompound persistToNBT() {
+        return super.persistToNBT();
     }
 
     @Override

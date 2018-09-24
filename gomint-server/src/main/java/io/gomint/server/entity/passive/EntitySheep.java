@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 13 )
+@RegisterInfo( sId = "minecraft:sheep" )
 public class EntitySheep extends EntityLiving implements io.gomint.entity.passive.EntitySheep {
 
     /**

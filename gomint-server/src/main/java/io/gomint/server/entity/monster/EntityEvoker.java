@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 104 )
+@RegisterInfo( sId = "minecraft:evocation_illager" )
 public class EntityEvoker extends EntityLiving implements io.gomint.entity.monster.EntityEvoker {
 
     /**

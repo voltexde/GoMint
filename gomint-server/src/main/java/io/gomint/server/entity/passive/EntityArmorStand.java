@@ -6,7 +6,11 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 61 )
+/**
+ * @author geNAZt
+ * @version 1.0
+ */
+@RegisterInfo( sId = "minecraft:armor_stand" )
 public class EntityArmorStand extends EntityCreature implements io.gomint.entity.passive.EntityArmorStand {
 
     /**

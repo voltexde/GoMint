@@ -47,7 +47,7 @@ public class PacketSpawnEntity extends Packet {
     public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.entityId );
-        buffer.writeUnsignedVarInt( this.entityType.getId() );
+        buffer.writeUnsignedVarInt( this.entityType.getNetworkId() );
         buffer.writeLFloat( this.x );
         buffer.writeLFloat( this.y );
         buffer.writeLFloat( this.z );
@@ -76,19 +76,7 @@ public class PacketSpawnEntity extends Packet {
 
     @Override
     public void deserialize( PacketBuffer buffer, int protocolID ) {
-        this.entityId = buffer.readSignedVarLong().longValue();
-        buffer.readUnsignedVarLong();
 
-        int typeId = buffer.readUnsignedVarInt();
-        System.out.println( typeId );
-        for ( EntityType type : EntityType.values() ) {
-            if ( typeId == type.getId() ) {
-                this.entityType = type;
-                break;
-            }
-        }
-
-        buffer.skip( buffer.getRemaining() );
     }
 
 }

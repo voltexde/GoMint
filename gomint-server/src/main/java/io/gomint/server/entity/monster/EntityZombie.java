@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 32 )
+@RegisterInfo( sId = "minecraft:zombie" )
 public class EntityZombie extends EntityLiving implements io.gomint.entity.monster.EntityZombie {
 
     /**

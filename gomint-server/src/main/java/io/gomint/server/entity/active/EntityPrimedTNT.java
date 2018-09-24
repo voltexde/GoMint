@@ -24,7 +24,7 @@ import io.gomint.server.world.WorldAdapter;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 65 )
+@RegisterInfo( sId = "minecraft:tnt" )
 public class EntityPrimedTNT extends Entity implements io.gomint.entity.active.EntityPrimedTNT {
 
     private float lastUpdatedT;

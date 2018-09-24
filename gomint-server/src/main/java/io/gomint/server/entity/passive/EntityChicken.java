@@ -6,7 +6,11 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 10 )
+/**
+ * @author geNAZt
+ * @version 1.0
+ */
+@RegisterInfo( sId = "minecraft:chicken" )
 public class EntityChicken extends EntityLiving implements io.gomint.entity.passive.EntityChicken {
 
     /**

@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 46 )
+@RegisterInfo( sId = "minecraft:stray" )
 public class EntityStray extends EntityLiving implements io.gomint.entity.monster.EntityStray {
 
     /**

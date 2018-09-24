@@ -23,7 +23,7 @@ import io.gomint.server.world.block.Block;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 66 )
+@RegisterInfo( sId = "minecraft:falling_block" )
 public class EntityFallingBlock extends Entity implements io.gomint.entity.passive.EntityFallingBlock {
 
     private String blockId;

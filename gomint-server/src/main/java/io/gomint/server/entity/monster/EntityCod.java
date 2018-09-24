@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 112 )
+@RegisterInfo( sId = "minecraft:cod" )
 public class EntityCod extends EntityLiving implements io.gomint.entity.monster.EntityCod {
 
     /**

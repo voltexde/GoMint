@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 48 )
+@RegisterInfo( sId = "minecraft:wither_skeleton" )
 public class EntityWitherSkeleton extends EntityLiving implements io.gomint.entity.monster.EntityWitherSkeleton {
 
     /**

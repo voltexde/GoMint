@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 34 )
+@RegisterInfo( sId = "minecraft:skeleton" )
 public class EntitySkeleton extends EntityLiving implements io.gomint.entity.monster.EntitySkeleton {
 
     /**

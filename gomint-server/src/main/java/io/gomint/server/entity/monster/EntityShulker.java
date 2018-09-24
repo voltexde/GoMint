@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 54 )
+@RegisterInfo( sId = "minecraft:shulker" )
 public class EntityShulker extends EntityLiving implements io.gomint.entity.monster.EntityShulker {
 
     /**

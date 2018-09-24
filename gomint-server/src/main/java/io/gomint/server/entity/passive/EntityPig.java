@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 12 )
+@RegisterInfo( sId = "minecraft:pig" )
 public class EntityPig extends EntityLiving implements io.gomint.entity.passive.EntityPig {
 
     /**

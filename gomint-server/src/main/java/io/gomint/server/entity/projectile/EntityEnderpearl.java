@@ -28,7 +28,7 @@ import java.util.Set;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( id = 87 )
+@RegisterInfo( sId = "minecraft:ender_pearl" )
 public class EntityEnderpearl extends EntityProjectile implements io.gomint.entity.projectile.EntityEnderpearl {
 
     private float lastUpdatedT;

@@ -6,7 +6,7 @@ import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.WorldAdapter;
 
-@RegisterInfo( id = 22 )
+@RegisterInfo( sId = "minecraft:ocelot" )
 public class EntityOcelot extends EntityLiving implements io.gomint.entity.passive.EntityOcelot {
 
     /**
