@@ -1,11 +1,14 @@
 package io.gomint.plugin.listener;
 
+import io.gomint.GoMint;
+import io.gomint.entity.passive.EntityFallingBlock;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.EventPriority;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.plugin.TestPlugin;
 import io.gomint.world.Gamemode;
+import io.gomint.world.block.BlockCraftingTable;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -22,6 +25,12 @@ public class PlayerJoinListener implements EventListener {
         // Set to allow all permissions
         event.getPlayer().getPermissionManager().setPermission( "*", true );
         event.getPlayer().setGamemode( Gamemode.CREATIVE );
+
+        // Spawn falling block
+        EntityFallingBlock fallingBlock = EntityFallingBlock.create();
+        fallingBlock.setBlock( GoMint.instance().createBlock( BlockCraftingTable.class ) );
+        fallingBlock.spawn( event.getPlayer().getSpawnLocation() );
+        fallingBlock.setTicking( false );
     }
 
 }

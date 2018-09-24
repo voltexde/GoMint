@@ -89,19 +89,24 @@ public class EntityFallingBlock extends Entity implements io.gomint.entity.passi
         this.blockId = block1.getBlockId();
         this.blockData = block1.getBlockData();
         this.metadataContainer.putInt( MetadataContainer.DATA_VARIANT, BlockRuntimeIDs.from( block1.getBlockId(), block1.getBlockData() ) );
-        this.position = block1.getLocation().toBlockPosition();
+
+        if ( block1.getLocation() != null ) {
+            this.position = block1.getLocation().toBlockPosition();
+        }
     }
 
     @Override
     public void postSpawn( PlayerConnection connection ) {
-        PacketUpdateBlockSynched blockSynched = new PacketUpdateBlockSynched();
-        blockSynched.setAction( 1 );
-        blockSynched.setEntityId( this.getEntityId() );
-        blockSynched.setPosition( this.position );
-        blockSynched.setBlockId( BlockRuntimeIDs.from( this.blockId, this.blockData ) );
-        blockSynched.setLayer( 0 );
-        blockSynched.setFlags( PacketUpdateBlock.FLAG_ALL );
-        connection.addToSendQueue( blockSynched );
+        if ( this.position != null ) {
+            PacketUpdateBlockSynched blockSynched = new PacketUpdateBlockSynched();
+            blockSynched.setAction( 1 );
+            blockSynched.setEntityId( this.getEntityId() );
+            blockSynched.setPosition( this.position );
+            blockSynched.setBlockId( BlockRuntimeIDs.from( this.blockId, this.blockData ) );
+            blockSynched.setLayer( 0 );
+            blockSynched.setFlags( PacketUpdateBlock.FLAG_ALL );
+            connection.addToSendQueue( blockSynched );
+        }
     }
 
 }
