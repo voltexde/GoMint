@@ -37,18 +37,18 @@ public class CommandPreprocessor {
     private static final int ARG_TYPE_FLOAT = 0x02;
     private static final int ARG_TYPE_VALUE = 0x03;
     // WILDCARD_INT
-    private static final int ARG_TYPE_TARGET = 0x05;
+    private static final int ARG_TYPE_TARGET = 0x06;
     // WILDCARD_TARGET
-    private static final int ARG_TYPE_STRING = 0x0f;
-    private static final int ARG_TYPE_POSITION = 0x10;
-    private static final int ARG_TYPE_RAWTEXT = 0x15;
-    private static final int ARG_TYPE_JSON = 0x18;
-    private static final int ARG_TYPE_COMMAND = 0x1f;
+    private static final int ARG_TYPE_STRING = 0x18;
+    private static final int ARG_TYPE_POSITION = 0x1a;
+    private static final int ARG_TYPE_RAWTEXT = 0x1d;
+
     /**
      * Enums are a little different: they are composed as follows:
      * ARG_FLAG_ENUM | ARG_FLAG_VALID | (enum index)
      */
     private static final int ARG_FLAG_ENUM = 0x200000;
+
     /**
      * This is used for for /xp <level: int>L.
      */
