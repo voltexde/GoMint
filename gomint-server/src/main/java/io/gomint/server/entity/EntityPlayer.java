@@ -1315,14 +1315,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         this.forms.put( formId, implForm );
 
-        io.gomint.server.gui.FormListener formListener = null;
-        if ( form instanceof ButtonList ) {
-            formListener = new io.gomint.server.gui.FormListener<String>();
-        } else if ( form instanceof Modal ) {
-            formListener = new io.gomint.server.gui.FormListener<Boolean>();
-        } else {
-            formListener = new io.gomint.server.gui.FormListener<FormResponse>();
-        }
+        io.gomint.server.gui.FormListener formListener = new io.gomint.server.gui.FormListener<R>();
 
         this.formListeners.put( formId, formListener );
 
@@ -1337,24 +1330,17 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public <T> FormListener<T> setSettingsForm( Form form ) {
+    public <R> FormListener<R> setSettingsForm( Form<R> form ) {
         if ( this.serverSettingsForm != -1 ) {
             this.removeSettingsForm();
         }
 
         int formId = this.formId++;
-        io.gomint.server.gui.Form implForm = (io.gomint.server.gui.Form) form;
+        io.gomint.server.gui.Form<R> implForm = (io.gomint.server.gui.Form<R>) form;
 
         this.forms.put( formId, implForm );
 
-        io.gomint.server.gui.FormListener formListener = null;
-        if ( form instanceof ButtonList ) {
-            formListener = new io.gomint.server.gui.FormListener<String>();
-        } else if ( form instanceof Modal ) {
-            formListener = new io.gomint.server.gui.FormListener<Boolean>();
-        } else {
-            formListener = new io.gomint.server.gui.FormListener<FormResponse>();
-        }
+        io.gomint.server.gui.FormListener<R> formListener = new io.gomint.server.gui.FormListener<R>();
 
         this.formListeners.put( formId, formListener );
         this.serverSettingsForm = formId;
