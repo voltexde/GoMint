@@ -1,14 +1,15 @@
 package io.gomint.server.inventory.item;
+
 import io.gomint.inventory.item.ItemType;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.Dirt;
 import io.gomint.server.world.block.Farmland;
 import io.gomint.server.world.block.GrassBlock;
-import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockFace;
 
@@ -18,8 +19,6 @@ import io.gomint.world.block.BlockFace;
  */
 @RegisterInfo( id = 291 )
 public class ItemStoneHoe extends ItemReduceTierStone implements io.gomint.inventory.item.ItemStoneHoe {
-
-
 
     @Override
     public boolean interact( EntityPlayer entity, BlockFace face, Vector clickPosition, Block clickedBlock ) {
@@ -36,7 +35,7 @@ public class ItemStoneHoe extends ItemReduceTierStone implements io.gomint.inven
     public void gotInHand( EntityPlayer player ) {
         player
             .getAttributeInstance( Attribute.ATTACK_DAMAGE )
-            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, 1 ); // 1 from stone material
+            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, AttributeModifierType.ADDITION, 1 ); // 1 from stone material
     }
 
     @Override

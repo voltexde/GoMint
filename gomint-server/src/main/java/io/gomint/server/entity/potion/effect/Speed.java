@@ -9,9 +9,8 @@ package io.gomint.server.entity.potion.effect;
 
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityLiving;
-import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.player.EffectManager;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -28,7 +27,8 @@ public class Speed extends Effect {
 
     @Override
     public void apply( EntityLiving player ) {
-        player.getAttributeInstance( Attribute.MOVEMENT_SPEED ).setMultiplyModifier( AttributeModifier.SPEED_EFFECT, ( ( this.amplifier + 1 ) * 0.2f ) );
+        player.getAttributeInstance( Attribute.MOVEMENT_SPEED )
+            .setModifier( AttributeModifier.SPEED_EFFECT, AttributeModifierType.ADDITION_MULTIPLY, ( ( this.amplifier + 1 ) * 0.2f ) );
     }
 
     @Override
@@ -38,7 +38,8 @@ public class Speed extends Effect {
 
     @Override
     public void remove( EntityLiving player ) {
-        player.getAttributeInstance( Attribute.MOVEMENT_SPEED ).removeMultiplyModifier( AttributeModifier.SPEED_EFFECT );
+        player.getAttributeInstance( Attribute.MOVEMENT_SPEED )
+            .removeModifier( AttributeModifier.SPEED_EFFECT );
     }
 
 }

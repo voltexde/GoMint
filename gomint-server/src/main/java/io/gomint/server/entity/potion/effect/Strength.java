@@ -9,9 +9,8 @@ package io.gomint.server.entity.potion.effect;
 
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityLiving;
-import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.player.EffectManager;
 import io.gomint.server.registry.RegisterInfo;
 
 /**
@@ -28,7 +27,8 @@ public class Strength extends Effect {
 
     @Override
     public void apply( EntityLiving player ) {
-        player.getAttributeInstance( Attribute.ATTACK_DAMAGE ).setModifier( AttributeModifier.STRENGTH_EFFECT, 1.3f * ( this.amplifier + 1 ) );
+        player.getAttributeInstance( Attribute.ATTACK_DAMAGE )
+            .setModifier( AttributeModifier.STRENGTH_EFFECT, AttributeModifierType.ADDITION, 1.3f * ( this.amplifier + 1 ) );
     }
 
     @Override
@@ -38,7 +38,8 @@ public class Strength extends Effect {
 
     @Override
     public void remove( EntityLiving player ) {
-        player.getAttributeInstance( Attribute.ATTACK_DAMAGE ).removeModifier( AttributeModifier.STRENGTH_EFFECT );
+        player.getAttributeInstance( Attribute.ATTACK_DAMAGE )
+            .removeModifier( AttributeModifier.STRENGTH_EFFECT );
     }
 
 }

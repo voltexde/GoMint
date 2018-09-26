@@ -17,6 +17,7 @@ import io.gomint.player.PlayerSkin;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeInstance;
 import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityCreature;
 import io.gomint.server.entity.EntityFlag;
 import io.gomint.server.entity.EntityPlayer;
@@ -392,9 +393,9 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
             this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SPRINTING, value );
             AttributeInstance movementSpeed = this.getAttributeInstance( Attribute.MOVEMENT_SPEED );
             if ( value ) {
-                movementSpeed.setMultiplyModifier( AttributeModifier.SPRINT_MULTIPLY, 0.3f );
+                movementSpeed.setModifier( AttributeModifier.SPRINT, AttributeModifierType.ADDITION_MULTIPLY, 0.3f );
             } else {
-                movementSpeed.removeMultiplyModifier( AttributeModifier.SPRINT_MULTIPLY );
+                movementSpeed.removeModifier( AttributeModifier.SPRINT );
             }
         }
     }

@@ -4,6 +4,7 @@ import io.gomint.inventory.item.ItemType;
 import io.gomint.inventory.item.ItemSword;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
@@ -21,7 +22,7 @@ public class ItemIronSword extends ItemReduceTierSpecial implements io.gomint.in
     public void gotInHand( EntityPlayer player ) {
         player
             .getAttributeInstance( Attribute.ATTACK_DAMAGE )
-            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, 6 ); // 4 from sword type, 2 from iron material
+            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, AttributeModifierType.ADDITION, 6 ); // 4 from sword type, 2 from iron material
     }
 
     @Override

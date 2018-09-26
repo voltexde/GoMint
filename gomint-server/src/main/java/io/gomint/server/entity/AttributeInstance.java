@@ -29,8 +29,7 @@ public class AttributeInstance {
     private float value;
     private boolean dirty;
 
-    private Map<AttributeModifier, Float> modifiers = new EnumMap<>( AttributeModifier.class );
-    private Map<AttributeModifier, Float> multiplyModifiers = new EnumMap<>( AttributeModifier.class );
+    private Map<AttributeModifierType, Map<AttributeModifier, Float>> modifiers = new EnumMap<>( AttributeModifierType.class );
 
     AttributeInstance( String key, float minValue, float maxValue, float value ) {
         this.key = key;
@@ -41,22 +40,27 @@ public class AttributeInstance {
         this.dirty = true;
     }
 
-    public void setModifier( AttributeModifier modifier, float amount ) {
-        this.modifiers.put( modifier, amount );
+    public void setModifier( AttributeModifier modifier, AttributeModifierType type, float amount ) {
+        Map<AttributeModifier, Float> mods = this.getModifiers( type );
+        mods.put( modifier, amount );
         this.recalc();
+    }
+
+    private Map<AttributeModifier, Float> getModifiers( AttributeModifierType type ) {
+        Map<AttributeModifier, Float> modifier = this.modifiers.get( type );
+        if ( modifier == null ) {
+            modifier = new EnumMap<>( AttributeModifier.class );
+            this.modifiers.put( type, modifier );
+        }
+
+        return modifier;
     }
 
     private void recalc() {
         this.value = this.defaultValue;
 
-        // Add normal modifierts
-        for ( Float aFloat : this.modifiers.values() ) {
-            this.value += aFloat;
-        }
-
-        // Now add multiply modifiers
-        for ( Float aFloat : this.multiplyModifiers.values() ) {
-            this.value += this.defaultValue * aFloat;
+        for ( Map.Entry<AttributeModifierType, Map<AttributeModifier, Float>> entry : this.modifiers.entrySet() ) {
+            this.calcModifiers( entry.getKey(), entry.getValue() );
         }
 
         // Clamp
@@ -64,11 +68,37 @@ public class AttributeInstance {
         this.dirty = true;
     }
 
-    public void removeModifier( AttributeModifier modifier ) {
-        Float amount = this.modifiers.remove( modifier );
-        if ( amount != null ) {
-            this.recalc();
+    private void calcModifiers( AttributeModifierType type, Map<AttributeModifier, Float> value ) {
+        switch ( type ) {
+            case ADDITION:
+                for ( Float aFloat : value.values() ) {
+                    this.value += aFloat;
+                }
+
+                break;
+
+            case ADDITION_MULTIPLY:
+                for ( Float aFloat : value.values() ) {
+                    this.value += this.defaultValue * aFloat;
+                }
+
+                break;
+
+            case MULTIPLY:
+                for ( Float aFloat : value.values() ) {
+                    this.value *= 1f + aFloat;
+                }
+
+                break;
         }
+    }
+
+    public void removeModifier( AttributeModifier modifier ) {
+        for ( Map.Entry<AttributeModifierType, Map<AttributeModifier, Float>> entry : this.modifiers.entrySet() ) {
+            entry.getValue().remove( modifier );
+        }
+
+        this.recalc();
     }
 
     public void setValue( float value ) {
@@ -96,18 +126,6 @@ public class AttributeInstance {
         this.maxValue = maxValue;
     }
 
-    public void setMultiplyModifier( AttributeModifier modifier, float amount ) {
-        this.multiplyModifiers.put( modifier, amount );
-        this.recalc();
-    }
-
-    public void removeMultiplyModifier( AttributeModifier modifier ) {
-        Float amount = this.multiplyModifiers.remove( modifier );
-        if ( amount != null ) {
-            this.recalc();
-        }
-    }
-
     public void initFromNBT( NBTTagCompound compound ) {
         this.defaultValue = compound.getFloat( "Base", this.defaultValue );
 
@@ -127,7 +145,7 @@ public class AttributeInstance {
                 float amount = nbtAmplifier.getFloat( "Amount", 0f );
 
                 if ( modifier != null && amount != 0 ) {
-                    switch ( operation ) {
+                    /*switch ( operation ) {
                         case 0:
                             this.modifiers.put( modifier, amount );
                             break;
@@ -136,11 +154,11 @@ public class AttributeInstance {
                             break;
                         default:
                             break;
-                    }
-
-                    this.recalc();
+                    }*/
                 }
             }
+
+            this.recalc();
         }
     }
 
@@ -152,13 +170,13 @@ public class AttributeInstance {
         // Check for 0 mode multipliers (simple addition)
         List<NBTTagCompound> nbtModifiers = new ArrayList<>();
         if ( !this.modifiers.isEmpty() ) {
-            for ( Map.Entry<AttributeModifier, Float> entry: this.modifiers.entrySet() ) {
+            /*for ( Map.Entry<AttributeModifier, Float> entry: this.modifiers.entrySet() ) {
                 NBTTagCompound nbtTagCompound = new NBTTagCompound( "" );
                 nbtTagCompound.addValue( "Name", entry.getKey().name() );
                 nbtTagCompound.addValue( "Operation", 0 );
                 nbtTagCompound.addValue( "Amount", (double) entry.getValue() );
                 nbtModifiers.add( nbtTagCompound );
-            }
+            }*/
         }
 
         compound.addValue( "Modifiers", nbtModifiers );

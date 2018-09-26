@@ -1,12 +1,12 @@
 package io.gomint.server.inventory.item;
-import io.gomint.inventory.item.ItemType;
 
 import io.gomint.inventory.item.ItemSword;
+import io.gomint.inventory.item.ItemType;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
@@ -15,13 +15,11 @@ import io.gomint.taglib.NBTTagCompound;
 @RegisterInfo( id = 272 )
 public class ItemStoneSword extends ItemReduceTierSpecial implements io.gomint.inventory.item.ItemStoneSword, ItemSword {
 
-
-
     @Override
     public void gotInHand( EntityPlayer player ) {
         player
             .getAttributeInstance( Attribute.ATTACK_DAMAGE )
-            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, 5 ); // 4 from sword type, 1 from stone material
+            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, AttributeModifierType.ADDITION, 5 ); // 4 from sword type, 1 from stone material
     }
 
     @Override

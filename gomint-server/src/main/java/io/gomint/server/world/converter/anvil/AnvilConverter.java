@@ -6,11 +6,16 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.BlockIdentifier;
+import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.converter.BaseConverter;
 import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
 import io.gomint.server.world.converter.anvil.tileentity.v1_8.TileEntities;
 import io.gomint.taglib.NBTTagCompound;
+import it.unimi.dsi.fastutil.bytes.ByteOpenHashSet;
+import it.unimi.dsi.fastutil.bytes.ByteSet;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
@@ -24,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +39,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -51,6 +58,8 @@ public class AnvilConverter extends BaseConverter {
 
     private Items items;
     private Object2IntMap<String> itemConverter;
+
+    private final Long2ObjectMap<ByteSet> subChunksProcessed = new Long2ObjectOpenHashMap<>();
 
     public AnvilConverter( AssetsLibrary assets, Items items, File worldFolder ) {
         super( worldFolder );
@@ -213,6 +222,28 @@ public class AnvilConverter extends BaseConverter {
                 }
             }
         }
+
+        // Check for missing subchunks
+        BlockIdentifier[] blocks = new BlockIdentifier[4096];
+        Arrays.fill( blocks, new BlockIdentifier( "minecraft:air", (short) 0 ) );
+
+        this.subChunksProcessed.long2ObjectEntrySet().forEach( byteSetEntry -> {
+            int chunkX = (int) ( byteSetEntry.getLongKey() >> 32 );
+            int chunkZ = (int) ( byteSetEntry.getLongKey() & 0xFFFFFFFF ) + Integer.MIN_VALUE;
+
+            byte maxSection = 0;
+            for ( byte aByte : byteSetEntry.getValue() ) {
+                if ( aByte > maxSection ) {
+                    maxSection = aByte;
+                }
+            }
+
+            for ( byte i = 0; i < maxSection; i++ ) {
+                if ( !byteSetEntry.getValue().contains( i ) ) {
+                    this.storeSubChunkBlocks( i, chunkX, chunkZ, blocks );
+                }
+            }
+        } );
 
         // Persist stuff from this thread
         finish();
@@ -536,6 +567,18 @@ public class AnvilConverter extends BaseConverter {
         }
 
         this.storeSubChunkBlocks( sectionY, chunkX, chunkZ, newBlocks );
+
+        synchronized ( this.subChunksProcessed ) {
+            long hash = CoordinateUtils.toLong( chunkX, chunkZ );
+            ByteSet subChunkSet = this.subChunksProcessed.get( hash );
+            if ( subChunkSet == null ) {
+                subChunkSet = new ByteOpenHashSet();
+                this.subChunksProcessed.put( hash, subChunkSet );
+
+            }
+
+            subChunkSet.add( (byte) sectionY );
+        }
 
         return tiles;
     }

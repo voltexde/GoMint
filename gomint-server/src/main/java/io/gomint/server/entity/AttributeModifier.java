@@ -16,10 +16,11 @@ public enum AttributeModifier {
     // Damage
     ITEM_ATTACK_DAMAGE,
     STRENGTH_EFFECT,
+    WEAKNESS_EFFECT,
 
     // Movement
     SPEED_EFFECT,
     SLOWNESS_EFFECT,
-    SPRINT_MULTIPLY
+    SPRINT
 
 }

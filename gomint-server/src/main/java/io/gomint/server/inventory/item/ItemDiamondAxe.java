@@ -1,11 +1,11 @@
 package io.gomint.server.inventory.item;
-import io.gomint.inventory.item.ItemType;
 
+import io.gomint.inventory.item.ItemType;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
@@ -14,13 +14,11 @@ import io.gomint.taglib.NBTTagCompound;
 @RegisterInfo( id = 279 )
 public class ItemDiamondAxe extends ItemReduceTierDiamond implements io.gomint.inventory.item.ItemDiamondAxe {
 
-
-
     @Override
     public void gotInHand( EntityPlayer player ) {
         player
             .getAttributeInstance( Attribute.ATTACK_DAMAGE )
-            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, 6 ); // 3 from Axe type, 3 from diamond material
+            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, AttributeModifierType.ADDITION, 6 ); // 3 from Axe type, 3 from diamond material
     }
 
     @Override

@@ -3,6 +3,7 @@ package io.gomint.server.inventory.item;
 import io.gomint.inventory.item.ItemType;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
+import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
 
@@ -17,7 +18,7 @@ public class ItemStoneAxe extends ItemReduceTierStone implements io.gomint.inven
     public void gotInHand( EntityPlayer player ) {
         player
             .getAttributeInstance( Attribute.ATTACK_DAMAGE )
-            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, 4 ); // 3 from axe type, 1 from stone material
+            .setModifier( AttributeModifier.ITEM_ATTACK_DAMAGE, AttributeModifierType.ADDITION, 4 ); // 3 from axe type, 1 from stone material
     }
 
     @Override
