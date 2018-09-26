@@ -166,7 +166,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
                 }
 
                 // Manipulate inventory
-                player.getInventory().addItem( this.getItemStack() );
+                player.getInventory().addItem( event.getItemStack() );
                 this.despawn();
             }
         }
