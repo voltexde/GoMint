@@ -448,8 +448,6 @@ public class AnvilConverter extends BaseConverter {
                             newBlocks[newIndex] = new BlockIdentifier( "minecraft:air", (short) 0 );
                             LOGGER.warn( "Could not convert block {}:{}", blockId, blockData );
                         } else {
-                            newBlocks[newIndex] = converted;
-
                             // Is this a piston? (they may lack tiles)
                             String block = converted.getBlockId();
                             switch ( block ) {
@@ -510,6 +508,8 @@ public class AnvilConverter extends BaseConverter {
                                                 convertedPlant.addValue( "val", (short) ( converted.getData() - 8 ) );
                                                 break;
                                         }
+
+                                        converted = new BlockIdentifier( converted.getBlockId(), (short) 1 );
                                     }
 
                                     if ( tiles == null ) {
@@ -555,6 +555,8 @@ public class AnvilConverter extends BaseConverter {
                                     tiles.add( compound );
                                     break;
                             }
+
+                            newBlocks[newIndex] = converted;
                         }
                     }
                 }
