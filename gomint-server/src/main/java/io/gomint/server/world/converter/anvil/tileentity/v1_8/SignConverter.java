@@ -80,11 +80,11 @@ public class SignConverter extends BasisConverter<SignTileEntity> {
             }
         }
 
-        if ( text != null && text.length() == 2 && text.equals( "\"\"" ) ) {
+        if ( text != null && ( ( text.length() == 2 && text.equals( "\"\"" ) ) || text.equals( "null" ) ) ) {
             return "";
         }
 
-        return text;
+        return text == null ? null : text.substring( 1, text.length() - 1 );
     }
 
     private void parseInner( StringBuilder output, Object extra ) {

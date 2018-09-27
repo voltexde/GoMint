@@ -1,6 +1,9 @@
 package io.gomint.server.world.converter.anvil;
 
+import io.gomint.math.BlockPosition;
+import io.gomint.math.Location;
 import io.gomint.server.assets.AssetsLibrary;
+import io.gomint.server.entity.tileentity.BedTileEntity;
 import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.inventory.item.ItemStack;
@@ -12,6 +15,7 @@ import io.gomint.server.world.converter.BaseConverter;
 import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
 import io.gomint.server.world.converter.anvil.tileentity.v1_8.TileEntities;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.data.BlockColor;
 import it.unimi.dsi.fastutil.bytes.ByteOpenHashSet;
 import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -352,6 +356,18 @@ public class AnvilConverter extends BaseConverter {
         }
 
         if ( !newTileEntities.isEmpty() ) {
+            // Check for duplicates
+            Set<BlockPosition> alreadySeen = new HashSet<>();
+            for ( NBTTagCompound newTileEntity : new ArrayList<>( newTileEntities ) ) {
+                BlockPosition pos = new BlockPosition( newTileEntity.getInteger( "x", 0 ),
+                    newTileEntity.getInteger( "y", -1 ),
+                    newTileEntity.getInteger( "z", 0 ) );
+
+                if ( pos.getY() == -1 || !alreadySeen.add( pos ) ) {
+                    newTileEntities.remove( newTileEntity );
+                }
+            }
+
             this.storeTileEntities( chunkX, chunkZ, newTileEntities );
         }
 
@@ -520,6 +536,23 @@ public class AnvilConverter extends BaseConverter {
 
                                     pistons.add( fullX + ":" + fullY + ":" + fullZ + ":" + ( block.equals( "minecraft:sticky_piston" ) ? 1 : 0 ) );
 
+                                    break;
+
+                                case "minecraft:bed":
+                                    fullX = i + ( chunkX << 4 );
+                                    fullY = j + ( sectionY << 4 );
+                                    fullZ = k + ( chunkZ << 4 );
+
+                                    BedTileEntity bedTileEntity = new BedTileEntity( BlockColor.RED,
+                                        new Location( null, fullX, fullY, fullZ ) );
+                                    NBTTagCompound compound = new NBTTagCompound( "" );
+                                    bedTileEntity.toCompound( compound, SerializationReason.PERSIST );
+
+                                    if ( tiles == null ) {
+                                        tiles = new ArrayList<>();
+                                    }
+
+                                    tiles.add( compound );
                                     break;
                             }
                         }
