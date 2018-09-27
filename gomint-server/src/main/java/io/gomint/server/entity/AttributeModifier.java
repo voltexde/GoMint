@@ -7,20 +7,30 @@
 
 package io.gomint.server.entity;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author geNAZt
  * @version 1.0
  */
+@RequiredArgsConstructor
+@Getter
 public enum AttributeModifier {
 
     // Damage
-    ITEM_ATTACK_DAMAGE,
-    STRENGTH_EFFECT,
-    WEAKNESS_EFFECT,
+    ITEM_ATTACK_DAMAGE( "item_damage" ),
+    STRENGTH_EFFECT( "strength" ),
+    WEAKNESS_EFFECT( "weakness" ),
 
     // Movement
-    SPEED_EFFECT,
-    SLOWNESS_EFFECT,
-    SPRINT
+    SPEED_EFFECT( "speed" ),
+    SLOWNESS_EFFECT( "slowness" ),
+    SPRINT( "sprint" ),
+
+    // Vanilla
+    RANDOM_SPAWN_BONUS( "RandomSpawnBonus" );
+
+    private final String name;
 
 }

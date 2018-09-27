@@ -195,7 +195,6 @@ public abstract class Entity implements io.gomint.entity.Entity {
     }
 
     public void setWorld( WorldAdapter world ) {
-        LOGGER.info( "Setting world of {} to {}", this, world.toString() );
         this.world = world;
     }
 
@@ -1337,8 +1336,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.setAffectedByGravity( compound.getByte( "NoGravity", (byte) 0 ) == 0 );
         this.onGround = compound.getByte( "OnGround", (byte) 1 ) == 1;
 
-        // Age
-        this.age = compound.getShort( "Age", (short) 0 );
+        // Age is different for baby entities (those have negative age stored as integer)
+        boolean isBaby = compound.getByte( "IsBaby", (byte) 0 ) == 1;
+        if ( isBaby ) {
+            this.age = compound.getInteger( "Age", -1500 );
+        } else {
+            this.age = compound.getShort( "Age", (short) 0 );
+        }
     }
 
     public NBTTagCompound persistToNBT() {
@@ -1370,7 +1374,13 @@ public abstract class Entity implements io.gomint.entity.Entity {
         compound.addValue( "OnGround", (byte) ( this.isOnGround() ? 1 : 0 ) );
 
         // Age
-        compound.addValue( "Age", (short) this.age );
+        if ( this.age < 0 ) {
+            compound.addValue( "Age", this.age );
+            compound.addValue( "IsBaby", (byte) 1 );
+        } else {
+            compound.addValue( "Age", (short) this.age );
+            compound.addValue( "IsBaby", (byte) 0 );
+        }
 
         return compound;
     }

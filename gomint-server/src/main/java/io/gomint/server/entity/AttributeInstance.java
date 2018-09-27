@@ -134,27 +134,36 @@ public class AttributeInstance {
             for ( Object amplifier: nbtAmplifiers ) {
                 NBTTagCompound nbtAmplifier = (NBTTagCompound) amplifier;
 
+                String name = nbtAmplifier.getString( "Name", "" );
                 AttributeModifier modifier = null;
-                try {
-                    modifier = AttributeModifier.valueOf( nbtAmplifier.getString( "Name", "" ) );
-                } catch ( Exception e ) {
-                    // Ignored (modified will be null when not known)
+                for ( AttributeModifier attributeModifier : AttributeModifier.values() ) {
+                    if ( attributeModifier.getName().equals( name ) ) {
+                        modifier = attributeModifier;
+                        break;
+                    }
+                }
+
+                if ( modifier == null ) {
+                    LOGGER.warn( "Unknown modifier: {}", name );
                 }
 
                 int operation = nbtAmplifier.getInteger( "Operation", 0 );
                 float amount = nbtAmplifier.getFloat( "Amount", 0f );
 
                 if ( modifier != null && amount != 0 ) {
-                    /*switch ( operation ) {
+                    switch ( operation ) {
                         case 0:
-                            this.modifiers.put( modifier, amount );
+                            this.setModifier( modifier, AttributeModifierType.ADDITION, amount );
                             break;
                         case 1:
-                            this.multiplyModifiers.put( modifier, amount );
+                            this.setModifier( modifier, AttributeModifierType.MULTIPLY, amount );
+                            break;
+                        case 2:
+                            this.setModifier( modifier, AttributeModifierType.ADDITION_MULTIPLY, amount );
                             break;
                         default:
                             break;
-                    }*/
+                    }
                 }
             }
 

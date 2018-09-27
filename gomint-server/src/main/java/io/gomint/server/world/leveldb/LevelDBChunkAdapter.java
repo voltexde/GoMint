@@ -314,6 +314,8 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                 Entity entity = this.world.getServer().getEntities().create( identifier );
                 if ( entity != null ) {
                     entity.initFromNBT( compound );
+                    entity.setWorld( this.world );
+                    this.addEntity( entity );
                 }
             } catch ( IOException e ) {
                 LOGGER.error( "Error in loading entities", e );
