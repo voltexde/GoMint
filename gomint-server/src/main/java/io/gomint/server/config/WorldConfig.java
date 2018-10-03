@@ -2,6 +2,7 @@ package io.gomint.server.config;
 
 import io.gomint.config.Comment;
 import io.gomint.config.YamlConfig;
+import io.gomint.world.generator.integrated.NormalGenerator;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -17,6 +18,9 @@ public class WorldConfig extends YamlConfig {
 
     @Comment( "Name of the world this affects" )
     private String name = "world";
+
+    @Comment( "Name of the chunk generator for this world" )
+    private String chunkGenerator = NormalGenerator.NAME;
 
     @Comment( "How many blocks should we update per tick using random reasons" )
     private int randomUpdatesPerTick = 3;
