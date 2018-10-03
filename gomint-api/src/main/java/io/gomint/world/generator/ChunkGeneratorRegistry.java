@@ -2,7 +2,7 @@ package io.gomint.world.generator;
 
 import io.gomint.world.World;
 
-public interface ChunkGeneratorRegistrar {
+public interface ChunkGeneratorRegistry {
 
     ChunkGenerator createGenerator(String name, World world, GeneratorContext ctx);
 
