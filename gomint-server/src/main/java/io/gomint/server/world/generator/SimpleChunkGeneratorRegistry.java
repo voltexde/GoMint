@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
 
@@ -82,6 +83,11 @@ public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
     @Override
     public boolean isGeneratorAvailable(String name) {
         return this.registeredGenerators.get(name) != null;
+    }
+
+    @Override
+    public Optional<Class<? extends ChunkGenerator>> getGeneratorClass(String name) {
+        return Optional.ofNullable(this.registeredGenerators.get(name));
     }
 
     @Override
