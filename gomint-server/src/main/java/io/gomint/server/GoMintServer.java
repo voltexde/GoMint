@@ -77,6 +77,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -385,8 +386,31 @@ public class GoMintServer implements GoMint, InventoryHolder {
             try {
                 this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
             } catch ( WorldLoadException e ) {
+                // Get world config of default world
+                WorldConfig worldConfig = this.getWorldConfig(this.defaultWorld);
+
+                // Get chunk generator which might have been changed in the world config
+                Optional<Class<? extends ChunkGenerator>> chunkGenerator;
+                chunkGenerator = ChunkGenerator.getRegistry().getGeneratorClass(worldConfig.getChunkGenerator());
+
+                // Create options world generator
+                CreateOptions options = new CreateOptions();
+                options.worldType(WorldType.PERSISTENT); // Persistent world storage
+
+                // Check if wished chunk generator is present
+                if (chunkGenerator.isPresent()) {
+                    options.generator(chunkGenerator.get());
+                } else {
+                    // Apply standard generator
+                    options.generator(NormalGenerator.class);
+                    // Log chunk generator failure
+                    LOGGER.warn("No such chunk generator for '" + worldConfig.getChunkGenerator()
+                                    + "' - Using " + NormalGenerator.class.getName());
+                }
+
                 // Try to generate world
-                if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ).worldType( WorldType.PERSISTENT ) ) == null ) {
+                World world = this.worldManager.createWorld(this.defaultWorld, options);
+                if ( world == null ) {
                     LOGGER.error( "Failed to load or generate default world", e );
                     this.internalShutdown();
                     return;
