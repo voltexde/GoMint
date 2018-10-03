@@ -14,6 +14,6 @@ public interface ChunkGeneratorRegistry {
 
     Collection<String> getRegisteredGenerators();
 
-    Collection<Class<? extends ChunkGeneratorRegistry>> getRegisteredGeneratorClasses();
+    Collection<Class<? extends ChunkGenerator>> getRegisteredGeneratorClasses();
 
 }

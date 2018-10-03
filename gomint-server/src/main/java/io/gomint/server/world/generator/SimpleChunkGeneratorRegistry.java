@@ -17,6 +17,7 @@ public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleChunkGeneratorRegistry.class);
 
     private final Map<String, Class<? extends ChunkGeneratorRegistry>> registeredGenerators = new HashMap<>();
+    private final Map<String, Class<? extends ChunkGenerator>> registeredGenerators = new HashMap<>();
 
     @Override
     public ChunkGenerator createGenerator(String name, World world, GeneratorContext ctx) {
@@ -41,7 +42,7 @@ public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
     }
 
     @Override
-    public Collection<Class<? extends ChunkGeneratorRegistry>> getRegisteredGeneratorClasses() {
+    public Collection<Class<? extends ChunkGenerator>> getRegisteredGeneratorClasses() {
         return this.registeredGenerators.values();
     }
 
