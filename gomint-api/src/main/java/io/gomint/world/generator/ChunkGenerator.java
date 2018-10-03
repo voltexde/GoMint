@@ -1,5 +1,6 @@
 package io.gomint.world.generator;
 
+import com.google.common.base.Preconditions;
 import io.gomint.math.BlockPosition;
 import io.gomint.world.Chunk;
 import io.gomint.world.World;
@@ -10,6 +11,23 @@ import lombok.Getter;
  * @version 1.0
  */
 public abstract class ChunkGenerator {
+
+    private static ChunkGeneratorRegistry registry;
+
+    public static void setRegistry(ChunkGeneratorRegistry registry) {
+        Preconditions.checkNotNull(registry, "'registry' cannot be null");
+
+        if (ChunkGenerator.registry != null) {
+            throw new IllegalStateException("ChunkGeneratorRegistry instance was already set;"
+                                                + " Cannot override current instance");
+        }
+
+        ChunkGenerator.registry = registry;
+    }
+
+    public static ChunkGeneratorRegistry getRegistry() {
+        return registry;
+    }
 
     protected final String name;
     protected World world;
