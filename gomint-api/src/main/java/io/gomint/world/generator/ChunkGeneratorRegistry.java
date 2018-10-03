@@ -5,6 +5,10 @@ import io.gomint.world.World;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * @author Clockw1seLrd
+ * @version 1.0
+ */
 public interface ChunkGeneratorRegistry {
 
     ChunkGenerator createGenerator( String name, World world, GeneratorContext ctx );

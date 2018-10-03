@@ -7,6 +7,7 @@ import io.gomint.world.World;
 import lombok.Getter;
 
 /**
+ * @author Clockw1seLrd
  * @author geNAZt
  * @version 1.0
  */

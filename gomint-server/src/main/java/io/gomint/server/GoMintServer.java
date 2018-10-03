@@ -80,6 +80,7 @@ import java.util.jar.Manifest;
 
 /**
  * @author BlackyPaw
+ * @author Clockw1seLrd
  * @author geNAZt
  * @version 1.1
  */

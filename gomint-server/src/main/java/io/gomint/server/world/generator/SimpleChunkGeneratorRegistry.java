@@ -15,6 +15,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * @author Clockw1seLrd
+ * @version 1.0
+ */
 public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( SimpleChunkGeneratorRegistry.class );
