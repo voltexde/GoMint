@@ -17,77 +17,78 @@ import java.util.Optional;
 
 public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleChunkGeneratorRegistry.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger( SimpleChunkGeneratorRegistry.class );
 
     private final Map<String, Class<? extends ChunkGenerator>> registeredGenerators = new HashMap<>();
 
-    public SimpleChunkGeneratorRegistry() {}
+    public SimpleChunkGeneratorRegistry() {
+    }
 
-    public SimpleChunkGeneratorRegistry(Class<? extends ChunkGenerator>... initialGeneratorClasses) {
-        for (Class<? extends ChunkGenerator> initialGeneratorClass : initialGeneratorClasses) {
-            this.registerGenerator(initialGeneratorClass);
+    public SimpleChunkGeneratorRegistry( Class<? extends ChunkGenerator>... initialGeneratorClasses ) {
+        for ( Class<? extends ChunkGenerator> initialGeneratorClass : initialGeneratorClasses ) {
+            this.registerGenerator( initialGeneratorClass );
         }
     }
 
     @Override
-    public ChunkGenerator createGenerator(String name, World world, GeneratorContext ctx) {
-        Preconditions.checkNotNull(name, "'name' cannot be null");
-        Preconditions.checkNotNull(world, "'world' cannot be null");
-        Preconditions.checkNotNull(ctx, "'ctx' cannot be null");
+    public ChunkGenerator createGenerator( String name, World world, GeneratorContext ctx ) {
+        Preconditions.checkNotNull( name, "'name' cannot be null" );
+        Preconditions.checkNotNull( world, "'world' cannot be null" );
+        Preconditions.checkNotNull( ctx, "'ctx' cannot be null" );
 
-        if (!this.isGeneratorAvailable(name)) {
-            throw new IllegalStateException("No such chunk generator for '" + name + "'");
+        if ( !this.isGeneratorAvailable( name ) ) {
+            throw new IllegalStateException( "No such chunk generator for '" + name + "'" );
         }
 
-        Class<? extends ChunkGenerator> generatorClass = this.registeredGenerators.get(name);
-        ObjectConstructionFactory factory = new ObjectConstructionFactory(generatorClass, World.class,
-                                                                          GeneratorContext.class);
+        Class<? extends ChunkGenerator> generatorClass = this.registeredGenerators.get( name );
+        ObjectConstructionFactory factory = new ObjectConstructionFactory( generatorClass, World.class,
+            GeneratorContext.class );
 
-        ChunkGenerator generator = (ChunkGenerator) factory.newInstance(world, ctx);
+        ChunkGenerator generator = (ChunkGenerator) factory.newInstance( world, ctx );
 
-        if (generator == null) {
-            throw new IllegalStateException("Failed constructing chunk generator - Passed parameters:\n"
-                                                + ".. " + world.getClass().getName() + "\n"
-                                                + ".. " + ctx.getClass().getName() + "\n");
+        if ( generator == null ) {
+            throw new IllegalStateException( "Failed constructing chunk generator - Passed parameters:\n"
+                + ".. " + world.getClass().getName() + "\n"
+                + ".. " + ctx.getClass().getName() + "\n" );
         }
 
         return generator;
     }
 
     @Override
-    public boolean registerGenerator(Class<? extends ChunkGenerator> generatorClass) {
-        Preconditions.checkNotNull(generatorClass, "'generatorClass' cannot be null");
+    public boolean registerGenerator( Class<? extends ChunkGenerator> generatorClass ) {
+        Preconditions.checkNotNull( generatorClass, "'generatorClass' cannot be null" );
 
         String generatorName;
 
         try {
-            ObjectConstructionFactory factory = new ObjectConstructionFactory(generatorClass, String.class, World.class,
-                                                                              GeneratorContext.class);
-            Object generatorInstance = factory.newInstance(null, null, null);
+            ObjectConstructionFactory factory = new ObjectConstructionFactory( generatorClass, String.class, World.class,
+                GeneratorContext.class );
+            Object generatorInstance = factory.newInstance( null, null, null );
 
-            Field nameField = generatorClass.getDeclaredField("name");
-            generatorName = (String) nameField.get(generatorInstance);
-        } catch (NoSuchFieldException | IllegalAccessException cause) {
-            LOGGER.error("Failed to register '" + generatorClass.getName() + "':", cause);
+            Field nameField = generatorClass.getDeclaredField( "name" );
+            generatorName = (String) nameField.get( generatorInstance );
+        } catch ( NoSuchFieldException | IllegalAccessException cause ) {
+            LOGGER.error( "Failed to register '" + generatorClass.getName() + "':", cause );
             return false;
         }
 
-        if (this.isGeneratorAvailable(generatorName)) {
-            throw new IllegalStateException("Chunk generator '" + generatorName + "' is already registered");
+        if ( this.isGeneratorAvailable( generatorName ) ) {
+            throw new IllegalStateException( "Chunk generator '" + generatorName + "' is already registered" );
         }
 
-        this.registeredGenerators.put(generatorName, generatorClass);
+        this.registeredGenerators.put( generatorName, generatorClass );
         return true;
     }
 
     @Override
-    public boolean isGeneratorAvailable(String name) {
-        return this.registeredGenerators.get(name) != null;
+    public boolean isGeneratorAvailable( String name ) {
+        return this.registeredGenerators.get( name ) != null;
     }
 
     @Override
-    public Optional<Class<? extends ChunkGenerator>> getGeneratorClass(String name) {
-        return Optional.ofNullable(this.registeredGenerators.get(name));
+    public Optional<Class<? extends ChunkGenerator>> getGeneratorClass( String name ) {
+        return Optional.ofNullable( this.registeredGenerators.get( name ) );
     }
 
     @Override

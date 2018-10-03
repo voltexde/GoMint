@@ -72,20 +72,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.jar.Manifest;
@@ -200,11 +188,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         ChunkGeneratorRegistry registry = new SimpleChunkGeneratorRegistry();
-        registry.registerGenerator(LayeredGenerator.class);
-        registry.registerGenerator(NormalGenerator.class);
-        registry.registerGenerator(VoidGenerator.class);
+        registry.registerGenerator( LayeredGenerator.class );
+        registry.registerGenerator( NormalGenerator.class );
+        registry.registerGenerator( VoidGenerator.class );
 
-        ChunkGenerator.setRegistry(registry);
+        ChunkGenerator.setRegistry( registry );
 
         // Extract information from the manifest
         String buildVersion = "dev/unsupported";
@@ -387,29 +375,29 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
             } catch ( WorldLoadException e ) {
                 // Get world config of default world
-                WorldConfig worldConfig = this.getWorldConfig(this.defaultWorld);
+                WorldConfig worldConfig = this.getWorldConfig( this.defaultWorld );
 
                 // Get chunk generator which might have been changed in the world config
                 Optional<Class<? extends ChunkGenerator>> chunkGenerator;
-                chunkGenerator = ChunkGenerator.getRegistry().getGeneratorClass(worldConfig.getChunkGenerator());
+                chunkGenerator = ChunkGenerator.getRegistry().getGeneratorClass( worldConfig.getChunkGenerator() );
 
                 // Create options world generator
                 CreateOptions options = new CreateOptions();
-                options.worldType(WorldType.PERSISTENT); // Persistent world storage
+                options.worldType( WorldType.PERSISTENT ); // Persistent world storage
 
                 // Check if wished chunk generator is present
-                if (chunkGenerator.isPresent()) {
-                    options.generator(chunkGenerator.get());
+                if ( chunkGenerator.isPresent() ) {
+                    options.generator( chunkGenerator.get() );
                 } else {
                     // Apply standard generator
-                    options.generator(NormalGenerator.class);
+                    options.generator( NormalGenerator.class );
                     // Log chunk generator failure
-                    LOGGER.warn("No such chunk generator for '" + worldConfig.getChunkGenerator()
-                                    + "' - Using " + NormalGenerator.class.getName());
+                    LOGGER.warn( "No such chunk generator for '" + worldConfig.getChunkGenerator()
+                        + "' - Using " + NormalGenerator.class.getName() );
                 }
 
                 // Try to generate world
-                World world = this.worldManager.createWorld(this.defaultWorld, options);
+                World world = this.worldManager.createWorld( this.defaultWorld, options );
                 if ( world == null ) {
                     LOGGER.error( "Failed to load or generate default world", e );
                     this.internalShutdown();

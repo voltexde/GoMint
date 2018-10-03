@@ -19,7 +19,7 @@ public abstract class ChunkGenerator {
 
         if ( ChunkGenerator.registry != null ) {
             throw new IllegalStateException( "ChunkGeneratorRegistry instance was already set;"
-                                                + " Cannot override current instance" );
+                + " Cannot override current instance" );
         }
 
         ChunkGenerator.registry = registry;
@@ -37,7 +37,7 @@ public abstract class ChunkGenerator {
     /**
      * Create a new chunk generator
      *
-     * @param world for which this generator should generate chunks
+     * @param world   for which this generator should generate chunks
      * @param context with which this generator should generate chunks
      */
     public ChunkGenerator( String name, World world, GeneratorContext context ) {
@@ -48,7 +48,7 @@ public abstract class ChunkGenerator {
 
     /**
      * Generate a chunk at the given coordinates. You have to return a fully built chunk, you can request one with
-     * {@link io.gomint.world.World#generateEmptyChunk(int,int)}
+     * {@link io.gomint.world.World#generateEmptyChunk(int, int)}
      *
      * @param x coordinate of the chunk
      * @param z coordinate of the chunk

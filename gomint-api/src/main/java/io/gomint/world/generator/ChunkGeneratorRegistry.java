@@ -7,13 +7,13 @@ import java.util.Optional;
 
 public interface ChunkGeneratorRegistry {
 
-    ChunkGenerator createGenerator(String name, World world, GeneratorContext ctx);
+    ChunkGenerator createGenerator( String name, World world, GeneratorContext ctx );
 
-    boolean registerGenerator(Class<? extends ChunkGenerator> generatorClass);
+    boolean registerGenerator( Class<? extends ChunkGenerator> generatorClass );
 
-    boolean isGeneratorAvailable(String name);
+    boolean isGeneratorAvailable( String name );
 
-    Optional<Class<? extends ChunkGenerator>> getGeneratorClass(String name);
+    Optional<Class<? extends ChunkGenerator>> getGeneratorClass( String name );
 
     Collection<String> getRegisteredGenerators();
 
