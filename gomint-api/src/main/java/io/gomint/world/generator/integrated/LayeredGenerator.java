@@ -21,6 +21,8 @@ import java.util.List;
  */
 public class LayeredGenerator extends ChunkGenerator {
 
+    public static final String NAME = "flat";
+
     @Getter
     private List<Block> layers;
 
@@ -31,7 +33,7 @@ public class LayeredGenerator extends ChunkGenerator {
      * @param context with which this generator should generate chunks
      */
     public LayeredGenerator( World world, GeneratorContext context ) {
-        super( "flat", world, context );
+        super( NAME, world, context );
 
         this.layers = new ArrayList<>();
 

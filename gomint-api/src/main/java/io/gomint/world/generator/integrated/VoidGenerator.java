@@ -12,6 +12,8 @@ import io.gomint.world.generator.GeneratorContext;
  */
 public class VoidGenerator extends ChunkGenerator {
 
+    public static final String NAME = "void";
+
     /**
      * Create a new chunk generator
      *
@@ -19,7 +21,7 @@ public class VoidGenerator extends ChunkGenerator {
      * @param context with which this generator should generate chunks
      */
     public VoidGenerator( World world, GeneratorContext context ) {
-        super( "void", world, context );
+        super( NAME, world, context );
     }
 
     @Override
