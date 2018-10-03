@@ -1434,6 +1434,7 @@ public abstract class WorldAdapter implements World {
      */
     protected abstract void prepareGenerator();
 
+    // TODO Fix broken getConstructor call
     public void constructGenerator( Class<? extends ChunkGenerator> generator, GeneratorContext context ) throws
         WorldCreateException {
         try {

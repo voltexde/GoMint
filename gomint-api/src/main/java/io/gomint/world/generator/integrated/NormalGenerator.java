@@ -85,7 +85,7 @@ public class NormalGenerator extends ChunkGenerator {
      * @param context with which this generator should generate chunks
      */
     public NormalGenerator( World world, GeneratorContext context ) {
-        super( world, context );
+        super( "normal", world, context );
 
         // Check if we have a seed
         if ( context.contains( "seed" ) ) {

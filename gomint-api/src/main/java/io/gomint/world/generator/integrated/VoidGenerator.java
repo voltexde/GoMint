@@ -19,7 +19,7 @@ public class VoidGenerator extends ChunkGenerator {
      * @param context with which this generator should generate chunks
      */
     public VoidGenerator( World world, GeneratorContext context ) {
-        super( world, context );
+        super( "void", world, context );
     }
 
     @Override

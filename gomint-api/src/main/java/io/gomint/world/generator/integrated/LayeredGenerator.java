@@ -31,7 +31,7 @@ public class LayeredGenerator extends ChunkGenerator {
      * @param context with which this generator should generate chunks
      */
     public LayeredGenerator( World world, GeneratorContext context ) {
-        super( world, context );
+        super( "flat", world, context );
 
         this.layers = new ArrayList<>();
 
