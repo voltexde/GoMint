@@ -18,8 +18,9 @@ public interface ConstructionFactory {
     /**
      * Construct a new object with no arguments
      *
+     * @param init the objects for the construction
      * @return fresh new and shiny object
      */
-    Object newInstance();
+    Object newInstance( Object... init );
 
 }

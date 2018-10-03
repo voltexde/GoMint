@@ -24,18 +24,18 @@ public class ConstructorAccessFactory implements ConstructionFactory {
 
     private ConstructorAccessor constructorAccessor;
 
-    public ConstructorAccessFactory( Class<?> clazz ) {
+    public ConstructorAccessFactory( Class<?> clazz, Class ... arguments ) {
         try {
-            this.constructorAccessor = ReflectionFactory.getReflectionFactory().newConstructorAccessor( clazz.getConstructor() );
+            this.constructorAccessor = ReflectionFactory.getReflectionFactory().newConstructorAccessor( clazz.getConstructor( arguments ) );
         } catch ( NoSuchMethodException e ) {
             LOGGER.error( "Can't construct access factory for {}", clazz.getName(), e );
         }
     }
 
     @Override
-    public Object newInstance() {
+    public Object newInstance( Object ... init ) {
         try {
-            return this.constructorAccessor.newInstance( null );
+            return this.constructorAccessor.newInstance( init );
         } catch ( InstantiationException | InvocationTargetException e ) {
             LOGGER.error( "Can't construct new object", e );
         }

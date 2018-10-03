@@ -29,17 +29,17 @@ public class ObjectConstructionFactory implements ConstructionFactory {
 
     private final ConstructionFactory factory;
 
-    public ObjectConstructionFactory( Class<?> clazz ) {
+    public ObjectConstructionFactory( Class<?> clazz, Class ... arguments ) {
         if ( USE_SUN ) {
-            this.factory = new ConstructorAccessFactory( clazz );
+            this.factory = new ConstructorAccessFactory( clazz, arguments );
         } else {
-            this.factory = new ReflectionAccessFactory( clazz );
+            this.factory = new ReflectionAccessFactory( clazz, arguments );
         }
     }
 
     @Override
-    public Object newInstance() {
-        return this.factory.newInstance();
+    public Object newInstance( Object ... init ) {
+        return this.factory.newInstance( init );
     }
 
 }

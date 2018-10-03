@@ -23,9 +23,9 @@ public class ReflectionAccessFactory implements ConstructionFactory {
 
     private Constructor constructor;
 
-    public ReflectionAccessFactory( Class<?> clazz ) {
+    public ReflectionAccessFactory( Class<?> clazz, Class ... arguments ) {
         try {
-            this.constructor = clazz.getConstructor();
+            this.constructor = clazz.getConstructor( arguments );
             this.constructor.setAccessible( true );
         } catch ( NoSuchMethodException e ) {
             LOGGER.error( "Can't construct access factory for {}", clazz.getName(), e );
@@ -33,9 +33,9 @@ public class ReflectionAccessFactory implements ConstructionFactory {
     }
 
     @Override
-    public Object newInstance() {
+    public Object newInstance( Object ... init ) {
         try {
-            return this.constructor.newInstance( null );
+            return this.constructor.newInstance( init );
         } catch ( InstantiationException | InvocationTargetException | IllegalAccessException e ) {
             LOGGER.error( "Can't construct new object", e );
         }

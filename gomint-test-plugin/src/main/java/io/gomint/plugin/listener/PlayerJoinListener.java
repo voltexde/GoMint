@@ -25,12 +25,6 @@ public class PlayerJoinListener implements EventListener {
         // Set to allow all permissions
         event.getPlayer().getPermissionManager().setPermission( "*", true );
         event.getPlayer().setGamemode( Gamemode.CREATIVE );
-
-        // Spawn falling block
-        EntityFallingBlock fallingBlock = EntityFallingBlock.create();
-        fallingBlock.setBlock( GoMint.instance().createBlock( BlockCraftingTable.class ) );
-        fallingBlock.spawn( event.getPlayer().getSpawnLocation() );
-        fallingBlock.setTicking( false );
     }
 
 }
