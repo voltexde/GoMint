@@ -49,11 +49,16 @@ import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.WorldManager;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
+import io.gomint.server.world.generator.SimpleChunkGeneratorRegistry;
 import io.gomint.world.World;
 import io.gomint.world.WorldType;
 import io.gomint.world.block.Block;
+import io.gomint.world.generator.ChunkGenerator;
+import io.gomint.world.generator.ChunkGeneratorRegistry;
 import io.gomint.world.generator.CreateOptions;
+import io.gomint.world.generator.integrated.LayeredGenerator;
 import io.gomint.world.generator.integrated.NormalGenerator;
+import io.gomint.world.generator.integrated.VoidGenerator;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import org.jline.reader.LineReader;
@@ -192,6 +197,13 @@ public class GoMintServer implements GoMint, InventoryHolder {
             GoMintServer.mainThread = Thread.currentThread().getId();
             GoMintInstanceHolder.setInstance( this );
         }
+
+        ChunkGeneratorRegistry registry = new SimpleChunkGeneratorRegistry();
+        registry.registerGenerator(LayeredGenerator.NAME, LayeredGenerator.class);
+        registry.registerGenerator(NormalGenerator.NAME, NormalGenerator.class);
+        registry.registerGenerator(VoidGenerator.NAME, VoidGenerator.class);
+        
+        ChunkGenerator.setRegistry(registry);
 
         // Extract information from the manifest
         String buildVersion = "dev/unsupported";
