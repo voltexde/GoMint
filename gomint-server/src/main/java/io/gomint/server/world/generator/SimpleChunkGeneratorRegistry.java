@@ -9,7 +9,6 @@ import io.gomint.world.generator.GeneratorContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,12 +25,6 @@ public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
     private final Map<String, Class<? extends ChunkGenerator>> registeredGenerators = new HashMap<>();
 
     public SimpleChunkGeneratorRegistry() {
-    }
-
-    public SimpleChunkGeneratorRegistry( Class<? extends ChunkGenerator>... initialGeneratorClasses ) {
-        for ( Class<? extends ChunkGenerator> initialGeneratorClass : initialGeneratorClasses ) {
-            this.registerGenerator( initialGeneratorClass );
-        }
     }
 
     @Override
@@ -60,28 +53,14 @@ public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
     }
 
     @Override
-    public boolean registerGenerator( Class<? extends ChunkGenerator> generatorClass ) {
+    public boolean registerGenerator( String name, Class<? extends ChunkGenerator> generatorClass ) {
         Preconditions.checkNotNull( generatorClass, "'generatorClass' cannot be null" );
 
-        String generatorName;
-
-        try {
-            ObjectConstructionFactory factory = new ObjectConstructionFactory( generatorClass, String.class, World.class,
-                GeneratorContext.class );
-            Object generatorInstance = factory.newInstance( null, null, null );
-
-            Field nameField = generatorClass.getDeclaredField( "name" );
-            generatorName = (String) nameField.get( generatorInstance );
-        } catch ( NoSuchFieldException | IllegalAccessException cause ) {
-            LOGGER.error( "Failed to register '" + generatorClass.getName() + "':", cause );
-            return false;
+        if ( this.isGeneratorAvailable( name ) ) {
+            throw new IllegalStateException( "Chunk generator '" + name + "' is already registered" );
         }
 
-        if ( this.isGeneratorAvailable( generatorName ) ) {
-            throw new IllegalStateException( "Chunk generator '" + generatorName + "' is already registered" );
-        }
-
-        this.registeredGenerators.put( generatorName, generatorClass );
+        this.registeredGenerators.put( name, generatorClass );
         return true;
     }
 

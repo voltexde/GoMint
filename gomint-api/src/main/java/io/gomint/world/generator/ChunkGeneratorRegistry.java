@@ -13,7 +13,7 @@ public interface ChunkGeneratorRegistry {
 
     ChunkGenerator createGenerator( String name, World world, GeneratorContext ctx );
 
-    boolean registerGenerator( Class<? extends ChunkGenerator> generatorClass );
+    boolean registerGenerator( String name, Class<? extends ChunkGenerator> generatorClass );
 
     boolean isGeneratorAvailable( String name );
 

@@ -189,9 +189,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
         }
 
         ChunkGeneratorRegistry registry = new SimpleChunkGeneratorRegistry();
-        registry.registerGenerator( LayeredGenerator.class );
-        registry.registerGenerator( NormalGenerator.class );
-        registry.registerGenerator( VoidGenerator.class );
+        registry.registerGenerator( LayeredGenerator.NAME, LayeredGenerator.class );
+        registry.registerGenerator( NormalGenerator.NAME, NormalGenerator.class );
+        registry.registerGenerator( VoidGenerator.NAME, VoidGenerator.class );
 
         ChunkGenerator.setRegistry( registry );
 

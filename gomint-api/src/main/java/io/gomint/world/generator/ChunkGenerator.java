@@ -30,7 +30,6 @@ public abstract class ChunkGenerator {
         return registry;
     }
 
-    protected final String name;
     protected World world;
     @Getter
     protected GeneratorContext context;
@@ -41,8 +40,7 @@ public abstract class ChunkGenerator {
      * @param world   for which this generator should generate chunks
      * @param context with which this generator should generate chunks
      */
-    public ChunkGenerator( String name, World world, GeneratorContext context ) {
-        this.name = name;
+    public ChunkGenerator( World world, GeneratorContext context ) {
         this.world = world;
         this.context = context;
     }
@@ -71,9 +69,5 @@ public abstract class ChunkGenerator {
      * @param chunk which should be populated
      */
     public abstract void populate( Chunk chunk );
-
-    public final String getName() {
-        return this.name;
-    }
 
 }
