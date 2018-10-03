@@ -202,7 +202,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         registry.registerGenerator(LayeredGenerator.NAME, LayeredGenerator.class);
         registry.registerGenerator(NormalGenerator.NAME, NormalGenerator.class);
         registry.registerGenerator(VoidGenerator.NAME, VoidGenerator.class);
-        
+
         ChunkGenerator.setRegistry(registry);
 
         // Extract information from the manifest
