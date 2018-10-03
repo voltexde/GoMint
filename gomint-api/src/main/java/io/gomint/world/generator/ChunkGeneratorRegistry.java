@@ -2,6 +2,8 @@ package io.gomint.world.generator;
 
 import io.gomint.world.World;
 
+import java.util.Collection;
+
 public interface ChunkGeneratorRegistry {
 
     ChunkGenerator createGenerator(String name, World world, GeneratorContext ctx);
@@ -10,8 +12,8 @@ public interface ChunkGeneratorRegistry {
 
     boolean isGeneratorAvailable(String name);
 
-    String[] getRegisteredGenerators();
+    Collection<String> getRegisteredGenerators();
 
-    Class<? extends ChunkGenerator>[] getRegisteredGeneratorClasses();
+    Collection<Class<? extends ChunkGeneratorRegistry>> getRegisteredGeneratorClasses();
 
 }

@@ -5,6 +5,8 @@ import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.ChunkGeneratorRegistry;
 import io.gomint.world.generator.GeneratorContext;
 
+import java.util.Collection;
+
 public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
 
     @Override
@@ -23,13 +25,13 @@ public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
     }
 
     @Override
-    public String[] getRegisteredGenerators() {
-        return new String[0];
+    public Collection<String> getRegisteredGenerators() {
+        return this.registeredGenerators.keySet();
     }
 
     @Override
-    public Class<? extends ChunkGenerator>[] getRegisteredGeneratorClasses() {
-        return new Class[0];
+    public Collection<Class<? extends ChunkGeneratorRegistry>> getRegisteredGeneratorClasses() {
+        return this.registeredGenerators.values();
     }
 
 }
