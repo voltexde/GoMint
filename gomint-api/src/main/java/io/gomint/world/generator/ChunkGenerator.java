@@ -13,23 +13,6 @@ import lombok.Getter;
  */
 public abstract class ChunkGenerator {
 
-    private static ChunkGeneratorRegistry registry;
-
-    public static void setRegistry( ChunkGeneratorRegistry registry ) {
-        Preconditions.checkNotNull( registry, "'registry' cannot be null" );
-
-        if ( ChunkGenerator.registry != null ) {
-            throw new IllegalStateException( "ChunkGeneratorRegistry instance was already set;"
-                + " Cannot override current instance" );
-        }
-
-        ChunkGenerator.registry = registry;
-    }
-
-    public static ChunkGeneratorRegistry getRegistry() {
-        return registry;
-    }
-
     protected World world;
     @Getter
     protected GeneratorContext context;

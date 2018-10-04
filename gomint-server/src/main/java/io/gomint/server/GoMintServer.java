@@ -54,7 +54,6 @@ import io.gomint.world.World;
 import io.gomint.world.WorldType;
 import io.gomint.world.block.Block;
 import io.gomint.world.generator.ChunkGenerator;
-import io.gomint.world.generator.ChunkGeneratorRegistry;
 import io.gomint.world.generator.CreateOptions;
 import io.gomint.world.generator.integrated.LayeredGenerator;
 import io.gomint.world.generator.integrated.NormalGenerator;
@@ -106,6 +105,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Getter
     private WorldManager worldManager;
     private String defaultWorld;
+    @Getter
+    private SimpleChunkGeneratorRegistry chunkGeneratorRegistry;
 
     // Game Information
     private RecipeManager recipeManager;
@@ -188,12 +189,10 @@ public class GoMintServer implements GoMint, InventoryHolder {
             GoMintInstanceHolder.setInstance( this );
         }
 
-        ChunkGeneratorRegistry registry = new SimpleChunkGeneratorRegistry();
-        registry.registerGenerator( LayeredGenerator.NAME, LayeredGenerator.class );
-        registry.registerGenerator( NormalGenerator.NAME, NormalGenerator.class );
-        registry.registerGenerator( VoidGenerator.NAME, VoidGenerator.class );
-
-        ChunkGenerator.setRegistry( registry );
+        this.chunkGeneratorRegistry = new SimpleChunkGeneratorRegistry();
+        this.getChunkGeneratorRegistry().registerGenerator( LayeredGenerator.NAME, LayeredGenerator.class );
+        this.getChunkGeneratorRegistry().registerGenerator( NormalGenerator.NAME, NormalGenerator.class );
+        this.getChunkGeneratorRegistry().registerGenerator( VoidGenerator.NAME, VoidGenerator.class );
 
         // Extract information from the manifest
         String buildVersion = "dev/unsupported";
@@ -380,7 +379,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
                 // Get chunk generator which might have been changed in the world config
                 Optional<Class<? extends ChunkGenerator>> chunkGenerator;
-                chunkGenerator = ChunkGenerator.getRegistry().getGeneratorClass( worldConfig.getChunkGenerator() );
+                chunkGenerator = this.getChunkGeneratorRegistry().getGeneratorClass( worldConfig.getChunkGenerator() );
 
                 // Create options world generator
                 CreateOptions options = new CreateOptions();
