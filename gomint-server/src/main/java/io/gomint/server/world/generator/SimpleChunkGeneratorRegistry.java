@@ -3,8 +3,6 @@ package io.gomint.server.world.generator;
 import com.google.common.base.Preconditions;
 import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.ChunkGeneratorRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,12 +14,7 @@ import java.util.Map;
  */
 public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( SimpleChunkGeneratorRegistry.class );
-
     private final Map<String, Class<? extends ChunkGenerator>> registeredGenerators = new HashMap<>();
-
-    public SimpleChunkGeneratorRegistry() {
-    }
 
     @Override
     public boolean registerGenerator( String name, Class<? extends ChunkGenerator> generatorClass ) {
