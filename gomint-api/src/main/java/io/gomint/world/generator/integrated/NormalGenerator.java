@@ -55,6 +55,8 @@ public class NormalGenerator extends ChunkGenerator {
     private static final int SMOOTH_SIZE = 2;
     private static final double[][] GAUSSIAN = new double[SMOOTH_SIZE * 2 + 1][SMOOTH_SIZE * 2 + 1];
 
+    public static final String NAME = "normal";
+
     static {
         double bellSize = 1 / (double) SMOOTH_SIZE;
         double bellHeight = 2 * (double) SMOOTH_SIZE;

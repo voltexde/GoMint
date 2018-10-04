@@ -49,11 +49,15 @@ import io.gomint.server.world.WorldLoadException;
 import io.gomint.server.world.WorldManager;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
+import io.gomint.server.world.generator.SimpleChunkGeneratorRegistry;
 import io.gomint.world.World;
 import io.gomint.world.WorldType;
 import io.gomint.world.block.Block;
+import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.CreateOptions;
+import io.gomint.world.generator.integrated.LayeredGenerator;
 import io.gomint.world.generator.integrated.NormalGenerator;
+import io.gomint.world.generator.integrated.VoidGenerator;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import org.jline.reader.LineReader;
@@ -67,25 +71,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.jar.Manifest;
 
 /**
  * @author BlackyPaw
+ * @author Clockw1seLrd
  * @author geNAZt
  * @version 1.1
  */
@@ -111,6 +105,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Getter
     private WorldManager worldManager;
     private String defaultWorld;
+    @Getter
+    private SimpleChunkGeneratorRegistry chunkGeneratorRegistry;
 
     // Game Information
     private RecipeManager recipeManager;
@@ -192,6 +188,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
             GoMintServer.mainThread = Thread.currentThread().getId();
             GoMintInstanceHolder.setInstance( this );
         }
+
+        this.chunkGeneratorRegistry = new SimpleChunkGeneratorRegistry();
+        this.getChunkGeneratorRegistry().registerGenerator( LayeredGenerator.NAME, LayeredGenerator.class );
+        this.getChunkGeneratorRegistry().registerGenerator( NormalGenerator.NAME, NormalGenerator.class );
+        this.getChunkGeneratorRegistry().registerGenerator( VoidGenerator.NAME, VoidGenerator.class );
 
         // Extract information from the manifest
         String buildVersion = "dev/unsupported";
@@ -373,8 +374,31 @@ public class GoMintServer implements GoMint, InventoryHolder {
             try {
                 this.worldManager.loadWorld( this.serverConfig.getDefaultWorld() );
             } catch ( WorldLoadException e ) {
+                // Get world config of default world
+                WorldConfig worldConfig = this.getWorldConfig( this.defaultWorld );
+
+                // Get chunk generator which might have been changed in the world config
+                Class<? extends ChunkGenerator> chunkGenerator;
+                chunkGenerator = this.getChunkGeneratorRegistry().getGeneratorClass( worldConfig.getChunkGenerator() );
+
+                // Create options world generator
+                CreateOptions options = new CreateOptions();
+                options.worldType( WorldType.PERSISTENT ); // Persistent world storage
+
+                // Check if wished chunk generator is present
+                if ( chunkGenerator != null ) {
+                    options.generator( chunkGenerator );
+                } else {
+                    // Apply standard generator
+                    options.generator( NormalGenerator.class );
+                    // Log chunk generator failure
+                    LOGGER.warn( "No such chunk generator for '" + worldConfig.getChunkGenerator()
+                        + "' - Using " + NormalGenerator.class.getName() );
+                }
+
                 // Try to generate world
-                if ( this.worldManager.createWorld( this.serverConfig.getDefaultWorld(), new CreateOptions().generator( NormalGenerator.class ).worldType( WorldType.PERSISTENT ) ) == null ) {
+                World world = this.worldManager.createWorld( this.defaultWorld, options );
+                if ( world == null ) {
                     LOGGER.error( "Failed to load or generate default world", e );
                     this.internalShutdown();
                     return;

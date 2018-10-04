@@ -19,6 +19,7 @@ import io.gomint.plugin.PluginManager;
 import io.gomint.scoreboard.Scoreboard;
 import io.gomint.world.World;
 import io.gomint.world.block.Block;
+import io.gomint.world.generator.ChunkGeneratorRegistry;
 import io.gomint.world.generator.CreateOptions;
 
 import java.io.InputStream;
@@ -224,6 +225,8 @@ public interface GoMint {
      * @return new world
      */
     World createWorld( String name, CreateOptions options );
+
+    ChunkGeneratorRegistry getChunkGeneratorRegistry();
 
     /**
      * Get the internal version of this server. This contains a git hash so its different on each build

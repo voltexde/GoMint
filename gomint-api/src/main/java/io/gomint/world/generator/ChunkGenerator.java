@@ -1,11 +1,13 @@
 package io.gomint.world.generator;
 
+import com.google.common.base.Preconditions;
 import io.gomint.math.BlockPosition;
 import io.gomint.world.Chunk;
 import io.gomint.world.World;
 import lombok.Getter;
 
 /**
+ * @author Clockw1seLrd
  * @author geNAZt
  * @version 1.0
  */
@@ -18,7 +20,7 @@ public abstract class ChunkGenerator {
     /**
      * Create a new chunk generator
      *
-     * @param world for which this generator should generate chunks
+     * @param world   for which this generator should generate chunks
      * @param context with which this generator should generate chunks
      */
     public ChunkGenerator( World world, GeneratorContext context ) {
@@ -28,7 +30,7 @@ public abstract class ChunkGenerator {
 
     /**
      * Generate a chunk at the given coordinates. You have to return a fully built chunk, you can request one with
-     * {@link io.gomint.world.World#generateEmptyChunk(int,int)}
+     * {@link io.gomint.world.World#generateEmptyChunk(int, int)}
      *
      * @param x coordinate of the chunk
      * @param z coordinate of the chunk

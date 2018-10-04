@@ -21,6 +21,8 @@ import java.util.List;
  */
 public class LayeredGenerator extends ChunkGenerator {
 
+    public static final String NAME = "flat";
+
     @Getter
     private List<Block> layers;
 
