@@ -1,7 +1,5 @@
 package io.gomint.world.generator;
 
-import io.gomint.world.World;
-
 import java.util.Collection;
 import java.util.Optional;
 
@@ -10,8 +8,6 @@ import java.util.Optional;
  * @version 1.0
  */
 public interface ChunkGeneratorRegistry {
-
-    ChunkGenerator createGenerator( String name, World world, GeneratorContext ctx );
 
     boolean registerGenerator( String name, Class<? extends ChunkGenerator> generatorClass );
 

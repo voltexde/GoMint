@@ -28,31 +28,6 @@ public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
     }
 
     @Override
-    public ChunkGenerator createGenerator( String name, World world, GeneratorContext ctx ) {
-        Preconditions.checkNotNull( name, "'name' cannot be null" );
-        Preconditions.checkNotNull( world, "'world' cannot be null" );
-        Preconditions.checkNotNull( ctx, "'ctx' cannot be null" );
-
-        if ( !this.isGeneratorAvailable( name ) ) {
-            throw new IllegalStateException( "No such chunk generator for '" + name + "'" );
-        }
-
-        Class<? extends ChunkGenerator> generatorClass = this.registeredGenerators.get( name );
-        ObjectConstructionFactory factory = new ObjectConstructionFactory( generatorClass, World.class,
-            GeneratorContext.class );
-
-        ChunkGenerator generator = (ChunkGenerator) factory.newInstance( world, ctx );
-
-        if ( generator == null ) {
-            throw new IllegalStateException( "Failed constructing chunk generator - Passed parameters:\n"
-                + ".. " + world.getClass().getName() + "\n"
-                + ".. " + ctx.getClass().getName() + "\n" );
-        }
-
-        return generator;
-    }
-
-    @Override
     public boolean registerGenerator( String name, Class<? extends ChunkGenerator> generatorClass ) {
         Preconditions.checkNotNull( generatorClass, "'generatorClass' cannot be null" );
 
