@@ -1,7 +1,6 @@
 package io.gomint.world.generator;
 
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * @author Clockw1seLrd
@@ -13,7 +12,7 @@ public interface ChunkGeneratorRegistry {
 
     boolean isGeneratorAvailable( String name );
 
-    Optional<Class<? extends ChunkGenerator>> getGeneratorClass( String name );
+    Class<? extends ChunkGenerator> getGeneratorClass( String name );
 
     Collection<String> getRegisteredGenerators();
 

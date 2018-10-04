@@ -378,7 +378,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 WorldConfig worldConfig = this.getWorldConfig( this.defaultWorld );
 
                 // Get chunk generator which might have been changed in the world config
-                Optional<Class<? extends ChunkGenerator>> chunkGenerator;
+                Class<? extends ChunkGenerator> chunkGenerator;
                 chunkGenerator = this.getChunkGeneratorRegistry().getGeneratorClass( worldConfig.getChunkGenerator() );
 
                 // Create options world generator
@@ -386,8 +386,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 options.worldType( WorldType.PERSISTENT ); // Persistent world storage
 
                 // Check if wished chunk generator is present
-                if ( chunkGenerator.isPresent() ) {
-                    options.generator( chunkGenerator.get() );
+                if ( chunkGenerator != null ) {
+                    options.generator( chunkGenerator );
                 } else {
                     // Apply standard generator
                     options.generator( NormalGenerator.class );

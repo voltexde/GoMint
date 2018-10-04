@@ -1,18 +1,14 @@
 package io.gomint.server.world.generator;
 
 import com.google.common.base.Preconditions;
-import io.gomint.server.util.performance.ObjectConstructionFactory;
-import io.gomint.world.World;
 import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.ChunkGeneratorRegistry;
-import io.gomint.world.generator.GeneratorContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Clockw1seLrd
@@ -45,8 +41,8 @@ public class SimpleChunkGeneratorRegistry implements ChunkGeneratorRegistry {
     }
 
     @Override
-    public Optional<Class<? extends ChunkGenerator>> getGeneratorClass( String name ) {
-        return Optional.ofNullable( this.registeredGenerators.get( name ) );
+    public Class<? extends ChunkGenerator> getGeneratorClass( String name ) {
+        return this.registeredGenerators.get( name );
     }
 
     @Override
