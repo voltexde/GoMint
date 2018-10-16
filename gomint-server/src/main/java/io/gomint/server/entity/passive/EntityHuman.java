@@ -134,28 +134,6 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
 
         this.setNameTagAlwaysVisible( true );
         this.setCanClimb( true );
-
-        // TODO: MJ BUG / 1.5.0.14 / Nametags don't change according to metadata index 4 (nametag) anymore, the client uses the name set in the spawn player packet
-        this.metadataContainer.addObserver( new Observer() {
-            @Override
-            public void update( Observable o, Object arg ) {
-                if ( arg instanceof Integer ) {
-                    // A key changed
-                    int key = (int) arg;
-                    if ( key == MetadataContainer.DATA_NAMETAG ) {
-                        // We despawn this for everyone and respawn it
-                        for ( io.gomint.entity.Entity entity : new HashSet<>( getAttachedEntities() ) ) {
-                            if ( entity instanceof EntityPlayer ) {
-                                if ( ( (EntityPlayer) entity ).getConnection().getProtocolID() < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-                                    ( (EntityPlayer) entity ).getEntityVisibilityManager().removeEntity( EntityHuman.this );
-                                    ( (EntityPlayer) entity ).getEntityVisibilityManager().addEntity( EntityHuman.this );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } );
     }
 
     @Override
@@ -517,7 +495,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     public Packet createSpawnPacket( EntityPlayer receiver ) {
         PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
         packetSpawnPlayer.setUuid( this.getUUID() );
-        packetSpawnPlayer.setName( receiver.getConnection().getProtocolID() < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ? this.getNameTag() : this.username ); // TODO: MJ BUG / 1.5.0.14 / Nametags don't change according to metadata index 4 (nametag) anymore, the client uses the name set in the spawn player packet
+        packetSpawnPlayer.setName( this.username );
         packetSpawnPlayer.setEntityId( this.getEntityId() );
         packetSpawnPlayer.setRuntimeEntityId( this.getEntityId() );
 
