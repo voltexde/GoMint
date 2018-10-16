@@ -21,8 +21,6 @@ public class PacketSpawnPlayer extends Packet {
 
     private UUID uuid;
     private String name;
-    private String thirdPartyName = "";     // TODO: Find out if this is some sort of nickname function
-    private int platformID;                 // TODO: The heck is this? (I guess the servers platform?)
     private long entityId;
     private long runtimeEntityId;
 
@@ -62,12 +60,6 @@ public class PacketSpawnPlayer extends Packet {
     public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeUUID( this.uuid );
         buffer.writeString( this.name );
-
-        // TODO: PTRCL 290
-        if ( protocolID < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            buffer.writeString( this.thirdPartyName );
-            buffer.writeSignedVarInt( this.platformID );
-        }
 
         buffer.writeSignedVarLong( this.entityId );
         buffer.writeUnsignedVarLong( this.runtimeEntityId );
