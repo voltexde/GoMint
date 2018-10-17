@@ -158,4 +158,18 @@ public interface EntityHuman extends EntityCreature {
      */
     boolean isSwimming();
 
+    /**
+     * Set player spinning or not
+     *
+     * @param value true for spinning, false for not spinning
+     */
+    void setSpinning( boolean value );
+
+    /**
+     * Check if entity is spinning
+     *
+     * @return true when spinning, false when not
+     */
+    boolean isSpinning();
+
 }

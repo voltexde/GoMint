@@ -1,10 +1,6 @@
 package io.gomint.server.network.handler;
 
-import io.gomint.event.player.PlayerInteractEvent;
-import io.gomint.event.player.PlayerSwimEvent;
-import io.gomint.event.player.PlayerToggleGlideEvent;
-import io.gomint.event.player.PlayerToggleSneakEvent;
-import io.gomint.event.player.PlayerToggleSprintEvent;
+import io.gomint.event.player.*;
 import io.gomint.server.enchant.EnchantmentProcessor;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketPlayerAction;
@@ -37,7 +33,34 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 }
 
                 break;
+
             case STOP_SWIMMING:
+                if ( connection.getEntity().isSpinning() ) {
+                    PlayerSpinEvent playerSpinEvent = new PlayerSpinEvent( connection.getEntity(), true );
+                    connection.getServer().getPluginManager().callEvent( playerSpinEvent );
+                    if ( playerSpinEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    } else {
+                        connection.getEntity().setSpinning( false );
+                    }
+                }
+
+                break;
+
+            case START_SPIN_ATTACK:
+                if ( !connection.getEntity().isSpinning() ) {
+                    PlayerSpinEvent playerSpinEvent = new PlayerSpinEvent( connection.getEntity(), true );
+                    connection.getServer().getPluginManager().callEvent( playerSpinEvent );
+                    if ( playerSpinEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    } else {
+                        connection.getEntity().setSpinning( true );
+                    }
+                }
+
+                break;
+
+            case STOP_SPIN_ATTACK:
                 if ( connection.getEntity().isSwimming() ) {
                     PlayerSwimEvent playerSwimEvent = new PlayerSwimEvent( connection.getEntity(), false );
                     connection.getServer().getPluginManager().callEvent( playerSwimEvent );
@@ -104,8 +127,8 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
                 connection.getEntity().setBreakTime( ( currentTimeMillis - connection.getEntity().getStartBreak() ) );
                 connection.getEntity().setStartBreak( 0 );
-
                 break;
+
             case START_SNEAK:
                 if ( !connection.getEntity().isSneaking() ) {
                     PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent( connection.getEntity(), true );
@@ -118,6 +141,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 }
 
                 break;
+
             case STOP_SNEAK:
                 if ( connection.getEntity().isSneaking() ) {
                     PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent( connection.getEntity(), false );
@@ -130,6 +154,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 }
 
                 break;
+
             case START_SPRINT:
                 if ( !connection.getEntity().isSprinting() ) {
                     PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent( connection.getEntity(), true );
@@ -202,6 +227,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                         connection.getEntity().setGliding( false );
                     }
                 }
+
                 break;
 
             default:

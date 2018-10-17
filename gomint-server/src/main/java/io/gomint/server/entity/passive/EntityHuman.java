@@ -419,6 +419,24 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     }
 
     @Override
+    public void setSpinning( boolean value ) {
+        if ( value != isSpinning() ) {
+            if ( value ) {
+                this.setSize( 0.6f, 0.6f );
+            } else {
+                this.setSize( 0.6f, 1.8f );
+            }
+
+            this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SPINNING, value );
+        }
+    }
+
+    @Override
+    public boolean isSpinning() {
+        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.SPINNING );
+    }
+
+    @Override
     protected void kill() {
         super.kill();
     }
