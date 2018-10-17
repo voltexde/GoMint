@@ -64,6 +64,9 @@ public class PacketPlayerAction extends Packet {
         START_SWIMMING,
         STOP_SWIMMING,
 
+        START_SPIN_ATTACK,
+        STOP_SPIN_ATTACK,
+
         INTERACT_BLOCK,
 
         SET_ENCHANT_SEED;
@@ -110,6 +113,10 @@ public class PacketPlayerAction extends Packet {
                     return START_SWIMMING;
                 case 22:
                     return STOP_SWIMMING;
+                case 23:
+                    return START_SPIN_ATTACK;
+                case 24:
+                    return STOP_SPIN_ATTACK;
             }
 
             System.out.println( "Unknown action id: " + actionId );

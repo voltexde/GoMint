@@ -29,7 +29,8 @@ public enum EntityFlag {
     HAS_COLLISION( 47 ),
     AFFECTED_BY_GRAVITY( 48 ),
 
-    SWIMMING( 55 );
+    SPINNING( 55 ),
+    SWIMMING( 56 );
 
     @Getter
     private final int id;
