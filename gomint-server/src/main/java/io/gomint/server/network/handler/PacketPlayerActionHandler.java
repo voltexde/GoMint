@@ -62,7 +62,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
 
             case STOP_SPIN_ATTACK:
                 if ( connection.getEntity().isSpinning() ) {
-                    PlayerSpinEvent playerSpinEvent = new PlayerSpinEvent( connection.getEntity(), true );
+                    PlayerSpinEvent playerSpinEvent = new PlayerSpinEvent( connection.getEntity(), false );
                     connection.getServer().getPluginManager().callEvent( playerSpinEvent );
                     if ( playerSpinEvent.isCancelled() ) {
                         connection.getEntity().sendData( connection.getEntity() );
