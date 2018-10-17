@@ -35,7 +35,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 break;
 
             case STOP_SWIMMING:
-                if ( connection.getEntity().isSpinning() ) {
+                if ( connection.getEntity().isSwimming() ) {
                     PlayerSpinEvent playerSpinEvent = new PlayerSpinEvent( connection.getEntity(), true );
                     connection.getServer().getPluginManager().callEvent( playerSpinEvent );
                     if ( playerSpinEvent.isCancelled() ) {
@@ -61,7 +61,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                 break;
 
             case STOP_SPIN_ATTACK:
-                if ( connection.getEntity().isSwimming() ) {
+                if ( connection.getEntity().isSpinning() ) {
                     PlayerSwimEvent playerSwimEvent = new PlayerSwimEvent( connection.getEntity(), false );
                     connection.getServer().getPluginManager().callEvent( playerSwimEvent );
                     if ( playerSwimEvent.isCancelled() ) {
