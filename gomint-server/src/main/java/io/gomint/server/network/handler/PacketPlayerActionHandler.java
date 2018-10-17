@@ -28,7 +28,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                     if ( playerSwimEvent.isCancelled() ) {
                         connection.getEntity().sendData( connection.getEntity() );
                     } else {
-                        connection.getEntity().setSwimming( true );
+                        connection.getEntity().setSwimming( playerSwimEvent.getNewStatus() );
                     }
                 }
 
@@ -41,7 +41,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                     if ( playerSwimEvent.isCancelled() ) {
                         connection.getEntity().sendData( connection.getEntity() );
                     } else {
-                        connection.getEntity().setSwimming( false );
+                        connection.getEntity().setSwimming( playerSwimEvent.getNewStatus() );
                     }
                 }
 
@@ -54,7 +54,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                     if ( playerSpinEvent.isCancelled() ) {
                         connection.getEntity().sendData( connection.getEntity() );
                     } else {
-                        connection.getEntity().setSpinning( true );
+                        connection.getEntity().setSpinning( playerSpinEvent.getNewStatus() );
                     }
                 }
 
@@ -67,7 +67,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                     if ( playerSpinEvent.isCancelled() ) {
                         connection.getEntity().sendData( connection.getEntity() );
                     } else {
-                        connection.getEntity().setSpinning( false );
+                        connection.getEntity().setSpinning( playerSpinEvent.getNewStatus() );
                     }
                 }
 
