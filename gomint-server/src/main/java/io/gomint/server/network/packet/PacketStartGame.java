@@ -116,11 +116,7 @@ public class PacketStartGame extends Packet {
         buffer.writeBoolean( false );
         buffer.writeBoolean( false );
         buffer.writeBoolean( false );
-
-        // TODO: PRTCL 290
-        if ( protocolID == Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            buffer.writeBoolean( false );
-        }
+        buffer.writeBoolean( false );
 
         buffer.writeString( this.levelId );
         buffer.writeString( this.worldName );

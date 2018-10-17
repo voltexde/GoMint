@@ -1640,11 +1640,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
     @Override
     public void setScoreboard( io.gomint.scoreboard.Scoreboard scoreboard ) {
-        // Only allow for latest version (1.7.0.2+)
-        if ( this.connection.getProtocolID() < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-            return;
-        }
-
         this.removeScoreboard();
 
         this.scoreboard = (Scoreboard) scoreboard;

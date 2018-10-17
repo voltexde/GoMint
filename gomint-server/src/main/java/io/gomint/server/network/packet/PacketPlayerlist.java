@@ -35,11 +35,6 @@ public class PacketPlayerlist extends Packet {
                 buffer.writeSignedVarLong( entry.getEntityId() );
                 buffer.writeString( entry.getName() );
 
-                if ( protocolID < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ) {
-                    buffer.writeString( entry.getThirdPartyName() );
-                    buffer.writeSignedVarInt( entry.getPlatformID() );
-                }
-
                 buffer.writeString( entry.getSkin().getName() );
 
                 // Raw skin data
@@ -85,13 +80,11 @@ public class PacketPlayerlist extends Packet {
         private final UUID uuid;
         private long entityId = 0;
         private String name = "";
-        private String thirdPartyName = "";
-        private int platformID;
         private String xboxId = "";
         private PlayerSkin skin;
 
         public Entry( EntityHuman human ) {
-            this( human.getUUID(), human.getEntityId(), human.getName(), human.getDisplayName(), 0xFFFFFFFF, human.getXboxID(), human.getSkin() );
+            this( human.getUUID(), human.getEntityId(), human.getName(), human.getXboxID(), human.getSkin() );
         }
     }
 
