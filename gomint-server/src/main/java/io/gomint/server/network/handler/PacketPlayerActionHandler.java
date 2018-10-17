@@ -28,7 +28,7 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                     if ( playerSwimEvent.isCancelled() ) {
                         connection.getEntity().sendData( connection.getEntity() );
                     } else {
-                        connection.getEntity().setSwimming( true );
+                        connection.getEntity().setSwimming( playerSwimEvent.getNewStatus() );
                     }
                 }
 
@@ -93,7 +93,33 @@ public class PacketPlayerActionHandler implements PacketHandler<PacketPlayerActi
                     if ( playerSwimEvent.isCancelled() ) {
                         connection.getEntity().sendData( connection.getEntity() );
                     } else {
-                        connection.getEntity().setSwimming( false );
+                        connection.getEntity().setSwimming( playerSwimEvent.getNewStatus() );
+                    }
+                }
+
+                break;
+
+            case START_SPIN_ATTACK:
+                if ( !connection.getEntity().isSpinning() ) {
+                    PlayerSpinEvent playerSpinEvent = new PlayerSpinEvent( connection.getEntity(), true );
+                    connection.getServer().getPluginManager().callEvent( playerSpinEvent );
+                    if ( playerSpinEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    } else {
+                        connection.getEntity().setSpinning( playerSpinEvent.getNewStatus() );
+                    }
+                }
+
+                break;
+
+            case STOP_SPIN_ATTACK:
+                if ( connection.getEntity().isSpinning() ) {
+                    PlayerSpinEvent playerSpinEvent = new PlayerSpinEvent( connection.getEntity(), false );
+                    connection.getServer().getPluginManager().callEvent( playerSpinEvent );
+                    if ( playerSpinEvent.isCancelled() ) {
+                        connection.getEntity().sendData( connection.getEntity() );
+                    } else {
+                        connection.getEntity().setSpinning( playerSpinEvent.getNewStatus() );
                     }
                 }
 
