@@ -32,7 +32,7 @@ public class BooleanValidator extends EnumValidator {
     }
 
     @Override
-    public Object validate( List<String> input, CommandSender commandSender ) {
+    public Object validate( String input, CommandSender commandSender ) {
         String values = (String) super.validate( input, commandSender );
         if ( values == null ) {
             return null;

@@ -1,10 +1,10 @@
 package io.gomint.command.validator;
 
-import com.google.common.base.Joiner;
 import io.gomint.command.CommandSender;
 import io.gomint.command.ParamType;
 import io.gomint.command.ParamValidator;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -29,13 +29,22 @@ public class TextValidator extends ParamValidator {
     }
 
     @Override
-    public Object validate( List<String> input, CommandSender commandSender ) {
-        return Joiner.on( " " ).join( input );
+    public Object validate( String input, CommandSender commandSender ) {
+        return input;
     }
 
     @Override
-    public int consumesParts() {
-        return -1;
+    public String consume( Iterator<String> data ) {
+        StringBuilder forValidator = new StringBuilder();
+        while ( data.hasNext() ) {
+            forValidator.append( data.next() ).append( " " );
+        }
+
+        if ( forValidator.length() > 0 ) {
+            return forValidator.deleteCharAt( forValidator.length() - 1 ).toString();
+        }
+
+        return null;
     }
 
     @Override

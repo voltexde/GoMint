@@ -7,6 +7,7 @@ import io.gomint.command.PlayerCommandSender;
 import io.gomint.entity.EntityPlayer;
 import io.gomint.math.BlockPosition;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ public class BlockPositionValidator extends ParamValidator {
     }
 
     @Override
-    public Object validate( List<String> input, CommandSender sender ) {
+    public Object validate( String input, CommandSender sender ) {
         // 0 -> x
         // 1 -> y
         // 2 -> z
@@ -42,18 +43,21 @@ public class BlockPositionValidator extends ParamValidator {
             entityPosition = ( (EntityPlayer) sender ).getLocation().toBlockPosition();
         }
 
+        // Split string
+        String[] split = input.split( " " );
+
         // Parse x
-        Integer xInt = parsePos( entityPosition, input.get( 0 ) );
+        Integer xInt = parsePos( entityPosition, split[0] );
         if ( xInt == null ) {
             return null;
         }
 
-        Integer yInt = parsePos( entityPosition, input.get( 1 ) );
+        Integer yInt = parsePos( entityPosition, split[1] );
         if ( yInt == null ) {
             return null;
         }
 
-        Integer zInt = parsePos( entityPosition, input.get( 2 ) );
+        Integer zInt = parsePos( entityPosition, split[2] );
         if ( zInt == null ) {
             return null;
         }
@@ -97,13 +101,22 @@ public class BlockPositionValidator extends ParamValidator {
     }
 
     @Override
-    public int consumesParts() {
-        return 3;
+    public String getHelpText() {
+        return "blockpos:x y z";
     }
 
     @Override
-    public String getHelpText() {
-        return "blockpos:x y z";
+    public String consume( Iterator<String> data ) {
+        StringBuilder forValidator = new StringBuilder();
+        for ( int i = 0; i < 3; i++ ) {
+            if ( !data.hasNext() ) {
+                return null;
+            }
+
+            forValidator.append( data.next() );
+        }
+
+        return forValidator.toString();
     }
 
 }

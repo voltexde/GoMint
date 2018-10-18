@@ -1,5 +1,6 @@
 package io.gomint.command;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public abstract class ParamValidator {
      * @param commandSender which submitted the command
      * @return non null object of validation on success (string for example) or null when validation failed
      */
-    public abstract Object validate( List<String> input, CommandSender commandSender );
+    public abstract Object validate( String input, CommandSender commandSender );
 
     /**
      * Is this param optional?
@@ -80,13 +81,6 @@ public abstract class ParamValidator {
     }
 
     /**
-     * Return how much parts of the command this validator plans to consume
-     *
-     * @return amount of parts which should be consumed
-     */
-    public abstract int consumesParts();
-
-    /**
      * Get a proper help text for the console output
      *
      * @return help text for the console
@@ -94,5 +88,13 @@ public abstract class ParamValidator {
     public String getHelpText() {
         return "NO HELP";
     }
+
+    /**
+     * Consume all parts this validator needs as input from the command
+     *
+     * @param data left from the command which can be consumed
+     * @return the concated data consumed
+     */
+    public abstract String consume( Iterator<String> data );
 
 }

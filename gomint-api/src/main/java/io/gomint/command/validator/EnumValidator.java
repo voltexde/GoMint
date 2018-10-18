@@ -6,6 +6,7 @@ import io.gomint.command.ParamType;
 import io.gomint.command.ParamValidator;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -38,18 +39,21 @@ public class EnumValidator extends ParamValidator {
     }
 
     @Override
-    public Object validate( List<String> input, CommandSender commandSender ) {
-        String toCheck = input.get( 0 );
-        if ( this.values.contains( toCheck ) ) {
-            return toCheck;
+    public Object validate( String input, CommandSender commandSender ) {
+        if ( this.values.contains( input ) ) {
+            return input;
         }
 
         return null;
     }
 
     @Override
-    public int consumesParts() {
-        return 1;
+    public String consume( Iterator<String> data ) {
+        if ( data.hasNext() ) {
+            return data.next();
+        }
+
+        return null;
     }
 
     @Override

@@ -10,7 +10,7 @@ package io.gomint.command.validator;
 import io.gomint.command.CommandSender;
 import io.gomint.command.ParamType;
 
-import java.util.List;
+import java.util.Iterator;
 
 /**
  * @author geNAZt
@@ -28,13 +28,17 @@ public class CommandValidator extends EnumValidator {
     }
 
     @Override
-    public Object validate( List<String> input, CommandSender commandSender ) {
-        return input.get( 0 ).equals( values().get( 0 ) ) ? true : null;
+    public Object validate( String input, CommandSender commandSender ) {
+        return input.equals( values().get( 0 ) ) ? true : null;
     }
 
     @Override
-    public int consumesParts() {
-        return 1;
+    public String consume( Iterator<String> data ) {
+        if ( data.hasNext() ) {
+            return data.next();
+        }
+
+        return null;
     }
 
     @Override

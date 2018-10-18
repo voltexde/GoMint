@@ -8,6 +8,7 @@ import io.gomint.command.PlayerCommandSender;
 import io.gomint.entity.EntityPlayer;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -32,10 +33,10 @@ public class TargetValidator extends ParamValidator {
     }
 
     @Override
-    public Object validate( List<String> input, CommandSender commandSender ) {
+    public Object validate( String input, CommandSender commandSender ) {
         Collection<EntityPlayer> searchPool = null;
         if ( commandSender instanceof PlayerCommandSender ) {
-            if ( input.get( 0 ).equals( "@s" ) ) {
+            if ( input.equals( "@s" ) ) {
                 return commandSender;
             }
 
@@ -45,7 +46,7 @@ public class TargetValidator extends ParamValidator {
         }
 
         for ( EntityPlayer player : searchPool ) {
-            if ( player.getName().equals( input.get( 0 ) ) ) {
+            if ( player.getPlayerListName().equals( input ) ) {
                 return player;
             }
         }
@@ -54,8 +55,28 @@ public class TargetValidator extends ParamValidator {
     }
 
     @Override
-    public int consumesParts() {
-        return 1;
+    public String consume( Iterator<String> data ) {
+        // Check if we have one element left
+        if ( !data.hasNext() ) {
+            return null;
+        }
+
+        // The first element can either be " to signal that the name has spaces or its the player name itself
+        String first = data.next();
+        if ( first.equals( "\"" ) ) {
+            StringBuilder nameBuilder = new StringBuilder( first.substring( 1 ) );
+            while ( data.hasNext() ) {
+                String current = data.next();
+                if ( current.endsWith( "\"" ) ) {
+                    nameBuilder.append( current, 0, current.length() - 1 );
+                    return nameBuilder.toString();
+                }
+
+                nameBuilder.append( " " ).append( current );
+            }
+        }
+
+        return first;
     }
 
     @Override

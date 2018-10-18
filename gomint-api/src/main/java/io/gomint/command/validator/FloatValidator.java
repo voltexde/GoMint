@@ -4,6 +4,7 @@ import io.gomint.command.CommandSender;
 import io.gomint.command.ParamType;
 import io.gomint.command.ParamValidator;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -28,24 +29,26 @@ public class FloatValidator extends ParamValidator {
     }
 
     @Override
-    public Object validate( List<String> input, CommandSender commandSender ) {
-        String toCheck = input.get( 0 );
-
+    public Object validate( String input, CommandSender commandSender ) {
         try {
-            return Float.parseFloat( toCheck );
+            return Float.parseFloat( input );
         } catch ( NumberFormatException e ) {
             return null;
         }
     }
 
     @Override
-    public int consumesParts() {
-        return 1;
+    public String getHelpText() {
+        return "float";
     }
 
     @Override
-    public String getHelpText() {
-        return "float";
+    public String consume( Iterator<String> data ) {
+        if ( data.hasNext() ) {
+            return data.next();
+        }
+
+        return null;
     }
 
 }

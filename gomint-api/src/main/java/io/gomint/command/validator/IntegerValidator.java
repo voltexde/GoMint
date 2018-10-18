@@ -4,6 +4,7 @@ import io.gomint.command.CommandSender;
 import io.gomint.command.ParamType;
 import io.gomint.command.ParamValidator;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -28,19 +29,21 @@ public class IntegerValidator extends ParamValidator {
     }
 
     @Override
-    public Object validate( List<String> input, CommandSender commandSender ) {
-        String toCheck = input.get( 0 );
-
+    public Object validate( String input, CommandSender commandSender ) {
         try {
-            return Integer.parseInt( toCheck );
+            return Integer.parseInt( input );
         } catch ( NumberFormatException e ) {
             return null;
         }
     }
 
     @Override
-    public int consumesParts() {
-        return 1;
+    public String consume( Iterator<String> data ) {
+        if ( data.hasNext() ) {
+            return data.next();
+        }
+
+        return null;
     }
 
     @Override
