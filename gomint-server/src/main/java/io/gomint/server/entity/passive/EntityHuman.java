@@ -525,6 +525,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.displayName = displayName;
         this.xboxId = xboxId;
         this.uuid = uuid;
+        this.playerListName = username;
 
         this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
     }
