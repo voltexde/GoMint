@@ -172,4 +172,18 @@ public interface EntityHuman extends EntityCreature {
      */
     boolean isSpinning();
 
+    /**
+     * Get the current player list name
+     *
+     * @return entry of the player list
+     */
+    String getPlayerListName();
+
+    /**
+     * Set a new player list name. This auto updates for players.
+     *
+     * @param newPlayerListName new player list name
+     */
+    void setPlayerListName( String newPlayerListName );
+
 }

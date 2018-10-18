@@ -7,6 +7,7 @@
 
 package io.gomint.server.entity.passive;
 
+import io.gomint.entity.Entity;
 import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
@@ -26,7 +27,6 @@ import io.gomint.server.entity.metadata.MetadataContainer;
 import io.gomint.server.inventory.ArmorInventory;
 import io.gomint.server.inventory.PlayerInventory;
 import io.gomint.server.network.PlayerConnection;
-import io.gomint.server.network.Protocol;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketEntityMetadata;
 import io.gomint.server.network.packet.PacketPlayerlist;
@@ -37,12 +37,12 @@ import io.gomint.server.world.WorldAdapter;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Difficulty;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -66,6 +66,8 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     private String xboxId = "";
 
     private PlayerSkin skin;
+    @Getter
+    private String playerListName;
 
     /**
      * Player inventory which needs to be inited
@@ -134,6 +136,38 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
 
         this.setNameTagAlwaysVisible( true );
         this.setCanClimb( true );
+
+        this.playerListName = this.getName();
+    }
+
+    @Override
+    public void setPlayerListName( String newPlayerListName ) {
+        if ( newPlayerListName == null ) {
+            return;
+        }
+
+        this.playerListName = newPlayerListName;
+
+        // Update all entities which can see this
+        if ( this instanceof EntityPlayer ) { // Only players have a permanent list entry
+            List<PacketPlayerlist.Entry> singleEntry = Collections.singletonList( new PacketPlayerlist.Entry( EntityHuman.this ) );
+
+            PacketPlayerlist removeFromList = new PacketPlayerlist();
+            removeFromList.setMode( (byte) 1 );
+            removeFromList.setEntries( singleEntry );
+
+            PacketPlayerlist addToList = new PacketPlayerlist();
+            addToList.setMode( (byte) 0 );
+            addToList.setEntries( singleEntry );
+
+            for ( Entity entity : this.getAttachedEntities() ) {
+                if ( entity instanceof EntityPlayer ) {
+                    EntityPlayer other = ((EntityPlayer) entity);
+                    other.getConnection().addToSendQueue( removeFromList );
+                    other.getConnection().addToSendQueue( addToList );
+                }
+            }
+        }
     }
 
     @Override

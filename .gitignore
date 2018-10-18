@@ -1,7 +1,6 @@
 ### GoMint Debug Files START ############################# 
 plugins/
 logs/
-world/
 server.yml
 ### GoMint Debug Files END ############################# 
 
