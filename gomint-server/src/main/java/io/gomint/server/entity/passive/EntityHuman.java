@@ -7,7 +7,6 @@
 
 package io.gomint.server.entity.passive;
 
-import io.gomint.entity.Entity;
 import io.gomint.entity.potion.PotionEffect;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.entity.EntityHealEvent;
@@ -147,27 +146,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         }
 
         this.playerListName = newPlayerListName;
-
-        // Update all entities which can see this
-        if ( this instanceof EntityPlayer ) { // Only players have a permanent list entry
-            List<PacketPlayerlist.Entry> singleEntry = Collections.singletonList( new PacketPlayerlist.Entry( EntityHuman.this ) );
-
-            PacketPlayerlist removeFromList = new PacketPlayerlist();
-            removeFromList.setMode( (byte) 1 );
-            removeFromList.setEntries( singleEntry );
-
-            PacketPlayerlist addToList = new PacketPlayerlist();
-            addToList.setMode( (byte) 0 );
-            addToList.setEntries( singleEntry );
-
-            for ( Entity entity : this.getAttachedEntities() ) {
-                if ( entity instanceof EntityPlayer ) {
-                    EntityPlayer other = ((EntityPlayer) entity);
-                    other.getConnection().addToSendQueue( removeFromList );
-                    other.getConnection().addToSendQueue( addToList );
-                }
-            }
-        }
+        this.updatePlayerList();
     }
 
     @Override
@@ -506,14 +485,25 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     }
 
     private void updatePlayerList() {
+        List<PacketPlayerlist.Entry> singleEntry = Collections.singletonList( new PacketPlayerlist.Entry( EntityHuman.this ) );
+
         PacketPlayerlist packetPlayerlist = new PacketPlayerlist();
         packetPlayerlist.setMode( (byte) 0 );
-        packetPlayerlist.setEntries( new ArrayList<PacketPlayerlist.Entry>() {{
-            add( new PacketPlayerlist.Entry( EntityHuman.this ) );
-        }} );
+        packetPlayerlist.setEntries( singleEntry );
+
+        PacketPlayerlist removeFromList = null;
+        if ( !( this instanceof EntityPlayer ) ) {
+            removeFromList = new PacketPlayerlist();
+            removeFromList.setMode( (byte) 1 );
+            removeFromList.setEntries( singleEntry );
+        }
 
         for ( io.gomint.entity.EntityPlayer player : this.world.getServer().getPlayers() ) {
-            ( (EntityPlayer) player ).getConnection().addToSendQueue( packetPlayerlist );
+            EntityPlayer other = (EntityPlayer) player;
+            other.getConnection().addToSendQueue( packetPlayerlist );
+            if ( removeFromList != null ) {
+                other.getConnection().addToSendQueue( removeFromList );
+            }
         }
     }
 
