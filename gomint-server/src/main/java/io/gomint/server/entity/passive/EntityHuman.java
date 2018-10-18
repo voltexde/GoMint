@@ -89,7 +89,6 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
      */
     public EntityHuman() {
         super( EntityType.PLAYER, null );
-        this.initEntity();
 
         // Init inventories
         this.inventory = new PlayerInventory( this );
@@ -100,6 +99,8 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
         this.username = "NPC: " + this.uuid.toString();
         this.displayName = this.username;
         this.metadataContainer.putString( MetadataContainer.DATA_NAMETAG, this.username );
+
+        this.initEntity();
     }
 
     @Override
