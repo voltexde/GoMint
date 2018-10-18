@@ -20,7 +20,7 @@ public class PacketTextHandler implements PacketHandler<PacketText> {
             case PLAYER_CHAT:
                 // Simply relay for now
                 List<EntityPlayer> playerList = new ArrayList<>( connection.getServer().getPlayers() );
-                PlayerChatEvent event = new PlayerChatEvent( connection.getEntity(), connection.getEntity().getName(), packet.getMessage(), playerList );
+                PlayerChatEvent event = new PlayerChatEvent( connection.getEntity(), connection.getEntity().getDisplayName(), packet.getMessage(), playerList );
                 connection.getServer().getPluginManager().callEvent( event );
 
                 if ( !event.isCancelled() ) {
