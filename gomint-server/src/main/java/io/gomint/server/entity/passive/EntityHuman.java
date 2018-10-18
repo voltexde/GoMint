@@ -493,10 +493,6 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
     @Override
     public void setDisplayName( String displayName ) {
         this.displayName = displayName;
-
-        if ( this.world != null ) {
-            this.updatePlayerList();
-        }
     }
 
     @Override
