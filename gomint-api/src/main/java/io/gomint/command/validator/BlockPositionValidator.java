@@ -47,17 +47,17 @@ public class BlockPositionValidator extends ParamValidator {
         String[] split = input.split( " " );
 
         // Parse x
-        Integer xInt = parsePos( entityPosition, split[0] );
+        Integer xInt = parsePos( entityPosition.getX(), split[0] );
         if ( xInt == null ) {
             return null;
         }
 
-        Integer yInt = parsePos( entityPosition, split[1] );
+        Integer yInt = parsePos( entityPosition.getY(), split[1] );
         if ( yInt == null ) {
             return null;
         }
 
-        Integer zInt = parsePos( entityPosition, split[2] );
+        Integer zInt = parsePos( entityPosition.getZ(), split[2] );
         if ( zInt == null ) {
             return null;
         }
@@ -65,25 +65,31 @@ public class BlockPositionValidator extends ParamValidator {
         return new BlockPosition( xInt, yInt, zInt );
     }
 
-    private Integer parsePos( BlockPosition entityPosition, String in ) {
-        if ( in.startsWith( "~" ) && entityPosition != null ) {
-            int xInt = entityPosition.getX();
-
+    private Integer parsePos( int positionValue, String in ) {
+        if ( in.startsWith( "~" ) && positionValue != 0 ) {
             // Do we have additional data (+/-)?
             if ( in.length() > 2 ) {
                 if ( in.startsWith( "~+" ) ) {
                     try {
                         int diffX = Integer.parseInt( in.substring( 2 ) );
-                        xInt += diffX;
-                        return xInt;
+                        positionValue += diffX;
+                        return positionValue;
                     } catch ( NumberFormatException e ) {
                         return null;
                     }
                 } else if ( in.startsWith( "~-" ) ) {
                     try {
                         int diffX = Integer.parseInt( in.substring( 2 ) );
-                        xInt -= diffX;
-                        return xInt;
+                        positionValue -= diffX;
+                        return positionValue;
+                    } catch ( NumberFormatException e ) {
+                        return null;
+                    }
+                } else {
+                    try {
+                        int diffX = Integer.parseInt( in.substring( 1 ) );
+                        positionValue += diffX;
+                        return positionValue;
                     } catch ( NumberFormatException e ) {
                         return null;
                     }
