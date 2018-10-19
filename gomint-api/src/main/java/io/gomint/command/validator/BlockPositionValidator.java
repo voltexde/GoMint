@@ -85,14 +85,14 @@ public class BlockPositionValidator extends ParamValidator {
                     } catch ( NumberFormatException e ) {
                         return null;
                     }
-                } else {
-                    try {
-                        int diffX = Integer.parseInt( in.substring( 1 ) );
-                        positionValue += diffX;
-                        return positionValue;
-                    } catch ( NumberFormatException e ) {
-                        return null;
-                    }
+                }
+            } else {
+                try {
+                    int diffX = Integer.parseInt( in.substring( 1 ) );
+                    positionValue += diffX;
+                    return positionValue;
+                } catch ( NumberFormatException e ) {
+                    return null;
                 }
             }
         } else {
