@@ -25,6 +25,7 @@ public class PlayerJoinListener implements EventListener {
         // Set to allow all permissions
         event.getPlayer().getPermissionManager().setPermission( "*", true );
         event.getPlayer().setGamemode( Gamemode.CREATIVE );
+        event.getPlayer().setPlayerListName("§bTest §7| §b" + event.getPlayer().getName());
     }
 
 }
