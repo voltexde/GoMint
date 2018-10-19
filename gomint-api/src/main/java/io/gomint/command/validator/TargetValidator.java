@@ -34,19 +34,15 @@ public class TargetValidator extends ParamValidator {
 
     @Override
     public Object validate( String input, CommandSender commandSender ) {
-        Collection<EntityPlayer> searchPool = null;
+        Collection<EntityPlayer> searchPool = GoMint.instance().getPlayers();
         if ( commandSender instanceof PlayerCommandSender ) {
             if ( input.equals( "@s" ) ) {
                 return commandSender;
             }
-
-            searchPool = ( (EntityPlayer) commandSender ).getWorld().getPlayers();
-        } else {
-            searchPool = GoMint.instance().getPlayers();
         }
 
         for ( EntityPlayer player : searchPool ) {
-            if ( player.getPlayerListName().equals( input ) ) {
+            if ( player.getPlayerListName().equals( input ) || player.getName().equalsIgnoreCase( input ) ) {
                 return player;
             }
         }
@@ -63,17 +59,19 @@ public class TargetValidator extends ParamValidator {
 
         // The first element can either be " to signal that the name has spaces or its the player name itself
         String first = data.next();
-        if ( first.equals( "\"" ) ) {
+        if ( first.startsWith( "\"" ) ) {
             StringBuilder nameBuilder = new StringBuilder( first.substring( 1 ) );
             while ( data.hasNext() ) {
                 String current = data.next();
                 if ( current.endsWith( "\"" ) ) {
-                    nameBuilder.append( current, 0, current.length() - 1 );
+                    nameBuilder.append( " " ).append( current, 0, current.length() - 1 );
                     return nameBuilder.toString();
                 }
 
                 nameBuilder.append( " " ).append( current );
             }
+
+            return nameBuilder.toString();
         }
 
         return first;
