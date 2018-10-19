@@ -37,7 +37,7 @@ public class BlockPositionValidator extends ParamValidator {
         // 1 -> y
         // 2 -> z
 
-        BlockPosition entityPosition = null;
+        BlockPosition entityPosition = new BlockPosition(0, 0, 0);
         if ( sender instanceof PlayerCommandSender ) {
             // Mojang decided that ~ is the current entity position
             entityPosition = ( (EntityPlayer) sender ).getLocation().toBlockPosition();
