@@ -60,6 +60,10 @@ public class TargetValidator extends ParamValidator {
         // The first element can either be " to signal that the name has spaces or its the player name itself
         String first = data.next();
         if ( first.startsWith( "\"" ) ) {
+            if ( first.endsWith( "\"" ) ) {
+                return first.substring( 1, first.length() - 1 );
+            }
+
             StringBuilder nameBuilder = new StringBuilder( first.substring( 1 ) );
             while ( data.hasNext() ) {
                 String current = data.next();
