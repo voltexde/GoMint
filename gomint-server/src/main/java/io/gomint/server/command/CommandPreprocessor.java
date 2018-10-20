@@ -2,6 +2,7 @@ package io.gomint.server.command;
 
 import io.gomint.command.CommandOverload;
 import io.gomint.command.ParamValidator;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketAvailableCommands;
 import io.gomint.server.network.type.CommandData;
 import io.gomint.server.util.collection.IndexedHashMap;
@@ -69,9 +70,10 @@ public class CommandPreprocessor {
     /**
      * This preprocessor takes GoMint commands and merges them together into a PE format
      *
+     * @param player   which should get the packet
      * @param commands which should be merged and written
      */
-    public CommandPreprocessor( List<CommandHolder> commands ) {
+    public CommandPreprocessor( EntityPlayer player, List<CommandHolder> commands ) {
         this.commandsPacket = new PacketAvailableCommands();
 
         // First we should scan all commands for aliases
@@ -91,18 +93,20 @@ public class CommandPreprocessor {
         for ( CommandHolder command : commands ) {
             if ( command.getOverload() != null ) {
                 for ( CommandOverload overload : command.getOverload() ) {
-                    if ( overload.getParameters() != null ) {
-                        for ( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
-                            if ( entry.getValue().hasValues() ) {
-                                for ( String s : entry.getValue().values() ) {
-                                    this.addEnum( command.getName() + "#" + entry.getKey(), s );
+                    if( overload.getPermission().isEmpty() || player.hasPermission( overload.getPermission() ) ) {
+                        if( overload.getParameters() != null ) {
+                            for( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
+                                if( entry.getValue().hasValues() ) {
+                                    for( String s : entry.getValue().values() ) {
+                                        this.addEnum( command.getName() + "#" + entry.getKey(), s );
+                                    }
+
+                                    this.enumIndexes.put( command.getName() + "#" + entry.getKey(), this.enums.getIndex( command.getName() + "#" + entry.getKey() ) );
                                 }
 
-                                this.enumIndexes.put( command.getName() + "#" + entry.getKey(), this.enums.getIndex( command.getName() + "#" + entry.getKey() ) );
-                            }
-
-                            if ( entry.getValue().getPostfix() != null && !this.postfixes.contains( entry.getValue().getPostfix() ) ) {
-                                this.postfixes.add( entry.getValue().getPostfix() );
+                                if( entry.getValue().getPostfix() != null && !this.postfixes.contains( entry.getValue().getPostfix() ) ) {
+                                    this.postfixes.add( entry.getValue().getPostfix() );
+                                }
                             }
                         }
                     }
@@ -133,64 +137,66 @@ public class CommandPreprocessor {
 
             if ( command.getOverload() != null ) {
                 for ( CommandOverload overload : command.getOverload() ) {
-                    List<CommandData.Parameter> parameters = new ArrayList<>();
-                    if ( overload.getParameters() != null ) {
-                        for ( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
-                            // Build together type
-                            int paramType = 0; // We don't support postfixes yet
+                    if( overload.getPermission().isEmpty() || player.hasPermission( overload.getPermission() ) ) {
+                        List<CommandData.Parameter> parameters = new ArrayList<>();
+                        if(overload.getParameters() != null) {
+                            for(Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet()) {
+                                // Build together type
+                                int paramType = 0; // We don't support postfixes yet
 
-                            switch ( entry.getValue().getType() ) {
-                                case INT:
+                                switch(entry.getValue().getType()) {
+                                    case INT:
                                     /*if ( entry.getValue().getPostfix() != null ) {
                                         paramType |= ARG_FLAG_POSTFIX;
                                         paramType |= this.postfixes.indexOf( entry.getValue().getPostfix() );
                                     } else {*/
                                         paramType |= ARG_FLAG_VALID;
                                         paramType |= ARG_TYPE_INT;
-                                    // }
+                                        // }
 
-                                    break;
-                                case BOOL:
-                                case STRING_ENUM:
-                                    paramType |= ARG_FLAG_ENUM;
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= this.enumIndexes.get( command.getName() + "#" + entry.getKey() );
-                                    break;
-                                case TARGET:
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= ARG_TYPE_TARGET;
-                                    break;
-                                case STRING:
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= ARG_TYPE_STRING;
-                                    break;
-                                case BLOCK_POS:
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= ARG_TYPE_POSITION;
-                                    break;
-                                case TEXT:
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= ARG_TYPE_RAWTEXT;
-                                    break;
-                                case FLOAT:
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= ARG_TYPE_FLOAT;
-                                    break;
-                                case COMMAND:
-                                    paramType |= ARG_FLAG_ENUM;
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= this.enumIndexes.get( command.getName() + "#" + entry.getKey() );
-                                    break;
-                                default:
-                                    paramType |= ARG_FLAG_VALID;
-                                    paramType |= ARG_TYPE_VALUE;
+                                        break;
+                                    case BOOL:
+                                    case STRING_ENUM:
+                                        paramType |= ARG_FLAG_ENUM;
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= this.enumIndexes.get(command.getName() + "#" + entry.getKey());
+                                        break;
+                                    case TARGET:
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= ARG_TYPE_TARGET;
+                                        break;
+                                    case STRING:
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= ARG_TYPE_STRING;
+                                        break;
+                                    case BLOCK_POS:
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= ARG_TYPE_POSITION;
+                                        break;
+                                    case TEXT:
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= ARG_TYPE_RAWTEXT;
+                                        break;
+                                    case FLOAT:
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= ARG_TYPE_FLOAT;
+                                        break;
+                                    case COMMAND:
+                                        paramType |= ARG_FLAG_ENUM;
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= this.enumIndexes.get(command.getName() + "#" + entry.getKey());
+                                        break;
+                                    default:
+                                        paramType |= ARG_FLAG_VALID;
+                                        paramType |= ARG_TYPE_VALUE;
+                                }
+
+                                parameters.add(new CommandData.Parameter(entry.getKey(), paramType, entry.getValue().isOptional()));
                             }
-
-                            parameters.add( new CommandData.Parameter( entry.getKey(), paramType, entry.getValue().isOptional() ) );
                         }
-                    }
 
-                    overloads.add( parameters );
+                        overloads.add(parameters);
+                    }
                 }
             }
 
