@@ -52,6 +52,11 @@ public class Scoreboard implements io.gomint.scoreboard.Scoreboard {
     }
 
     @Override
+    public io.gomint.scoreboard.ScoreboardDisplay getDisplay( DisplaySlot slot ) {
+        return this.displays.get( slot );
+    }
+
+    @Override
     public void removeDisplay( DisplaySlot slot ) {
         io.gomint.scoreboard.ScoreboardDisplay display = this.displays.remove( slot );
         if ( display != null ) {

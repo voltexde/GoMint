@@ -152,25 +152,24 @@ public class CommandManager {
                 if ( selected.getOverload() != null && params.length > 0 ) {
                     List<CommandCanidate> commandCanidates = new ArrayList<>();
                     for ( CommandOverload overload : selected.getOverload() ) {
-                        if( overload.getPermission().isEmpty() || sender.hasPermission( overload.getPermission() ) ) {
-                            Iterator<String> paramIterator = Arrays.asList(params).iterator();
+                        if ( overload.getPermission().isEmpty() || sender.hasPermission( overload.getPermission() ) ) {
+                            Iterator<String> paramIterator = Arrays.asList( params ).iterator();
 
-                            if(!paramIterator.hasNext() && overload.getParameters() == null) {
-                                commandCanidates.add(new CommandCanidate(overload, new HashMap<>(), true, true));
+                            if ( !paramIterator.hasNext() && overload.getParameters() == null ) {
+                                commandCanidates.add( new CommandCanidate( overload, new HashMap<>(), true, true ) );
                             } else {
                                 Map<String, Object> commandInput = new HashMap<>();
 
                                 boolean completed = true;
                                 boolean completedOptionals = true;
 
-                                if(overload.getParameters() != null) {
-                                    for(Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet()) {
-                                        List<String> input = new ArrayList<>();
+                                if ( overload.getParameters() != null ) {
+                                    for ( Map.Entry<String, ParamValidator> entry : overload.getParameters().entrySet() ) {
                                         ParamValidator validator = entry.getValue();
 
-                                        String forValidator = validator.consume(paramIterator);
-                                        if(forValidator == null) {
-                                            if(!validator.isOptional()) {
+                                        String forValidator = validator.consume( paramIterator );
+                                        if ( forValidator == null ) {
+                                            if ( !validator.isOptional() ) {
                                                 completed = false;
                                                 break;
                                             } else {
@@ -178,19 +177,19 @@ public class CommandManager {
                                             }
                                         }
 
-                                        if(forValidator != null) {
-                                            Object result = validator.validate(forValidator, sender);
-                                            if(result == null) {
+                                        if ( forValidator != null ) {
+                                            Object result = validator.validate( forValidator, sender );
+                                            if ( result == null ) {
                                                 completed = false;
                                             }
 
-                                            commandInput.put(entry.getKey(), result);
+                                            commandInput.put( entry.getKey(), result );
                                         }
                                     }
                                 }
 
-                                if(completed) {
-                                    commandCanidates.add(new CommandCanidate(overload, commandInput, completedOptionals, !paramIterator.hasNext() && completedOptionals));
+                                if ( completed ) {
+                                    commandCanidates.add( new CommandCanidate( overload, commandInput, completedOptionals, !paramIterator.hasNext() && completedOptionals ) );
                                 }
                             }
                         }

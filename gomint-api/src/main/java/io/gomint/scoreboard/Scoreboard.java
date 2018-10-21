@@ -23,6 +23,14 @@ public interface Scoreboard {
     ScoreboardDisplay addDisplay( DisplaySlot slot, String objectiveName, String displayName );
 
     /**
+     * Get a display from its slot
+     *
+     * @param slot for the display
+     * @return the display or null when no display has been added to this slot
+     */
+    ScoreboardDisplay getDisplay( DisplaySlot slot );
+
+    /**
      * Remove a display
      *
      * @param slot which should be removed
