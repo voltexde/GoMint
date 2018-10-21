@@ -369,6 +369,13 @@ public interface EntityPlayer extends EntityHuman {
     void setScoreboard( Scoreboard scoreboard );
 
     /**
+     * Get the current scoreboard of a player
+     *
+     * @return the scoreboard of this player or null
+     */
+    Scoreboard getScoreboard();
+
+    /**
      * Remove the current scoreboard
      */
     void removeScoreboard();
