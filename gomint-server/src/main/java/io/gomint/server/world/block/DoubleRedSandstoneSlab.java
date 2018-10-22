@@ -24,11 +24,6 @@ public class DoubleRedSandstoneSlab extends Block implements io.gomint.world.blo
     }
 
     @Override
-    public boolean isTransparent() {
-        return true;
-    }
-
-    @Override
     public float getBlastResistance() {
         return 30.0f;
     }

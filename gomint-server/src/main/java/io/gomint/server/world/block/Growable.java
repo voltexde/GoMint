@@ -6,6 +6,7 @@ import io.gomint.math.Location;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.util.random.WeightedRandom;
 import io.gomint.server.world.UpdateReason;
+import io.gomint.server.world.block.state.ProgressBlockState;
 import io.gomint.util.random.FastRandom;
 import io.gomint.world.block.BlockType;
 
@@ -31,6 +32,8 @@ public abstract class Growable extends Block {
         SEED_RANDOMIZER.add( 0.15, 3 );
     }
 
+    protected ProgressBlockState growth = new ProgressBlockState( this, 7, aVoid -> {} );
+
     @Override
     public boolean beforePlacement( Entity entity, ItemStack item, Location location ) {
         // Check if we place on farmland
@@ -41,20 +44,19 @@ public abstract class Growable extends Block {
     public long update( UpdateReason updateReason, long currentTimeMS, float dT ) {
         if ( updateReason == UpdateReason.NEIGHBOUR_UPDATE ) {
             // Check if farmland is still under us
-            if ( !( this.world.getBlockAt( this.location.toBlockPosition().add( BlockPosition.DOWN ) ).getType() == BlockType.FARMLAND ) ) {
+            if ( this.world.getBlockAt( this.location.toBlockPosition().add( BlockPosition.DOWN ) ).getType() != BlockType.FARMLAND ) {
                 this.world.breakBlock( this.location.toBlockPosition(), new ArrayList<>(), false );
             }
         } else if ( updateReason == UpdateReason.RANDOM ) {
             // Check for growth state
-            if ( this.getBlockData() < 0x07 ) {
+            if ( this.growth.getState() < 1f ) {
                 float growthDivider = getGrowthDivider();
                 int random = FastRandom.current().nextInt( (int) ( ( 25f / growthDivider ) + 1 ) );
 
                 // Grow it
                 if ( random == 0 ) {
                     // TODO: Some sort of growth event
-                    this.setBlockData( (byte) ( this.getBlockData() + 1 ) );
-                    this.updateBlock();
+                    this.growth.progress();
                 }
             }
         }

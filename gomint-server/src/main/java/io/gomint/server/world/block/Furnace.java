@@ -3,14 +3,11 @@ package io.gomint.server.world.block;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
-import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.FurnaceTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.server.util.BlockIdentifier;
-import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.helper.ToolPresets;
-import io.gomint.server.world.block.state.FacingBlockState;
+import io.gomint.server.world.block.state.BlockfaceBlockState;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
@@ -20,16 +17,12 @@ import lombok.EqualsAndHashCode;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( sId = "minecraft:furnace" )
+@RegisterInfo( sId = "minecraft:lit_furnace" )
+@RegisterInfo( sId = "minecraft:furnace", def = true )
 @EqualsAndHashCode( callSuper = true )
 public class Furnace extends Block implements io.gomint.world.block.BlockFurnace {
 
-    private FacingBlockState facing = new FacingBlockState();
-
-    @Override
-    public String getBlockId() {
-        return "minecraft:furnace";
-    }
+    private BlockfaceBlockState facing = new BlockfaceBlockState( this );
 
     @Override
     public long getBreakTime() {
@@ -81,25 +74,6 @@ public class Furnace extends Block implements io.gomint.world.block.BlockFurnace
     }
 
     @Override
-    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
-        this.facing.detectFromPlayer( (EntityPlayer) entity );
-
-        this.calculateBlockData();
-        return new PlacementData( new BlockIdentifier( this.getBlockId(), this.getBlockData() ), null );
-    }
-
-    @Override
-    public void generateBlockStates() {
-        this.facing.fromData( (byte) ( this.getBlockData() & 0x04 ) );
-    }
-
-    @Override
-    public void calculateBlockData() {
-        this.resetBlockData();
-        this.addToBlockData( (byte) ( this.facing.toData() << 1 ) );
-    }
-
-    @Override
     public boolean onBreak( boolean creative ) {
         if ( !creative ) {
             FurnaceTileEntity tileEntity = this.getTileEntity();
@@ -114,6 +88,20 @@ public class Furnace extends Block implements io.gomint.world.block.BlockFurnace
         }
 
         return super.onBreak( creative );
+    }
+
+    @Override
+    public boolean isBurning() {
+        return this.getBlockId().equals( "minecraft:lit_furnace" );
+    }
+
+    @Override
+    public void setBurning( boolean burning ) {
+        if ( burning ) {
+            this.setBlockId( "minecraft:lit_furnace" );
+        } else {
+            this.setBlockId( "minecraft:furnace" );
+        }
     }
 
 }

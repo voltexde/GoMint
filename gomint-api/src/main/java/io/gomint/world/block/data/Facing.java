@@ -9,6 +9,26 @@ public enum Facing {
     SOUTH,
     NORTH,
     WEST,
-    EAST
+    EAST;
+
+    /**
+     * Get the opposite face
+     *
+     * @return opposite face
+     */
+    public Facing opposite() {
+        switch ( this ) {
+            case NORTH:
+                return Facing.SOUTH;
+            case SOUTH:
+                return Facing.NORTH;
+            case EAST:
+                return Facing.WEST;
+            case WEST:
+                return Facing.EAST;
+            default:
+                return null;
+        }
+    }
 
 }

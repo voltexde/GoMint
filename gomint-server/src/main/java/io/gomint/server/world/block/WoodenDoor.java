@@ -12,6 +12,7 @@ import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.world.block.BlockType;
 import io.gomint.world.block.BlockWoodenDoor;
+import io.gomint.world.block.data.WoodType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( sId = "minecraft:wooden_door" )
+@RegisterInfo( sId = "minecraft:wooden_door", def = true )
 @RegisterInfo( sId = "minecraft:spruce_door" )
 @RegisterInfo( sId = "minecraft:birch_door" )
 @RegisterInfo( sId = "minecraft:jungle_door" )

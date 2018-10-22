@@ -1,14 +1,11 @@
 package io.gomint.server.world.block;
 
-import io.gomint.inventory.item.ItemFlintAndSteel;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.math.Vector;
-import io.gomint.server.entity.Entity;
-import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.helper.ToolPresets;
-import io.gomint.world.block.BlockFace;
+import io.gomint.server.world.block.state.EnumBlockState;
 import io.gomint.world.block.BlockType;
+import io.gomint.world.block.data.WoodType;
 
 /**
  * @author geNAZt
@@ -16,6 +13,8 @@ import io.gomint.world.block.BlockType;
  */
 @RegisterInfo( sId = "minecraft:planks" )
 public class Wood extends Block implements io.gomint.world.block.BlockWood {
+
+    private EnumBlockState<WoodType> variant = new EnumBlockState<>( this, WoodType.values() );
 
     @Override
     public String getBlockId() {
@@ -49,48 +48,12 @@ public class Wood extends Block implements io.gomint.world.block.BlockWood {
 
     @Override
     public WoodType getWoodType() {
-        switch ( this.getBlockData() ) {
-            case 5:
-                return WoodType.DARK_OAK;
-            case 4:
-                return WoodType.ACACIA;
-            case 3:
-                return WoodType.JUNGLE;
-            case 2:
-                return WoodType.BIRCH;
-            case 1:
-                return WoodType.SPRUCE;
-            case 0:
-            default:
-                return WoodType.OAK;
-        }
+        return this.variant.getState();
     }
 
     @Override
     public void setWoodType( WoodType woodType ) {
-        switch ( woodType ) {
-            case DARK_OAK:
-                this.setBlockData( (byte) 5 );
-                break;
-            case ACACIA:
-                this.setBlockData( (byte) 4 );
-                break;
-            case JUNGLE:
-                this.setBlockData( (byte) 3 );
-                break;
-            case BIRCH:
-                this.setBlockData( (byte) 2 );
-                break;
-            case SPRUCE:
-                this.setBlockData( (byte) 1 );
-                break;
-            case OAK:
-            default:
-                this.setBlockData( (byte) 0 );
-                break;
-        }
-
-        this.updateBlock();
+        this.variant.setState( woodType );
     }
 
 }

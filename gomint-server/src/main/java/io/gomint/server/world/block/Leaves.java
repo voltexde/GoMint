@@ -3,60 +3,38 @@ package io.gomint.server.world.block;
 import io.gomint.inventory.item.ItemShears;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.server.world.block.state.BlockState;
+import io.gomint.server.world.block.state.BooleanBlockState;
+import io.gomint.server.world.block.state.EnumBlockState;
 import io.gomint.world.block.BlockLeaves;
 import io.gomint.world.block.BlockType;
+import io.gomint.world.block.data.WoodType;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( sId = "minecraft:leaves" )
+@RegisterInfo( sId = "minecraft:leaves", def = true )
+@RegisterInfo( sId = "minecraft:leaves2", def = true )
 public class Leaves extends Block implements BlockLeaves {
 
-    private BlockState<BlockLeaves.Type> type = new BlockState<Type>() {
-        @Override
-        public short toData() {
-            switch ( this.getState() ) {
-                case OAK:
-                    return 0;
-                case SPRUCE:
-                    return 1;
-                case BIRCH:
-                    return 2;
-            }
-
-            return 3;
-        }
-
-        @Override
-        public void fromData( short data ) {
-            switch ( data ) {
-                case 0:
-                    this.setState( Type.OAK );
-                    break;
-                case 1:
-                    this.setState( Type.SPRUCE );
-                    break;
-                case 2:
-                    this.setState( Type.BIRCH );
-                    break;
-                case 3:
-                    this.setState( Type.JUNGLE );
-                    break;
-            }
-        }
-    };
-
-    @Override
-    public void generateBlockStates() {
-        this.type.fromData( (byte) ( this.getBlockData() & 0x03 ) );
+    private enum LeaveType {
+        OAK,
+        SPRUCE,
+        BIRCH,
+        JUNGLE
     }
 
-    @Override
-    public void calculateBlockData() {
-        this.setBlockData( this.type.toData() );
+    private enum Leave2Type {
+        ACACIA,
+        DARK_OAK
     }
+
+    private EnumBlockState<LeaveType> variantLeave = new EnumBlockState<>( this, LeaveType.values(), states -> this.getBlockId().equals( "minecraft:leaves" ) );
+    private EnumBlockState<Leave2Type> variantLeave2 = new EnumBlockState<>( this, Leave2Type.values(), states -> this.getBlockId().equals( "minecraft:leaves2" ) );
+
+    private BooleanBlockState noDecay = new BooleanBlockState( this, states -> true, 2 );
+    private BooleanBlockState checkDecay = new BooleanBlockState( this, states -> true, 3 );
+    private BooleanBlockState noAndCheckDecay = new BooleanBlockState( this, states -> true, 4 );
 
     @Override
     public String getBlockId() {
@@ -96,14 +74,63 @@ public class Leaves extends Block implements BlockLeaves {
     }
 
     @Override
-    public void setLeaveType( Type type ) {
-        this.type.setState( type );
-        this.updateBlock();
+    public void setWoodType( WoodType type ) {
+        switch ( type ) {
+            case OAK:
+                this.setBlockId( "minecraft:leaves" );
+                this.variantLeave.setState( LeaveType.OAK );
+                break;
+            case BIRCH:
+                this.setBlockId( "minecraft:leaves" );
+                this.variantLeave.setState( LeaveType.BIRCH );
+                break;
+            case JUNGLE:
+                this.setBlockId( "minecraft:leaves" );
+                this.variantLeave.setState( LeaveType.JUNGLE );
+                break;
+            case SPRUCE:
+                this.setBlockId( "minecraft:leaves" );
+                this.variantLeave.setState( LeaveType.SPRUCE );
+                break;
+            case ACACIA:
+                this.setBlockId( "minecraft:leaves2" );
+                this.variantLeave2.setState( Leave2Type.ACACIA );
+                break;
+            case DARK_OAK:
+                this.setBlockId( "minecraft:leaves2" );
+                this.variantLeave2.setState( Leave2Type.DARK_OAK );
+                break;
+        }
     }
 
     @Override
-    public Type getLeaveType() {
-        return this.type.getState();
+    public WoodType getWoodType() {
+        switch ( this.getBlockId() ) {
+            case "minecraft:leaves":
+                switch ( this.variantLeave.getState() ) {
+                    case OAK:
+                        return WoodType.OAK;
+                    case SPRUCE:
+                        return WoodType.SPRUCE;
+                    case JUNGLE:
+                        return WoodType.JUNGLE;
+                    case BIRCH:
+                        return WoodType.BIRCH;
+                }
+
+                break;
+            case "minecraft:leaves2":
+                switch ( this.variantLeave2.getState() ) {
+                    case ACACIA:
+                        return WoodType.ACACIA;
+                    case DARK_OAK:
+                        return WoodType.DARK_OAK;
+                }
+
+                break;
+        }
+
+        return WoodType.OAK;
     }
 
 }

@@ -21,7 +21,7 @@ import java.util.function.Function;
  */
 public abstract class BasePressurePlate extends Block {
 
-    private BooleanBlockState activated = new BooleanBlockState();
+    private BooleanBlockState activated = new BooleanBlockState( this );
 
     @Override
     public void stepOn( Entity entity ) {
@@ -31,9 +31,8 @@ public abstract class BasePressurePlate extends Block {
             return old + 1;
         } );
 
-        if ( amountOfEntitiesOn > 0 && this.getBlockData() != 1 ) {
+        if ( amountOfEntitiesOn > 0 && !this.activated.getState() ) {
             this.activated.setState( true );
-            this.updateBlock();
         }
     }
 
@@ -47,9 +46,8 @@ public abstract class BasePressurePlate extends Block {
             return old - 1;
         } );
 
-        if ( amountOfEntitiesOn == null && this.getBlockData() == 1 ) {
+        if ( amountOfEntitiesOn == null && this.activated.getState() ) {
             this.activated.setState( false );
-            this.updateBlock();
         }
     }
 
@@ -63,17 +61,6 @@ public abstract class BasePressurePlate extends Block {
             this.location.getY() + 0.0625f,
             this.location.getZ() + 0.9375f
         ) );
-    }
-
-    @Override
-    public void generateBlockStates() {
-        this.activated.fromData( (byte) ( this.getBlockData() & 0x01 ) );
-    }
-
-    @Override
-    public void calculateBlockData() {
-        this.resetBlockData();
-        this.addToBlockData( this.activated.toData() );
     }
 
 }

@@ -1,8 +1,14 @@
 package io.gomint.server.world.block;
 
+import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.util.BlockIdentifier;
+import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.state.BlockfaceBlockState;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
 import java.util.Collections;
@@ -15,13 +21,7 @@ import java.util.List;
 @RegisterInfo( sId = "minecraft:torch" )
 public class Torch extends Block implements io.gomint.world.block.BlockTorch {
 
-    private BlockfaceBlockState facing = new BlockfaceBlockState();
-
-    @Override
-    public void generateBlockStates() {
-        // Facing
-        this.facing.fromData( (byte) ( this.getBlockData() & 0x05 ) );
-    }
+    private BlockfaceBlockState facing = new BlockfaceBlockState( this );
 
     @Override
     public String getBlockId() {
@@ -115,6 +115,34 @@ public class Torch extends Block implements io.gomint.world.block.BlockTorch {
             this.location.getY() + 0.6f,
             this.location.getZ() + 0.5f + size
         ) );
+    }
+
+    @Override
+    public PlacementData calculatePlacementData( EntityPlayer entity, ItemStack item, BlockFace face, Block block, Block clickedBlock, Vector clickVector ) {
+        PlacementData data = super.calculatePlacementData( entity, item, face, block, clickedBlock, clickVector );
+
+        BlockFace[] toCheck = new BlockFace[]{
+            BlockFace.DOWN,
+            BlockFace.SOUTH,
+            BlockFace.WEST,
+            BlockFace.NORTH,
+            BlockFace.EAST
+        };
+
+        boolean foundSide = false;
+        for ( BlockFace toCheckFace : toCheck ) {
+            if ( !clickedBlock.getSide( toCheckFace ).isTransparent() ) {
+                this.facing.setState( toCheckFace.opposite() );
+                foundSide = true;
+                break;
+            }
+        }
+
+        if ( !foundSide ) {
+            return null;
+        }
+
+        return new PlacementData( new BlockIdentifier( data.getBlockIdentifier().getBlockId(), this.calculateBlockData() ), null );
     }
 
 }

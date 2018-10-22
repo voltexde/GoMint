@@ -1121,7 +1121,7 @@ public abstract class WorldAdapter implements World {
 
                 // We got the block we want to replace
                 // Let the item build up the block
-                boolean success = this.server.getBlocks().replaceWithItem( entity, clickedBlock, replaceBlock, itemInHand, clickPosition );
+                boolean success = this.server.getBlocks().replaceWithItem( entity, clickedBlock, replaceBlock, face, itemInHand, clickPosition );
                 if ( success ) {
                     // Play sound
                     io.gomint.server.world.block.Block newBlock = replaceBlock.getLocation().getWorld().getBlockAt( replaceBlock.getLocation().toBlockPosition() );

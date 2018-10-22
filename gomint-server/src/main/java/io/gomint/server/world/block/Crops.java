@@ -41,7 +41,7 @@ public class Crops extends Growable {
 
     @Override
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
-        if ( getBlockData() >= 0x07 ) {
+        if ( this.growth.getState() > 0.99f ) {
             List<ItemStack> drops = new ArrayList<ItemStack>() {{
                 add( world.getServer().getItems().create( 296, (short) 0, (byte) 1, null ) ); // Beetroot
             }};

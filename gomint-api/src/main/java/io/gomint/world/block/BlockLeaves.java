@@ -7,31 +7,26 @@
 
 package io.gomint.world.block;
 
+import io.gomint.world.block.data.WoodType;
+
 /**
  * @author geNAZt
  * @version 1.0
  */
 public interface BlockLeaves extends Block {
 
-    public enum Type {
-        OAK,
-        SPRUCE,
-        BIRCH,
-        JUNGLE
-    }
-
     /**
      * Set the type of leave
      *
      * @param type of the leave
      */
-    void setLeaveType( Type type );
+    void setWoodType( WoodType type );
 
     /**
      * Get type of leave
      *
      * @return type of leave
      */
-    Type getLeaveType();
+    WoodType getWoodType();
 
 }

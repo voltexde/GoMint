@@ -19,11 +19,6 @@ public class DoubleStoneSlab extends Block implements io.gomint.world.block.Bloc
     }
 
     @Override
-    public boolean isTransparent() {
-        return true;
-    }
-
-    @Override
     public float getBlastResistance() {
         return 30.0f;
     }

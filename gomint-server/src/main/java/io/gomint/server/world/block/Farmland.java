@@ -2,14 +2,13 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.server.world.block.state.ProgressBlockState;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.math.BlockPosition;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.util.StatefulBlockSearcher;
 import io.gomint.server.world.UpdateReason;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -20,6 +19,8 @@ import java.util.function.Predicate;
  */
 @RegisterInfo( sId = "minecraft:farmland" )
 public class Farmland extends Block implements io.gomint.world.block.BlockFarmland {
+
+    private ProgressBlockState waterLevel = new ProgressBlockState( this, 7, aVoid -> {} );
 
     @Override
     public String getBlockId() {
@@ -49,23 +50,12 @@ public class Farmland extends Block implements io.gomint.world.block.BlockFarmla
                     this.world,
                     this.location.toBlockPosition().add( new BlockPosition( -4, 0, -4 ) ),
                     this.location.toBlockPosition().add( new BlockPosition( 4, 1, 4 ) ),
-                    new Predicate<io.gomint.world.block.Block>() {
-                        @Override
-                        public boolean test( io.gomint.world.block.Block block ) {
-                            // We need any sort of water
-                            return block instanceof FlowingWater || block instanceof StationaryWater;
-                        }
-                    }
+                    block -> block instanceof FlowingWater || block instanceof StationaryWater
                 );
 
                 if ( recalc( blockSearcher ) ) {
                     StatefulBlockSearcher finalBlockSearcher = blockSearcher;
-                    storeInTemporaryStorage( "blockSearcher", new Function<StatefulBlockSearcher, StatefulBlockSearcher>() {
-                        @Override
-                        public StatefulBlockSearcher apply( StatefulBlockSearcher statefulBlockSearcher ) {
-                            return finalBlockSearcher;
-                        }
-                    } );
+                    storeInTemporaryStorage( "blockSearcher", (Function<StatefulBlockSearcher, StatefulBlockSearcher>) statefulBlockSearcher -> finalBlockSearcher );
                 }
             }
         }
@@ -77,15 +67,13 @@ public class Farmland extends Block implements io.gomint.world.block.BlockFarmla
     private boolean recalc( StatefulBlockSearcher blockSearcher ) {
         BlockPosition waterBlock = blockSearcher.validate();
         if ( waterBlock != null ) {
-            if ( this.getBlockData() != 7 ) {
-                this.setBlockData( (byte) 7 );
-                this.updateBlock();
+            if ( this.waterLevel.getState() < 1f ) {
+                this.waterLevel.setState( 1f );
             }
 
             return true;
-        } else if ( this.getBlockData() > 0 ) {
-            this.setBlockData( (byte) ( this.getBlockData() - 1 ) );
-            this.updateBlock();
+        } else if ( this.waterLevel.getState() > 0 ) {
+            this.waterLevel.setState( this.waterLevel.getState() - this.waterLevel.getStep() );
         }
 
         return false;
@@ -110,4 +98,5 @@ public class Farmland extends Block implements io.gomint.world.block.BlockFarmla
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.SHOVEL;
     }
+
 }

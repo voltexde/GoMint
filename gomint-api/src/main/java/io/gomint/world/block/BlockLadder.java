@@ -18,22 +18,13 @@ public interface BlockLadder extends Block {
      *
      * @param attachSide of this ladder
      */
-    void setAttachSide( AttachSide attachSide );
+    void setAttachSide( BlockFace attachSide );
 
     /**
      * Get the side to which this ladder is attached
      *
      * @return attached side of this ladder
      */
-    AttachSide getAttachSide();
-
-    enum AttachSide {
-
-        NORTH,
-        SOUTH,
-        WEST,
-        EAST
-
-    }
+    BlockFace getAttachSide();
 
 }

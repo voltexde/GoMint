@@ -18,7 +18,7 @@ import java.util.List;
 @EqualsAndHashCode( callSuper = true )
 public class BlockOfQuartz extends Block implements io.gomint.world.block.BlockBlockOfQuartz {
 
-    private EnumBlockState<Variant> variant = new EnumBlockState<>( Variant.values() );
+    private EnumBlockState<Variant> variant = new EnumBlockState<>( this, Variant.values() );
 
     @Override
     public String getBlockId() {
@@ -62,17 +62,6 @@ public class BlockOfQuartz extends Block implements io.gomint.world.block.BlockB
         }
 
         return Collections.emptyList();
-    }
-
-    @Override
-    public void generateBlockStates() {
-        this.variant.fromData( this.getBlockData() );
-    }
-
-    @Override
-    public void calculateBlockData() {
-        this.resetBlockData();
-        this.addToBlockData( this.variant.toData() );
     }
 
 }

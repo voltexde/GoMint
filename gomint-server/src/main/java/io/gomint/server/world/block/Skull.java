@@ -4,12 +4,13 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.MojangRotation;
 import io.gomint.math.Vector;
-import io.gomint.server.entity.Entity;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.SkullTileEntity;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.PlacementData;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
 import java.util.ArrayList;
@@ -56,8 +57,8 @@ public class Skull extends Block implements io.gomint.world.block.BlockSkull {
     }
 
     @Override
-    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
-        PlacementData data = super.calculatePlacementData( entity, item, clickVector );
+    public PlacementData calculatePlacementData( EntityPlayer entity, ItemStack item, BlockFace face, Block block, Block clickedBlock, Vector clickVector ) {
+        PlacementData data = super.calculatePlacementData( entity, item, face, block, clickedBlock, clickVector );
 
         NBTTagCompound compound = new NBTTagCompound( "" );
         compound.addValue( "Rot", MojangRotation.fromEntityForBlock( entity ).getRotationValue() );

@@ -7,26 +7,50 @@
 
 package io.gomint.server.world.block.state;
 
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.world.block.Block;
+import io.gomint.world.block.BlockFace;
+
+import java.util.List;
+import java.util.function.Predicate;
+
 /**
  * @author geNAZt
  * @version 1.0
  */
 public class BooleanBlockState extends BlockState<Boolean> {
 
-    /**
-     * Set default state in constructor so we don't NPE per default
-     */
-    public BooleanBlockState() {
+    public BooleanBlockState( Block block ) {
+        super( block );
+    }
+
+    public BooleanBlockState( Block block, Predicate<List<BlockState>> predicate ) {
+        super( block, predicate );
+    }
+
+    public BooleanBlockState( Block block, Predicate<List<BlockState>> predicate, int shift ) {
+        super( block, predicate, shift );
+    }
+
+    @Override
+    protected int cap() {
+        return 1;
+    }
+
+    @Override
+    public void detectFromPlacement( EntityPlayer player, ItemStack placedItem, BlockFace face, Block block, Block clickedBlock, Vector clickPosition ) {
         this.setState( false );
     }
 
     @Override
-    public short toData() {
+    protected short data() {
         return (byte) ( this.getState() ? 1 : 0 );
     }
 
     @Override
-    public void fromData( short data ) {
+    protected void data( short data ) {
         this.setState( data == 1 );
     }
 

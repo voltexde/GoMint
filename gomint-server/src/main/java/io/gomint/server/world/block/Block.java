@@ -25,6 +25,7 @@ import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.state.BlockState;
 import io.gomint.server.world.storage.TemporaryStorage;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Biome;
@@ -36,9 +37,13 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * @author geNAZt
@@ -69,6 +74,11 @@ public abstract class Block implements io.gomint.world.block.Block {
     @Getter
     private byte blockLightLevel;
 
+    private LinkedHashMap<BlockState, Predicate<List<BlockState>>> blockStates;
+    private List<BlockState> blockStateList;
+
+    private boolean ready;
+
     // Set all needed data
     public void setData( String blockId, short blockData, TileEntity tileEntity, WorldAdapter worldAdapter, Location location, int layer, byte skyLightLevel, byte blockLightLevel ) {
         this.blockId = blockId;
@@ -80,15 +90,42 @@ public abstract class Block implements io.gomint.world.block.Block {
         this.blockLightLevel = blockLightLevel;
         this.layer = layer;
         this.generateBlockStates();
+
+        this.ready = true;
     }
     // CHECKSTYLE:ON
+
+    /**
+     * Register a new block state wrapper
+     *
+     * @param blockState which should be registered
+     * @param predicate  which decides if this block state gets serialized or not
+     */
+    public void registerState( BlockState blockState, Predicate<List<BlockState>> predicate ) {
+        // Check if we have a storage
+        if ( this.blockStates == null ) {
+            this.blockStates = new LinkedHashMap<>();
+            this.blockStateList = new ArrayList<>();
+        }
+
+        // Store this new block state
+        this.blockStates.put( blockState, predicate );
+        this.blockStateList.add( blockState );
+    }
 
     /**
      * Hook for blocks which have custom blockId states. This should be used to convert data from the blockId to the state
      * objects
      */
-    public void generateBlockStates() {
-
+    void generateBlockStates() {
+        // Iterate over the block states
+        if ( this.blockStates != null ) {
+            for ( Map.Entry<BlockState, Predicate<List<BlockState>>> entry : this.blockStates.entrySet() ) {
+                if ( entry.getValue().test( this.blockStateList ) ) {
+                    entry.getKey().fromData( this.blockData );
+                }
+            }
+        }
     }
 
     /**
@@ -146,7 +183,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Called when an entity punches a blockId
      *
-     * @param player  The player which punches it
+     * @param player   The player which punches it
      * @param position The position where the entity punched the blockId
      */
     public boolean punch( EntityPlayer player, BlockPosition position ) {
@@ -206,7 +243,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Create a tile entity at the blocks location
      *
-     * @param compound which has been prebuilt by {@link #calculatePlacementData(Entity, ItemStack, Vector)}
+     * @param compound which has been prebuilt by {@link #calculatePlacementData(EntityPlayer, ItemStack, Block, Vector)}
      * @return new tile entity or null if there is none
      */
     TileEntity createTileEntity( NBTTagCompound compound ) {
@@ -223,7 +260,7 @@ public abstract class Block implements io.gomint.world.block.Block {
     /**
      * Update the blockId for the client
      */
-    void updateBlock() {
+    public void updateBlock() {
         this.calculateBlockData();
 
         if ( this.location == null ) {
@@ -237,7 +274,44 @@ public abstract class Block implements io.gomint.world.block.Block {
         worldAdapter.flagNeedsPersistance( pos );
     }
 
-    public void calculateBlockData() {
+    /**
+     * Set the new block data value from the metadata generator
+     */
+    short calculateBlockData() {
+        if ( this.blockStates != null ) {
+            short newBlockData = 0;
+
+            for ( Map.Entry<BlockState, Predicate<List<BlockState>>> entry : this.blockStates.entrySet() ) {
+                if ( entry.getValue().test( this.blockStateList ) ) {
+                    newBlockData += entry.getKey().toData();
+                }
+            }
+
+            this.setBlockData( newBlockData );
+        }
+
+        return this.blockData;
+    }
+
+    public PlacementData calculatePlacementData( EntityPlayer entity, ItemStack item, BlockFace face, Block block, Block clickedBlock, Vector clickVector ) {
+        // Do we have some block states?
+        if ( this.blockStates != null ) {
+            for ( Map.Entry<BlockState, Predicate<List<BlockState>>> entry : this.blockStates.entrySet() ) {
+                if ( entry.getValue().test( this.blockStateList ) ) {
+                    entry.getKey().detectFromPlacement( entity, item, face, block, clickedBlock, clickVector );
+                }
+            }
+
+            io.gomint.server.inventory.item.ItemStack implStack = (io.gomint.server.inventory.item.ItemStack) item;
+            return new PlacementData( new BlockIdentifier( implStack.getBlockId(), this.calculateBlockData() ), null );
+        }
+
+        if ( item.getData() > 0 ) {
+            LOGGER.warn( "Block implementation is missing states: {}", this.getClass().getName() );
+        }
+
+        io.gomint.server.inventory.item.ItemStack implStack = (io.gomint.server.inventory.item.ItemStack) item;
+        return new PlacementData( new BlockIdentifier( implStack.getBlockId(), item.getData() ), null );
     }
 
     @Override
@@ -318,7 +392,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         if ( instance != null ) {
             WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
 
-            BlockIdentifier blockIdentifier = new BlockIdentifier( instance.getBlockId(), ( resetData ) ? 0 : this.getBlockData() );
+            BlockIdentifier blockIdentifier = new BlockIdentifier( instance.getBlockId(), ( resetData ) ? 0 : this.blockData );
             worldAdapter.setBlock( pos, this.layer, blockIdentifier );
 
             if ( resetData ) {
@@ -365,7 +439,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         BlockPosition pos = this.location.toBlockPosition();
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
         worldAdapter.setBlockId( pos, this.layer, instance.getBlockId() );
-        worldAdapter.setBlockData( pos, this.layer, instance.getBlockData() );
+        worldAdapter.setBlockData( pos, this.layer, instance.blockData );
         worldAdapter.resetTemporaryStorage( pos, this.layer );
 
         // Check if new blockId needs tile entity
@@ -390,7 +464,7 @@ public abstract class Block implements io.gomint.world.block.Block {
         BlockPosition pos = this.location.toBlockPosition();
         WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
         worldAdapter.setBlockId( pos, this.layer, instance.getBlockId() );
-        worldAdapter.setBlockData( pos, this.layer, instance.getBlockData() );
+        worldAdapter.setBlockData( pos, this.layer, instance.blockData );
         worldAdapter.resetTemporaryStorage( pos, this.layer );
 
         // Check if new blockId needs tile entity
@@ -545,7 +619,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
         PacketUpdateBlock updateBlock = new PacketUpdateBlock();
         updateBlock.setPosition( position );
-        updateBlock.setBlockId( BlockRuntimeIDs.from( this.getBlockId(), this.getBlockData() ) );
+        updateBlock.setBlockId( BlockRuntimeIDs.from( this.getBlockId(), this.blockData ) );
         updateBlock.setFlags( PacketUpdateBlock.FLAG_ALL_PRIORITY );
 
         connection.addToSendQueue( updateBlock );
@@ -566,11 +640,6 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     public void afterPlacement( PlacementData data ) {
 
-    }
-
-    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
-        io.gomint.server.inventory.item.ItemStack implStack = (io.gomint.server.inventory.item.ItemStack) item;
-        return new PlacementData( new BlockIdentifier( implStack.getBlockId(), item.getData() ), null );
     }
 
     /**
@@ -691,7 +760,7 @@ public abstract class Block implements io.gomint.world.block.Block {
      * @return a list of drops
      */
     public List<ItemStack> getDrops( ItemStack itemInHand ) {
-        ItemStack drop = this.world.getServer().getItems().create( getBlockId(), getBlockData(), (byte) 1, null );
+        ItemStack drop = this.world.getServer().getItems().create( getBlockId(), this.blockData, (byte) 1, null );
         return Lists.newArrayList( drop );
     }
 
@@ -731,9 +800,11 @@ public abstract class Block implements io.gomint.world.block.Block {
 
     public void setBlockId( String blockId ) {
         if ( isPlaced() ) {
-            this.blockId = blockId;
             this.world.setBlockId( this.location.toBlockPosition(), this.layer, blockId );
+            this.updateBlock();
         }
+
+        this.blockId = blockId;
     }
 
     public boolean canBeFlowedInto() {
@@ -754,21 +825,8 @@ public abstract class Block implements io.gomint.world.block.Block {
         return false;
     }
 
-    /**
-     * Only usable for other repair strats like post process runners
-     *
-     * @return the raw tile entity or null if there is none
-     */
-    public TileEntity getRawTileEntity() {
-        return this.tileEntity;
-    }
-
-    protected void resetBlockData() {
-        this.blockData = 0;
-    }
-
-    protected void addToBlockData( short dataValue ) {
-        this.setBlockData( (short) ( this.getBlockData() + dataValue ) );
+    public boolean ready() {
+        return this.ready;
     }
 
 }

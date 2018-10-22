@@ -1,13 +1,11 @@
 package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.math.Vector;
-import io.gomint.math.Vector2;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.server.util.BlockIdentifier;
-import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.server.world.block.state.BlockfaceBlockState;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
 /**
@@ -16,6 +14,8 @@ import io.gomint.world.block.BlockType;
  */
 @RegisterInfo( sId = "minecraft:ladder" )
 public class Ladder extends Block implements io.gomint.world.block.BlockLadder {
+
+    private BlockfaceBlockState attached = new BlockfaceBlockState( this );
 
     @Override
     public String getBlockId() {
@@ -69,66 +69,13 @@ public class Ladder extends Block implements io.gomint.world.block.BlockLadder {
     }
 
     @Override
-    public void setAttachSide( AttachSide attachSide ) {
-        switch ( attachSide ) {
-            case EAST:
-                this.setBlockData( (byte) 5 );
-                break;
-            case WEST:
-                this.setBlockData( (byte) 4 );
-                break;
-            case SOUTH:
-                this.setBlockData( (byte) 3 );
-                break;
-            case NORTH:
-            default:
-                this.setBlockData( (byte) 2 );
-                break;
-        }
-
-        this.updateBlock();
+    public void setAttachSide( BlockFace attachSide ) {
+        this.attached.setState( attachSide );
     }
 
     @Override
-    public AttachSide getAttachSide() {
-        switch ( this.getBlockData() ) {
-            case 5:
-                return AttachSide.EAST;
-            case 4:
-                return AttachSide.WEST;
-            case 3:
-                return AttachSide.SOUTH;
-            case 2:
-            default:
-                return AttachSide.NORTH;
-        }
-    }
-
-    @Override
-    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
-        PlacementData data = super.calculatePlacementData( entity, item, clickVector );
-
-        Vector2 directionPlane = entity.getDirectionPlane();
-        double xAbs = Math.abs( directionPlane.getX() );
-        double zAbs = Math.abs( directionPlane.getZ() );
-
-        if ( zAbs > xAbs ) {
-            if ( directionPlane.getZ() > 0 ) {
-                BlockIdentifier identifier = new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 2 );
-                return data.setBlockIdentifier( identifier );
-            } else {
-                BlockIdentifier identifier = new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 3 );
-                return data.setBlockIdentifier( identifier );
-            }
-        } else {
-            if ( directionPlane.getX() > 0 ) {
-                BlockIdentifier identifier = new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 4 );
-                return data.setBlockIdentifier( identifier );
-            } else {
-                BlockIdentifier identifier = new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 5 );
-                return data.setBlockIdentifier( identifier );
-            }
-        }
+    public BlockFace getAttachSide() {
+        return this.attached.getState();
     }
 
 }

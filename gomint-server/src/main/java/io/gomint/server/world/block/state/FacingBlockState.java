@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2018, GoMint, BlackyPaw and geNAZt
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,8 +7,16 @@
 
 package io.gomint.server.world.block.state;
 
+import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.util.Bearing;
+import io.gomint.server.world.block.Block;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.data.Facing;
+
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author geNAZt
@@ -16,62 +24,93 @@ import io.gomint.world.block.data.Facing;
  */
 public class FacingBlockState extends BlockState<Facing> {
 
-    /**
-     * Detect the facing of this state from the rotation of the player
-     *
-     * @param player from which we get the rotation
-     */
-    public void detectFromPlayer( EntityPlayer player ) {
-        float rotation = ( player.getYaw() - 90 ) % 360;
-        if ( rotation < 0 ) {
-            rotation += 360.0;
-        }
+    private final short rotation;
 
-        if ( ( 0 <= rotation && rotation < 45 ) || ( 315 <= rotation && rotation < 360 ) ) {
-            this.setState( Facing.NORTH );
-        } else if ( 45 <= rotation && rotation < 135 ) {
-            this.setState( Facing.EAST );
-        } else if ( 135 <= rotation && rotation < 225 ) {
-            this.setState( Facing.SOUTH );
-        } else if ( 225 <= rotation && rotation < 315 ) {
-            this.setState( Facing.WEST );
-        }
+    public FacingBlockState( Block block ) {
+        super( block );
+        this.rotation = 0;
+    }
+
+    public FacingBlockState( Block block, Predicate<List<BlockState>> predicate ) {
+        super( block, predicate );
+        this.rotation = 0;
+    }
+
+    public FacingBlockState( Block block, Predicate<List<BlockState>> predicate, int shift ) {
+        super( block, predicate, shift );
+        this.rotation = 0;
+    }
+
+    public FacingBlockState( Block block, short rotation ) {
+        super( block );
+        this.rotation = rotation;
+    }
+
+    public FacingBlockState( Block block, Predicate<List<BlockState>> predicate, short rotation ) {
+        super( block, predicate );
+        this.rotation = rotation;
+    }
+
+    public FacingBlockState( Block block, Predicate<List<BlockState>> predicate, int shift, short rotation ) {
+        super( block, predicate, shift );
+        this.rotation = rotation;
     }
 
     @Override
-    public short toData() {
-        switch ( this.getState() ) {
-            case SOUTH:
-                return 2;
-            case NORTH:
-                return 3;
-            case EAST:
-                return 0;
-            case WEST:
-                return 1;
-            default:
-                return 0;
-        }
+    protected int cap() {
+        return 3;
     }
 
     @Override
-    public void fromData( short data ) {
+    public void detectFromPlacement( EntityPlayer player, ItemStack placedItem, BlockFace face, Block block, Block clickedBlock, Vector clickPosition ) {
+        Bearing bearing = Bearing.fromAngle( player.getYaw() );
+        this.setState( bearing.toFacing() );
+    }
+
+    @Override
+    protected void data( short data ) {
+        data -= this.rotation;
+        data &= this.cap();
+
         switch ( data ) {
-            case 0:
+            case 3:
                 this.setState( Facing.EAST );
                 break;
             case 1:
                 this.setState( Facing.WEST );
                 break;
-            case 2:
+            case 0:
                 this.setState( Facing.SOUTH );
                 break;
-            case 3:
+            case 2:
                 this.setState( Facing.NORTH );
                 break;
             default:
                 this.setState( Facing.EAST );
         }
+    }
+
+    @Override
+    protected short data() {
+        short data = 0;
+        switch ( this.getState() ) {
+            case NORTH:
+                data = 2;
+                break;
+            case EAST:
+                data = 3;
+                break;
+            case WEST:
+                data = 1;
+                break;
+            case SOUTH:
+            default:
+                break;
+        }
+
+        // Rotate
+        data += this.rotation;
+        return data;
     }
 
 }

@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode( callSuper = true )
 public class Cake extends Block implements io.gomint.world.block.BlockCake {
 
-    private ProgressBlockState cakeEaten = new ProgressBlockState( 5, aVoid -> Cake.this.setType( Air.class ) );
+    private ProgressBlockState cakeEaten = new ProgressBlockState( this, 5, aVoid -> Cake.this.setType( Air.class ) );
 
     @Override
     public String getBlockId() {

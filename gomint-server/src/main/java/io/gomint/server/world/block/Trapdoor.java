@@ -21,45 +21,24 @@ import java.util.List;
 @RegisterInfo( sId = "minecraft:trapdoor" )
 public class Trapdoor extends Block implements io.gomint.world.block.BlockTrapdoor {
 
-    private FacingBlockState facing = new FacingBlockState();
-    private BooleanBlockState opened = new BooleanBlockState();
-    private BooleanBlockState top = new BooleanBlockState();
+    private FacingBlockState facing = new FacingBlockState( this );
+    private BooleanBlockState top = new BooleanBlockState( this, states -> true, 2 );
+    private BooleanBlockState open = new BooleanBlockState( this, states -> true, 3 );
 
     @Override
     public boolean isOpen() {
-        return ( getBlockData() & 0x04 ) == 0x04;
+        return this.open.getState();
     }
 
     @Override
     public void toggle() {
-        this.opened.setState( !this.opened.getState() );
-        updateBlock();
+        this.open.setState( !this.isOpen() );
     }
 
     @Override
     public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         toggle();
         return true;
-    }
-
-    @Override
-    public void generateBlockStates() {
-        // Facing
-        this.facing.fromData( (byte) ( this.getBlockData() & 0x03 ) );
-
-        // Top
-        this.top.fromData( (byte) ( ( this.getBlockData() >> 2 ) & 0x01 ) );
-
-        // Open
-        this.opened.fromData( (byte) ( ( this.getBlockData() >> 3 ) & 0x01 ) );
-    }
-
-    @Override
-    public void calculateBlockData() {
-        this.resetBlockData();
-        this.addToBlockData( (short) ( this.facing.toData() & 0x03 ) );
-        this.addToBlockData( (short) ( ( this.top.toData() & 0x01 ) << 2 ) );
-        this.addToBlockData( (short) ( ( this.opened.toData() & 0x01 ) << 3 ) );
     }
 
     @Override
@@ -121,7 +100,7 @@ public class Trapdoor extends Block implements io.gomint.world.block.BlockTrapdo
         }
 
         // Check for open state
-        if ( this.opened.getState() ) {
+        if ( this.open.getState() ) {
             switch ( this.facing.getState() ) {
                 case NORTH:
                     bb.setBounds(

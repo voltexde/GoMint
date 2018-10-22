@@ -11,7 +11,7 @@ import io.gomint.server.registry.RegisterInfo;
  * @version 1.0
  */
 @RegisterInfo( sId = "minecraft:cocoa" )
-public class Cocoa extends Block implements io.gomint.world.block.BlockCocoa {
+public class Cocoa extends Growable implements io.gomint.world.block.BlockCocoa {
 
     @Override
     public String getBlockId() {

@@ -7,6 +7,8 @@
 
 package io.gomint.world.block;
 
+import io.gomint.world.block.data.WoodType;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -26,14 +28,5 @@ public interface BlockWoodenDoor extends BlockDoor {
      * @param woodType which should be the new wood for the door
      */
     void setWoodType( WoodType woodType );
-
-    enum WoodType {
-        OAK,
-        SPRUCE,
-        BIRCH,
-        JUNGLE,
-        ACACIA,
-        DARK_OAK
-    }
 
 }

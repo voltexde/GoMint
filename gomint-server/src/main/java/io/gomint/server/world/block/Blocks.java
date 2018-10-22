@@ -10,11 +10,13 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.maintenance.ReportUploader;
 import io.gomint.server.registry.Generator;
+import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.registry.StringRegistry;
 import io.gomint.server.util.ClassPath;
 import io.gomint.server.util.performance.ObjectConstructionFactory;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.world.block.BlockFace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +41,22 @@ public class Blocks {
     public Blocks( ClassPath classPath ) {
         this.generators = new StringRegistry<>( classPath, clazz -> {
             ObjectConstructionFactory factory = new ObjectConstructionFactory( clazz );
-            return () -> (Block) factory.newInstance();
+            return () -> {
+                Block block = (Block) factory.newInstance();
+
+                // Check if block has a id, if not set one
+                if ( block.getBlockId() == null ) {
+                    // Search for default id in annotations
+                    for ( RegisterInfo info : clazz.getAnnotationsByType( RegisterInfo.class ) ) {
+                        if ( info.def() ) {
+                            block.setBlockId( info.sId() );
+                            break;
+                        }
+                    }
+                }
+
+                return block;
+            };
         } );
 
         this.generators.register( "io.gomint.server.world.block" );
@@ -92,7 +109,7 @@ public class Blocks {
         return this.generators.getId( block );
     }
 
-    public boolean replaceWithItem( EntityPlayer entity, Block clickedBlock, Block block, ItemStack item, Vector clickVector ) {
+    public boolean replaceWithItem( EntityPlayer entity, Block clickedBlock, Block block, BlockFace face, ItemStack item, Vector clickVector ) {
         // We need to change the block id first
         String id = ( (io.gomint.server.inventory.item.ItemStack) item ).getBlockId();
         if ( id == null ) {
@@ -106,7 +123,10 @@ public class Blocks {
         }
 
         WorldAdapter adapter = (WorldAdapter) block.location.getWorld();
-        PlacementData data = newBlock.calculatePlacementData( entity, item, clickVector );
+        PlacementData data = newBlock.calculatePlacementData( entity, item, face, block, clickedBlock, clickVector );
+        if ( data == null ) { // Calculating the placement has resulted in nothing (invalid result)
+            return false;
+        }
 
         // Check only solid blocks for bounding box intersects
         if ( newBlock.isSolid() ) {

@@ -4,6 +4,7 @@ import io.gomint.inventory.item.ItemTallGrass;
 import io.gomint.inventory.item.ItemShears;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.world.block.state.EnumBlockState;
 import io.gomint.world.block.BlockType;
 
 import java.util.ArrayList;
@@ -15,6 +16,8 @@ import java.util.List;
  */
 @RegisterInfo( sId = "minecraft:tallgrass" )
 public class TallGrass extends Block implements io.gomint.world.block.BlockTallGrass {
+
+    private EnumBlockState<Type> variant = new EnumBlockState<>( this, Type.values() );
 
     @Override
     public String getBlockId() {
@@ -76,33 +79,12 @@ public class TallGrass extends Block implements io.gomint.world.block.BlockTallG
 
     @Override
     public void setGrassType( Type type ) {
-        switch ( type ) {
-            case DEAD_BUSH:
-                this.setBlockData( (byte) 0 );
-                break;
-            case GRASS:
-                this.setBlockData( (byte) 1 );
-                break;
-            case FERN:
-                this.setBlockData( (byte) 2 );
-                break;
-        }
-
-        this.updateBlock();
+        this.variant.setState( type );
     }
 
     @Override
     public Type getGrassType() {
-        switch ( this.getBlockData() ) {
-            case 0:
-                return Type.DEAD_BUSH;
-            case 1:
-                return Type.GRASS;
-            case 2:
-                return Type.FERN;
-        }
-
-        return null;
+        return this.variant.getState();
     }
 
 }

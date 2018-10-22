@@ -23,7 +23,6 @@ import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.packet.PacketSetContainerData;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
-import io.gomint.server.world.block.BurningFurnace;
 import io.gomint.server.world.block.Furnace;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
@@ -43,7 +42,8 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
     private static final int CONTAINER_PROPERTY_LIT_TIME = 1;
     private static final int CONTAINER_PROPERTY_LIT_DURATION = 2;
 
-    @Getter private FurnaceInventory inventory;
+    @Getter
+    private FurnaceInventory inventory;
 
     private short cookTime;
     private short burnTime;
@@ -127,8 +127,9 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
         if ( this.output != null && this.burnTime > 0 ) {
             // Check if visuals are correct!
             Block maybeBurningFurnace = this.getBlock();
-            if ( maybeBurningFurnace.getType() != BlockType.BURNING_FURNACE ) {
-                maybeBurningFurnace.setType( BurningFurnace.class, false, false );
+            if ( maybeBurningFurnace.getType() == BlockType.FURNACE ) {
+                Furnace furnace = (Furnace) maybeBurningFurnace;
+                furnace.setBurning( true );
             }
 
             this.cookTime++;
@@ -165,8 +166,8 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
                     didRefuel = true;
                     this.broadcastFuelInfo();
                 } else {
-                    BurningFurnace burningFurnace = (BurningFurnace) this.getBlock();
-                    burningFurnace.setType( Furnace.class, false, false );
+                    Furnace furnace = (Furnace) this.getBlock();
+                    furnace.setBurning( false );
                 }
             }
 

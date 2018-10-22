@@ -57,7 +57,7 @@ public class TallGrassPopulator implements Populator {
         int y = 255;
         for ( ; y >= 0; --y ) {
             Block block = chunk.getBlockAt( x, y, z );
-            if ( block.getType() != BlockType.AIR && block.getType() != BlockType.LEAVES && block.getType() != BlockType.ACACIA_LEAVES && block.getType() != BlockType.SNOW_LAYER ) {
+            if ( block.getType() != BlockType.AIR && block.getType() != BlockType.LEAVES && block.getType() != BlockType.SNOW_LAYER ) {
                 break;
             }
         }

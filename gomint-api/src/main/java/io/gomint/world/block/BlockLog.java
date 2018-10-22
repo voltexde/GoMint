@@ -7,6 +7,9 @@
 
 package io.gomint.world.block;
 
+import io.gomint.world.block.data.Direction;
+import io.gomint.world.block.data.WoodType;
+
 /**
  * @author geNAZt
  * @version 1.0
@@ -14,18 +17,32 @@ package io.gomint.world.block;
 public interface BlockLog extends Block {
 
     /**
+     * Is this log stripped
+     *
+     * @return true when stripped, false when not
+     */
+    boolean isStripped();
+
+    /**
+     * Set stripped status of this log
+     *
+     * @param stripped true when the log should be stripped, false if not
+     */
+    void setStripped( boolean stripped );
+
+    /**
      * Set the type of log
      *
      * @param type of log
      */
-    void setLogType( Type type );
+    void setWoodType( WoodType type );
 
     /**
      * Get the type of this log
      *
      * @return type of log
      */
-    Type getLogType();
+    WoodType getWoodType();
 
     /**
      * Set the direction of the log
@@ -40,19 +57,5 @@ public interface BlockLog extends Block {
      * @return direction of the log
      */
     Direction getLogDirection();
-
-    enum Type {
-        OAK,
-        SPRUCE,
-        BIRCH,
-        JUNGLE
-    }
-
-    enum Direction {
-        UP_DOWN,
-        EAST_WEST,
-        NORTH_SOUTH,
-        BARK
-    }
 
 }

@@ -4,15 +4,18 @@ import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
-import io.gomint.math.Vector2;
 import io.gomint.server.entity.Entity;
-
 import io.gomint.server.util.BlockIdentifier;
-
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.server.world.block.state.BlockState;
+import io.gomint.server.world.block.state.BooleanBlockState;
+import io.gomint.server.world.block.state.FacingBlockState;
 import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.BlockFace;
+
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author geNAZt
@@ -20,9 +23,23 @@ import io.gomint.world.block.BlockFace;
  */
 public abstract class Door extends Block implements io.gomint.world.block.BlockDoor {
 
+    private static final Predicate<List<BlockState>> ONLY_NOT_TOP = states -> {
+        BooleanBlockState state = (BooleanBlockState) states.get( 0 );
+        return !state.getState();
+    };
+
+    private static final Predicate<List<BlockState>> ONLY_TOP = states -> {
+        BooleanBlockState state = (BooleanBlockState) states.get( 0 );
+        return state.getState();
+    };
+
+    private BooleanBlockState top = new BooleanBlockState( this, states -> true, 3 );
+    private BooleanBlockState open = new BooleanBlockState( this, ONLY_NOT_TOP, 2 );
+    private FacingBlockState facing = new FacingBlockState( this, ONLY_NOT_TOP, (short) 1 ); // Rotation is always clockwise
+
     @Override
     public boolean isTop() {
-        return ( getBlockData() & 0x08 ) == 0x08;
+        return this.top.getState();
     }
 
     @Override
@@ -32,7 +49,7 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
             return otherPart.isOpen();
         }
 
-        return ( getBlockData() & 0x04 ) == 0x04;
+        return this.open.getState();
     }
 
     @Override
@@ -43,8 +60,7 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
             return;
         }
 
-        setBlockData( (byte) ( getBlockData() ^ 0x04 ) );
-        updateBlock();
+        this.open.setState( !this.isOpen() );
     }
 
     @Override
@@ -60,29 +76,6 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
     public boolean beforePlacement( Entity entity, ItemStack item, Location location ) {
         Block above = location.getWorld().getBlockAt( location.toBlockPosition().add( BlockPosition.UP ) );
         return above.canBeReplaced( item );
-    }
-
-    @Override
-    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
-        PlacementData data = super.calculatePlacementData( entity, item, clickVector );
-
-        Vector2 directionPlane = entity.getDirectionPlane();
-        double xAbs = Math.abs( directionPlane.getX() );
-        double zAbs = Math.abs( directionPlane.getZ() );
-
-        if ( zAbs > xAbs ) {
-            if ( directionPlane.getZ() > 0 ) {
-                return data.setBlockIdentifier( new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 3 ) );
-            } else {
-                return data.setBlockIdentifier( new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 2 ) );
-            }
-        } else {
-            if ( directionPlane.getX() > 0 ) {
-                return data.setBlockIdentifier( new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 0 ) );
-            } else {
-                return data.setBlockIdentifier( new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 1 ) );
-            }
-        }
     }
 
     @Override
@@ -108,11 +101,6 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
         return true;
     }
 
-    public void setTopPart() {
-        this.setBlockData( (byte) 0x08 );
-        this.updateBlock();
-    }
-
     @Override
     public boolean canBeBrokenWithHand() {
         return true;
@@ -130,4 +118,5 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.AXE;
     }
+
 }

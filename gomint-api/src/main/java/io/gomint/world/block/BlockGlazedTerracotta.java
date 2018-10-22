@@ -7,26 +7,26 @@
 
 package io.gomint.world.block;
 
-import io.gomint.world.block.data.WoodType;
+import io.gomint.world.block.data.BlockColor;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public interface BlockWood extends Block {
+public interface BlockGlazedTerracotta extends Block {
 
     /**
-     * Get wood type
+     * Set the color of this block
      *
-     * @return wood type
+     * @param color of this block
      */
-    WoodType getWoodType();
+    void setColor( BlockColor color );
 
     /**
-     * Set the wood type
+     * Get the color of this block
      *
-     * @param woodType which should be used in this block
+     * @return color of this block
      */
-    void setWoodType( WoodType woodType );
+    BlockColor getColor();
 
 }

@@ -147,6 +147,8 @@ public class ChunkAdapter implements Chunk {
             case "minecraft:leaves2":               // Acacia leaves
             case "minecraft:snow_layer":            // Top snow
             case "minecraft:ice":                   // Ice
+            case "minecraft:wheat":
+            case "minecraft:cocoa":
                 this.updateRandomBlock( chunkSlice, blockHash, currentTimeMS, dT );
                 break;
 

@@ -6,11 +6,13 @@ import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.util.BlockIdentifier;
 
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.UpdateReason;
 import io.gomint.world.Sound;
+import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockLiquid;
 import io.gomint.world.block.data.Facing;
 
@@ -138,8 +140,8 @@ public abstract class Liquid extends Block implements BlockLiquid {
     public abstract boolean isFlowing();
 
     @Override
-    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
-        PlacementData data = super.calculatePlacementData( entity, item, clickVector );
+    public PlacementData calculatePlacementData( EntityPlayer entity, ItemStack item, BlockFace face, Block block, Block clickedBlock, Vector clickVector ) {
+        PlacementData data = super.calculatePlacementData( entity, item, face, block, clickedBlock, clickVector );
         BlockIdentifier blockIdentifier = new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 0 );
         return data.setBlockIdentifier( blockIdentifier );
     }

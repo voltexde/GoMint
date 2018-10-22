@@ -12,10 +12,11 @@ import io.gomint.server.entity.tileentity.BedTileEntity;
 import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
+import io.gomint.server.util.Bearing;
 import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.world.PlacementData;
 import io.gomint.server.world.block.state.BooleanBlockState;
-import io.gomint.server.world.block.state.RotatedFacingBlockState;
+import io.gomint.server.world.block.state.FacingBlockState;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockBed;
 import io.gomint.world.block.BlockFace;
@@ -35,9 +36,9 @@ import java.util.List;
 @EqualsAndHashCode( callSuper = true )
 public class Bed extends Block implements io.gomint.world.block.BlockBed {
 
-    private BooleanBlockState occupied = new BooleanBlockState();
-    private BooleanBlockState head = new BooleanBlockState();
-    private RotatedFacingBlockState facing = new RotatedFacingBlockState();
+    private FacingBlockState facing = new FacingBlockState( this );
+    private BooleanBlockState occupied = new BooleanBlockState( this, states -> true, 2 );
+    private BooleanBlockState head = new BooleanBlockState( this, states -> true, 3 );
 
     @Override
     public String getBlockId() {
@@ -83,22 +84,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
         // Select which side we need to check
         Facing facingToOtherHalf = this.facing.getState();
         if ( this.isHeadPart() ) {
-            switch ( facingToOtherHalf ) {
-                case NORTH:
-                    facingToOtherHalf = Facing.SOUTH;
-                    break;
-                case SOUTH:
-                    facingToOtherHalf = Facing.NORTH;
-                    break;
-                case EAST:
-                    facingToOtherHalf = Facing.WEST;
-                    break;
-                case WEST:
-                    facingToOtherHalf = Facing.EAST;
-                    break;
-                default:
-                    return null;
-            }
+            facingToOtherHalf = facingToOtherHalf.opposite();
         }
 
         return this.getSide( facingToOtherHalf );
@@ -141,7 +127,6 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
     @Override
     public void setHeadPart( boolean value ) {
         this.head.setState( value );
-        this.updateBlock();
     }
 
     @Override
@@ -154,11 +139,10 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
         // We need to check if we are placed on a solid block
         Block block = (Block) location.getWorld().getBlockAt( location.toBlockPosition() ).getSide( BlockFace.DOWN );
         if ( block.isSolid() ) {
-            // Calc facing
-            this.facing.detectFromPlayer( (EntityPlayer) entity );
+            Bearing bearing = Bearing.fromAngle( entity.getYaw() );
 
             // Check for other block
-            Block other = block.getSide( this.facing.getState() );
+            Block other = block.getSide( bearing.toFacing() );
             if ( !other.isSolid() ) {
                 return false;
             }
@@ -171,17 +155,13 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
     }
 
     @Override
-    public PlacementData calculatePlacementData( Entity entity, ItemStack item, Vector clickVector ) {
+    public PlacementData calculatePlacementData( EntityPlayer entity, ItemStack item, BlockFace face, Block block, Block clickedBlock, Vector clickVector ) {
         NBTTagCompound compound = new NBTTagCompound( "" );
         compound.addValue( "color", (byte) item.getData() );
 
-        // Calc facing
-        this.facing.detectFromPlayer( (EntityPlayer) entity );
-
-        this.calculateBlockData();
-
-        BlockIdentifier blockIdentifier = new BlockIdentifier( "minecraft:bed", this.getBlockData() );
-        return new PlacementData( blockIdentifier, compound );
+        // Calc block states
+        PlacementData data = super.calculatePlacementData( entity, item, face, block, clickedBlock, clickVector );
+        return data.setCompound( compound );
     }
 
     @Override
@@ -189,13 +169,14 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
         Block otherBlock = (Block) this.getOtherBlock();
         if ( otherBlock != null ) {
             NBTTagCompound compound = new NBTTagCompound( "" );
-            this.getTileEntity().toCompound( compound , SerializationReason.PERSIST );
+            this.getTileEntity().toCompound( compound, SerializationReason.PERSIST );
 
-            BlockIdentifier identifier = new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) (this.getBlockData() | 0x08) );
+            BlockIdentifier identifier = new BlockIdentifier( data.getBlockIdentifier().getBlockId(), (short) 0 );
             data.setBlockIdentifier( identifier );
             data.setCompound( compound );
 
-            otherBlock.setBlockFromPlacementData( data );
+            Bed bed = otherBlock.setBlockFromPlacementData( data );
+            bed.head.setState( true );
         }
     }
 
@@ -222,21 +203,6 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
             this.location.getY() + 0.5625f,
             this.location.getZ() + 1
         ) );
-    }
-
-    @Override
-    public void generateBlockStates() {
-        this.facing.fromData( (byte) ( this.getBlockData() & 0x03 ) );
-        this.occupied.fromData( (byte) ( this.getBlockData() >> 2 & 0x01 ) );
-        this.head.fromData( (byte) ( this.getBlockData() >> 3 & 0x01 ) );
-    }
-
-    @Override
-    public void calculateBlockData() {
-        this.resetBlockData();
-        this.addToBlockData( this.facing.toData() ); // 0 - 3 (1+2)
-        this.addToBlockData( (byte) ( this.occupied.toData() << 2 ) ); // 4 (3)
-        this.addToBlockData( (byte) ( this.head.toData() << 3 ) ); // 8 (4)
     }
 
 }

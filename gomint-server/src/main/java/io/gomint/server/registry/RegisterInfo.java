@@ -13,5 +13,6 @@ public @interface RegisterInfo {
 
     int id() default -1;
     String sId() default "";
+    boolean def() default false;
 
 }
