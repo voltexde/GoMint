@@ -29,6 +29,11 @@ public class TNT extends Block implements BlockTNT {
     }
 
     @Override
+    public long getBreakTime() {
+        return 0;
+    }
+
+    @Override
     public boolean interact( Entity entity, BlockFace face, Vector facePos, ItemStack item ) {
         if ( entity instanceof EntityPlayer && item instanceof ItemFlintAndSteel ) {
             io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) item;
@@ -41,6 +46,7 @@ public class TNT extends Block implements BlockTNT {
         return false;
     }
 
+    @Override
     public void prime( float secondsUntilExplosion ) {
         int primeTicks = (int) ( secondsUntilExplosion * 20f );
 
