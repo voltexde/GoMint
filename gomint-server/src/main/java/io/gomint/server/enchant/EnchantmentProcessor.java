@@ -15,6 +15,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.network.packet.PacketInventoryTransaction;
 import io.gomint.taglib.NBTTagCompound;
+import io.gomint.world.Gamemode;
 import io.gomint.world.World;
 import io.gomint.world.block.BlockType;
 import lombok.RequiredArgsConstructor;
@@ -48,62 +49,69 @@ public class EnchantmentProcessor {
     private short data;
 
     private void check() {
-        if ( this.startItem.getEnchantAbility() == 0 || this.data < 1 || this.data > 3 ||
+        if ( this.player.getGamemode() != Gamemode.CREATIVE && ( this.data < 1 || this.data > 3 ) ) {
+            this.reset();
+            return;
+        }
+
+        if ( this.lapisItem == null || this.startItem.getEnchantAbility() == 0 ||
             this.lapisItem.getType() != ItemType.DYE || this.lapisItem.getData() != 4 ) {
             this.reset();
             return;
         }
 
-        BlockPosition position = this.player.getEnchantmentInputInventory().getContainerPosition();
-        int bookShelves = this.findBookshelves( position );
+        if ( this.player.getGamemode() != Gamemode.CREATIVE ) {
+            BlockPosition position = this.player.getEnchantmentInputInventory().getContainerPosition();
+            int bookShelves = this.findBookshelves( position );
 
-        // Calculate enchant ability of the item
-        int itemEnchantable = 3 + ( ( this.startItem.getEnchantAbility() >> 1 ) * 2 );
-        int itemEnchantableMin = 1;
-        int bookEnchantable = 25 + ( bookShelves >> 1 );
-        int bookEnchantableMin = 1 + ( bookShelves >> 1 );
+            // Calculate enchant ability of the item
+            int itemEnchantable = 3 + ( ( this.startItem.getEnchantAbility() >> 1 ) * 2 );
+            int itemEnchantableMin = 1;
+            int bookEnchantable = 25 + ( bookShelves >> 1 );
+            int bookEnchantableMin = 1 + ( bookShelves >> 1 );
 
-        /* Check for iteration differences:
-         * 0: book / 3; max 1
-         * 1: book * 2 / 3 + 1
-         * 2: book; max bookShelves * 2
-         */
-        switch ( this.data - 1 ) {
-            case 0:
-                bookEnchantable = Math.max( bookEnchantable / 3, 1 );
-                bookEnchantableMin = Math.max( bookEnchantableMin / 3, 1 );
-                break;
-            case 1:
-                bookEnchantable = bookShelves * 2 / 3 + 1;
-                bookEnchantableMin = bookShelves * 2 / 3 + 1;
-                break;
-            case 2:
-                bookEnchantable = Math.max( bookEnchantable, bookShelves * 2 );
-                bookEnchantableMin = Math.max( bookEnchantableMin, bookShelves * 2 );
-                break;
-            default:
-                this.reset();
-                return;
-        }
-
-        int totalEnchantAbility = itemEnchantable + bookEnchantable;
-        int totalEnchantAbilityMin = itemEnchantableMin + bookEnchantableMin;
-
-        // Calculate needed enchant ability of this enchantments
-        for ( Enchantment enchantment : this.enchantments ) {
-            if ( !enchantment.canBeApplied( this.startItem ) ) {
-                this.reset();
-                return;
+            /* Check for iteration differences:
+             * 0: book / 3; max 1
+             * 1: book * 2 / 3 + 1
+             * 2: book; max bookShelves * 2
+             */
+            switch ( this.data - 1 ) {
+                case 0:
+                    bookEnchantable = Math.max( bookEnchantable / 3, 1 );
+                    bookEnchantableMin = Math.max( bookEnchantableMin / 3, 1 );
+                    break;
+                case 1:
+                    bookEnchantable = bookShelves * 2 / 3 + 1;
+                    bookEnchantableMin = bookShelves * 2 / 3 + 1;
+                    break;
+                case 2:
+                    bookEnchantable = Math.max( bookEnchantable, bookShelves * 2 );
+                    bookEnchantableMin = Math.max( bookEnchantableMin, bookShelves * 2 );
+                    break;
+                default:
+                    this.reset();
+                    return;
             }
 
-            byte min = enchantment.getMinEnchantAbility( enchantment.getLevel() );
-            byte max = enchantment.getMaxEnchantAbility( enchantment.getLevel() );
-            if ( min > totalEnchantAbility ) {
-                this.reset();
-                return;
-            }
+            int totalEnchantAbility = itemEnchantable + bookEnchantable;
+            int totalEnchantAbilityMin = itemEnchantableMin + bookEnchantableMin;
 
-            LOGGER.debug( "Needed ability: {} -> {}; having: {} -> {}", min, max, totalEnchantAbilityMin, totalEnchantAbility );
+            // Calculate needed enchant ability of this enchantments
+            for ( Enchantment enchantment : this.enchantments ) {
+                if ( !enchantment.canBeApplied( this.startItem ) ) {
+                    this.reset();
+                    return;
+                }
+
+                byte min = enchantment.getMinEnchantAbility( enchantment.getLevel() );
+                byte max = enchantment.getMaxEnchantAbility( enchantment.getLevel() );
+                if ( min > totalEnchantAbility ) {
+                    this.reset();
+                    return;
+                }
+
+                LOGGER.debug( "Needed ability: {} -> {}; having: {} -> {}", min, max, totalEnchantAbilityMin, totalEnchantAbility );
+            }
         }
 
         // Remap
@@ -117,20 +125,22 @@ public class EnchantmentProcessor {
             this.reset();
         } else {
             // Remove amount of lapis and level
-            if ( this.lapisItem.getAmount() < this.data ) {
+            if ( this.lapisItem.getAmount() < this.data && this.player.getGamemode() != Gamemode.CREATIVE ) {
                 this.reset();
             } else {
-                if ( this.player.getLevel() < this.data ) {
+                if ( this.player.getLevel() < this.data && this.player.getGamemode() != Gamemode.CREATIVE ) {
                     this.reset();
                 } else {
-                    this.lapisItem.setAmount( this.lapisItem.getAmount() - this.data );
-                    if ( this.lapisItem.getAmount() == 0 ) {
-                        this.player.getEnchantmentInputInventory().setItem( 1, ItemAir.create( 0 ) );
-                    } else {
-                        this.player.getEnchantmentInputInventory().setItem( 1, this.lapisItem );
-                    }
+                    if ( this.player.getGamemode() != Gamemode.CREATIVE ) {
+                        this.lapisItem.setAmount( this.lapisItem.getAmount() - this.data );
+                        if ( this.lapisItem.getAmount() == 0 ) {
+                            this.player.getEnchantmentInputInventory().setItem( 1, ItemAir.create( 0 ) );
+                        } else {
+                            this.player.getEnchantmentInputInventory().setItem( 1, this.lapisItem );
+                        }
 
-                    this.player.setLevel( this.player.getLevel() - this.data );
+                        this.player.setLevel( this.player.getLevel() - this.data );
+                    }
 
                     // Enchant the start item
                     for ( Enchantment enchantment : this.enchantments ) {
@@ -211,7 +221,10 @@ public class EnchantmentProcessor {
      *
      * @param inventoryTransaction to add
      */
-    public void addTranscation( PacketInventoryTransaction inventoryTransaction ) {
+    public void addTransaction( PacketInventoryTransaction inventoryTransaction ) {
+        // We should already have lapis in the enchanter
+        this.lapisItem = (ItemStack) this.player.getEnchantmentInputInventory().getItem( 1 );
+
         for ( PacketInventoryTransaction.NetworkTransaction networkTransaction : inventoryTransaction.getActions() ) {
             if ( networkTransaction.getWindowId() == -15 ) {
                 if ( networkTransaction.getOldItem().getType() != ItemType.AIR &&
@@ -232,13 +245,10 @@ public class EnchantmentProcessor {
                         this.enchantments.add( enchantment );
                     }
                 }
-            } else if ( networkTransaction.getWindowId() == -16 ) {
-                if ( networkTransaction.getOldItem().getType() != ItemType.AIR ) {
-                    this.lapisItem = (ItemStack) networkTransaction.getOldItem();
-                    this.check();
-                }
             }
         }
+
+        this.check();
     }
 
     private boolean isEnchanted( ItemStack itemStack ) {

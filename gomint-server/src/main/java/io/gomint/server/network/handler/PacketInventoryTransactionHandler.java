@@ -39,7 +39,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
         // Hack for enchantment tables
         EnchantmentProcessor processor = connection.getEntity().getEnchantmentProcessor();
         if ( processor != null ) {
-            processor.addTranscation( packet );
+            processor.addTransaction( packet );
             return;
         }
 
