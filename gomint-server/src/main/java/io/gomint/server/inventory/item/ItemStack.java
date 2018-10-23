@@ -52,7 +52,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     private boolean dirtyEnchantments;
 
     // Observer stuff for damaging items
-    private Set<ItemStackPlace> itemStackPlaces = new HashSet<>();
+    private ItemStackPlace itemStackPlace;
 
     ItemStack setMaterial( int material ) {
         this.material = material;
@@ -352,7 +352,7 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
             clone.data = this.data;
             clone.amount = this.amount;
             clone.nbt = ( this.nbt == null ? null : this.nbt.deepClone( "" ) );
-            clone.itemStackPlaces = new HashSet<>();
+            clone.itemStackPlace = null;
             return clone;
         } catch ( CloneNotSupportedException e ) {
             throw new AssertionError( "Clone of ItemStack failed", e );
@@ -387,16 +387,14 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
         if ( replaceWithAir ) {
             io.gomint.inventory.item.ItemStack itemStack = ItemAir.create( 0 );
 
-            // Notify all inventories this item is in that it should be replaced with air
-            for ( ItemStackPlace place : new HashSet<>( this.itemStackPlaces ) ) {
-                place.getInventory().setItem( place.getSlot(), itemStack );
+            if ( this.itemStackPlace != null ) {
+                this.itemStackPlace.getInventory().setItem( this.itemStackPlace.getSlot(), itemStack );
             }
 
             return itemStack;
         } else {
-            // Notify all inventories that this item has changed
-            for ( ItemStackPlace place : new HashSet<>( this.itemStackPlaces ) ) {
-                place.getInventory().setItem( place.getSlot(), this );
+            if ( this.itemStackPlace != null ) {
+                this.itemStackPlace.getInventory().setItem( this.itemStackPlace.getSlot(), this );
             }
         }
 
@@ -493,11 +491,15 @@ public abstract class ItemStack implements Cloneable, io.gomint.inventory.item.I
     }
 
     public void addPlace( Inventory inventory, int slot ) {
-        this.itemStackPlaces.add( new ItemStackPlace( slot, inventory ) );
+        if ( this.itemStackPlace != null ) {
+            LOGGER.warn( "Did not remove the previous itemStackPlace", new Exception() );
+        }
+
+        this.itemStackPlace = new ItemStackPlace( slot, inventory );
     }
 
-    public void removePlace( Inventory inventory, int slot ) {
-        this.itemStackPlaces.remove( new ItemStackPlace( slot, inventory ) );
+    public void removePlace() {
+        this.itemStackPlace = null;
     }
 
 }

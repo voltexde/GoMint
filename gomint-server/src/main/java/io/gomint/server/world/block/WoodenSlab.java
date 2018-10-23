@@ -2,11 +2,12 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.server.world.block.state.EnumBlockState;
 import io.gomint.world.block.BlockType;
 
-import io.gomint.math.AxisAlignedBB;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.world.block.BlockWoodenSlab;
+import io.gomint.world.block.data.WoodType;
 
 /**
  * @author geNAZt
@@ -14,6 +15,8 @@ import io.gomint.world.block.BlockWoodenSlab;
  */
 @RegisterInfo( sId = "minecraft:wooden_slab" )
 public class WoodenSlab extends Slab implements BlockWoodenSlab {
+
+    private EnumBlockState<WoodType> variant = new EnumBlockState<>( this, WoodType.values() );
 
     @Override
     public String getBlockId() {
@@ -48,6 +51,16 @@ public class WoodenSlab extends Slab implements BlockWoodenSlab {
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.AXE;
+    }
+
+    @Override
+    public WoodType getWoodType() {
+        return this.variant.getState();
+    }
+
+    @Override
+    public void setWoodType( WoodType woodType ) {
+        this.variant.setState( woodType );
     }
 
 }

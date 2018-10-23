@@ -43,7 +43,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -58,15 +57,24 @@ public class AnvilConverter extends BaseConverter {
     private PEBlockConverter peConverter;
     private TileEntityConverters tileEntityConverter;
 
-    private boolean nukkitPMMPConverted = false;
+    private boolean nukkitPMMPConverted;
 
     private Items items;
     private Object2IntMap<String> itemConverter;
 
     private final Long2ObjectMap<ByteSet> subChunksProcessed = new Long2ObjectOpenHashMap<>();
 
+    /**
+     * Build up a new converter
+     *
+     * @param assets      from which we get the converter data
+     * @param items       factory which generates items needed
+     * @param worldFolder where the world is located
+     */
     public AnvilConverter( AssetsLibrary assets, Items items, File worldFolder ) {
         super( worldFolder );
+
+        assets.ensureConvertData();
 
         File backupFolder = new File( worldFolder, "backup" );
         if ( !backupFolder.exists() ) {

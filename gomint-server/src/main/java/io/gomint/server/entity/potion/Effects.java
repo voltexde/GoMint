@@ -36,6 +36,7 @@ public class Effects {
         } );
 
         this.generators.register( "io.gomint.server.entity.potion.effect" );
+        this.generators.cleanup();
     }
 
     public Effect generate( int id, int amplifier, long lengthInMS, EffectManager manager ) {

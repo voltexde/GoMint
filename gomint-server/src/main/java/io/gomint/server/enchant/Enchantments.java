@@ -34,6 +34,7 @@ public class Enchantments {
         } );
 
         this.generators.register( "io.gomint.server.enchant" );
+        this.generators.cleanup();
     }
 
     /**

@@ -14,7 +14,7 @@ public class Registry<R> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Registry.class );
 
-    private final ClassPath classPath;
+    private ClassPath classPath;
     private final GeneratorCallback<R> generatorCallback;
 
     private Generator<R>[] generators;
@@ -170,6 +170,10 @@ public class Registry<R> {
                 this.apiReferences.put( clazz, lastId );
             }
         }
+    }
+
+    public void cleanup() {
+        this.classPath = null;
     }
 
 }

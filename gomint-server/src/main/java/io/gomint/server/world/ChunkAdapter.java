@@ -601,7 +601,7 @@ public class ChunkAdapter implements Chunk {
         List<TileEntity> tileEntities = new ArrayList<>();
 
         for ( ChunkSlice chunkSlice : this.chunkSlices ) {
-            if ( chunkSlice != null ) {
+            if ( chunkSlice != null && chunkSlice.getTileEntities() != null ) {
                 tileEntities.addAll( chunkSlice.getTileEntities().values() );
             }
         }
@@ -721,7 +721,7 @@ public class ChunkAdapter implements Chunk {
 
     public void tickTiles( long currentTimeMS ) {
         for ( ChunkSlice chunkSlice : this.chunkSlices ) {
-            if ( chunkSlice != null ) {
+            if ( chunkSlice != null && chunkSlice.getTileEntities() != null ) {
                 ObjectIterator<Short2ObjectMap.Entry<TileEntity>> iterator = chunkSlice.getTileEntities().short2ObjectEntrySet().fastIterator();
                 while ( iterator.hasNext() ) {
                     TileEntity tileEntity = iterator.next().getValue();

@@ -73,25 +73,18 @@ public class AssetsLibrary {
     }
 
     /**
-     * Loads the assets library from the given file.
+     * Loads the assets library from the assets.dat located inside the class path.
      *
-     * @param input The input stream to read the asset library from
      * @throws IOException Thrown if an I/O error occurs whilst loading the library
      */
     @SuppressWarnings( "unchecked" )
-    public void load( InputStream input ) throws IOException {
-        NBTTagCompound root = NBTTagCompound.readFrom( input, true, ByteOrder.BIG_ENDIAN );
+    public void load() throws IOException {
+        NBTTagCompound root = NBTTagCompound.readFrom( this.getClass().getResourceAsStream( "/assets.dat" ), true, ByteOrder.BIG_ENDIAN );
         if ( GoMint.instance() != null ) {
             this.loadRecipes( (List<NBTTagCompound>) ( (List) root.getList( "recipes", false ) ) );
             this.loadCreativeInventory( (List<byte[]>) ( (List) root.getList( "creativeInventory", false ) ) );
             this.loadBlockPalette( (List<NBTTagCompound>) ( (List) root.getList( "blockPalette", false ) ) );
         }
-
-        this.converterData = ( (List<NBTTagCompound>) ( (List) root.getList( "converter", false ) ) );
-        this.converterItemsData = ( (List<NBTTagCompound>) ( (List) root.getList( "converterItems", false ) ) );
-        this.jeTopeItems = ( (List<NBTTagCompound>) ( (List) root.getList( "JEtoPEItems", false ) ) );
-        this.jeTopeEntities = ( (List<NBTTagCompound>) ( (List) root.getList( "JEtoPEEntityIDs", false ) ) );
-        this.peConverter = ( (List<NBTTagCompound>) ( (List) root.getList( "PEconverter", false ) ) );
     }
 
     private void loadBlockPalette( List<NBTTagCompound> blockPaletteCompounds ) {
@@ -226,6 +219,36 @@ public class AssetsLibrary {
         }
 
         return this.items == null ? null : this.items.create( id, data, amount, compound );
+    }
+
+    /**
+     * Cleanup and release resources not needed anymore
+     */
+    public void cleanup() {
+        // Release all references to data which had been loaded to other wrappers
+        this.recipes = null;
+        this.blockPalette = null;
+        this.creativeInventory = null;
+    }
+
+    /**
+     * This method should make sure that all data needed for a convert is loaded
+     */
+    @SuppressWarnings( "unchecked" )
+    public void ensureConvertData() {
+        if ( this.converterData == null ) {
+            try {
+                NBTTagCompound root = NBTTagCompound.readFrom( this.getClass().getResourceAsStream( "/assets.dat" ), true, ByteOrder.BIG_ENDIAN );
+
+                this.converterData = ( (List<NBTTagCompound>) ( (List) root.getList( "converter", false ) ) );
+                this.converterItemsData = ( (List<NBTTagCompound>) ( (List) root.getList( "converterItems", false ) ) );
+                this.jeTopeItems = ( (List<NBTTagCompound>) ( (List) root.getList( "JEtoPEItems", false ) ) );
+                this.jeTopeEntities = ( (List<NBTTagCompound>) ( (List) root.getList( "JEtoPEEntityIDs", false ) ) );
+                this.peConverter = ( (List<NBTTagCompound>) ( (List) root.getList( "PEconverter", false ) ) );
+            } catch ( IOException e ) {
+                LOGGER.error( "Could not load needed converter data", e );
+            }
+        }
     }
 
 }

@@ -234,6 +234,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.entities = new Entities( this.classPath );
             this.effects = new Effects( this.classPath );
             this.enchantments = new Enchantments( this.classPath );
+
+            this.classPath = null;
         }
 
         // Load assets from file:
@@ -241,7 +243,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.assets = new AssetsLibrary( this.items );
 
         try {
-            this.assets.load( this.getClass().getResourceAsStream( "/assets.dat" ) );
+            this.assets.load();
         } catch ( IOException e ) {
             LOGGER.error( "Failed to load assets library", e );
             return;
@@ -405,6 +407,9 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 }
             }
             // CHECKSTYLE:ON
+
+            // We can cleanup the assets now
+            this.assets.cleanup();
 
             // ------------------------------------ //
             // Networking Initialization

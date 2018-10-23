@@ -60,6 +60,7 @@ public class Blocks {
         } );
 
         this.generators.register( "io.gomint.server.world.block" );
+        this.generators.cleanup();
     }
 
     public <T extends Block> T get( String blockId, short blockData, byte skyLightLevel, byte blockLightLevel,

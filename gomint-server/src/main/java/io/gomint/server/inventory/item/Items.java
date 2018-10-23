@@ -50,6 +50,7 @@ public class Items {
         } );
 
         this.generators.register( "io.gomint.server.inventory.item" );
+        this.generators.cleanup();
 
         if ( mapperData != null ) {
             this.itemMapper = new Int2ObjectOpenHashMap<>();

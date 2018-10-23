@@ -63,7 +63,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
         // Get old item
         io.gomint.server.inventory.item.ItemStack oldItemStack = (io.gomint.server.inventory.item.ItemStack) this.contents[index];
         if ( oldItemStack != null ) {
-            oldItemStack.removePlace( this, index );
+            oldItemStack.removePlace();
         }
 
         // Set new item
@@ -230,7 +230,7 @@ public abstract class Inventory implements io.gomint.inventory.Inventory {
 
     protected void onRemove( int slot ) {
         io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) this.getItem( slot );
-        itemStack.removePlace( this, slot );
+        itemStack.removePlace();
     }
 
     public void resizeAndClear( int newSize ) {

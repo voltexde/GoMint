@@ -10,9 +10,11 @@ package io.gomint.server.world.block;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.server.world.block.state.FacingBlockState;
 import io.gomint.world.block.BlockGlazedTerracotta;
 import io.gomint.world.block.BlockType;
 import io.gomint.world.block.data.BlockColor;
+import io.gomint.world.block.data.Facing;
 
 /**
  * @author geNAZt
@@ -35,6 +37,8 @@ import io.gomint.world.block.data.BlockColor;
 @RegisterInfo( sId = "minecraft:red_glazed_terracotta" )
 @RegisterInfo( sId = "minecraft:black_glazed_terracotta" )
 public class GlazedTerracotta extends Block implements BlockGlazedTerracotta {
+
+    private FacingBlockState facing = new FacingBlockState( this, (short) 2 );
 
     @Override
     public long getBreakTime() {
@@ -153,6 +157,16 @@ public class GlazedTerracotta extends Block implements BlockGlazedTerracotta {
         }
 
         return null;
+    }
+
+    @Override
+    public void setFacing( Facing facing ) {
+        this.facing.setState( facing );
+    }
+
+    @Override
+    public Facing getFacing() {
+        return this.facing.getState();
     }
 
 }

@@ -40,11 +40,11 @@ public class ChunkSlice {
 
     private short[][] blocks = new short[2][]; // MC currently supports two layers, we init them as we need
 
-    private NibbleArray blockLight = NibbleArray.create( (short) 4096 );
-    private NibbleArray skyLight = NibbleArray.create( (short) 4096 );
+    private NibbleArray blockLight = null; // NibbleArray.create( (short) 4096 );
+    private NibbleArray skyLight = null; // NibbleArray.create( (short) 4096 )
 
     @Getter
-    private Short2ObjectOpenHashMap<TileEntity> tileEntities = new Short2ObjectOpenHashMap<>();
+    private Short2ObjectOpenHashMap<TileEntity> tileEntities = null;
     private Short2ObjectOpenHashMap[] temporaryStorages = new Short2ObjectOpenHashMap[2];   // MC currently supports two layers, we init them as we need
 
     public ChunkSlice( ChunkAdapter chunkAdapter, int sectionY ) {
@@ -117,8 +117,8 @@ public class ChunkSlice {
         }
 
         BlockIdentifier identifier = BlockRuntimeIDs.toBlockIdentifier( runtimeID );
-        return (T) this.chunk.getWorld().getServer().getBlocks().get( identifier.getBlockId(), identifier.getData(), this.skyLight.get( index ),
-            this.blockLight.get( index ), this.tileEntities.get( index ), blockLocation, layer );
+        return (T) this.chunk.getWorld().getServer().getBlocks().get( identifier.getBlockId(), identifier.getData(), this.skyLight != null ? this.skyLight.get( index ) : 0,
+            this.blockLight != null ? this.blockLight.get( index ) : 0, this.tileEntities != null ? this.tileEntities.get( index ) : null, blockLocation, layer );
     }
 
     private <T extends Block> T getAirBlockInstance( Location location ) {
@@ -142,6 +142,10 @@ public class ChunkSlice {
     }
 
     public void addTileEntityInternal( short index, TileEntity tileEntity ) {
+        if ( this.tileEntities == null ) {
+            this.tileEntities = new Short2ObjectOpenHashMap<>();
+        }
+
         this.tileEntities.put( index, tileEntity );
     }
 
@@ -219,10 +223,6 @@ public class ChunkSlice {
 
         short index = getIndex( x, y, z );
         storage.remove( index );
-    }
-
-    public TileEntity getTileInternal( short i ) {
-        return this.tileEntities.get( i );
     }
 
     public void writeToNetwork( PacketBuffer buffer ) {

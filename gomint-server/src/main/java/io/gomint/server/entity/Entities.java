@@ -41,6 +41,7 @@ public class Entities {
         this.generators.register( "io.gomint.server.entity.monster" );
         this.generators.register( "io.gomint.server.entity.passive" );
         this.generators.register( "io.gomint.server.entity.projectile" );
+        this.generators.cleanup();
     }
 
     public <T extends Entity> T create( Class<T> entityClass ) {

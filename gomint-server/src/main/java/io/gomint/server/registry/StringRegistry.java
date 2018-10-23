@@ -7,20 +7,14 @@
 
 package io.gomint.server.registry;
 
-import io.gomint.server.entity.EntityType;
 import io.gomint.server.util.ClassPath;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * @author geNAZt
@@ -30,7 +24,7 @@ public class StringRegistry<R> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( StringRegistry.class );
 
-    private final ClassPath classPath;
+    private ClassPath classPath;
     private final GeneratorCallback<R> generatorCallback;
 
     private final Int2ObjectMap<Generator<R>> generators = new Int2ObjectOpenHashMap<>();
@@ -126,6 +120,10 @@ public class StringRegistry<R> {
 
     public String getId( Class<?> clazz ) {
         return this.apiReferences.getOrDefault( clazz, null );
+    }
+
+    public void cleanup() {
+        this.classPath = null;
     }
 
 }
