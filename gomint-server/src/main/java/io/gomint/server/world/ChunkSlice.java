@@ -134,6 +134,10 @@ public class ChunkSlice {
     }
 
     private void removeTileEntityInternal( short index ) {
+        if ( this.tileEntities == null ) { // Not tiles in this chunk. This happens because on break still wants to reset any tiles on that position even though there might not be one
+            return;
+        }
+
         this.tileEntities.remove( index );
     }
 
