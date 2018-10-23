@@ -31,7 +31,7 @@ public class Main {
         AssetsLibrary assets = new AssetsLibrary( null );
 
         try {
-            assets.load( Main.class.getResourceAsStream( "/assets.dat" ) );
+            assets.load();
         } catch ( IOException e ) {
             LOGGER.warn( "Could not load needed data from assets.dat", e );
             return;
