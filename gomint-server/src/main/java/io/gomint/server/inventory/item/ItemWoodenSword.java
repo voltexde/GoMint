@@ -34,4 +34,9 @@ public class ItemWoodenSword extends ItemReduceTierSpecial implements io.gomint.
         return ItemType.WOODEN_SWORD;
     }
 
+    @Override
+    public int getEnchantAbility() {
+        return 15;
+    }
+
 }

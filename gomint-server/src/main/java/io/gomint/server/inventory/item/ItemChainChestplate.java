@@ -1,10 +1,9 @@
 package io.gomint.server.inventory.item;
-import io.gomint.inventory.item.ItemType;
 
+import io.gomint.inventory.item.ItemType;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockFace;
 
@@ -13,8 +12,7 @@ import io.gomint.world.block.BlockFace;
  * @version 1.0
  */
 @RegisterInfo( id = 303 )
-public class ItemChainChestplate extends ItemArmor implements io.gomint.inventory.item.ItemChainChestplate {
-
+public class ItemChainChestplate extends ItemChainArmor implements io.gomint.inventory.item.ItemChainChestplate {
 
 
     @Override

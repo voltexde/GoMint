@@ -7,15 +7,12 @@
 package io.gomint.server.inventory.item;
 
 import io.gomint.inventory.item.ItemReduceBreaktime;
-import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 public abstract class ItemReduceTierSpecial extends ItemStack implements ItemReduceBreaktime {
-
-
 
     @Override
     public byte getMaximumAmount() {

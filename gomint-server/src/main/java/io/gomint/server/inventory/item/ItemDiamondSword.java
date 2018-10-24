@@ -15,7 +15,6 @@ import io.gomint.server.registry.RegisterInfo;
 @RegisterInfo( id = 276 )
 public class ItemDiamondSword extends ItemReduceTierSpecial implements io.gomint.inventory.item.ItemDiamondSword, ItemSword {
 
-
     @Override
     public void gotInHand( EntityPlayer player ) {
         player

@@ -1,7 +1,7 @@
 package io.gomint.server.inventory.item;
+
 import io.gomint.inventory.item.ItemReduceBreaktime;
 import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
-import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
@@ -9,8 +9,6 @@ import io.gomint.taglib.NBTTagCompound;
  */
 @UseDataAsDamage
 public abstract class ItemReduceTierDiamond extends ItemStack implements ItemReduceBreaktime {
-
-
 
     @Override
     public byte getMaximumAmount() {
@@ -25,6 +23,11 @@ public abstract class ItemReduceTierDiamond extends ItemStack implements ItemRed
     @Override
     public short getMaxDamage() {
         return 1562;
+    }
+
+    @Override
+    public int getEnchantAbility() {
+        return 10;
     }
 
 }

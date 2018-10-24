@@ -10,8 +10,6 @@ import io.gomint.taglib.NBTTagCompound;
 @UseDataAsDamage
 public abstract class ItemReduceTierGolden extends ItemStack implements ItemReduceBreaktime {
 
-
-
     @Override
     public byte getMaximumAmount() {
         return 1;
@@ -25,6 +23,11 @@ public abstract class ItemReduceTierGolden extends ItemStack implements ItemRedu
     @Override
     public short getMaxDamage() {
         return 33;
+    }
+
+    @Override
+    public int getEnchantAbility() {
+        return 22;
     }
 
 }

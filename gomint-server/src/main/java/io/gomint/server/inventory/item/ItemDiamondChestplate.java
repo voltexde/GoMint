@@ -1,10 +1,9 @@
 package io.gomint.server.inventory.item;
-import io.gomint.inventory.item.ItemType;
 
+import io.gomint.inventory.item.ItemType;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockFace;
 
@@ -13,9 +12,7 @@ import io.gomint.world.block.BlockFace;
  * @version 1.0
  */
 @RegisterInfo( id = 311 )
-public class ItemDiamondChestplate extends ItemArmor implements io.gomint.inventory.item.ItemDiamondChestplate {
-
-
+public class ItemDiamondChestplate extends ItemDiamondArmor implements io.gomint.inventory.item.ItemDiamondChestplate {
 
     @Override
     public float getReductionValue() {

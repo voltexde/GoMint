@@ -12,7 +12,7 @@ import io.gomint.world.block.BlockFace;
  * @version 1.0
  */
 @RegisterInfo( id = 299 )
-public class ItemLeatherChestplate extends ItemColoredArmor implements io.gomint.inventory.item.ItemLeatherChestplate {
+public class ItemLeatherChestplate extends ItemLeatherArmor implements io.gomint.inventory.item.ItemLeatherChestplate {
 
 
     @Override

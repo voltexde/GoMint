@@ -1,16 +1,15 @@
 package io.gomint.server.inventory.item;
-import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
-import io.gomint.inventory.item.ItemAir;
-import io.gomint.inventory.item.ItemType;
+
 import io.gomint.enchant.EnchantmentFlame;
 import io.gomint.enchant.EnchantmentInfinity;
 import io.gomint.enchant.EnchantmentPower;
 import io.gomint.enchant.EnchantmentPunch;
+import io.gomint.event.entity.projectile.ProjectileLaunchEvent;
+import io.gomint.inventory.item.ItemType;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.projectile.EntityArrow;
 import io.gomint.server.inventory.item.annotation.UseDataAsDamage;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Gamemode;
 
 /**
@@ -20,8 +19,6 @@ import io.gomint.world.Gamemode;
 @UseDataAsDamage
 @RegisterInfo( id = 261 )
 public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemBow {
-
-
 
     @Override
     public byte getMaximumAmount() {
@@ -131,6 +128,11 @@ public class ItemBow extends ItemStack implements io.gomint.inventory.item.ItemB
     @Override
     public ItemType getType() {
         return ItemType.BOW;
+    }
+
+    @Override
+    public int getEnchantAbility() {
+        return 1;
     }
 
 }

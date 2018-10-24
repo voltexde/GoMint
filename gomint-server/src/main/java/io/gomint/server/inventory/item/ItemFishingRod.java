@@ -68,4 +68,9 @@ public class ItemFishingRod extends ItemStack implements io.gomint.inventory.ite
         return ItemType.FISHING_ROD;
     }
 
+    @Override
+    public int getEnchantAbility() {
+        return 1;
+    }
+
 }

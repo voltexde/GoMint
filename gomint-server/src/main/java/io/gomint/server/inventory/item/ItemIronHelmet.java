@@ -1,10 +1,9 @@
 package io.gomint.server.inventory.item;
-import io.gomint.inventory.item.ItemType;
 
+import io.gomint.inventory.item.ItemType;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.Block;
 import io.gomint.world.block.BlockFace;
 
@@ -13,9 +12,7 @@ import io.gomint.world.block.BlockFace;
  * @version 1.0
  */
 @RegisterInfo( id = 306 )
-public class ItemIronHelmet extends ItemArmor implements io.gomint.inventory.item.ItemIronHelmet {
-
-
+public class ItemIronHelmet extends ItemIronArmor implements io.gomint.inventory.item.ItemIronHelmet {
 
     @Override
     public float getReductionValue() {

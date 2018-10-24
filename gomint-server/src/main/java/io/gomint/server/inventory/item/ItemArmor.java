@@ -1,13 +1,10 @@
 package io.gomint.server.inventory.item;
-import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
 public abstract class ItemArmor extends ItemStack {
-
-
 
     @Override
     public byte getMaximumAmount() {
@@ -16,6 +13,12 @@ public abstract class ItemArmor extends ItemStack {
 
     public abstract float getReductionValue();
 
+    /**
+     * Check if this armor is better than the old one
+     *
+     * @param oldItem old armor piece
+     * @return true if this is better, false if not
+     */
     protected boolean isBetter( ItemStack oldItem ) {
         // Armor is better than no armor!
         if ( !( oldItem instanceof ItemArmor ) ) {

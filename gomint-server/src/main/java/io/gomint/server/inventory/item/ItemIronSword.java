@@ -1,13 +1,12 @@
 package io.gomint.server.inventory.item;
-import io.gomint.inventory.item.ItemType;
 
 import io.gomint.inventory.item.ItemSword;
+import io.gomint.inventory.item.ItemType;
 import io.gomint.server.entity.Attribute;
 import io.gomint.server.entity.AttributeModifier;
 import io.gomint.server.entity.AttributeModifierType;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.registry.RegisterInfo;
-import io.gomint.taglib.NBTTagCompound;
 
 /**
  * @author geNAZt
@@ -15,8 +14,6 @@ import io.gomint.taglib.NBTTagCompound;
  */
 @RegisterInfo( id = 267 )
 public class ItemIronSword extends ItemReduceTierSpecial implements io.gomint.inventory.item.ItemIronSword, ItemSword {
-
-
 
     @Override
     public void gotInHand( EntityPlayer player ) {
@@ -35,6 +32,11 @@ public class ItemIronSword extends ItemReduceTierSpecial implements io.gomint.in
     @Override
     public ItemType getType() {
         return ItemType.IRON_SWORD;
+    }
+
+    @Override
+    public int getEnchantAbility() {
+        return 14;
     }
 
 }

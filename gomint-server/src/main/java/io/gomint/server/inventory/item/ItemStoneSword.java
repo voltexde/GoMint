@@ -34,4 +34,9 @@ public class ItemStoneSword extends ItemReduceTierSpecial implements io.gomint.i
         return ItemType.STONE_SWORD;
     }
 
+    @Override
+    public int getEnchantAbility() {
+        return 5;
+    }
+
 }
