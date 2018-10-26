@@ -198,7 +198,7 @@ public class AnvilConverter extends BaseConverter {
                         for ( int z = 0; z < 32; z++ ) {
                             if ( compounds.size() > 400 ) { // Throttle when the converter threads are behind
                                 try {
-                                    LOGGER.info( "Throttled, not enough CPU for conversion" );
+                                    LOGGER.debug( "Throttled, not enough CPU for conversion" );
                                     Thread.sleep( 20 );
                                 } catch ( InterruptedException e ) {
                                     // Ignore

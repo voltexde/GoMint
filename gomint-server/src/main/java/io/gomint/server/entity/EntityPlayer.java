@@ -571,11 +571,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                 Vector moved = this.safeMove( moveX, moveY, moveZ );
 
                 // Exhaustion
-                double distance = Math.sqrt( moved.getX() * moved.getX() + moved.getY() * moved.getY() + moved.getZ() * moved.getZ() );
-                if ( this.isSprinting() ) {
-                    this.exhaust( (float) ( 0.1 * distance ), PlayerExhaustEvent.Cause.SPRINTING );
-                } else if ( this.isOnGround() ) {
-                    this.exhaust( (float) ( 0.01 * distance ), PlayerExhaustEvent.Cause.WALKING );
+                float distance = (float) Math.sqrt( moved.getX() * moved.getX() + moved.getZ() * moved.getZ() );
+                if ( distance > 0.01f ) {
+                    if ( this.isSprinting() ) {
+                        this.exhaust( ( 0.1f * distance ), PlayerExhaustEvent.Cause.SPRINTING );
+                    } else if ( this.isOnGround() ) {
+                        this.exhaust( ( 0.01f * distance ), PlayerExhaustEvent.Cause.WALKING );
+                    }
                 }
 
                 this.setPitch( to.getPitch() );
