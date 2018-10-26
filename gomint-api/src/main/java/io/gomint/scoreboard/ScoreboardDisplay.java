@@ -30,6 +30,13 @@ public interface ScoreboardDisplay {
     String getObjectiveName();
 
     /**
+     * Get the order in which the ids should be sorted
+     *
+     * @return the order in which the ids should be sorted
+     */
+    SortOrder getSortOrder();
+
+    /**
      * Add a new entity to the display
      *
      * @param entity which should be displayed

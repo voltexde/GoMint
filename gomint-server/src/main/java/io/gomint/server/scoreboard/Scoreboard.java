@@ -1,6 +1,7 @@
 package io.gomint.server.scoreboard;
 
 import io.gomint.scoreboard.DisplaySlot;
+import io.gomint.scoreboard.SortOrder;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.Packet;
@@ -40,9 +41,14 @@ public class Scoreboard implements io.gomint.scoreboard.Scoreboard {
 
     @Override
     public io.gomint.scoreboard.ScoreboardDisplay addDisplay( DisplaySlot slot, String objectiveName, String displayName ) {
+        return this.addDisplay( slot, objectiveName, displayName, SortOrder.ASCENDING );
+    }
+
+    @Override
+    public io.gomint.scoreboard.ScoreboardDisplay addDisplay( DisplaySlot slot, String objectiveName, String displayName, SortOrder sortOrder ) {
         io.gomint.scoreboard.ScoreboardDisplay scoreboardDisplay = this.displays.get( slot );
         if ( scoreboardDisplay == null ) {
-            scoreboardDisplay = new ScoreboardDisplay( this, objectiveName, displayName );
+            scoreboardDisplay = new ScoreboardDisplay( this, objectiveName, displayName, sortOrder );
             this.displays.put( slot, scoreboardDisplay );
 
             this.broadcast( this.constructDisplayPacket( slot, scoreboardDisplay ) );
@@ -91,6 +97,7 @@ public class Scoreboard implements io.gomint.scoreboard.Scoreboard {
         packetSetObjective.setDisplayName( display.getDisplayName() );
         packetSetObjective.setObjectiveName( display.getObjectiveName() );
         packetSetObjective.setDisplaySlot( slot.name().toLowerCase() );
+        packetSetObjective.setSortOrder( display.getSortOrder().ordinal() );
         return packetSetObjective;
     }
 

@@ -23,6 +23,16 @@ public interface Scoreboard {
     ScoreboardDisplay addDisplay( DisplaySlot slot, String objectiveName, String displayName );
 
     /**
+     * Add a new display slot to this scoreboard with a sort order
+     *
+     * @param slot          which should be shown
+     * @param objectiveName which should be used
+     * @param displayName   of the slot
+     * @param sortOrder     which sorts the ids
+     */
+    ScoreboardDisplay addDisplay( DisplaySlot slot, String objectiveName, String displayName, SortOrder sortOrder );
+
+    /**
      * Get a display from its slot
      *
      * @param slot for the display

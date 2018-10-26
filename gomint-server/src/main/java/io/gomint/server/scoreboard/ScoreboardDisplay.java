@@ -9,6 +9,7 @@ package io.gomint.server.scoreboard;
 
 import io.gomint.entity.Entity;
 import io.gomint.scoreboard.DisplayEntry;
+import io.gomint.scoreboard.SortOrder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -23,6 +24,7 @@ public class ScoreboardDisplay implements io.gomint.scoreboard.ScoreboardDisplay
     private final Scoreboard scoreboard;
     private final String objectiveName;
     private String displayName;
+    private SortOrder sortOrder;
 
     @Override
     public DisplayEntry addEntity( Entity entity, int score ) {
