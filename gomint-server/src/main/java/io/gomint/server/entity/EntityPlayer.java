@@ -573,10 +573,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
                 // Exhaustion
                 float distance = (float) Math.sqrt( moved.getX() * moved.getX() + moved.getZ() * moved.getZ() );
                 if ( distance > 0.01f ) {
-                    if ( this.isSprinting() ) {
-                        this.exhaust( ( 0.1f * distance ), PlayerExhaustEvent.Cause.SPRINTING );
-                    } else if ( this.isOnGround() ) {
-                        this.exhaust( ( 0.01f * distance ), PlayerExhaustEvent.Cause.WALKING );
+                    if ( this.onGround ) {
+                        if ( this.isSprinting() ) {
+                            this.exhaust( ( 0.1f * distance ), PlayerExhaustEvent.Cause.SPRINTING );
+                        } else if ( this.isOnGround() ) {
+                            this.exhaust( ( 0.01f * distance ), PlayerExhaustEvent.Cause.WALKING );
+                        }
                     }
                 }
 
