@@ -13,7 +13,7 @@ import io.gomint.GoMint;
  * @author geNAZt
  * @version 1.0
  */
-public interface ItemJungleTrapdoor extends ItemStack {
+public interface ItemJungleTrapdoor extends ItemStack, ItemBurnable {
 
     /**
      * Create a new item stack with given class and amount

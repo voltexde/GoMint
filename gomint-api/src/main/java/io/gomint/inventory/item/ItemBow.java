@@ -6,7 +6,7 @@ import io.gomint.GoMint;
  * @author geNAZt
  * @version 1.0
  */
-public interface ItemBow extends ItemStack {
+public interface ItemBow extends ItemStack, ItemBurnable {
 
     /**
      * Create a new item stack with given class and amount
