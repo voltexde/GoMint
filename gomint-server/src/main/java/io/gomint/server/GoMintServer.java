@@ -234,8 +234,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.entities = new Entities( this.classPath );
             this.effects = new Effects( this.classPath );
             this.enchantments = new Enchantments( this.classPath );
-
-            this.classPath = null;
         }
 
         // Load assets from file:
