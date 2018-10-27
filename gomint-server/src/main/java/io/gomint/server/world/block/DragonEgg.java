@@ -65,7 +65,15 @@ public class DragonEgg extends Block implements io.gomint.world.block.BlockDrago
         return false;
     }
 
-    private void teleport() {
+    @Override
+    public void teleport( BlockPosition blockPosition ) {
+        this.setType( Air.class );
+        this.world.getBlockAt( blockPosition ).setType( DragonEgg.class );
+        this.world.sendLevelEvent( blockPosition.toVector(), LevelEvent.DRAGON_EGG_TELEPORT, 0 );
+    }
+
+    @Override
+    public void teleport() {
         BlockPosition pos = this.getLocation().toBlockPosition();
         FastRandom random = FastRandom.current();
 
@@ -73,10 +81,7 @@ public class DragonEgg extends Block implements io.gomint.world.block.BlockDrago
             BlockPosition blockPos = pos.add( random.nextInt( 16 ) - random.nextInt( 16 ), random.nextInt( 8 ) - random.nextInt( 8 ), random.nextInt( 16 ) - random.nextInt( 16 ) );
 
             if ( this.world.getBlockAt( blockPos ).getType() == BlockType.AIR ) {
-                this.setType( Air.class );
-                this.world.getBlockAt( blockPos ).setType( DragonEgg.class );
-                this.world.sendLevelEvent( blockPos.toVector(), LevelEvent.DRAGON_EGG_TELEPORT, 0 );
-
+                this.teleport( blockPos );
                 return;
             }
         }

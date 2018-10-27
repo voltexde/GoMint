@@ -7,9 +7,24 @@
 
 package io.gomint.world.block;
 
+import io.gomint.math.BlockPosition;
+
 /**
  * @author geNAZt
  * @version 1.0
  */
 public interface BlockDragonEgg extends Block {
+
+    /**
+     * Teleport this dragon egg to a random location
+     */
+    void teleport();
+
+    /**
+     * Teleport this dragon egg to the given position
+     *
+     * @param blockPosition where the egg should be teleported to
+     */
+    void teleport( BlockPosition blockPosition );
+
 }
