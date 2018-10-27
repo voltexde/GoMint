@@ -12,6 +12,8 @@ import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
@@ -70,10 +72,12 @@ public class PostProcessWorker implements Runnable {
     private PacketBatch encrypt( byte[] data ) {
         PacketBatch batch = new PacketBatch();
         batch.setPayload( data );
+        batch.setPayloadLength( data.length );
 
         EncryptionHandler encryptionHandler = this.connection.getEncryptionHandler();
         if ( encryptionHandler != null && ( this.connection.getState() == PlayerConnectionState.LOGIN || this.connection.getState() == PlayerConnectionState.PLAYING ) ) {
             batch.setPayload( encryptionHandler.encryptInputForClient( batch.getPayload() ) );
+            batch.setPayloadLength( batch.getPayload().length );
         }
 
         return batch;
@@ -83,19 +87,21 @@ public class PostProcessWorker implements Runnable {
         ByteBuf inBuf = newNettyBuffer();
 
         // Write all packets into the inBuf for compression
-        PacketBuffer buffer = new PacketBuffer( 64 );
+        PacketBuffer buffer = new PacketBuffer( 16 );
 
         for ( Packet packet : packets ) {
             if ( packet instanceof PacketBatch ) { // Only chunks can do this
-                if ( !( (PacketBatch) packet ).isCompressed() ) {
+                PacketBatch batch = (PacketBatch) packet;
+                if ( !batch.isCompressed() ) {
                     ByteBuf in = newNettyBuffer();
-                    in.writeBytes( ( (PacketBatch) packet ).getPayload() );
-                    ( (PacketBatch) packet ).setPayload( this.compress( in ) );
+                    in.writeBytes( batch.getPayload() );
+                    batch.setPayload( this.compress( in ) );
+                    batch.setPayloadLength( batch.getPayload().length );
                     in.release();
-                    ( (PacketBatch) packet ).setCompressed( true );
+                    batch.setCompressed( true );
                 }
 
-                PacketBatch encrypted = this.encrypt( ( (PacketBatch) packet ).getPayload() );
+                PacketBatch encrypted = this.encrypt( batch.getPayload() );
                 this.connection.send( encrypted );
             } else {
                 buffer.setPosition( 0 );

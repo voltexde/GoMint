@@ -69,7 +69,7 @@ public class Palette {
         this.data = data;
 
         for ( PaletteVersion paletteVersionCanidate : PaletteVersion.values() ) {
-            if ( ( !read && paletteVersionCanidate.getAmountOfWords() <= version ) ||
+            if ( ( !read && paletteVersionCanidate.getAmountOfWords() <= version && paletteVersionCanidate.getAmountOfPadding() == 0 ) ||
                 ( read && paletteVersionCanidate.getVersionId() == version ) ) {
                 this.paletteVersion = paletteVersionCanidate;
                 break;
@@ -82,9 +82,7 @@ public class Palette {
     }
 
     public void addIndexIDs( int[] indexIDs ) {
-        for ( int i = 0; i < indexIDs.length; i++ ) {
-            int id = indexIDs[i];
-
+        for ( int id : indexIDs ) {
             // Check if old input is full and we need a new one
             if ( this.wordsWritten == this.paletteVersion.getAmountOfWords() ) {
                 // Write to output

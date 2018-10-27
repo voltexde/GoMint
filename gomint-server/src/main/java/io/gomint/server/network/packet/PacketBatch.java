@@ -21,7 +21,9 @@ import lombok.EqualsAndHashCode;
 public class PacketBatch extends Packet {
 
     private boolean compressed;
+
     private byte[] payload;
+    private int payloadLength;
 
     public PacketBatch() {
         super( Protocol.PACKET_BATCH );
@@ -29,7 +31,7 @@ public class PacketBatch extends Packet {
 
     @Override
     public void serialize( PacketBuffer buffer, int protocolID ) {
-        buffer.writeBytes( this.payload );
+        buffer.writeBytes( this.payload, 0, this.payloadLength );
     }
 
     @Override

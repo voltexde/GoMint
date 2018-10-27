@@ -90,10 +90,12 @@ public class PostProcessWorker implements Runnable {
 
         PacketBatch batch = new PacketBatch();
         batch.setPayload( data );
+        batch.setPayloadLength( data.length );
 
         EncryptionHandler encryptionHandler = this.connection.getEncryptionHandler();
         if ( encryptionHandler != null ) {
             batch.setPayload( encryptionHandler.encryptInputForServer( batch.getPayload() ) );
+            batch.setPayloadLength( batch.getPayload().length );
         }
 
         this.connection.send( batch );

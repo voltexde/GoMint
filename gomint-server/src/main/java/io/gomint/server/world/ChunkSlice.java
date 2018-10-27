@@ -16,7 +16,6 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.IntConsumer;
 
@@ -26,10 +25,16 @@ import java.util.function.IntConsumer;
  */
 public class ChunkSlice {
 
+    private static final ThreadLocal<int[]> INDEX_IDS = ThreadLocal.withInitial( () -> new int[4096] );
+    private static final ThreadLocal<LongList> INDEX_LIST = ThreadLocal.withInitial( LongArrayList::new );
+    private static final ThreadLocal<IntList> RUNTIME_INDEX = ThreadLocal.withInitial( IntArrayList::new );
+
     protected static final short AIR_RUNTIME_ID = (short) BlockRuntimeIDs.from( "minecraft:air", (short) 0 );
 
-    @Getter private final ChunkAdapter chunk;
-    @Getter private final int sectionY;
+    @Getter
+    private final ChunkAdapter chunk;
+    @Getter
+    private final int sectionY;
 
     // Cache
     private int shiftedMinX;
@@ -237,13 +242,15 @@ public class ChunkSlice {
         buffer.writeByte( (byte) amountOfLayers );
 
         for ( int layer = 0; layer < amountOfLayers; layer++ ) {
-            // Count how many unique blocks we have in this chunk
-            int[] indexIDs = new int[4096];
-            LongList indexList = new LongArrayList();
-            IntList runtimeIndex = new IntArrayList();
-
             int foundIndex = 0;
             int lastRuntimeID = -1;
+
+            int[] indexIDs = INDEX_IDS.get();
+            LongList indexList = INDEX_LIST.get();
+            IntList runtimeIndex = RUNTIME_INDEX.get();
+
+            indexList.clear();
+            runtimeIndex.clear();
 
             for ( short blockIndex = 0; blockIndex < indexIDs.length; blockIndex++ ) {
                 int runtimeID = this.getRuntimeID( layer, blockIndex );
@@ -268,7 +275,6 @@ public class ChunkSlice {
 
             // Prepare palette
             int amountOfBlocks = MathUtils.fastFloor( 32f / (float) numberOfBits );
-
             Palette palette = new Palette( buffer, amountOfBlocks, false );
 
             byte paletteWord = (byte) ( (byte) ( palette.getPaletteVersion().getVersionId() << 1 ) | 1 );

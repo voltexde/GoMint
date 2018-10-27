@@ -47,7 +47,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -559,7 +558,8 @@ public class ChunkAdapter implements Chunk {
         PacketWorldChunk packet = new PacketWorldChunk();
         packet.setX( this.x );
         packet.setZ( this.z );
-        packet.setData( Arrays.copyOf( buffer.getBuffer(), buffer.getPosition() ) );
+        packet.setData( buffer.getBuffer() );
+        packet.setDataLength( buffer.getPosition() );
 
         // Don't pack the chunk if using TCP
         if ( this.world.getServer().getServerConfig().getListener().isUseTCP() ) {
@@ -571,14 +571,15 @@ public class ChunkAdapter implements Chunk {
 
     private PacketBatch packChunk( PacketWorldChunk chunkPacket ) {
         PacketBatch chunkPacketBatch = new PacketBatch();
-        PacketBuffer buffer = new PacketBuffer( 64 );
+        PacketBuffer buffer = new PacketBuffer( 16 );
         chunkPacket.serializeHeader( buffer );
         chunkPacket.serialize( buffer, Protocol.MINECRAFT_PE_PROTOCOL_VERSION );
 
         ByteBuffer finalOut = ByteBuffer.allocate( buffer.getPosition() + 5 );
         writeVarInt( buffer.getPosition(), finalOut );
         finalOut.put( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getBufferOffset() + buffer.getPosition() );
-        chunkPacketBatch.setPayload( Arrays.copyOf( finalOut.array(), finalOut.position() ) );
+        chunkPacketBatch.setPayload( finalOut.array() );
+        chunkPacketBatch.setPayloadLength( finalOut.position() );
 
         return chunkPacketBatch;
     }

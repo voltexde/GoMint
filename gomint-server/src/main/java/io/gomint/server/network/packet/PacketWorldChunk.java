@@ -22,7 +22,9 @@ public class PacketWorldChunk extends Packet {
 
     private int x;
     private int z;
+
     private byte[] data;
+    private int dataLength;
 
     public PacketWorldChunk() {
         super( Protocol.PACKET_WORLD_CHUNK );
@@ -32,8 +34,8 @@ public class PacketWorldChunk extends Packet {
     public void serialize( PacketBuffer buffer, int protocolID ) {
         buffer.writeSignedVarInt( this.x );
         buffer.writeSignedVarInt( this.z );
-        buffer.writeUnsignedVarInt( this.data.length );
-        buffer.writeBytes( this.data );
+        buffer.writeUnsignedVarInt( this.dataLength );
+        buffer.writeBytes( this.data, 0, this.dataLength );
     }
 
     @Override
@@ -44,21 +46,6 @@ public class PacketWorldChunk extends Packet {
         int amount = buffer.readUnsignedVarInt();
         byte[] data = new byte[amount];
         buffer.readBytes( data );
-    }
-
-    @Override
-    public String toString() {
-        return "PacketWorldChunk(x=" + x + ";z=" + z + ";dataHash=" + hashPayload( data ) + ")";
-    }
-
-    private long hashPayload( byte[] array ) {
-        long h = 0;
-
-        for ( byte aPayload : array ) {
-            h = 31 * h + aPayload;
-        }
-
-        return h;
     }
 
 }
