@@ -12,7 +12,7 @@ import io.gomint.util.random.FastRandom;
  * @author geNAZt
  * @version 1.0
  */
-public class Simplex extends Perlin {
+public class Simplex extends Noise {
 
     private static final double SQRT_3;
     private static final double F2;
@@ -35,12 +35,26 @@ public class Simplex extends Perlin {
         G3 = 1.0 / 6.0;
     }
 
-    public Simplex( FastRandom random, double octaves, double persistence ) {
-        super( random, octaves, persistence );
-    }
-
     public Simplex( FastRandom random, double octaves, double persistence, double expansion ) {
-        super( random, octaves, persistence, expansion );
+        this.octaves = octaves;
+        this.persistence = persistence;
+        this.expansion = expansion;
+        this.offsetX = random.nextFloat() * 256;
+        this.offsetY = random.nextFloat() * 256;
+        this.offsetZ = random.nextFloat() * 256;
+        this.perm = new int[512];
+
+        for ( int i = 0; i < 256; ++i ) {
+            this.perm[i] = random.nextInt( 256 );
+        }
+
+        for ( int i = 0; i < 256; ++i ) {
+            int pos = random.nextInt( 256 - i ) + i;
+            int old = this.perm[i];
+            this.perm[i] = this.perm[pos];
+            this.perm[pos] = old;
+            this.perm[i + 256] = this.perm[i];
+        }
     }
 
     @Override
@@ -51,10 +65,13 @@ public class Simplex extends Perlin {
 
         // Skew the input space to determine which simplex cell we're in
         double s = ( x + y + z ) * F3; // Very nice and simple skew factor for 3D
+
         int i = (int) ( x + s );
         int j = (int) ( y + s );
         int k = (int) ( z + s );
+
         double t = ( i + j + k ) * G3;
+
         // Unskew the cell origin back to (x,y,z) space
         double x0 = x - ( i - t ); // The x,y,z distances from the cell origin
         double y0 = y - ( j - t );
@@ -181,6 +198,7 @@ public class Simplex extends Perlin {
         // For the 2D case, the simplex shape is an equilateral triangle.
         int i1 = 0;
         int j1 = 0;
+
         // Determine which simplex we are in.
         if ( x0 > y0 ) {
             i1 = 1;

@@ -98,13 +98,7 @@ public class BlockRuntimeIDs {
     }
 
     private static int lookup( String blockId, short dataValue, Long2IntMap lookup ) {
-        long hash = (long) blockId.hashCode() << 32 | dataValue;
-        int runtimeId = lookup.get( hash );
-        if ( runtimeId == -1 ) {
-            return -1;
-        }
-
-        return runtimeId;
+        return lookup.get( (long) blockId.hashCode() << 32 | dataValue );
     }
 
 }

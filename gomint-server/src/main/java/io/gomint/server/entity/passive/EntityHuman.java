@@ -366,6 +366,8 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
                         if ( !foodLevelChangeEvent.isCancelled() ) {
                             hunger = Math.max( 0, hunger - 1 );
                             this.setHunger( hunger );
+                        } else {
+                            ( (EntityPlayer) this ).resendAttributes();
                         }
                     } else {
                         hunger = Math.max( 0, hunger - 1 );

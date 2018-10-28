@@ -1,9 +1,9 @@
 package io.gomint.plugin;
 
 import io.gomint.i18n.LocaleManager;
-import io.gomint.plugin.listener.EntityDamageListener;
 import io.gomint.plugin.listener.PlayerInteractListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
+import io.gomint.plugin.listener.PlayerRespawnListener;
 import io.gomint.world.generator.CreateOptions;
 import io.gomint.world.generator.integrated.LayeredGenerator;
 
@@ -22,8 +22,8 @@ public class TestPlugin extends Plugin {
     public void onInstall() {
         // Register listener
         registerListener( new PlayerJoinListener( this ) );
-        registerListener( new EntityDamageListener() );
         registerListener( new PlayerInteractListener() );
+        registerListener( new PlayerRespawnListener() );
 
         LocaleManager localeManager = new LocaleManager( this );
         this.getLogger().info( localeManager.translate( Locale.GERMANY, "test" ) );

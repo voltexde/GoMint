@@ -21,20 +21,9 @@ public abstract class Noise {
     protected double persistence;
     protected double expansion;
 
-    public static double grad( int hash, double x, double y, double z ) {
-        hash &= 15;
-        double u = hash < 8 ? x : y;
-        double v = hash < 4 ? y : ( ( hash == 12 || hash == 14 ) ? x : z );
-        return ( ( hash & 1 ) == 0 ? u : -u ) + ( ( hash & 2 ) == 0 ? v : -v );
-    }
-
     public abstract double getNoise2D( double x, double z );
 
     public abstract double getNoise3D( double x, double y, double z );
-
-    public double noise2D( double x, double z ) {
-        return noise2D( x, z, false );
-    }
 
     public double noise2D( double x, double z, boolean normalized ) {
         double result = 0;
@@ -59,10 +48,6 @@ public abstract class Noise {
         return result;
     }
 
-    public double noise3D( double x, double y, double z ) {
-        return noise3D( x, y, z, false );
-    }
-
     public double noise3D( double x, double y, double z, boolean normalized ) {
         double result = 0;
         double amp = 1;
@@ -85,95 +70,6 @@ public abstract class Noise {
         }
 
         return result;
-    }
-
-    public void setOffset( double x, double y, double z ) {
-        this.offsetX = x;
-        this.offsetY = y;
-        this.offsetZ = z;
-    }
-
-
-    private double linearLerp( double x, double x1, double x2, double q0, double q1 ) {
-        return ( ( x2 - x ) / ( x2 - x1 ) ) * q0 + ( ( x - x1 ) / ( x2 - x1 ) ) * q1;
-    }
-
-    private double bilinearLerp( double x, double y, double q00, double q01, double q10, double q11, double x1, double x2, double y1, double y2 ) {
-        double dx1 = ( ( x2 - x ) / ( x2 - x1 ) );
-        double dx2 = ( ( x - x1 ) / ( x2 - x1 ) );
-
-        return ( ( y2 - y ) / ( y2 - y1 ) ) * (
-            dx1 * q00 + dx2 * q10
-        ) + ( ( y - y1 ) / ( y2 - y1 ) ) * (
-            dx1 * q01 + dx2 * q11
-        );
-    }
-
-    public double[] getFastNoise1D( Noise noise, int xSize, int samplingRate, int x, int y, int z ) {
-        if ( samplingRate == 0 ) {
-            throw new IllegalArgumentException( "samplingRate cannot be 0" );
-        }
-        if ( xSize % samplingRate != 0 ) {
-            throw new IllegalArgumentException( "xSize % samplingRate must return 0" );
-        }
-        double[] noiseArray = new double[xSize + 1];
-
-        for ( int xx = 0; xx <= xSize; xx += samplingRate ) {
-            noiseArray[xx] = noise.noise3D( xx + x, y, z );
-        }
-
-        for ( int xx = 0; xx < xSize; ++xx ) {
-            if ( xx % samplingRate != 0 ) {
-                int nx = xx / samplingRate * samplingRate;
-                noiseArray[nx] = this.linearLerp( xx, nx, nx + samplingRate, noiseArray[nx], noiseArray[nx + samplingRate] );
-            }
-        }
-
-        return noiseArray;
-    }
-
-    public double[][] getFastNoise2D( int xSize, int zSize, int samplingRate, int x, int y, int z, int xZoom, int zZoom ) {
-        if ( samplingRate == 0 ) {
-            throw new IllegalArgumentException( "samplingRate cannot be 0" );
-        }
-        if ( xSize % samplingRate != 0 ) {
-            throw new IllegalArgumentException( "xSize % samplingRate must return 0" );
-        }
-        if ( zSize % samplingRate != 0 ) {
-            throw new IllegalArgumentException( "zSize % samplingRate must return 0" );
-        }
-
-        double[][] noiseArray = new double[xSize + 1][zSize + 1];
-
-        for ( int xx = 0; xx <= xSize; xx += samplingRate ) {
-            noiseArray[xx] = new double[zSize + 1];
-            for ( int zz = 0; zz <= zSize; zz += samplingRate ) {
-                noiseArray[xx][zz] = this.noise3D( ( x + xx ) >> xZoom, y, ( z + zz ) >> zZoom );
-            }
-        }
-
-        for ( int xx = 0; xx < xSize; ++xx ) {
-            if ( xx % samplingRate != 0 ) {
-                noiseArray[xx] = new double[zSize + 1];
-            }
-
-            for ( int zz = 0; zz < zSize; ++zz ) {
-                if ( xx % samplingRate != 0 || zz % samplingRate != 0 ) {
-                    int nx = xx / samplingRate * samplingRate;
-                    int nz = zz / samplingRate * samplingRate;
-                    noiseArray[xx][zz] = this.bilinearLerp(
-                        xx, zz, noiseArray[nx][nz], noiseArray[nx][nz + samplingRate],
-                        noiseArray[nx + samplingRate][nz], noiseArray[nx + samplingRate][nz + samplingRate],
-                        nx, nx + samplingRate, nz, nz + samplingRate
-                    );
-                }
-            }
-        }
-        return noiseArray;
-    }
-
-    public double[][] getFastNoise2D( int xSize, int zSize, int samplingRate, int x, int y, int z ) {
-        return getFastNoise2D( xSize, zSize, samplingRate, x, y, z, 0, 0 );
     }
 
     public double[][][] getFastNoise3D( int xSize, int ySize, int zSize, int xSamplingRate, int ySamplingRate, int zSamplingRate, int x, int y, int z ) {

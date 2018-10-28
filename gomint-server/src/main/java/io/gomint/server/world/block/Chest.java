@@ -1,6 +1,7 @@
 package io.gomint.server.world.block;
 
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.server.world.block.state.FacingBlockState;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 
@@ -22,6 +23,8 @@ import java.util.List;
  */
 @RegisterInfo( sId = "minecraft:chest" )
 public class Chest extends ContainerBlock implements BlockChest {
+
+    private FacingBlockState facing = new FacingBlockState( this );
 
     @Override
     public String getBlockId() {

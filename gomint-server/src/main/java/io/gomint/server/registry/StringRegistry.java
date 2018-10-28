@@ -61,10 +61,6 @@ public class StringRegistry<R> {
 
         if ( clazz.isAnnotationPresent( RegisterInfo.class ) ) {
             String id = clazz.getAnnotation( RegisterInfo.class ).sId();
-            if ( id.isEmpty() ) {
-                System.out.println( clazz.getName() );
-            }
-
             Generator<R> generator = this.generatorCallback.generate( clazz );
             if ( generator != null ) {
                 this.storeGeneratorForId( id, generator );

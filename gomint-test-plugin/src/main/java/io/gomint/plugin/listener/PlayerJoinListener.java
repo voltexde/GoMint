@@ -4,6 +4,7 @@ import io.gomint.GoMint;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.EventPriority;
+import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.plugin.TestPlugin;
 import io.gomint.scoreboard.DisplaySlot;
@@ -11,6 +12,8 @@ import io.gomint.scoreboard.Scoreboard;
 import io.gomint.scoreboard.ScoreboardDisplay;
 import io.gomint.scoreboard.SortOrder;
 import lombok.RequiredArgsConstructor;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
@@ -33,6 +36,8 @@ public class PlayerJoinListener implements EventListener {
         display.addLine( "test2", 1 );
 
         event.getPlayer().setScoreboard( scoreboard );
+
+        this.plugin.getScheduler().schedule( () -> event.getPlayer().attack( 25, EntityDamageEvent.DamageSource.VOID ), 1, TimeUnit.SECONDS );
     }
 
 }
