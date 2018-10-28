@@ -1,19 +1,12 @@
 package io.gomint.plugin.listener;
 
-import io.gomint.GoMint;
 import io.gomint.event.EventHandler;
 import io.gomint.event.EventListener;
 import io.gomint.event.EventPriority;
-import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.plugin.TestPlugin;
-import io.gomint.scoreboard.DisplaySlot;
-import io.gomint.scoreboard.Scoreboard;
-import io.gomint.scoreboard.ScoreboardDisplay;
-import io.gomint.scoreboard.SortOrder;
+import io.gomint.world.Gamemode;
 import lombok.RequiredArgsConstructor;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author geNAZt
@@ -29,15 +22,10 @@ public class PlayerJoinListener implements EventListener {
         // Set to allow all permissions
         event.getPlayer().getPermissionManager().setPermission( "*", true );
 
-        Scoreboard scoreboard = GoMint.instance().createScoreboard();
-        ScoreboardDisplay display = scoreboard.addDisplay( DisplaySlot.SIDEBAR, "test", "TEST", SortOrder.DESCENDING );
+        event.getPlayer().setGamemode( Gamemode.CREATIVE );
 
-        display.addLine( "test1", 0 );
-        display.addLine( "test2", 1 );
-
-        event.getPlayer().setScoreboard( scoreboard );
-
-        this.plugin.getScheduler().schedule( () -> event.getPlayer().attack( 25, EntityDamageEvent.DamageSource.VOID ), 1, TimeUnit.SECONDS );
+        // Give this player the debug scoreboard
+        this.plugin.getScoreboard().addPlayer( event.getPlayer() );
     }
 
 }

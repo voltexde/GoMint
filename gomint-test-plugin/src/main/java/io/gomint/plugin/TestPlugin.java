@@ -4,8 +4,10 @@ import io.gomint.i18n.LocaleManager;
 import io.gomint.plugin.listener.PlayerInteractListener;
 import io.gomint.plugin.listener.PlayerJoinListener;
 import io.gomint.plugin.listener.PlayerRespawnListener;
+import io.gomint.plugin.scoreboard.DebugScoreboard;
 import io.gomint.world.generator.CreateOptions;
 import io.gomint.world.generator.integrated.LayeredGenerator;
+import lombok.Getter;
 
 import java.util.Locale;
 
@@ -18,23 +20,18 @@ import java.util.Locale;
 @Startup( StartupPriority.STARTUP )
 public class TestPlugin extends Plugin {
 
+    @Getter
+    private DebugScoreboard scoreboard;
+
     @Override
     public void onInstall() {
+        // Generate scoreboard
+        this.scoreboard = new DebugScoreboard( this );
+
         // Register listener
         registerListener( new PlayerJoinListener( this ) );
         registerListener( new PlayerInteractListener() );
         registerListener( new PlayerRespawnListener() );
-
-        LocaleManager localeManager = new LocaleManager( this );
-        this.getLogger().info( localeManager.translate( Locale.GERMANY, "test" ) );
-        this.getLogger().info( localeManager.translate( Locale.GERMANY, "test1.test" ) );
-
-        this.getServer().createWorld( "test1234", new CreateOptions().generator( LayeredGenerator.class ) );
-    }
-
-    @Override
-    public void onUninstall() {
-
     }
 
 }
