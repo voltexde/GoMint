@@ -196,7 +196,7 @@ public class ChunkAdapter implements Chunk {
         if ( slice != null ) {
             return slice;
         } else {
-            this.chunkSlices[y] = PerformanceHacks.isUnsafeEnabled() ? new UnsafeChunkSlice( this, y ) : new ChunkSlice( this, y );
+            this.chunkSlices[y] = PerformanceHacks.createChunkSlice( this, y );
             return this.chunkSlices[y];
         }
     }

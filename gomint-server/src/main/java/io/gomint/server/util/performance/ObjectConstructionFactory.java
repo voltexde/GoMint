@@ -29,7 +29,7 @@ public class ObjectConstructionFactory implements ConstructionFactory {
 
     private final ConstructionFactory factory;
 
-    public ObjectConstructionFactory( Class<?> clazz, Class ... arguments ) {
+    public ObjectConstructionFactory( Class<?> clazz, Class... arguments ) {
         if ( USE_SUN ) {
             this.factory = new ConstructorAccessFactory( clazz, arguments );
         } else {
@@ -38,7 +38,7 @@ public class ObjectConstructionFactory implements ConstructionFactory {
     }
 
     @Override
-    public Object newInstance( Object ... init ) {
+    public Object newInstance( Object... init ) {
         return this.factory.newInstance( init );
     }
 

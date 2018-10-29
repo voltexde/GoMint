@@ -7,6 +7,9 @@
 
 package io.gomint.server.util;
 
+import io.gomint.server.world.ChunkAdapter;
+import io.gomint.server.world.ChunkSlice;
+import io.gomint.server.world.UnsafeChunkSlice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,25 +25,27 @@ public class PerformanceHacks {
     private static Object unsafe;
 
     static {
-        if ( System.getProperty( "java.version" ).startsWith( "1.8." ) ) {
-            // This should only be tried on VMs we know it may work
-            // CHECKSTYLE:OFF
-            try {
-                Class unsafeClass = Class.forName( "sun.misc.Unsafe" );
+        // CHECKSTYLE:OFF
+        try {
+            Class unsafeClass = Class.forName( "sun.misc.Unsafe" );
+            getUnsafeField( unsafeClass );
+        } catch ( ClassNotFoundException e1 ) {
 
-                try {
-                    Field f = unsafeClass.getDeclaredField( "theUnsafe" );
-                    f.setAccessible( true );
-                    unsafe = f.get( null );
-                    LOGGER.info( "Got unsafe memory access" );
-                } catch ( Exception e ) {
-                    // Ignore this, this is optional unsafe getting stuff
-                }
-            } catch ( ClassNotFoundException e ) {
-                // Ignore this, this is optional unsafe getting stuff
-            }
-            // CHECKSTYLE:ON
         }
+        // CHECKSTYLE:ON
+    }
+
+    private static void getUnsafeField( Class unsafeClass ) {
+        // CHECKSTYLE:OFF
+        try {
+            Field f = unsafeClass.getDeclaredField( "theUnsafe" );
+            f.setAccessible( true );
+            unsafe = f.get( null );
+            LOGGER.info( "Got unsafe memory access" );
+        } catch ( Exception e ) {
+            // Ignore this, this is optional unsafe getting stuff
+        }
+        // CHECKSTYLE:ON
     }
 
     /**
@@ -61,4 +66,7 @@ public class PerformanceHacks {
         return unsafe != null;
     }
 
+    public static ChunkSlice createChunkSlice( ChunkAdapter chunkAdapter, int y ) {
+        return PerformanceHacks.isUnsafeEnabled() ? new UnsafeChunkSlice( chunkAdapter, y ) : new ChunkSlice( chunkAdapter, y );
+    }
 }

@@ -8,9 +8,14 @@
 package io.gomint.emulator;
 
 import io.gomint.emulator.client.Client;
+import io.gomint.jraknet.ClientSocket;
+import io.gomint.jraknet.Socket;
+import io.gomint.jraknet.SocketEvent;
+import io.gomint.jraknet.SocketEventHandler;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
+import java.net.SocketException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +38,24 @@ public class BootStrap {
             service.execute( () -> {
                 Client client = new Client( service, postProcessExecutorService.getExecutor(), null );
                 client.connect( "192.168.178.113", 19132 );
+
+                ClientSocket socket = new ClientSocket();
+                socket.setMojangModificationEnabled( true );
+                socket.setEventHandler( new SocketEventHandler() {
+                    @Override
+                    public void onSocketEvent( Socket socket, SocketEvent socketEvent ) {
+                        if ( socketEvent.getType() == SocketEvent.Type.UNCONNECTED_PONG ) {
+                            SocketEvent.PingPongInfo info = socketEvent.getPingPongInfo();
+                            System.out.println( "Pinged: " + info.getMotd() );
+                        }
+                    }
+                } );
+                try {
+                    socket.initialize();
+                    socket.ping( "localhost", 19132 );
+                } catch ( SocketException e ) {
+                    e.printStackTrace();
+                }
             } );
 
             Thread.sleep( 1000 );

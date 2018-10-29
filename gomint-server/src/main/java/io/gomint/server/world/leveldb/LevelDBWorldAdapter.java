@@ -251,7 +251,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
                             List<Block> blocks = new ArrayList<>();
 
                             JSONObject jsonObject = (JSONObject) parser.parse( this.generatorOptions );
-                            if ( jsonObject.containsKey( "block_layers" ) ) {
+                            if ( jsonObject != null && jsonObject.containsKey( "block_layers" ) ) {
                                 JSONArray blockLayers = (JSONArray) jsonObject.get( "block_layers" );
                                 for ( Object layer : blockLayers ) {
                                     JSONObject layerConfig = (JSONObject) layer;
