@@ -202,7 +202,7 @@ public class NetworkManager {
     public void close() {
         // Close the jRaknet EventLoops, we don't need them anymore
         try {
-            EventLoops.LOOP_GROUP.shutdownGracefully().await();
+            EventLoops.cleanup();
 
             GlobalEventExecutor.INSTANCE.awaitInactivity( 5, TimeUnit.SECONDS );
             ThreadDeathWatcher.awaitInactivity( 5, TimeUnit.SECONDS );
