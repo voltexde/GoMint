@@ -5,6 +5,7 @@ import io.gomint.event.EventListener;
 import io.gomint.event.EventPriority;
 import io.gomint.event.player.PlayerJoinEvent;
 import io.gomint.plugin.TestPlugin;
+import io.gomint.plugin.scoreboard.DebugScoreboard;
 import io.gomint.world.Gamemode;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +26,7 @@ public class PlayerJoinListener implements EventListener {
         event.getPlayer().setGamemode( Gamemode.CREATIVE );
 
         // Give this player the debug scoreboard
-        this.plugin.getScoreboard().addPlayer( event.getPlayer() );
+        new DebugScoreboard( this.plugin, event.getPlayer() );
     }
 
 }

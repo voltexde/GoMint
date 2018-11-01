@@ -11,6 +11,7 @@ import io.gomint.math.AxisAlignedBB;
 import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.math.Vector2;
+import io.gomint.world.Chunk;
 import io.gomint.world.World;
 
 import java.util.concurrent.TimeUnit;
@@ -344,7 +345,13 @@ public interface Entity {
      *
      * @return current fall distance
      */
-
     float getFallDistance();
+
+    /**
+     * Get the chunk this entity is currently in
+     *
+     * @return the chunk in which the entity is
+     */
+    Chunk getChunk();
 
 }

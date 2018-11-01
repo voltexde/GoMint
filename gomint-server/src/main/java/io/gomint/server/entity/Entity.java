@@ -884,11 +884,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         this.transform.rotatePitch( pitch );
     }
 
-    /**
-     * Get the chunk this entity is currently in
-     *
-     * @return the chunk in which the entity is
-     */
+    @Override
     public Chunk getChunk() {
         int chunkX = CoordinateUtils.fromBlockToChunk( (int) this.getPositionX() );
         int chunkZ = CoordinateUtils.fromBlockToChunk( (int) this.getPositionZ() );
