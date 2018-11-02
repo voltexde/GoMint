@@ -23,7 +23,8 @@ import java.util.PriorityQueue;
 @RequiredArgsConstructor
 public class SyncTaskManager {
 
-    @Getter private final GoMintServer goMintServer;
+    @Getter
+    private final GoMintServer goMintServer;
     private final PriorityQueue<SyncScheduledTaskHolder> taskList = new PriorityQueue<>( Comparator.comparingLong( o -> o.execution ) );
 
     /**
@@ -33,7 +34,10 @@ public class SyncTaskManager {
      */
     public void addTask( SyncScheduledTask task ) {
         if ( task.getNextExecution() == -1 ) return;
-        this.taskList.add( new SyncScheduledTaskHolder( task.getNextExecution(), task ) );
+
+        synchronized ( this.taskList ) {
+            this.taskList.add( new SyncScheduledTaskHolder( task.getNextExecution(), task ) );
+        }
     }
 
     /**
@@ -42,7 +46,9 @@ public class SyncTaskManager {
      * @param task The task which should be removed
      */
     void removeTask( SyncScheduledTask task ) {
-        this.taskList.remove( new SyncScheduledTaskHolder( -1, task ) );
+        synchronized ( this.taskList ) {
+            this.taskList.remove( new SyncScheduledTaskHolder( -1, task ) );
+        }
     }
 
     /**
@@ -51,28 +57,30 @@ public class SyncTaskManager {
      * @param currentMillis The amount of millis when the update started
      */
     public void update( long currentMillis ) {
-        // Iterate over all Tasks until we find some for later ticks
-        while ( this.taskList.peek() != null && this.taskList.peek().execution < currentMillis ) {
-            SyncScheduledTaskHolder holder = this.taskList.poll();
-            if ( holder == null ) {
-                return;
-            }
+        synchronized ( this.taskList ) {
+            // Iterate over all Tasks until we find some for later ticks
+            while ( this.taskList.peek() != null && this.taskList.peek().execution < currentMillis ) {
+                SyncScheduledTaskHolder holder = this.taskList.poll();
+                if ( holder == null ) {
+                    return;
+                }
 
-            SyncScheduledTask task = holder.task;
-            if ( task == null ) {
-                return;
-            }
+                SyncScheduledTask task = holder.task;
+                if ( task == null ) {
+                    return;
+                }
 
-            // Check for abort value ( -1 )
-            if ( task.getNextExecution() == -1 ) {
-                continue;
-            }
+                // Check for abort value ( -1 )
+                if ( task.getNextExecution() == -1 ) {
+                    continue;
+                }
 
-            task.run();
+                task.run();
 
-            // Reschedule if needed
-            if ( task.getNextExecution() > currentMillis ) {
-                this.taskList.add( new SyncScheduledTaskHolder( task.getNextExecution(), task ) );
+                // Reschedule if needed
+                if ( task.getNextExecution() > currentMillis ) {
+                    this.taskList.add( new SyncScheduledTaskHolder( task.getNextExecution(), task ) );
+                }
             }
         }
     }
