@@ -1022,6 +1022,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
         spawnEntity.setVelocityY( this.transform.getMotionY() );
         spawnEntity.setVelocityZ( this.transform.getMotionZ() );
         spawnEntity.setYaw( this.transform.getYaw() );
+        spawnEntity.setHeadYaw( this.transform.getHeadYaw() );
         spawnEntity.setPitch( this.transform.getPitch() );
         return spawnEntity;
     }

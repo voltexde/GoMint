@@ -46,6 +46,7 @@ public abstract class EntityConverter<T extends Entity> extends BasisConverter<T
         float yaw = MathUtils.ensureFloat( rotation.get( 0 ) );
         float pitch = MathUtils.ensureFloat( rotation.get( 1 ) );
         entity.setYaw( yaw );
+        entity.setHeadYaw( yaw );
         entity.setPitch( pitch );
 
         // Set age

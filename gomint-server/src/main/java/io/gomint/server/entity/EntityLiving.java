@@ -223,6 +223,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
         packet.setVelocityZ( this.getMotionZ() );
         packet.setPitch( this.getPitch() );
         packet.setYaw( this.getYaw() );
+        packet.setHeadYaw( this.getHeadYaw() );
         packet.setAttributes( this.attributes.values() );
         packet.setMetadata( this.getMetadata() );
         return packet;
