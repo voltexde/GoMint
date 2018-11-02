@@ -10,13 +10,7 @@ import io.gomint.command.ParamValidator;
 import io.gomint.plugin.Plugin;
 import io.gomint.server.command.gomint.KickCommand;
 import io.gomint.server.command.gomint.StopCommand;
-import io.gomint.server.command.vanilla.DeopCommand;
-import io.gomint.server.command.vanilla.GamemodeCommand;
-import io.gomint.server.command.vanilla.ListCommand;
-import io.gomint.server.command.vanilla.MeCommand;
-import io.gomint.server.command.vanilla.OpCommand;
-import io.gomint.server.command.vanilla.SayCommand;
-import io.gomint.server.command.vanilla.TPCommand;
+import io.gomint.server.command.vanilla.*;
 import io.gomint.server.entity.CommandPermission;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.network.packet.PacketAvailableCommands;
@@ -60,6 +54,8 @@ public class CommandManager {
                 GamemodeCommand.class,
                 MeCommand.class,
                 SayCommand.class,
+                SetWorldSpawnCommand.class,
+                SpawnPointCommand.class,
                 TPCommand.class,
 
                 // GoMint
