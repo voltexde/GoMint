@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 /**
  * @author geNAZt
@@ -183,6 +182,7 @@ public class LevelDBWorldAdapter extends WorldAdapter {
         compound.addValue( "SpawnX", (int) this.spawn.getX() );
         compound.addValue( "SpawnY", (int) this.spawn.getY() );
         compound.addValue( "SpawnZ", (int) this.spawn.getZ() );
+        compound.addValue( "Difficulty", this.difficulty.getDifficultyDegree() );
 
         // Level name
         compound.addValue( "LevelName", this.levelName );
@@ -227,12 +227,13 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     @Override
     public void setSpawnLocation( Location location ) {
         super.setSpawnLocation( location );
+        this.sneakySaveLevelDat();
+    }
 
-        try {
-            this.saveLevelDat();
-        } catch ( IOException cause ) {
-            this.logger.error( "level.dat for world '{}' could not be saved: ", this.levelName, cause );
-        }
+    @Override
+    public void setDifficulty( Difficulty difficulty ) {
+        super.setDifficulty( difficulty );
+        this.sneakySaveLevelDat();
     }
 
     @Override
@@ -515,6 +516,14 @@ public class LevelDBWorldAdapter extends WorldAdapter {
     @Override
     public Chunk generateEmptyChunk( int x, int z ) {
         return new LevelDBChunkAdapter( this, x, z );
+    }
+
+    protected final void sneakySaveLevelDat() {
+        try {
+            this.saveLevelDat();
+        } catch ( IOException cause ) {
+            this.logger.error( "level.dat for world '{}' could not be saved: ", this.levelName, cause );
+        }
     }
 
 }
