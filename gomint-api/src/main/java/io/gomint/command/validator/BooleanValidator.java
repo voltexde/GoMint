@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.command.validator;
 
 import io.gomint.command.CommandSender;
@@ -26,11 +33,9 @@ public class BooleanValidator extends EnumValidator {
         super( ENUM_VALUES );
     }
 
-    @Override
-    public ParamType getType() {
-        return ParamType.BOOL;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object validate( String input, CommandSender commandSender ) {
         String values = (String) super.validate( input, commandSender );
@@ -39,6 +44,14 @@ public class BooleanValidator extends EnumValidator {
         }
 
         return values.equals( "true" ) ? Boolean.TRUE : Boolean.FALSE;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ParamType getType() {
+        return ParamType.BOOL;
     }
 
 }

@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.command.annotation;
 
 import io.gomint.command.ParamValidator;
@@ -16,9 +23,13 @@ import java.lang.annotation.Target;
 public @interface Parameter {
 
     String name();
+
     Class<? extends ParamValidator> validator();
+
     String[] arguments() default {};
+
     boolean optional() default false;
+
     String postfix() default "";
 
 }

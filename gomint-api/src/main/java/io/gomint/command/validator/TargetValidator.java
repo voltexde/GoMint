@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.command.validator;
 
 import io.gomint.GoMint;
@@ -17,21 +24,9 @@ import java.util.List;
  */
 public class TargetValidator extends ParamValidator {
 
-    @Override
-    public ParamType getType() {
-        return ParamType.TARGET;
-    }
-
-    @Override
-    public boolean hasValues() {
-        return false;
-    }
-
-    @Override
-    public List<String> values() {
-        return null;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object validate( String input, CommandSender commandSender ) {
         Collection<EntityPlayer> searchPool = GoMint.instance().getPlayers();
@@ -50,6 +45,9 @@ public class TargetValidator extends ParamValidator {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String consume( Iterator<String> data ) {
         // Check if we have one element left
@@ -81,6 +79,33 @@ public class TargetValidator extends ParamValidator {
         return first;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ParamType getType() {
+        return ParamType.TARGET;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> values() {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasValues() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getHelpText() {
         return "target:player";

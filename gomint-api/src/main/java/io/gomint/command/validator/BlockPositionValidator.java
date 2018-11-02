@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.command.validator;
 
 import io.gomint.command.CommandSender;
@@ -16,21 +23,9 @@ import java.util.List;
  */
 public class BlockPositionValidator extends ParamValidator {
 
-    @Override
-    public ParamType getType() {
-        return ParamType.BLOCK_POS;
-    }
-
-    @Override
-    public boolean hasValues() {
-        return false;
-    }
-
-    @Override
-    public List<String> values() {
-        return null;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object validate( String input, CommandSender sender ) {
         // 0 -> x
@@ -63,6 +58,55 @@ public class BlockPositionValidator extends ParamValidator {
         }
 
         return new BlockPosition( xInt, yInt, zInt );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String consume( Iterator<String> data ) {
+        StringBuilder forValidator = new StringBuilder();
+        for ( int i = 0; i < 3; i++ ) {
+            if ( !data.hasNext() ) {
+                return null;
+            }
+
+            forValidator.append( data.next() );
+        }
+
+        return forValidator.toString();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ParamType getType() {
+        return ParamType.BLOCK_POS;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> values() {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasValues() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getHelpText() {
+        return "blockpos:x y z";
     }
 
     private Integer parsePos( int positionValue, String in ) {
@@ -104,25 +148,6 @@ public class BlockPositionValidator extends ParamValidator {
         }
 
         return null;
-    }
-
-    @Override
-    public String getHelpText() {
-        return "blockpos:x y z";
-    }
-
-    @Override
-    public String consume( Iterator<String> data ) {
-        StringBuilder forValidator = new StringBuilder();
-        for ( int i = 0; i < 3; i++ ) {
-            if ( !data.hasNext() ) {
-                return null;
-            }
-
-            forValidator.append( data.next() );
-        }
-
-        return forValidator.toString();
     }
 
 }
