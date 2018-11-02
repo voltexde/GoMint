@@ -3,6 +3,7 @@ package io.gomint.server.world.converter.anvil;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.server.assets.AssetsLibrary;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.BedTileEntity;
 import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntity;
@@ -12,6 +13,8 @@ import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.NibbleArray;
 import io.gomint.server.world.converter.BaseConverter;
+import io.gomint.server.world.converter.anvil.entity.EntityConverters;
+import io.gomint.server.world.converter.anvil.entity.v1_8.Entities;
 import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
 import io.gomint.server.world.converter.anvil.tileentity.v1_8.TileEntities;
 import io.gomint.taglib.NBTTagCompound;
@@ -55,7 +58,9 @@ public class AnvilConverter extends BaseConverter {
 
     private BlockConverter converter;
     private PEBlockConverter peConverter;
+
     private TileEntityConverters tileEntityConverter;
+    private EntityConverters entityConverter;
 
     private boolean nukkitPMMPConverted;
 
@@ -134,6 +139,7 @@ public class AnvilConverter extends BaseConverter {
         }
 
         this.tileEntityConverter = new TileEntities( this.items = items, this.itemConverter = itemConverter, entityConverter );
+        this.entityConverter = new Entities( this.items, this.itemConverter );
 
         // Convert all region files first
         File regionFolder = new File( backupFolder, "region" );
@@ -378,6 +384,26 @@ public class AnvilConverter extends BaseConverter {
             }
 
             this.storeTileEntities( chunkX, chunkZ, newTileEntities );
+        }
+
+        // Entities
+        List<Object> entities = levelCompound.getList( "Entities", false );
+        if ( entities != null && !entities.isEmpty() ) {
+            List<Entity> newEntities = new ArrayList<>();
+
+            for ( Object entity : entities ) {
+                NBTTagCompound entityCompound = (NBTTagCompound) entity;
+                try {
+                    Entity convertedEntity = this.entityConverter.read( entityCompound );
+                    if ( convertedEntity != null ) {
+                        newEntities.add( convertedEntity );
+                    }
+                } catch ( Exception e ) {
+                    LOGGER.warn( "Could not convert entity. Skipping...", e );
+                }
+            }
+
+            this.storeEntities( chunkX, chunkZ, newEntities );
         }
 
         this.persistChunk();

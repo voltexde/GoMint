@@ -174,7 +174,7 @@ public class AttributeInstance {
     public NBTTagCompound persistToNBT() {
         NBTTagCompound compound = new NBTTagCompound( "" );
         compound.addValue( "Name", this.key );
-        compound.addValue( "Base", (double) this.defaultValue );
+        compound.addValue( "Base", this.defaultValue );
 
         // Check for 0 mode multipliers (simple addition)
         List<NBTTagCompound> nbtModifiers = new ArrayList<>();

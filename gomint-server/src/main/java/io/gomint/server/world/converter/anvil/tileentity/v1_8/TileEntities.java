@@ -27,7 +27,6 @@ public class TileEntities implements TileEntityConverters {
     private SignConverter signConverter;
     private SkullConverter skullConverter;
     private ChestConverter chestConverter;
-    private FlowerPotConverter flowerPotConverter;
     private EnchantTableConverter enchantTableConverter;
     private DispenserConverter dispenserConverter;
     private EndPortalConverter endPortalConverter;
@@ -57,7 +56,6 @@ public class TileEntities implements TileEntityConverters {
         this.signConverter = new SignConverter( items, itemConverter );
         this.skullConverter = new SkullConverter( items, itemConverter );
         this.chestConverter = new ChestConverter( items, itemConverter );
-        this.flowerPotConverter = new FlowerPotConverter( items, itemConverter );
         this.enchantTableConverter = new EnchantTableConverter( items, itemConverter );
         this.dispenserConverter = new DispenserConverter( items, itemConverter );
         this.endPortalConverter = new EndPortalConverter( items, itemConverter );

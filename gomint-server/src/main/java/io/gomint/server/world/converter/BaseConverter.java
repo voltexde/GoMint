@@ -5,6 +5,7 @@ import io.gomint.leveldb.DB;
 import io.gomint.leveldb.NativeLoader;
 import io.gomint.leveldb.WriteBatch;
 import io.gomint.math.MathUtils;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.tileentity.SerializationReason;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Allocator;
@@ -191,6 +192,29 @@ public class BaseConverter {
         this.getWriteBatch().put( key, val );
 
         buffer.setPosition( 0 );
+    }
+
+    protected void storeEntities( int chunkX, int chunkZ, List<Entity> newEntities ) {
+        WriteBatch batch = this.getWriteBatch();
+
+        // Safe entities
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        NBTWriter nbtWriter = new NBTWriter( baos, ByteOrder.LITTLE_ENDIAN );
+        for ( Entity entity : newEntities ) {
+            try {
+                NBTTagCompound compound = entity.persistToNBT();
+                nbtWriter.write( compound );
+            } catch ( IOException e ) {
+                LOGGER.warn( "Could not write entity to leveldb", e );
+            }
+        }
+
+        if ( baos.size() > 0 ) {
+            ByteBuf key = this.getKey( chunkX, chunkZ, (byte) 0x32 );
+            ByteBuf val = Allocator.allocate( baos.toByteArray() );
+
+            batch.put( key, val );
+        }
     }
 
     protected void storeTileEntities( int chunkX, int chunkZ, List<NBTTagCompound> newTileEntities ) {

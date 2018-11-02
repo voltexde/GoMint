@@ -1344,6 +1344,9 @@ public abstract class Entity implements io.gomint.entity.Entity {
     public NBTTagCompound persistToNBT() {
         NBTTagCompound compound = new NBTTagCompound( "" );
 
+        // Store ID
+        compound.addValue( "identifier", this.type.getPersistantId() );
+
         // Store position
         List<Float> pos = new ArrayList<>();
         pos.add( this.getPositionX() );

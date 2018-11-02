@@ -5,23 +5,23 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package io.gomint.server.world.converter.anvil.tileentity;
+package io.gomint.server.world.converter.anvil.entity;
 
+import io.gomint.server.entity.Entity;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
- * @param <T> type of tile entity which this converter should generate
  * @author geNAZt
  * @version 1.0
  */
-public interface TileEntityConverter<T> {
+public interface EntityConverters {
 
     /**
-     * Construct and read a tile entity from the given compound
+     * Convert a entity to the PE format
      *
      * @param compound which should be read
-     * @return entity with config found in the compound
+     * @return constructed entity
      */
-    T readFrom( NBTTagCompound compound );
+    Entity read( NBTTagCompound compound );
 
 }

@@ -5,23 +5,27 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package io.gomint.server.world.converter.anvil.tileentity.v1_8;
+package io.gomint.server.world.converter.anvil.entity.v1_8;
 
-import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
+import io.gomint.math.Vector;
+import io.gomint.server.entity.Entity;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverter;
+import io.gomint.server.world.converter.anvil.entity.EntityConverter;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 /**
- * @param <T> type of tile entity which this converter should generate
+ * @param <T> type of entity which this converter should generate
  * @author geNAZt
  * @version 1.0
  */
 @RequiredArgsConstructor
-public abstract class BasisConverter<T> implements TileEntityConverter<T> {
+public abstract class BasisConverter<T extends Entity> implements EntityConverter<T> {
 
     protected final Items items;
     protected final Object2IntMap<String> itemConverter;
@@ -32,14 +36,43 @@ public abstract class BasisConverter<T> implements TileEntityConverter<T> {
      * @param compound which contains x, y and z position integers
      * @return block position object
      */
-    protected Location getPosition( NBTTagCompound compound ) {
-        return new Location(
-            null,
-            compound.getInteger( "x", 0 ),
-            compound.getInteger( "y", -1 ),
-            compound.getInteger( "z", 0 )
-        );
+    protected Vector getPosition( NBTTagCompound compound ) {
+        // Read position
+        List<Object> pos = compound.getList( "Pos", false );
+        if ( pos != null ) {
+            // Data in the array are three floats (x, y, z)
+            float x = MathUtils.ensureFloat( pos.get( 0 ) );
+            float y = MathUtils.ensureFloat( pos.get( 1 ) );
+            float z = MathUtils.ensureFloat( pos.get( 2 ) );
+
+            return new Vector( x, y, z );
+        }
+
+        return null;
     }
+
+    /**
+     * Read a position from the compound given
+     *
+     * @param compound which contains x, y and z position integers
+     * @return block position object
+     */
+    protected Vector getMotion( NBTTagCompound compound ) {
+        // Read position
+        List<Object> pos = compound.getList( "Motion", false );
+        if ( pos != null ) {
+            // Data in the array are three floats (x, y, z)
+            float x = MathUtils.ensureFloat( pos.get( 0 ) );
+            float y = MathUtils.ensureFloat( pos.get( 1 ) );
+            float z = MathUtils.ensureFloat( pos.get( 2 ) );
+
+            return new Vector( x, y, z );
+        }
+
+        return null;
+    }
+
+    public abstract T createEntity();
 
     /**
      * Get the item out of the compound
