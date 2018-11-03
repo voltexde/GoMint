@@ -20,7 +20,7 @@ import java.util.ArrayList;
  * @author geNAZt
  * @version 1.0
  */
-public class YamlConfig extends ConfigMapper implements IConfig {
+public class YamlConfig extends ConfigMapper implements Config {
 
     public YamlConfig() {
 

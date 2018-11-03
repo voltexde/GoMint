@@ -13,7 +13,7 @@ import java.io.File;
  * @author geNAZt
  * @version 1.0
  */
-public interface IConfig {
+public interface Config {
 
     void save() throws InvalidConfigurationException;
 
