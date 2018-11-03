@@ -104,7 +104,7 @@ public class MapConverter implements Converter {
 
                     Object value = entry.getValue();
                     ParameterizedType parameterizedType = null;
-                    Converter converter = internalConverter.getConverter( clazz );
+                    Converter converter = this.internalConverter.getConverter( clazz );
 
                     if ( argument instanceof ParameterizedType ) {
                         parameterizedType = (ParameterizedType) argument;

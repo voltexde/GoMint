@@ -31,7 +31,7 @@ public class ArrayConverter implements Converter {
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
         Class<?> singleType = type.getComponentType();
-        Converter converter = internalConverter.getConverter( singleType );
+        Converter converter = this.internalConverter.getConverter( singleType );
 
         if ( converter == null ) {
             return object;
@@ -52,7 +52,7 @@ public class ArrayConverter implements Converter {
         Class<?> singleType = type.getComponentType();
         List values = object instanceof List ? (List) object : new ArrayList( Arrays.asList( (Object[]) object ) );
         Object result = Array.newInstance( singleType, values.size() );
-        Converter converter = internalConverter.getConverter( singleType );
+        Converter converter = this.internalConverter.getConverter( singleType );
 
         if ( converter == null ) {
             return values.toArray( (Object[]) result );

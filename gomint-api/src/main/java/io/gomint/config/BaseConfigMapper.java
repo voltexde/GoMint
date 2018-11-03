@@ -111,7 +111,7 @@ public class BaseConfigMapper extends BaseConfig {
     protected void saveToYaml() throws InvalidConfigurationException {
         try ( OutputStreamWriter writer = new OutputStreamWriter( new FileOutputStream( this.configFile ), CHARSET ) ) {
             if ( this.configHeader != null ) {
-                for ( String line : configHeader ) {
+                for ( String line : this.configHeader ) {
                     writer.write( "# " + line + "\n" );
                 }
 

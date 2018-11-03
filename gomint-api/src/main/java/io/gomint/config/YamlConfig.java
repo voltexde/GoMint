@@ -226,7 +226,7 @@ public class YamlConfig extends ConfigMapper implements Config {
 
             if ( this.root.has( path ) ) {
                 try {
-                    converter.fromConfig( this, field, this.root, path );
+                    this.converter.fromConfig( this, field, this.root, path );
                 } catch ( Exception cause ) {
                     throw new InvalidConfigurationException( "Failed assigning value to field " +
                         "'" + clazz.getName() + "#" + field.getName() + "'", cause );
@@ -238,7 +238,7 @@ public class YamlConfig extends ConfigMapper implements Config {
 
                     save = true;
                 } catch ( Exception cause ) {
-                    if ( !skipFailedObjects ) {
+                    if ( !this.skipFailedObjects ) {
                         throw new InvalidConfigurationException( "Failed retrieving value of field " +
                             "'" + clazz.getName() + "#" + field.getName() + "'", cause );
                     }
