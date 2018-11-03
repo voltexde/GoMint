@@ -7,7 +7,6 @@
 
 package io.gomint.config.converter;
 
-import io.gomint.config.InternalConverter;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.HashSet;
@@ -18,7 +17,6 @@ import java.util.HashSet;
  */
 public class PrimitiveConverter implements Converter {
 
-    private InternalConverter internalConverter;
     private HashSet<String> types = new HashSet<String>() {{
         add( "boolean" );
         add( "char" );
@@ -29,10 +27,6 @@ public class PrimitiveConverter implements Converter {
         add( "float" );
         add( "double" );
     }};
-
-    public PrimitiveConverter( InternalConverter internalConverter ) {
-        this.internalConverter = internalConverter;
-    }
 
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType parameterizedType ) {
