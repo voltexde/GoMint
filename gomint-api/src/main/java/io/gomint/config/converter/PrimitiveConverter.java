@@ -8,6 +8,8 @@
 package io.gomint.config.converter;
 
 
+import io.gomint.config.InternalConverter;
+
 import java.lang.reflect.ParameterizedType;
 import java.util.HashSet;
 
@@ -27,6 +29,14 @@ public class PrimitiveConverter implements Converter {
         this.add( "float" );
         this.add( "double" );
     }};
+
+    // This constructor is needed to prevent InternalConverter throwing an exception
+    // InternalConverter accesses this constructor with Reflection to create an instance
+    // !!!! DO NOT REMOVE !!!!
+    // It will compile but will fail at runtime
+    public PrimitiveConverter( InternalConverter internalConverter ) {
+
+    }
 
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
