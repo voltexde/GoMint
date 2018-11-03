@@ -9,9 +9,7 @@ package io.gomint.server.world;
 
 import io.gomint.math.MathUtils;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.util.PerformanceHacks;
 import io.gomint.server.util.Values;
-import io.gomint.server.util.performance.UnsafeAllocator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
@@ -84,34 +82,33 @@ public class ChunkCache {
         boolean checkChunkSave = this.isAutosaveEnabled() &&
             this.autoSaveInterval > 0;
 
-        for ( long l : this.cachedChunks.keySet() ) {
-            ChunkAdapter chunk = null;
-            if ( checkChunkSave ) {
-                chunk = this.cachedChunks.get( l );
-
-                if ( chunk.isNeedsPersistance() && currentTimeMS - chunk.getLastSavedTimestamp() >= this.autoSaveInterval ) {
-                    chunk.setLastSavedTimestamp( currentTimeMS );
-                    this.world.saveChunkAsynchronously( chunk );
-                }
+        Long2ObjectMap.FastEntrySet<ChunkAdapter> fastEntrySet = (Long2ObjectMap.FastEntrySet<ChunkAdapter>) this.cachedChunks.long2ObjectEntrySet();
+        ObjectIterator<Long2ObjectMap.Entry<ChunkAdapter>> iterator = fastEntrySet.fastIterator();
+        while ( iterator.hasNext() ) {
+            Long2ObjectMap.Entry<ChunkAdapter> entry = iterator.next();
+            ChunkAdapter chunk = entry.getValue();
+            if ( checkChunkSave && chunk.isNeedsPersistance() && currentTimeMS - chunk.getLastSavedTimestamp() >= this.autoSaveInterval ) {
+                chunk.setLastSavedTimestamp( currentTimeMS );
+                this.world.saveChunkAsynchronously( chunk );
             }
 
-            int currentX = (int) ( l >> 32 );
-            int currentZ = (int) ( l ) + Integer.MIN_VALUE;
+            int currentX = (int) ( entry.getLongKey() >> 32 );
+            int currentZ = (int) ( entry.getLongKey() ) + Integer.MIN_VALUE;
 
             // Check if this is part of the spawn
             if ( spawnAreaSize > 0 &&
                 ( Math.abs( currentX ) - spawnXChunk <= spawnAreaSize &&
-                Math.abs( currentZ ) - spawnZChunk <= spawnAreaSize ) ) {
+                    Math.abs( currentZ ) - spawnZChunk <= spawnAreaSize ) ) {
                 continue;
             }
 
             // Calculate the hashes which are used by players view distances
-            if ( this.tempHashes[0].contains( l ) ) {
+            if ( this.tempHashes[0].contains( entry.getLongKey() ) ) {
                 continue;
             }
 
             if ( chunk == null ) {
-                chunk = this.cachedChunks.get( l );
+                chunk = this.cachedChunks.get( entry.getLongKey() );
             }
 
             // Ask this chunk if he wants to be gced
@@ -122,7 +119,7 @@ public class ChunkCache {
             LOGGER.debug( "Cleaning up chunk @ {} {}", currentX, currentZ );
 
             // Ask this chunk if he wants to be gced
-            this.tempHashes[1].add( l );
+            this.tempHashes[1].add( entry.getLongKey() );
         }
 
         if ( !this.tempHashes[1].isEmpty() ) {
