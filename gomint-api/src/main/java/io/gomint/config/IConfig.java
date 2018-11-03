@@ -15,18 +15,18 @@ import java.io.File;
  */
 public interface IConfig {
 
-    public void save() throws InvalidConfigurationException;
+    void save() throws InvalidConfigurationException;
 
-    public void save( File file ) throws InvalidConfigurationException;
+    void save( File file ) throws InvalidConfigurationException;
 
-    public void init() throws InvalidConfigurationException;
+    void init() throws InvalidConfigurationException;
 
-    public void init( File file ) throws InvalidConfigurationException;
+    void init( File file ) throws InvalidConfigurationException;
 
-    public void reload() throws InvalidConfigurationException;
+    void reload() throws InvalidConfigurationException;
 
-    public void load() throws InvalidConfigurationException;
+    void load() throws InvalidConfigurationException;
 
-    public void load( File file ) throws InvalidConfigurationException;
+    void load( File file ) throws InvalidConfigurationException;
 
 }
