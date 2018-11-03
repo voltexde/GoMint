@@ -1,6 +1,8 @@
 package io.gomint.server.world.block;
 
 import io.gomint.math.AxisAlignedBB;
+import io.gomint.server.world.block.state.BooleanBlockState;
+import io.gomint.server.world.block.state.FacingBlockState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +15,8 @@ import java.util.List;
  */
 public abstract class Stairs extends Block {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger( Stairs.class );
+    private final FacingBlockState facing = new FacingBlockState( this, (short) 3 );
+    private final BooleanBlockState top = new BooleanBlockState( this, states -> true, 2 );
 
     @Override
     public boolean isTransparent() {

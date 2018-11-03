@@ -110,6 +110,7 @@ public class FacingBlockState extends BlockState<Facing> {
 
         // Rotate
         data += this.rotation;
+        data &= this.cap();
         return data;
     }
 
