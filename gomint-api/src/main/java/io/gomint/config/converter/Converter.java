@@ -10,7 +10,8 @@ package io.gomint.config.converter;
 import java.lang.reflect.ParameterizedType;
 
 /**
- * @author geNAZt (fabian.fassbender42@googlemail.com)
+ * @author geNAZt
+ * @version 1.0
  */
 public interface Converter {
     /**

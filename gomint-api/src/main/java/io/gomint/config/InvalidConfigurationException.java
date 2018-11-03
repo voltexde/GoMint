@@ -8,7 +8,8 @@
 package io.gomint.config;
 
 /**
- * @author geNAZt (fabian.fassbender42@googlemail.com)
+ * @author geNAZt
+ * @version 1.0
  */
 public class InvalidConfigurationException extends Exception {
     public InvalidConfigurationException() {}

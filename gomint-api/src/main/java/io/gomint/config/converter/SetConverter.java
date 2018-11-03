@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
+/**
+ * @author geNAZt
+ * @version 1.0
+ */
 public class SetConverter implements Converter {
     private InternalConverter internalConverter;
 

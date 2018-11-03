@@ -14,7 +14,8 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 
 /**
- * @author geNAZt (fabian.fassbender42@googlemail.com)
+ * @author geNAZt
+ * @version 1.0
  */
 public class ListConverter implements Converter {
     private InternalConverter internalConverter;
