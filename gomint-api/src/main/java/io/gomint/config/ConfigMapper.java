@@ -39,7 +39,7 @@ public class ConfigMapper extends BaseConfigMapper {
 
             String path;
 
-            switch ( configMode ) {
+            switch ( CONFIG_MODE ) {
                 case PATH_BY_UNDERSCORE:
                     path = field.getName().replace( "_", "." );
                     break;
@@ -88,7 +88,7 @@ public class ConfigMapper extends BaseConfigMapper {
 
             String path;
 
-            switch ( configMode ) {
+            switch ( CONFIG_MODE ) {
                 case PATH_BY_UNDERSCORE:
                     path = field.getName().replace( "_", "." );
                     break;

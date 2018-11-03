@@ -28,12 +28,12 @@ public class YamlConfig extends ConfigMapper implements Config {
     }
 
     public YamlConfig( String filename ) {
-        this.configFile = new File( filename + ( filename.endsWith( ".yml" ) ? "" : ".yml" ) );
+        this.CONFIG_FILE = new File( filename + ( filename.endsWith( ".yml" ) ? "" : ".yml" ) );
     }
 
     @Override
     public void save() throws InvalidConfigurationException {
-        Preconditions.checkNotNull( this.configFile, "Cannot save config file: Local field 'configFile' is null" );
+        Preconditions.checkNotNull( this.CONFIG_FILE, "Cannot save config file: Local field 'CONFIG_FILE' is null" );
 
         if ( this.root == null ) {
             this.root = new ConfigSection();
@@ -48,18 +48,18 @@ public class YamlConfig extends ConfigMapper implements Config {
     public void save( File file ) throws InvalidConfigurationException {
         Preconditions.checkNotNull( file, Messages.paramIsNull( "file" ) );
 
-        this.configFile = file;
+        this.CONFIG_FILE = file;
         this.save();
     }
 
     @Override
     public void init() throws InvalidConfigurationException {
-        if ( this.configFile.exists() ) {
+        if ( this.CONFIG_FILE.exists() ) {
             this.load();
             return;
         }
 
-        File parentFile = this.configFile.getParentFile();
+        File parentFile = this.CONFIG_FILE.getParentFile();
 
         if ( parentFile != null ) {
             Preconditions.checkState( parentFile.mkdirs(),
@@ -67,8 +67,8 @@ public class YamlConfig extends ConfigMapper implements Config {
         }
 
         try {
-            Preconditions.checkState( this.configFile.createNewFile(),
-                "Failed creating file " + this.configFile.getAbsolutePath() );
+            Preconditions.checkState( this.CONFIG_FILE.createNewFile(),
+                "Failed creating file " + this.CONFIG_FILE.getAbsolutePath() );
 
             this.save();
         } catch ( IOException cause ) {
@@ -80,7 +80,7 @@ public class YamlConfig extends ConfigMapper implements Config {
     public void init( File file ) throws InvalidConfigurationException {
         Preconditions.checkNotNull( file, Messages.paramIsNull( "file" ) );
 
-        this.configFile = file;
+        this.CONFIG_FILE = file;
         this.init();
     }
 
@@ -92,7 +92,7 @@ public class YamlConfig extends ConfigMapper implements Config {
 
     @Override
     public void load() throws InvalidConfigurationException {
-        Preconditions.checkNotNull( this.configFile, "Cannot load config file: Local field 'configFile' is null" );
+        Preconditions.checkNotNull( this.CONFIG_FILE, "Cannot load config file: Local field 'CONFIG_FILE' is null" );
 
         this.loadFromYaml();
         this.update( this.root );
@@ -103,7 +103,7 @@ public class YamlConfig extends ConfigMapper implements Config {
     public void load( File file ) throws InvalidConfigurationException {
         Preconditions.checkNotNull( file, Messages.paramIsNull( "file" ) );
 
-        this.configFile = file;
+        this.CONFIG_FILE = file;
         this.load();
     }
 
@@ -119,7 +119,7 @@ public class YamlConfig extends ConfigMapper implements Config {
 
             String path;
 
-            switch ( this.configMode ) {
+            switch ( this.CONFIG_MODE ) {
                 case PATH_BY_UNDERSCORE:
                     path = field.getName().replace( "_", "." );
                     break;
@@ -191,7 +191,7 @@ public class YamlConfig extends ConfigMapper implements Config {
 
             String path;
 
-            switch ( this.configMode ) {
+            switch ( this.CONFIG_MODE ) {
                 case PATH_BY_UNDERSCORE:
                     path = field.getName().replace( "_", "." );
                     break;
@@ -208,13 +208,6 @@ public class YamlConfig extends ConfigMapper implements Config {
 
                     break;
             }
-
-            // Replaced by the switch statement (delete me later)
-            /*if ( this.configMode == ConfigMode.PATH_BY_UNDERSCORE ) {
-                path = field.getName().replaceAll( "_", "." );
-            } else {
-                path = field.getName();
-            }*/
 
             if ( field.isAnnotationPresent( Path.class ) ) {
                 path = field.getAnnotation( Path.class ).value();

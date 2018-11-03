@@ -96,7 +96,7 @@ public class BaseConfigMapper extends BaseConfig {
     protected void loadFromYaml() throws InvalidConfigurationException {
         this.root = new ConfigSection();
 
-        try ( InputStreamReader reader = new InputStreamReader( new FileInputStream( this.configFile ), CHARSET ) ) {
+        try ( InputStreamReader reader = new InputStreamReader( new FileInputStream( this.CONFIG_FILE ), CHARSET ) ) {
             Object object = YAML.load( reader );
 
             if ( object != null ) {
@@ -104,14 +104,14 @@ public class BaseConfigMapper extends BaseConfig {
             }
         } catch ( IOException | ClassCastException | YAMLException cause ) {
             throw new InvalidConfigurationException( "Failed loading from YAML file " +
-                "\"" + this.configFile.getAbsolutePath() + "\"", cause );
+                "\"" + this.CONFIG_FILE.getAbsolutePath() + "\"", cause );
         }
     }
 
     protected void saveToYaml() throws InvalidConfigurationException {
-        try ( OutputStreamWriter writer = new OutputStreamWriter( new FileOutputStream( this.configFile ), CHARSET ) ) {
-            if ( this.configHeader != null ) {
-                for ( String line : this.configHeader ) {
+        try ( OutputStreamWriter writer = new OutputStreamWriter( new FileOutputStream( this.CONFIG_FILE ), CHARSET ) ) {
+            if ( this.CONFIG_HEADER != null ) {
+                for ( String line : this.CONFIG_HEADER ) {
                     writer.write( "# " + line + "\n" );
                 }
 
@@ -200,7 +200,7 @@ public class BaseConfigMapper extends BaseConfig {
             writer.write( writeLines.toString() );
         } catch ( IOException cause ) {
             throw new InvalidConfigurationException( "Failed saving to YAML file " +
-                "\"" + this.configFile.getAbsolutePath() + "\"", cause );
+                "\"" + this.CONFIG_FILE.getAbsolutePath() + "\"", cause );
         }
     }
 
