@@ -121,7 +121,7 @@ public class ConfigSection {
 
     public boolean has( String path ) {
         if ( path == null ) {
-            throw new IllegalArgumentException( "Cannot remove a Value at empty path" );
+            throw new IllegalArgumentException( "Cannot remove a value at empty path" );
         }
 
         //Be sure to have all ConfigSections down the Path
@@ -151,7 +151,7 @@ public class ConfigSection {
     @SuppressWarnings( "unchecked" )
     public <T> T get( String path ) {
         if ( path == null ) {
-            throw new IllegalArgumentException( "Cannot remove a Value at empty path" );
+            throw new IllegalArgumentException( "Cannot remove a value at empty path" );
         }
 
         //Be sure to have all ConfigSections down the Path

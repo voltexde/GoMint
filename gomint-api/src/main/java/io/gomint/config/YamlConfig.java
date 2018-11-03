@@ -8,6 +8,7 @@
 package io.gomint.config;
 
 import com.google.common.base.Preconditions;
+import io.gomint.util.Messages;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,24 +33,20 @@ public class YamlConfig extends ConfigMapper implements Config {
 
     @Override
     public void save() throws InvalidConfigurationException {
-        if ( configFile == null ) {
-            throw new IllegalArgumentException( "Saving a config without given File" );
-        }
+        Preconditions.checkNotNull( this.configFile, "Cannot save config file: Local field 'configFile' is null" );
 
         if ( this.root == null ) {
             this.root = new ConfigSection();
         }
 
         this.clearComments();
-        this.internalSave( getClass() );
+        this.internalSave( this.getClass() );
         this.saveToYaml();
     }
 
     @Override
     public void save( File file ) throws InvalidConfigurationException {
-        if ( file == null ) {
-            throw new IllegalArgumentException( "File argument can not be null" );
-        }
+        Preconditions.checkNotNull( file, Messages.paramIsNull( "file" ) );
 
         this.configFile = file;
         this.save();
@@ -57,30 +54,31 @@ public class YamlConfig extends ConfigMapper implements Config {
 
     @Override
     public void init() throws InvalidConfigurationException {
-        if ( !this.configFile.exists() ) {
-            if ( this.configFile.getParentFile() != null ) {
-                if ( !this.configFile.getParentFile().mkdirs() ) {
-                    throw new RuntimeException( "Failed creating directory " + this.configFile.getParentFile().getAbsolutePath() );
-                }
-            }
-
-            try {
-                if ( !this.configFile.createNewFile() ) {
-                    throw new RuntimeException( "Failed creating file " + this.configFile.getAbsolutePath() );
-                }
-
-                this.save();
-            } catch ( IOException cause ) {
-                throw new InvalidConfigurationException( "Could not create new empty Config", cause );
-            }
-        } else {
+        if ( this.configFile.exists() ) {
             this.load();
+            return;
+        }
+
+        File parentFile = this.configFile.getParentFile();
+
+        if ( parentFile != null ) {
+            Preconditions.checkState( parentFile.mkdirs(),
+                "Failed creating directory " + parentFile.getAbsolutePath() );
+        }
+
+        try {
+            Preconditions.checkState( this.configFile.createNewFile(),
+                "Failed creating file " + this.configFile.getAbsolutePath() );
+
+            this.save();
+        } catch ( IOException cause ) {
+            throw new InvalidConfigurationException( "Failed saving new empty config file", cause );
         }
     }
 
     @Override
     public void init( File file ) throws InvalidConfigurationException {
-        Preconditions.checkNotNull( file, "File argument can not be null" );
+        Preconditions.checkNotNull( file, Messages.paramIsNull( "file" ) );
 
         this.configFile = file;
         this.init();
@@ -94,7 +92,7 @@ public class YamlConfig extends ConfigMapper implements Config {
 
     @Override
     public void load() throws InvalidConfigurationException {
-        Preconditions.checkNotNull( this.configFile, "Loading a config without given File" );
+        Preconditions.checkNotNull( this.configFile, "Cannot load config file: Local field 'configFile' is null" );
 
         this.loadFromYaml();
         this.update( this.root );
@@ -103,7 +101,7 @@ public class YamlConfig extends ConfigMapper implements Config {
 
     @Override
     public void load( File file ) throws InvalidConfigurationException {
-        Preconditions.checkNotNull( file, "File argument can not be null" );
+        Preconditions.checkNotNull( file, Messages.paramIsNull( "file" ) );
 
         this.configFile = file;
         this.load();
@@ -130,9 +128,7 @@ public class YamlConfig extends ConfigMapper implements Config {
                     break;
                 case DEFAULT:
                 default:
-                    String fieldName = field.getName();
-
-                    if ( fieldName.contains( "_" ) ) {
+                    if ( field.getName().contains( "_" ) ) {
                         path = field.getName().replace( "_", "." );
                     } else {
                         path = field.getName();
@@ -174,7 +170,8 @@ public class YamlConfig extends ConfigMapper implements Config {
                 this.converter.fromConfig( this, field, this.root, path );
             } catch ( Exception cause ) {
                 if ( !this.skipFailedObjects ) {
-                    throw new InvalidConfigurationException( "Could not save the Field", cause );
+                    throw new InvalidConfigurationException( "Failed saving field " +
+                        "'" + clazz.getName() + "#" + field.getName() + "'", cause );
                 }
             }
         }
@@ -192,7 +189,32 @@ public class YamlConfig extends ConfigMapper implements Config {
                 continue;
             }
 
-            String path = configMode.equals( ConfigMode.PATH_BY_UNDERSCORE ) ? field.getName().replaceAll( "_", "." ) : field.getName();
+            String path;
+
+            switch ( this.configMode ) {
+                case PATH_BY_UNDERSCORE:
+                    path = field.getName().replace( "_", "." );
+                    break;
+                case FIELD_IS_KEY:
+                    path = field.getName();
+                    break;
+                case DEFAULT:
+                default:
+                    if ( field.getName().contains( "_" ) ) {
+                        path = field.getName().replace( "_", "." );
+                    } else {
+                        path = field.getName();
+                    }
+
+                    break;
+            }
+
+            // Replaced by the switch statement (delete me later)
+            /*if ( this.configMode == ConfigMode.PATH_BY_UNDERSCORE ) {
+                path = field.getName().replaceAll( "_", "." );
+            } else {
+                path = field.getName();
+            }*/
 
             if ( field.isAnnotationPresent( Path.class ) ) {
                 path = field.getAnnotation( Path.class ).value();
@@ -205,8 +227,9 @@ public class YamlConfig extends ConfigMapper implements Config {
             if ( this.root.has( path ) ) {
                 try {
                     converter.fromConfig( this, field, this.root, path );
-                } catch ( Exception e ) {
-                    throw new InvalidConfigurationException( "Could not set field", e );
+                } catch ( Exception cause ) {
+                    throw new InvalidConfigurationException( "Failed assigning value to field " +
+                        "'" + clazz.getName() + "#" + field.getName() + "'", cause );
                 }
             } else {
                 try {
@@ -216,7 +239,8 @@ public class YamlConfig extends ConfigMapper implements Config {
                     save = true;
                 } catch ( Exception cause ) {
                     if ( !skipFailedObjects ) {
-                        throw new InvalidConfigurationException( "Could not get field", cause );
+                        throw new InvalidConfigurationException( "Failed retrieving value of field " +
+                            "'" + clazz.getName() + "#" + field.getName() + "'", cause );
                     }
                 }
             }

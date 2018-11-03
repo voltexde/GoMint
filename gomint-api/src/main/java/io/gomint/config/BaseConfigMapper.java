@@ -96,25 +96,26 @@ public class BaseConfigMapper extends BaseConfig {
     protected void loadFromYaml() throws InvalidConfigurationException {
         this.root = new ConfigSection();
 
-        try ( InputStreamReader fileReader = new InputStreamReader( new FileInputStream( configFile ), CHARSET ) ) {
-            Object object = YAML.load( fileReader );
+        try ( InputStreamReader reader = new InputStreamReader( new FileInputStream( this.configFile ), CHARSET ) ) {
+            Object object = YAML.load( reader );
 
             if ( object != null ) {
                 convertMapsToSections( (Map<?, ?>) object, this.root );
             }
-        } catch ( IOException | ClassCastException | YAMLException e ) {
-            throw new InvalidConfigurationException( "Could not load YML", e );
+        } catch ( IOException | ClassCastException | YAMLException cause ) {
+            throw new InvalidConfigurationException( "Failed loading from YAML file " +
+                "\"" + this.configFile.getAbsolutePath() + "\"", cause );
         }
     }
 
     protected void saveToYaml() throws InvalidConfigurationException {
-        try ( OutputStreamWriter fileWriter = new OutputStreamWriter( new FileOutputStream( configFile ), CHARSET ) ) {
-            if ( configHeader != null ) {
+        try ( OutputStreamWriter writer = new OutputStreamWriter( new FileOutputStream( this.configFile ), CHARSET ) ) {
+            if ( this.configHeader != null ) {
                 for ( String line : configHeader ) {
-                    fileWriter.write( "# " + line + "\n" );
+                    writer.write( "# " + line + "\n" );
                 }
 
-                fileWriter.write( "\n" );
+                writer.write( "\n" );
             }
 
             int depth = 0;
@@ -196,9 +197,10 @@ public class BaseConfigMapper extends BaseConfig {
                 writeLines.append( "\n" );
             }
 
-            fileWriter.write( writeLines.toString() );
+            writer.write( writeLines.toString() );
         } catch ( IOException cause ) {
-            throw new InvalidConfigurationException( "Could not save YML", cause );
+            throw new InvalidConfigurationException( "Failed saving to YAML file " +
+                "\"" + this.configFile.getAbsolutePath() + "\"", cause );
         }
     }
 

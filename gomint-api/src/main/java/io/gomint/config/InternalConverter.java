@@ -49,29 +49,34 @@ public class InternalConverter {
         }
     }
 
-    public void addConverters( Class... converterClasses ) throws InvalidConverterException {
-        for ( Class converterClass : converterClasses ) {
+    public void addConverters( Class... classes ) throws InvalidConverterException {
+        for ( Class converterClass : classes ) {
             this.addConverter( converterClass );
         }
     }
 
     @SuppressWarnings( "unchecked" )
-    public void addConverter( Class converterClass ) throws InvalidConverterException {
-        if ( !Converter.class.isAssignableFrom( converterClass ) ) {
-            throw new InvalidConverterException( "converter does not implement the Interface converter" );
+    public void addConverter( Class clazz ) throws InvalidConverterException {
+        if ( !Converter.class.isAssignableFrom( clazz ) ) {
+            throw new InvalidConverterException( clazz.getName() + " does not implement " + Converter.class );
         }
 
         try {
-            converters.add( (Converter) converterClass.getConstructor( InternalConverter.class ).newInstance( this ) );
-        } catch ( NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException cause ) {
+            this.converters.add( (Converter) clazz.getConstructor( InternalConverter.class ).newInstance( this ) );
+        } catch ( NoSuchMethodException
+            | InvocationTargetException
+            | InstantiationException
+            | IllegalAccessException cause ) {
             if ( cause instanceof NoSuchMethodException ) {
-                throw new InvalidConverterException( "converter does not implement a Constructor which takes the InternalConverter instance", cause );
+                throw new InvalidConverterException( clazz.getName() + " is missing a constructor declaring only" +
+                    " one parameter of type " + InternalConverter.class, cause );
             } else if ( cause instanceof InvocationTargetException ) {
                 throw new InvalidConverterException( "converter could not be invoked", cause );
             } else if ( cause instanceof InstantiationException ) {
                 throw new InvalidConverterException( "converter could not be instantiated", cause );
             } else if ( cause instanceof IllegalAccessException ) {
-                throw new InvalidConverterException( "converter does not implement a public Constructor which takes the InternalConverter instance", cause );
+                throw new InvalidConverterException( clazz.getName() + " is missing a public constructor declaring only" +
+                    " one parameter of type " + InternalConverter.class, cause );
             }
         }
     }

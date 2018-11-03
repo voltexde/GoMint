@@ -48,9 +48,7 @@ public class ConfigMapper extends BaseConfigMapper {
                     break;
                 case DEFAULT:
                 default:
-                    String fieldName = field.getName();
-
-                    if ( fieldName.contains( "_" ) ) {
+                    if ( field.getName().contains( "_" ) ) {
                         path = field.getName().replace( "_", "." );
                     } else {
                         path = field.getName();
@@ -88,7 +86,25 @@ public class ConfigMapper extends BaseConfigMapper {
                 continue;
             }
 
-            String path = configMode.equals( ConfigMode.PATH_BY_UNDERSCORE ) ? field.getName().replaceAll( "_", "." ) : field.getName();
+            String path;
+
+            switch ( configMode ) {
+                case PATH_BY_UNDERSCORE:
+                    path = field.getName().replace( "_", "." );
+                    break;
+                case FIELD_IS_KEY:
+                    path = field.getName();
+                    break;
+                case DEFAULT:
+                default:
+                    if ( field.getName().contains( "_" ) ) {
+                        path = field.getName().replace( "_", "." );
+                    } else {
+                        path = field.getName();
+                    }
+
+                    break;
+            }
 
             if ( field.isAnnotationPresent( Path.class ) ) {
                 path = field.getAnnotation( Path.class ).value();

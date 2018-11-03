@@ -28,7 +28,7 @@ public class BaseConfig implements Serializable {
      * This function gets called after the File has been loaded and before the converter gets it.
      * This is used to manually edit the configSection when you updated the config or something
      *
-     * @param section The root ConfigSection with all Subnodes loaded into
+     * @param section The root ConfigSection with all sub-nodes loaded into
      */
     public void update( ConfigSection section ) {
 
