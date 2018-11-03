@@ -15,7 +15,7 @@ import java.util.List;
  */
 public abstract class Stairs extends Block {
 
-    private final FacingBlockState facing = new FacingBlockState( this, (short) 3 );
+    private final FacingBlockState facing = new FacingBlockState( this, (short) 1 );
     private final BooleanBlockState top = new BooleanBlockState( this, states -> true, 2 );
 
     @Override
