@@ -23,7 +23,7 @@ import java.util.Map;
 public class LocationConverter implements Converter {
 
     @Override
-    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
         Location location = (Location) object;
         Map<String, Object> saveMap = new HashMap<>();
 
