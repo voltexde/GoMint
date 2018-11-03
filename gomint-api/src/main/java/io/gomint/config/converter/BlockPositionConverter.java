@@ -18,7 +18,7 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
-public class BlockPositionConverter implements Converter {
+public class BlockPositionConverter extends BaseConverter {
 
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
@@ -44,23 +44,15 @@ public class BlockPositionConverter implements Converter {
         }
 
         return new BlockPosition(
-            this.getInteger( locationMap.get( "x" ) ),
-            this.getInteger( locationMap.get( "y" ) ),
-            this.getInteger( locationMap.get( "z" ) )
+            super.asInteger( locationMap.get( "x" ) ),
+            super.asInteger( locationMap.get( "y" ) ),
+            super.asInteger( locationMap.get( "z" ) )
         );
     }
 
     @Override
     public boolean supports( Class<?> type ) {
         return BlockPosition.class.isAssignableFrom( type );
-    }
-
-    private int getInteger( Object object ) {
-        if ( object instanceof Long ) {
-            return ( (Long) object ).intValue();
-        }
-
-        return (int) object;
     }
 
 }

@@ -34,7 +34,7 @@ public class SetConverter implements Converter {
         List result = new ArrayList();
 
         for ( Object value : values ) {
-            Converter converter = internalConverter.getConverter( value.getClass() );
+            Converter converter = this.internalConverter.getConverter( value.getClass() );
 
             if ( converter != null ) {
                 result.add( converter.toConfig( value.getClass(), value, null ) );
@@ -59,7 +59,7 @@ public class SetConverter implements Converter {
         }
 
         if ( parameterizedType != null && parameterizedType.getActualTypeArguments()[0] instanceof Class ) {
-            Converter converter = internalConverter.getConverter( (Class) parameterizedType.getActualTypeArguments()[0] );
+            Converter converter = this.internalConverter.getConverter( (Class) parameterizedType.getActualTypeArguments()[0] );
 
             if ( converter != null ) {
                 for ( Object value : values ) {

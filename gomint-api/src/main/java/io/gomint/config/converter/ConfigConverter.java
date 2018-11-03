@@ -79,7 +79,7 @@ public class ConfigConverter implements Converter {
     }
 
     @SuppressWarnings( "unchecked" )
-    public Object newInstance( Class type ) throws Exception {
+    private Object newInstance( Class type ) throws Exception {
         Class enclosingClass = type.getEnclosingClass();
 
         if ( enclosingClass != null ) {

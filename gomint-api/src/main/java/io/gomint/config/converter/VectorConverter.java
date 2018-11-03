@@ -18,7 +18,7 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
-public class VectorConverter implements Converter {
+public class VectorConverter extends BaseConverter {
 
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
@@ -37,34 +37,22 @@ public class VectorConverter implements Converter {
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
         Map<String, Object> vectorMap;
 
-        if ( object instanceof java.util.Map ) {
+        if ( object instanceof Map ) {
             vectorMap = (Map<String, Object>) object;
         } else {
             vectorMap = (Map<String, Object>) ( (ConfigSection) object ).getRawMap();
         }
 
         return new Vector(
-            this.getFloat( vectorMap.get( "x" ) ),
-            this.getFloat( vectorMap.get( "y" ) ),
-            this.getFloat( vectorMap.get( "z" ) )
+            super.asFloat( vectorMap.get( "x" ) ),
+            super.asFloat( vectorMap.get( "y" ) ),
+            super.asFloat( vectorMap.get( "z" ) )
         );
     }
 
     @Override
     public boolean supports( Class<?> type ) {
         return Vector.class.isAssignableFrom( type );
-    }
-
-    private float getFloat( Object object ) {
-        if ( object instanceof Double ) {
-            return ( (Double) object ).floatValue();
-        } else if ( object instanceof Integer ) {
-            return ( (Integer) object ).floatValue();
-        } else if ( object instanceof Long ) {
-            return ( (Long) object ).floatValue();
-        }
-
-        return (float) object;
     }
 
 }
