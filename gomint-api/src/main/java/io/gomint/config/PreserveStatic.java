@@ -15,11 +15,13 @@ import java.lang.annotation.Target;
 /**
  * @author geNAZt
  * @version 1.0
+ * @deprecated Will be moved into the package 'io.gomint.config.annotation' for consistency purposes
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Deprecated
+@Retention( RetentionPolicy.RUNTIME )
+@Target( ElementType.FIELD )
 public @interface PreserveStatic {
 
-	boolean value() default true;
+    boolean value() default true;
 
 }

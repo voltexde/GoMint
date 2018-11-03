@@ -15,15 +15,17 @@ import java.lang.annotation.Target;
 /**
  * @author geNAZt
  * @version 1.0
+ * @deprecated Will be moved into the package 'io.gomint.config.annotation' for consistency purposes
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Deprecated
+@Retention( RetentionPolicy.RUNTIME )
+@Target( ElementType.TYPE )
 public @interface SerializeOptions {
 
-	String[] configHeader() default {};
+    String[] configHeader() default {};
 
-	boolean skipFailedObjects() default false;
+    boolean skipFailedObjects() default false;
 
-	ConfigMode configMode() default ConfigMode.FIELD_IS_KEY;
+    ConfigMode configMode() default ConfigMode.FIELD_IS_KEY;
 
 }

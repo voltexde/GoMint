@@ -12,7 +12,9 @@ import java.lang.annotation.*;
 /**
  * @author geNAZt
  * @version 1.0
+ * @deprecated Will be moved into the package 'io.gomint.config.annotation' for consistency purposes
  */
+@Deprecated
 @Retention( RetentionPolicy.RUNTIME )
 @Target( ElementType.FIELD )
 @Repeatable( Comments.class )
