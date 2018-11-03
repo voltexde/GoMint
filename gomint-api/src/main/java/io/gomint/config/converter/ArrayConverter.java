@@ -31,14 +31,14 @@ public class ArrayConverter implements Converter {
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType parameterizedType ) throws Exception {
         Class<?> singleType = type.getComponentType();
-        Converter conv = internalConverter.getConverter( singleType );
-        if ( conv == null ) {
+        Converter converter = internalConverter.getConverter( singleType );
+        if ( converter == null ) {
             return obj;
         }
 
         Object[] ret = new Object[Array.getLength( obj )];
         for ( int i = 0; i < ret.length; i++ ) {
-            ret[i] = conv.toConfig( singleType, Array.get( obj, i ), parameterizedType );
+            ret[i] = converter.toConfig( singleType, Array.get( obj, i ), parameterizedType );
         }
 
         return ret;
@@ -58,13 +58,13 @@ public class ArrayConverter implements Converter {
         }
 
         Object ret = Array.newInstance( singleType, values.size() );
-        Converter conv = internalConverter.getConverter( singleType );
-        if ( conv == null ) {
+        Converter converter = internalConverter.getConverter( singleType );
+        if ( converter == null ) {
             return values.toArray( (Object[]) ret );
         }
 
         for ( int i = 0; i < values.size(); i++ ) {
-            Array.set( ret, i, conv.fromConfig( singleType, values.get( i ), genericType ) );
+            Array.set( ret, i, converter.fromConfig( singleType, values.get( i ), genericType ) );
         }
 
         return ret;
