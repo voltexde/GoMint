@@ -7,7 +7,6 @@
 
 package io.gomint.config.converter;
 
-
 import io.gomint.config.*;
 
 import java.lang.reflect.Field;

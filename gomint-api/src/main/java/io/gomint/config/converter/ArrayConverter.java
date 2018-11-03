@@ -7,7 +7,6 @@
 
 package io.gomint.config.converter;
 
-
 import io.gomint.config.InternalConverter;
 
 import java.lang.reflect.ParameterizedType;
