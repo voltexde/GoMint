@@ -16,8 +16,16 @@ import java.util.Map;
  */
 public class ConfigSection {
 
-    private String fullPath;
+    public static ConfigSection convertFromMap( Map config ) {
+        ConfigSection configSection = new ConfigSection();
+        configSection.map.putAll( config );
+
+        return configSection;
+
+    }
+
     protected final Map<Object, Object> map = new LinkedHashMap<>();
+    private String fullPath;
 
     public ConfigSection() {
         this.fullPath = "";
@@ -57,10 +65,6 @@ public class ConfigSection {
         return section.create( key );
     }
 
-    private ConfigSection getConfigSection( String node ) {
-        return ( map.containsKey( node ) && map.get( node ) instanceof ConfigSection ) ? (ConfigSection) map.get( node ) : null;
-    }
-
     public void set( String path, Object value ) {
         set( path, value, true );
     }
@@ -96,24 +100,6 @@ public class ConfigSection {
             }
         } else {
             section.set( key, value );
-        }
-    }
-
-    protected void mapChildrenValues( Map<Object, Object> output, ConfigSection section, boolean deep ) {
-        if ( section != null ) {
-            for ( Map.Entry<Object, Object> entry : section.map.entrySet() ) {
-                if ( entry.getValue() instanceof ConfigSection ) {
-                    Map<Object, Object> result = new LinkedHashMap<>();
-
-                    output.put( entry.getKey(), result );
-
-                    if ( deep ) {
-                        mapChildrenValues( result, (ConfigSection) entry.getValue(), true );
-                    }
-                } else {
-                    output.put( entry.getKey(), entry.getValue() );
-                }
-            }
         }
     }
 
@@ -185,11 +171,26 @@ public class ConfigSection {
         return map;
     }
 
-    public static ConfigSection convertFromMap( Map config ) {
-        ConfigSection configSection = new ConfigSection();
-        configSection.map.putAll( config );
+    protected void mapChildrenValues( Map<Object, Object> output, ConfigSection section, boolean deep ) {
+        if ( section != null ) {
+            for ( Map.Entry<Object, Object> entry : section.map.entrySet() ) {
+                if ( entry.getValue() instanceof ConfigSection ) {
+                    Map<Object, Object> result = new LinkedHashMap<>();
 
-        return configSection;
+                    output.put( entry.getKey(), result );
+
+                    if ( deep ) {
+                        mapChildrenValues( result, (ConfigSection) entry.getValue(), true );
+                    }
+                } else {
+                    output.put( entry.getKey(), entry.getValue() );
+                }
+            }
+        }
+    }
+
+    private ConfigSection getConfigSection( String node ) {
+        return ( map.containsKey( node ) && map.get( node ) instanceof ConfigSection ) ? (ConfigSection) map.get( node ) : null;
     }
 
 }

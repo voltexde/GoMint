@@ -46,6 +46,17 @@ public class BaseConfig implements Serializable {
         this.converter.addCustomConverter( addConverter );
     }
 
+    protected void configureFromSerializeOptionsAnnotation() {
+        if ( !getClass().isAnnotationPresent( SerializeOptions.class ) ) {
+            return;
+        }
+
+        SerializeOptions options = getClass().getAnnotation( SerializeOptions.class );
+        CONFIG_HEADER = options.configHeader();
+        CONFIG_MODE = options.configMode();
+        this.skipFailedObjects = options.skipFailedObjects();
+    }
+
     /**
      * Check if we need to skip the given field
      *
@@ -67,17 +78,6 @@ public class BaseConfig implements Serializable {
         }
 
         return false;
-    }
-
-    protected void configureFromSerializeOptionsAnnotation() {
-        if ( !getClass().isAnnotationPresent( SerializeOptions.class ) ) {
-            return;
-        }
-
-        SerializeOptions options = getClass().getAnnotation( SerializeOptions.class );
-        CONFIG_HEADER = options.configHeader();
-        CONFIG_MODE = options.configMode();
-        this.skipFailedObjects = options.skipFailedObjects();
     }
 
 }

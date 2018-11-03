@@ -44,6 +44,11 @@ public class VectorConverter implements Converter {
         return new Vector( getFloat( vectorMap.get( "x" ) ), getFloat( vectorMap.get( "y" ) ), getFloat( vectorMap.get( "z" ) ) );
     }
 
+    @Override
+    public boolean supports( Class<?> type ) {
+        return Vector.class.isAssignableFrom( type );
+    }
+
     private float getFloat( Object obj ) {
         if ( obj instanceof Double ) {
             return ( (Double) obj ).floatValue();
@@ -54,11 +59,6 @@ public class VectorConverter implements Converter {
         }
 
         return (float) obj;
-    }
-
-    @Override
-    public boolean supports( Class<?> type ) {
-        return Vector.class.isAssignableFrom( type );
     }
 
 }

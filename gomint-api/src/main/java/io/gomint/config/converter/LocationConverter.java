@@ -70,6 +70,11 @@ public class LocationConverter implements Converter {
             pitch );
     }
 
+    @Override
+    public boolean supports( Class<?> type ) {
+        return Location.class.isAssignableFrom( type );
+    }
+
     private float getFloat( Object obj ) {
         if ( obj instanceof Double ) {
             return ( (Double) obj ).floatValue();
@@ -80,11 +85,6 @@ public class LocationConverter implements Converter {
         }
 
         return (float) obj;
-    }
-
-    @Override
-    public boolean supports( Class<?> type ) {
-        return Location.class.isAssignableFrom( type );
     }
 
 }

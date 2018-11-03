@@ -72,6 +72,11 @@ public class ConfigConverter implements Converter {
     }
 
     // recursively handles enclosed classes
+    @Override
+    public boolean supports( Class<?> type ) {
+        return YamlConfig.class.isAssignableFrom( type );
+    }
+
     public Object newInstance( Class type ) throws Exception {
         Class enclosingClass = type.getEnclosingClass();
         if ( enclosingClass != null ) {
@@ -80,11 +85,6 @@ public class ConfigConverter implements Converter {
         } else {
             return type.newInstance();
         }
-    }
-
-    @Override
-    public boolean supports( Class<?> type ) {
-        return YamlConfig.class.isAssignableFrom( type );
     }
 
 }

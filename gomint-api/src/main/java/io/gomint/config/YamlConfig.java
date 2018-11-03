@@ -44,6 +44,71 @@ public class YamlConfig extends ConfigMapper implements IConfig {
         saveToYaml();
     }
 
+    @Override
+    public void save( File file ) throws InvalidConfigurationException {
+        if ( file == null ) {
+            throw new IllegalArgumentException( "File argument can not be null" );
+        }
+
+        CONFIG_FILE = file;
+        save();
+    }
+
+    @Override
+    public void init() throws InvalidConfigurationException {
+        if ( !CONFIG_FILE.exists() ) {
+            if ( CONFIG_FILE.getParentFile() != null ) {
+                CONFIG_FILE.getParentFile().mkdirs();
+            }
+
+            try {
+                CONFIG_FILE.createNewFile();
+                save();
+            } catch ( IOException e ) {
+                throw new InvalidConfigurationException( "Could not create new empty Config", e );
+            }
+        } else {
+            load();
+        }
+    }
+
+    @Override
+    public void init( File file ) throws InvalidConfigurationException {
+        if ( file == null ) {
+            throw new IllegalArgumentException( "File argument can not be null" );
+        }
+
+        CONFIG_FILE = file;
+        init();
+    }
+
+    @Override
+    public void reload() throws InvalidConfigurationException {
+        loadFromYaml();
+        internalLoad( getClass() );
+    }
+
+    @Override
+    public void load() throws InvalidConfigurationException {
+        if ( CONFIG_FILE == null ) {
+            throw new IllegalArgumentException( "Loading a config without given File" );
+        }
+
+        loadFromYaml();
+        update( root );
+        internalLoad( getClass() );
+    }
+
+    @Override
+    public void load( File file ) throws InvalidConfigurationException {
+        if ( file == null ) {
+            throw new IllegalArgumentException( "File argument can not be null" );
+        }
+
+        CONFIG_FILE = file;
+        load();
+    }
+
     private void internalSave( Class clazz ) throws InvalidConfigurationException {
         if ( !clazz.getSuperclass().equals( YamlConfig.class ) ) {
             internalSave( clazz.getSuperclass() );
@@ -116,61 +181,6 @@ public class YamlConfig extends ConfigMapper implements IConfig {
         }
     }
 
-    @Override
-    public void save( File file ) throws InvalidConfigurationException {
-        if ( file == null ) {
-            throw new IllegalArgumentException( "File argument can not be null" );
-        }
-
-        CONFIG_FILE = file;
-        save();
-    }
-
-    @Override
-    public void init() throws InvalidConfigurationException {
-        if ( !CONFIG_FILE.exists() ) {
-            if ( CONFIG_FILE.getParentFile() != null ) {
-                CONFIG_FILE.getParentFile().mkdirs();
-            }
-
-            try {
-                CONFIG_FILE.createNewFile();
-                save();
-            } catch ( IOException e ) {
-                throw new InvalidConfigurationException( "Could not create new empty Config", e );
-            }
-        } else {
-            load();
-        }
-    }
-
-    @Override
-    public void init( File file ) throws InvalidConfigurationException {
-        if ( file == null ) {
-            throw new IllegalArgumentException( "File argument can not be null" );
-        }
-
-        CONFIG_FILE = file;
-        init();
-    }
-
-    @Override
-    public void reload() throws InvalidConfigurationException {
-        loadFromYaml();
-        internalLoad( getClass() );
-    }
-
-    @Override
-    public void load() throws InvalidConfigurationException {
-        if ( CONFIG_FILE == null ) {
-            throw new IllegalArgumentException( "Loading a config without given File" );
-        }
-
-        loadFromYaml();
-        update( root );
-        internalLoad( getClass() );
-    }
-
     private void internalLoad( Class clazz ) throws InvalidConfigurationException {
         if ( !clazz.getSuperclass().equals( YamlConfig.class ) ) {
             internalLoad( clazz.getSuperclass() );
@@ -216,16 +226,6 @@ public class YamlConfig extends ConfigMapper implements IConfig {
         if ( save ) {
             saveToYaml();
         }
-    }
-
-    @Override
-    public void load( File file ) throws InvalidConfigurationException {
-        if ( file == null ) {
-            throw new IllegalArgumentException( "File argument can not be null" );
-        }
-
-        CONFIG_FILE = file;
-        load();
     }
 
 }

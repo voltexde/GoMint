@@ -46,6 +46,43 @@ public class BaseConfigMapper extends BaseConfig {
         configureFromSerializeOptionsAnnotation();
     }
 
+    public void addComment( String key, String value ) {
+        if ( !this.comments.containsKey( key ) ) {
+            this.comments.put( key, new ArrayList<>() );
+        }
+
+        for ( String s : value.split( "\n" ) ) {
+            this.comments.get( key ).add( s );
+        }
+    }
+
+    public void clearComments() {
+        this.comments.clear();
+    }
+
+    public void mergeComments( Map<String, String> comments ) {
+        for ( Map.Entry<String, String> entry : comments.entrySet() ) {
+            String commentPath = this.commentPrefix + "." + entry.getKey();
+            if ( !this.comments.containsKey( commentPath ) ) {
+                this.addComment( commentPath, entry.getValue() );
+            }
+        }
+    }
+
+    public void resetCommentPrefix( String path ) {
+        this.commentPrefix = path;
+    }
+
+    public void addCommentPrefix( String path ) {
+        this.commentPrefix += "." + path;
+    }
+
+    public void removeCommentPrefix( String path ) {
+        if ( this.commentPrefix.endsWith( path ) ) {
+            this.commentPrefix = this.commentPrefix.substring( 0, this.commentPrefix.length() - ( 1 + path.length() ) );
+        }
+    }
+
     protected void loadFromYaml() throws InvalidConfigurationException {
         this.root = new ConfigSection();
 
@@ -57,23 +94,6 @@ public class BaseConfigMapper extends BaseConfig {
             }
         } catch ( IOException | ClassCastException | YAMLException e ) {
             throw new InvalidConfigurationException( "Could not load YML", e );
-        }
-    }
-
-    private void convertMapsToSections( Map<?, ?> input, ConfigSection section ) {
-        if ( input == null ) {
-            return;
-        }
-
-        for ( Map.Entry<?, ?> entry : input.entrySet() ) {
-            String key = entry.getKey().toString();
-            Object value = entry.getValue();
-
-            if ( value instanceof Map ) {
-                convertMapsToSections( (Map<?, ?>) value, section.create( key ) );
-            } else {
-                section.set( key, value, false );
-            }
         }
     }
 
@@ -172,40 +192,20 @@ public class BaseConfigMapper extends BaseConfig {
         }
     }
 
-    public void addComment( String key, String value ) {
-        if ( !this.comments.containsKey( key ) ) {
-            this.comments.put( key, new ArrayList<>() );
+    private void convertMapsToSections( Map<?, ?> input, ConfigSection section ) {
+        if ( input == null ) {
+            return;
         }
 
-        for ( String s : value.split( "\n" ) ) {
-            this.comments.get( key ).add( s );
-        }
-    }
+        for ( Map.Entry<?, ?> entry : input.entrySet() ) {
+            String key = entry.getKey().toString();
+            Object value = entry.getValue();
 
-    public void clearComments() {
-        this.comments.clear();
-    }
-
-    public void mergeComments( Map<String, String> comments ) {
-        for ( Map.Entry<String, String> entry : comments.entrySet() ) {
-            String commentPath = this.commentPrefix + "." + entry.getKey();
-            if ( !this.comments.containsKey( commentPath ) ) {
-                this.addComment( commentPath, entry.getValue() );
+            if ( value instanceof Map ) {
+                convertMapsToSections( (Map<?, ?>) value, section.create( key ) );
+            } else {
+                section.set( key, value, false );
             }
-        }
-    }
-
-    public void resetCommentPrefix( String path ) {
-        this.commentPrefix = path;
-    }
-
-    public void addCommentPrefix( String path ) {
-        this.commentPrefix += "." + path;
-    }
-
-    public void removeCommentPrefix( String path ) {
-        if ( this.commentPrefix.endsWith( path ) ) {
-            this.commentPrefix = this.commentPrefix.substring( 0, this.commentPrefix.length() - ( 1 + path.length() ) );
         }
     }
 
