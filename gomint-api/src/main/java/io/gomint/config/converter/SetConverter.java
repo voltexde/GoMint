@@ -1,71 +1,93 @@
-package io.gomint.config.converter;
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
+package io.gomint.config.converter;
 
 import io.gomint.config.InternalConverter;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
+/**
+ * @author geNAZt
+ * @version 1.0
+ */
 public class SetConverter implements Converter {
+
     private InternalConverter internalConverter;
 
     public SetConverter( InternalConverter internalConverter ) {
         this.internalConverter = internalConverter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        java.util.Set<Object> values = (java.util.Set<Object>) obj;
-        java.util.List newList = new ArrayList();
+    @SuppressWarnings( "unchecked" )
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        Set<Object> values = (Set<Object>) object;
+        List result = new ArrayList();
 
-        Iterator<Object> iterator = values.iterator();
-        while ( iterator.hasNext() ) {
-            Object val = iterator.next();
-
-            Converter converter = internalConverter.getConverter( val.getClass() );
+        for ( Object value : values ) {
+            Converter converter = this.internalConverter.getConverter( value.getClass() );
 
             if ( converter != null ) {
-                newList.add( converter.toConfig( val.getClass(), val, null ) );
+                result.add( converter.toConfig( value.getClass(), value, null ) );
             } else {
-                newList.add( val );
+                result.add( value );
             }
         }
 
-        return newList;
+        return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        java.util.List<Object> values = (java.util.List<Object>) section;
-        java.util.Set<Object> newList = new HashSet<>();
+    @SuppressWarnings( "unchecked" )
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        List<Object> values = (List<Object>) object;
+        Set<Object> result = new HashSet<>();
 
         try {
-            newList = (java.util.Set<Object>) type.newInstance();
-        } catch ( Exception e ) {
+            result = (Set<Object>) type.newInstance();
+        } catch ( Exception ignored ) {
+
         }
 
-        if ( genericType != null && genericType.getActualTypeArguments()[0] instanceof Class ) {
-            Converter converter = internalConverter.getConverter( (Class) genericType.getActualTypeArguments()[0] );
+        if ( parameterizedType != null && parameterizedType.getActualTypeArguments()[0] instanceof Class ) {
+            Class actualTypeArgument = (Class) parameterizedType.getActualTypeArguments()[0];
+            Converter converter = this.internalConverter.getConverter( actualTypeArgument );
 
             if ( converter != null ) {
-                for ( int i = 0; i < values.size(); i++ ) {
-                    newList.add( converter.fromConfig( (Class) genericType.getActualTypeArguments()[0], values.get( i ), null ) );
+                for ( Object value : values ) {
+                    result.add( converter.fromConfig( actualTypeArgument, value, null ) );
                 }
             } else {
-                newList.addAll( values );
+                result.addAll( values );
             }
         } else {
-            newList.addAll( values );
+            result.addAll( values );
         }
 
-        return newList;
+        return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
-        return java.util.Set.class.isAssignableFrom( type );
+        return Set.class.isAssignableFrom( type );
     }
 
 }

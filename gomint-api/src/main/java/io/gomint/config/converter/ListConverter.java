@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.config.converter;
 
 import io.gomint.config.BaseConfigMapper;
@@ -5,34 +12,41 @@ import io.gomint.config.InternalConverter;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author geNAZt (fabian.fassbender42@googlemail.com)
+ * @author geNAZt
+ * @version 1.0
  */
 public class ListConverter implements Converter {
+
     private InternalConverter internalConverter;
 
     public ListConverter( InternalConverter internalConverter ) {
         this.internalConverter = internalConverter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        java.util.List values = (java.util.List) obj;
-        java.util.List newList = new ArrayList();
+    @SuppressWarnings( "unchecked" )
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        List values = (List) object;
+        List converted = new ArrayList();
 
         if ( this.internalConverter.getConfig() instanceof BaseConfigMapper ) {
             BaseConfigMapper baseConfigMapper = (BaseConfigMapper) this.internalConverter.getConfig();
             baseConfigMapper.addCommentPrefix( "-" );
         }
 
-        for ( Object val : values ) {
-            Converter converter = this.internalConverter.getConverter( val.getClass() );
+        for ( Object value : values ) {
+            Converter converter = this.internalConverter.getConverter( value.getClass() );
 
             if ( converter != null ) {
-                newList.add( converter.toConfig( val.getClass(), val, null ) );
+                converted.add( converter.toConfig( value.getClass(), value, null ) );
             } else {
-                newList.add( val );
+                converted.add( value );
             }
         }
 
@@ -41,38 +55,49 @@ public class ListConverter implements Converter {
             baseConfigMapper.removeCommentPrefix( "-" );
         }
 
-        return newList;
+        return converted;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        java.util.List newList = new ArrayList();
+    @SuppressWarnings( "unchecked" )
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        List converted = new ArrayList();
+
         try {
-            newList = ( (java.util.List) type.newInstance() );
-        } catch ( Exception e ) {
+            converted = ( (List) type.newInstance() );
+        } catch ( Exception ignored ) {
+
         }
 
-        java.util.List values = (java.util.List) section;
+        List values = (List) object;
 
-        if ( genericType != null && genericType.getActualTypeArguments()[0] instanceof Class ) {
-            Converter converter = this.internalConverter.getConverter( (Class) genericType.getActualTypeArguments()[0] );
+        if ( parameterizedType != null && parameterizedType.getActualTypeArguments()[0] instanceof Class ) {
+            Class actualTypeArgument = (Class) parameterizedType.getActualTypeArguments()[0];
+            Converter converter = this.internalConverter.getConverter( actualTypeArgument );
 
             if ( converter != null ) {
-                for ( int i = 0; i < values.size(); i++ ) {
-                    newList.add( converter.fromConfig( (Class) genericType.getActualTypeArguments()[0], values.get( i ), null ) );
+                for ( Object value : values ) {
+                    converted.add( converter.fromConfig( actualTypeArgument, value, null ) );
                 }
             } else {
-                newList = values;
+                converted = values;
             }
         } else {
-            newList = values;
+            converted = values;
         }
 
-        return newList;
+        return converted;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
-        return java.util.List.class.isAssignableFrom( type );
+        return List.class.isAssignableFrom( type );
     }
+
 }
