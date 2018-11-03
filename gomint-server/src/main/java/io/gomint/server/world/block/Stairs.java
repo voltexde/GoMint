@@ -2,9 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.math.AxisAlignedBB;
 import io.gomint.server.world.block.state.BooleanBlockState;
-import io.gomint.server.world.block.state.FacingBlockState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.gomint.server.world.block.state.CrossFacingBlockState;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +13,7 @@ import java.util.List;
  */
 public abstract class Stairs extends Block {
 
-    private final FacingBlockState facing = new FacingBlockState( this, (short) 1 );
+    private final CrossFacingBlockState facing = new CrossFacingBlockState( this );
     private final BooleanBlockState top = new BooleanBlockState( this, states -> true, 2 );
 
     @Override
