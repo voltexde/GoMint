@@ -27,26 +27,27 @@ public class ConfigConverter implements Converter {
     }
 
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType parameterizedType ) throws Exception {
-        if ( obj instanceof Map ) {
-            return obj;
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        if ( object instanceof Map ) {
+            return object;
         }
 
-        // We need to extract comments
         Map<String, String> comments = new LinkedHashMap<>();
+
+        // We need to extract comments
         for ( Field field : type.getDeclaredFields() ) {
-            String comment = "";
+            StringBuilder commentBuilder = new StringBuilder();
 
             if ( field.isAnnotationPresent( Comment.class ) ) {
-                comment = field.getAnnotation( Comment.class ).value();
+                commentBuilder = new StringBuilder( field.getAnnotation( Comment.class ).value() );
             } else if ( field.isAnnotationPresent( Comments.class ) ) {
-                for ( Comment comment1 : field.getAnnotation( Comments.class ).value() ) {
-                    comment += comment1.value() + "\n";
+                for ( Comment comment : field.getAnnotation( Comments.class ).value() ) {
+                    commentBuilder.append( comment.value() ).append( "\n" );
                 }
             }
 
-            if ( !comment.isEmpty() ) {
-                comments.put( field.getName(), comment );
+            if ( commentBuilder.length() > 0 ) {
+                comments.put( field.getName(), commentBuilder.toString() );
             }
         }
 
@@ -55,20 +56,20 @@ public class ConfigConverter implements Converter {
             baseConfigMapper.mergeComments( comments );
         }
 
-        return ( (YamlConfig) obj ).saveToMap( obj.getClass() );
+        return ( (YamlConfig) object ).saveToMap( object.getClass() );
     }
 
     @Override
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        YamlConfig obj = (YamlConfig) newInstance( type );
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        YamlConfig yamlConfig = (YamlConfig) newInstance( type );
 
         // Inject converter stack into sub config
-        for ( Class aClass : this.internalConverter.getCustomConverters() ) {
-            obj.addConverter( aClass );
+        for ( Class customConverter : this.internalConverter.getCustomConverters() ) {
+            yamlConfig.addConverter( customConverter );
         }
 
-        obj.loadFromMap( ( section instanceof Map ) ? (Map) section : ( (ConfigSection) section ).getRawMap(), type );
-        return obj;
+        yamlConfig.loadFromMap( ( object instanceof Map ) ? (Map) object : ( (ConfigSection) object ).getRawMap(), type );
+        return yamlConfig;
     }
 
     // recursively handles enclosed classes
@@ -80,6 +81,7 @@ public class ConfigConverter implements Converter {
     @SuppressWarnings( "unchecked" )
     public Object newInstance( Class type ) throws Exception {
         Class enclosingClass = type.getEnclosingClass();
+
         if ( enclosingClass != null ) {
             Object instanceOfEnclosingClass = newInstance( enclosingClass );
             return type.getConstructor( enclosingClass ).newInstance( instanceOfEnclosingClass );

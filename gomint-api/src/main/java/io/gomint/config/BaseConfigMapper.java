@@ -26,24 +26,33 @@ import java.util.Map;
  */
 public class BaseConfigMapper extends BaseConfig {
 
-    private transient Yaml yaml;
+    private static transient final Charset CHARSET;
+    private static transient final Yaml YAML;
+    private static transient final Representer REPRESENTER;
+
+    static {
+        CHARSET = Charset.forName( "UTF-8" );
+
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
+        options.setIndent( 2 );
+
+        REPRESENTER = new Representer();
+        REPRESENTER.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
+
+        ClassLoader classLoader = BaseConfigMapper.class.getClassLoader();
+        YAML = new Yaml( new CustomClassLoaderConstructor( classLoader ), REPRESENTER, options );
+    }
+
     protected transient ConfigSection root;
-    private transient Map<String, ArrayList<String>> comments = new LinkedHashMap<>();
-    private transient Representer yamlRepresenter = new Representer();
-    private transient String commentPrefix = "";
+    private transient Map<String, ArrayList<String>> comments;
+    private transient String commentPrefix;
 
     protected BaseConfigMapper() {
-        DumperOptions yamlOptions = new DumperOptions();
-        yamlOptions.setIndent( 2 );
-        yamlOptions.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
-
-        this.yamlRepresenter.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
-        this.yaml = new Yaml( new CustomClassLoaderConstructor( BaseConfigMapper.class.getClassLoader() ), this.yamlRepresenter, yamlOptions );
-
-        /*
-        Configure the settings for serializing via the annotations present.
-         */
-        configureFromSerializeOptionsAnnotation();
+        this.comments = new LinkedHashMap<>();
+        this.commentPrefix = "";
+        // Configure the settings for serializing via the annotations preset
+        this.configureFromSerializeOptionsAnnotation();
     }
 
     public void addComment( String key, String value ) {
@@ -51,8 +60,8 @@ public class BaseConfigMapper extends BaseConfig {
             this.comments.put( key, new ArrayList<>() );
         }
 
-        for ( String s : value.split( "\n" ) ) {
-            this.comments.get( key ).add( s );
+        for ( String split : value.split( "\n" ) ) {
+            this.comments.get( key ).add( split );
         }
     }
 
@@ -63,6 +72,7 @@ public class BaseConfigMapper extends BaseConfig {
     public void mergeComments( Map<String, String> comments ) {
         for ( Map.Entry<String, String> entry : comments.entrySet() ) {
             String commentPath = this.commentPrefix + "." + entry.getKey();
+
             if ( !this.comments.containsKey( commentPath ) ) {
                 this.addComment( commentPath, entry.getValue() );
             }
@@ -86,8 +96,8 @@ public class BaseConfigMapper extends BaseConfig {
     protected void loadFromYaml() throws InvalidConfigurationException {
         this.root = new ConfigSection();
 
-        try ( InputStreamReader fileReader = new InputStreamReader( new FileInputStream( CONFIG_FILE ), Charset.forName( "UTF-8" ) ) ) {
-            Object object = this.yaml.load( fileReader );
+        try ( InputStreamReader fileReader = new InputStreamReader( new FileInputStream( configFile ), CHARSET ) ) {
+            Object object = YAML.load( fileReader );
 
             if ( object != null ) {
                 convertMapsToSections( (Map<?, ?>) object, this.root );
@@ -98,19 +108,19 @@ public class BaseConfigMapper extends BaseConfig {
     }
 
     protected void saveToYaml() throws InvalidConfigurationException {
-        try ( OutputStreamWriter fileWriter = new OutputStreamWriter( new FileOutputStream( CONFIG_FILE ), Charset.forName( "UTF-8" ) ) ) {
-            if ( CONFIG_HEADER != null ) {
-                for ( String line : CONFIG_HEADER ) {
+        try ( OutputStreamWriter fileWriter = new OutputStreamWriter( new FileOutputStream( configFile ), CHARSET ) ) {
+            if ( configHeader != null ) {
+                for ( String line : configHeader ) {
                     fileWriter.write( "# " + line + "\n" );
                 }
 
                 fileWriter.write( "\n" );
             }
 
-            Integer depth = 0;
+            int depth = 0;
             List<String> keyChain = new ArrayList<>();
 
-            String yamlString = this.yaml.dump( this.root.getValues( true ) );
+            String yamlString = YAML.dump( this.root.getValues( true ) );
             StringBuilder writeLines = new StringBuilder();
 
             for ( String line : yamlString.split( "\n" ) ) {
@@ -187,8 +197,8 @@ public class BaseConfigMapper extends BaseConfig {
             }
 
             fileWriter.write( writeLines.toString() );
-        } catch ( IOException e ) {
-            throw new InvalidConfigurationException( "Could not save YML", e );
+        } catch ( IOException cause ) {
+            throw new InvalidConfigurationException( "Could not save YML", cause );
         }
     }
 
@@ -202,7 +212,7 @@ public class BaseConfigMapper extends BaseConfig {
             Object value = entry.getValue();
 
             if ( value instanceof Map ) {
-                convertMapsToSections( (Map<?, ?>) value, section.create( key ) );
+                this.convertMapsToSections( (Map<?, ?>) value, section.create( key ) );
             } else {
                 section.set( key, value, false );
             }

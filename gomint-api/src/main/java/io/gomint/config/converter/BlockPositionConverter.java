@@ -21,8 +21,8 @@ import java.util.Map;
 public class BlockPositionConverter implements Converter {
 
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) {
-        BlockPosition location = (BlockPosition) obj;
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
+        BlockPosition location = (BlockPosition) object;
         Map<String, Object> saveMap = new HashMap<>();
 
         saveMap.put( "x", location.getX() );
@@ -34,17 +34,20 @@ public class BlockPositionConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) {
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
         Map<String, Object> locationMap;
-        if ( section instanceof java.util.Map ) {
-            locationMap = (Map<String, Object>) section;
+
+        if ( object instanceof java.util.Map ) {
+            locationMap = (Map<String, Object>) object;
         } else {
-            locationMap = (Map<String, Object>) ( (ConfigSection) section ).getRawMap();
+            locationMap = (Map<String, Object>) ( (ConfigSection) object ).getRawMap();
         }
+
         return new BlockPosition(
-            getInteger( locationMap.get( "x" ) ),
-            getInteger( locationMap.get( "y" ) ),
-            getInteger( locationMap.get( "z" ) ) );
+            this.getInteger( locationMap.get( "x" ) ),
+            this.getInteger( locationMap.get( "y" ) ),
+            this.getInteger( locationMap.get( "z" ) )
+        );
     }
 
     @Override
@@ -52,12 +55,12 @@ public class BlockPositionConverter implements Converter {
         return BlockPosition.class.isAssignableFrom( type );
     }
 
-    private int getInteger( Object obj ) {
-        if ( obj instanceof Long ) {
-            return ( (Long) obj ).intValue();
+    private int getInteger( Object object ) {
+        if ( object instanceof Long ) {
+            return ( (Long) object ).intValue();
         }
 
-        return (int) obj;
+        return (int) object;
     }
 
 }

@@ -21,17 +21,18 @@ public class ConfigSection {
         configSection.map.putAll( config );
 
         return configSection;
-
     }
 
-    protected final Map<Object, Object> map = new LinkedHashMap<>();
+    protected final Map<Object, Object> map;
     private String fullPath;
 
     public ConfigSection() {
+        this.map = new LinkedHashMap<>();
         this.fullPath = "";
     }
 
     public ConfigSection( ConfigSection root, String key ) {
+        this.map = new LinkedHashMap<>();
         this.fullPath = ( !root.fullPath.equals( "" ) ) ? root.fullPath + "." + key : key;
     }
 
@@ -43,6 +44,7 @@ public class ConfigSection {
         //Be sure to have all ConfigSections down the Path
         int i1 = -1, i2;
         ConfigSection section = this;
+
         while ( ( i1 = path.indexOf( '.', i2 = i1 + 1 ) ) != -1 ) {
             String node = path.substring( i2, i1 );
             ConfigSection subSection = section.getConfigSection( node );
@@ -56,9 +58,11 @@ public class ConfigSection {
         }
 
         String key = path.substring( i2 );
+
         if ( section == this ) {
             ConfigSection result = new ConfigSection( this, key );
-            map.put( key, result );
+            this.map.put( key, result );
+
             return result;
         }
 
@@ -66,7 +70,7 @@ public class ConfigSection {
     }
 
     public void set( String path, Object value ) {
-        set( path, value, true );
+        this.set( path, value, true );
     }
 
     public void set( String path, Object value, boolean searchForSubNodes ) {
@@ -92,11 +96,12 @@ public class ConfigSection {
         }
 
         String key = path.substring( i2 );
+
         if ( section == this ) {
             if ( value == null ) {
-                map.remove( key );
+                this.map.remove( key );
             } else {
-                map.put( key, value );
+                this.map.put( key, value );
             }
         } else {
             section.set( key, value );
@@ -105,7 +110,8 @@ public class ConfigSection {
 
     public Map<Object, Object> getValues( boolean deep ) {
         Map<Object, Object> result = new LinkedHashMap<>();
-        mapChildrenValues( result, this, deep );
+        this.mapChildrenValues( result, this, deep );
+
         return result;
     }
 
@@ -121,6 +127,7 @@ public class ConfigSection {
         //Be sure to have all ConfigSections down the Path
         int i1 = -1, i2;
         ConfigSection section = this;
+
         while ( ( i1 = path.indexOf( '.', i2 = i1 + 1 ) ) != -1 ) {
             String node = path.substring( i2, i1 );
             ConfigSection subSection = section.getConfigSection( node );
@@ -133,8 +140,9 @@ public class ConfigSection {
         }
 
         String key = path.substring( i2 );
+
         if ( section == this ) {
-            return map.containsKey( key );
+            return this.map.containsKey( key );
         } else {
             return section.has( key );
         }
@@ -149,6 +157,7 @@ public class ConfigSection {
         //Be sure to have all ConfigSections down the Path
         int i1 = -1, i2;
         ConfigSection section = this;
+
         while ( ( i1 = path.indexOf( '.', i2 = i1 + 1 ) ) != -1 ) {
             String node = path.substring( i2, i1 );
             ConfigSection subSection = section.getConfigSection( node );
@@ -161,15 +170,16 @@ public class ConfigSection {
         }
 
         String key = path.substring( i2 );
+
         if ( section == this ) {
-            return (T) map.get( key );
+            return (T) this.map.get( key );
         } else {
             return section.get( key );
         }
     }
 
     public Map getRawMap() {
-        return map;
+        return this.map;
     }
 
     protected void mapChildrenValues( Map<Object, Object> output, ConfigSection section, boolean deep ) {
@@ -181,7 +191,7 @@ public class ConfigSection {
                     output.put( entry.getKey(), result );
 
                     if ( deep ) {
-                        mapChildrenValues( result, (ConfigSection) entry.getValue(), true );
+                        this.mapChildrenValues( result, (ConfigSection) entry.getValue(), true );
                     }
                 } else {
                     output.put( entry.getKey(), entry.getValue() );
@@ -191,7 +201,8 @@ public class ConfigSection {
     }
 
     private ConfigSection getConfigSection( String node ) {
-        return ( map.containsKey( node ) && map.get( node ) instanceof ConfigSection ) ? (ConfigSection) map.get( node ) : null;
+        boolean condition = ( this.map.containsKey( node ) && ( this.map.get( node ) instanceof ConfigSection ) );
+        return condition ? (ConfigSection) this.map.get( node ) : null;
     }
 
 }

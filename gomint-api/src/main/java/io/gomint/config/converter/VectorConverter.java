@@ -21,8 +21,8 @@ import java.util.Map;
 public class VectorConverter implements Converter {
 
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) {
-        Vector vector = (Vector) obj;
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
+        Vector vector = (Vector) object;
         Map<String, Object> saveMap = new HashMap<>();
 
         saveMap.put( "x", vector.getX() );
@@ -34,15 +34,20 @@ public class VectorConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) {
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
         Map<String, Object> vectorMap;
-        if ( section instanceof java.util.Map ) {
-            vectorMap = (Map<String, Object>) section;
+
+        if ( object instanceof java.util.Map ) {
+            vectorMap = (Map<String, Object>) object;
         } else {
-            vectorMap = (Map<String, Object>) ( (ConfigSection) section ).getRawMap();
+            vectorMap = (Map<String, Object>) ( (ConfigSection) object ).getRawMap();
         }
 
-        return new Vector( getFloat( vectorMap.get( "x" ) ), getFloat( vectorMap.get( "y" ) ), getFloat( vectorMap.get( "z" ) ) );
+        return new Vector(
+            this.getFloat( vectorMap.get( "x" ) ),
+            this.getFloat( vectorMap.get( "y" ) ),
+            this.getFloat( vectorMap.get( "z" ) )
+        );
     }
 
     @Override
@@ -50,16 +55,16 @@ public class VectorConverter implements Converter {
         return Vector.class.isAssignableFrom( type );
     }
 
-    private float getFloat( Object obj ) {
-        if ( obj instanceof Double ) {
-            return ( (Double) obj ).floatValue();
-        } else if ( obj instanceof Integer ) {
-            return ( (Integer) obj ).floatValue();
-        } else if ( obj instanceof Long ) {
-            return ( (Long) obj ).floatValue();
+    private float getFloat( Object object ) {
+        if ( object instanceof Double ) {
+            return ( (Double) object ).floatValue();
+        } else if ( object instanceof Integer ) {
+            return ( (Integer) object ).floatValue();
+        } else if ( object instanceof Long ) {
+            return ( (Long) object ).floatValue();
         }
 
-        return (float) obj;
+        return (float) object;
     }
 
 }

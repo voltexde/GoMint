@@ -25,20 +25,21 @@ public class ConfigMapper extends BaseConfigMapper {
         Map<String, Object> returnMap = new HashMap<>();
 
         if ( !clazz.getSuperclass().equals( YamlConfig.class ) && !clazz.getSuperclass().equals( Object.class ) ) {
-            Map<String, Object> map = saveToMap( clazz.getSuperclass() );
+            Map<String, Object> map = this.saveToMap( clazz.getSuperclass() );
+
             for ( Map.Entry<String, Object> entry : map.entrySet() ) {
                 returnMap.put( entry.getKey(), entry.getValue() );
             }
         }
 
         for ( Field field : clazz.getDeclaredFields() ) {
-            if ( doSkip( field ) ) {
+            if ( this.doSkip( field ) ) {
                 continue;
             }
 
-            String path = "";
+            String path;
 
-            switch ( CONFIG_MODE ) {
+            switch ( configMode ) {
                 case PATH_BY_UNDERSCORE:
                     path = field.getName().replace( "_", "." );
                     break;
@@ -48,6 +49,7 @@ public class ConfigMapper extends BaseConfigMapper {
                 case DEFAULT:
                 default:
                     String fieldName = field.getName();
+
                     if ( fieldName.contains( "_" ) ) {
                         path = field.getName().replace( "_", "." );
                     } else {
@@ -58,8 +60,7 @@ public class ConfigMapper extends BaseConfigMapper {
             }
 
             if ( field.isAnnotationPresent( Path.class ) ) {
-                Path path1 = field.getAnnotation( Path.class );
-                path = path1.value();
+                path = field.getAnnotation( Path.class ).value();
             }
 
             if ( Modifier.isPrivate( field.getModifiers() ) ) {
@@ -79,19 +80,18 @@ public class ConfigMapper extends BaseConfigMapper {
 
     public void loadFromMap( Map section, Class clazz ) throws Exception {
         if ( !clazz.getSuperclass().equals( YamlConfig.class ) && !clazz.getSuperclass().equals( YamlConfig.class ) ) {
-            loadFromMap( section, clazz.getSuperclass() );
+            this.loadFromMap( section, clazz.getSuperclass() );
         }
 
         for ( Field field : clazz.getDeclaredFields() ) {
-            if ( doSkip( field ) ) {
+            if ( this.doSkip( field ) ) {
                 continue;
             }
 
-            String path = ( CONFIG_MODE.equals( ConfigMode.PATH_BY_UNDERSCORE ) ) ? field.getName().replaceAll( "_", "." ) : field.getName();
+            String path = configMode.equals( ConfigMode.PATH_BY_UNDERSCORE ) ? field.getName().replaceAll( "_", "." ) : field.getName();
 
             if ( field.isAnnotationPresent( Path.class ) ) {
-                Path path1 = field.getAnnotation( Path.class );
-                path = path1.value();
+                path = field.getAnnotation( Path.class ).value();
             }
 
             if ( Modifier.isPrivate( field.getModifiers() ) ) {

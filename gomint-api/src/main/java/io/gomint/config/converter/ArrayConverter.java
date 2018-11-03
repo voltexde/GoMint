@@ -29,45 +29,48 @@ public class ArrayConverter implements Converter {
     }
 
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType parameterizedType ) throws Exception {
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
         Class<?> singleType = type.getComponentType();
         Converter converter = internalConverter.getConverter( singleType );
+
         if ( converter == null ) {
-            return obj;
+            return object;
         }
 
-        Object[] ret = new Object[Array.getLength( obj )];
-        for ( int i = 0; i < ret.length; i++ ) {
-            ret[i] = converter.toConfig( singleType, Array.get( obj, i ), parameterizedType );
+        Object[] result = new Object[Array.getLength( object )];
+
+        for ( int index = 0; index < result.length; index++ ) {
+            result[index] = converter.toConfig( singleType, Array.get( object, index ), parameterizedType );
         }
 
-        return ret;
+        return result;
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        Class<?> singleType = type.getComponentType();
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
         List values;
+        Class<?> singleType = type.getComponentType();
 
-        if ( section instanceof List ) {
-            values = (List) section;
+        if ( object instanceof List ) {
+            values = (List) object;
         } else {
             values = new ArrayList();
-            Collections.addAll( values, (Object[]) section );
+            Collections.addAll( values, (Object[]) object );
         }
 
-        Object ret = Array.newInstance( singleType, values.size() );
+        Object result = Array.newInstance( singleType, values.size() );
         Converter converter = internalConverter.getConverter( singleType );
+
         if ( converter == null ) {
-            return values.toArray( (Object[]) ret );
+            return values.toArray( (Object[]) result );
         }
 
-        for ( int i = 0; i < values.size(); i++ ) {
-            Array.set( ret, i, converter.fromConfig( singleType, values.get( i ), genericType ) );
+        for ( int index = 0; index < values.size(); index++ ) {
+            Array.set( result, index, converter.fromConfig( singleType, values.get( index ), parameterizedType ) );
         }
 
-        return ret;
+        return result;
     }
 
     @Override

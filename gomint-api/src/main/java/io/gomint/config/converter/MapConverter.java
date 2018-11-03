@@ -28,8 +28,8 @@ public class MapConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        Map<Object, Object> map1 = (Map) obj;
+    public Object toConfig( Class<?> type, Object object, ParameterizedType genericType ) throws Exception {
+        Map<Object, Object> map1 = (Map) object;
 
         for ( Map.Entry<Object, Object> entry : map1.entrySet() ) {
             if ( entry.getValue() == null ) continue;
@@ -45,7 +45,7 @@ public class MapConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
+    public Object fromConfig( Class type, Object object, ParameterizedType genericType ) throws Exception {
         if ( genericType != null ) {
 
             Map map;
@@ -58,9 +58,9 @@ public class MapConverter implements Converter {
             if ( genericType.getActualTypeArguments().length == 2 ) {
                 Class keyClass = ( (Class) genericType.getActualTypeArguments()[0] );
 
-                if ( section == null ) section = new HashMap<>();
+                if ( object == null ) object = new HashMap<>();
 
-                Map<?, ?> map1 = ( section instanceof Map ) ? (Map) section : ( (ConfigSection) section ).getRawMap();
+                Map<?, ?> map1 = ( object instanceof Map ) ? (Map) object : ( (ConfigSection) object ).getRawMap();
                 for ( Map.Entry<?, ?> entry : map1.entrySet() ) {
                     Object key;
 
@@ -93,15 +93,15 @@ public class MapConverter implements Converter {
                 Converter converter = internalConverter.getConverter( (Class) genericType.getRawType() );
 
                 if ( converter != null ) {
-                    return converter.fromConfig( (Class) genericType.getRawType(), section, null );
+                    return converter.fromConfig( (Class) genericType.getRawType(), object, null );
                 }
 
-                return ( section instanceof Map ) ? (Map) section : ( (ConfigSection) section ).getRawMap();
+                return ( object instanceof Map ) ? (Map) object : ( (ConfigSection) object ).getRawMap();
             }
 
             return map;
         } else {
-            return section;
+            return object;
         }
     }
 

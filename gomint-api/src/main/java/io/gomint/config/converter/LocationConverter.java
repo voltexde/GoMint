@@ -23,9 +23,10 @@ import java.util.Map;
 public class LocationConverter implements Converter {
 
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        Location location = (Location) obj;
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        Location location = (Location) object;
         Map<String, Object> saveMap = new HashMap<>();
+
         if ( location.getWorld() != null ) {
             saveMap.put( "world", location.getWorld().getWorldName() );
         }
@@ -41,34 +42,34 @@ public class LocationConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) {
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
+        World world = null;
+        Float headYaw = null;
         Map<String, Object> locationMap;
-        if ( section instanceof java.util.Map ) {
-            locationMap = (Map<String, Object>) section;
+
+        if ( object instanceof java.util.Map ) {
+            locationMap = (Map<String, Object>) object;
         } else {
-            locationMap = (Map<String, Object>) ( (ConfigSection) section ).getRawMap();
+            locationMap = (Map<String, Object>) ( (ConfigSection) object ).getRawMap();
         }
 
-        float yaw = getFloat( locationMap.get( "yaw" ) );
-        float pitch = getFloat( locationMap.get( "pitch" ) );
+        float x = this.getFloat( locationMap.get( "x" ) );
+        float y = this.getFloat( locationMap.get( "y" ) );
+        float z = this.getFloat( locationMap.get( "z" ) );
+        float yaw = this.getFloat( locationMap.get( "yaw" ) );
+        float pitch = this.getFloat( locationMap.get( "pitch" ) );
 
-        World world = null;
         if ( locationMap.containsKey( "world" ) ) {
             world = GoMint.instance().getWorld( (String) locationMap.get( "world" ) );
         }
 
-        Float headYaw = null;
         if ( locationMap.containsKey( "headYaw" ) ) {
             headYaw = (Float) locationMap.get( "headYaw" );
         }
 
-        return new Location( world,
-            getFloat( locationMap.get( "x" ) ),
-            getFloat( locationMap.get( "y" ) ),
-            getFloat( locationMap.get( "z" ) ),
-            headYaw == null ? yaw : headYaw,
-            yaw,
-            pitch );
+        headYaw = headYaw == null ? yaw : headYaw;
+
+        return new Location( world, x, y, z, headYaw, yaw, pitch );
     }
 
     @Override
@@ -76,16 +77,16 @@ public class LocationConverter implements Converter {
         return Location.class.isAssignableFrom( type );
     }
 
-    private float getFloat( Object obj ) {
-        if ( obj instanceof Double ) {
-            return ( (Double) obj ).floatValue();
-        } else if ( obj instanceof Integer ) {
-            return ( (Integer) obj ).floatValue();
-        } else if ( obj instanceof Long ) {
-            return ( (Long) obj ).floatValue();
+    private float getFloat( Object object ) {
+        if ( object instanceof Double ) {
+            return ( (Double) object ).floatValue();
+        } else if ( object instanceof Integer ) {
+            return ( (Integer) object ).floatValue();
+        } else if ( object instanceof Long ) {
+            return ( (Long) object ).floatValue();
         }
 
-        return (float) obj;
+        return (float) object;
     }
 
 }

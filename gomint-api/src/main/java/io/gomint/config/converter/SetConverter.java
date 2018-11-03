@@ -12,7 +12,6 @@ import io.gomint.config.InternalConverter;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -30,53 +29,50 @@ public class SetConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        Set<Object> values = (Set<Object>) obj;
-        List newList = new ArrayList();
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        Set<Object> values = (Set<Object>) object;
+        List result = new ArrayList();
 
-        Iterator<Object> iterator = values.iterator();
-        while ( iterator.hasNext() ) {
-            Object val = iterator.next();
-
-            Converter converter = internalConverter.getConverter( val.getClass() );
+        for ( Object value : values ) {
+            Converter converter = internalConverter.getConverter( value.getClass() );
 
             if ( converter != null ) {
-                newList.add( converter.toConfig( val.getClass(), val, null ) );
+                result.add( converter.toConfig( value.getClass(), value, null ) );
             } else {
-                newList.add( val );
+                result.add( value );
             }
         }
 
-        return newList;
+        return result;
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        List<Object> values = (List<Object>) section;
-        Set<Object> newList = new HashSet<>();
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
+        List<Object> values = (List<Object>) object;
+        Set<Object> result = new HashSet<>();
 
         try {
-            newList = (Set<Object>) type.newInstance();
+            result = (Set<Object>) type.newInstance();
         } catch ( Exception ignored ) {
 
         }
 
-        if ( genericType != null && genericType.getActualTypeArguments()[0] instanceof Class ) {
-            Converter converter = internalConverter.getConverter( (Class) genericType.getActualTypeArguments()[0] );
+        if ( parameterizedType != null && parameterizedType.getActualTypeArguments()[0] instanceof Class ) {
+            Converter converter = internalConverter.getConverter( (Class) parameterizedType.getActualTypeArguments()[0] );
 
             if ( converter != null ) {
-                for ( int i = 0; i < values.size(); i++ ) {
-                    newList.add( converter.fromConfig( (Class) genericType.getActualTypeArguments()[0], values.get( i ), null ) );
+                for ( Object value : values ) {
+                    result.add( converter.fromConfig( (Class) parameterizedType.getActualTypeArguments()[0], value, null ) );
                 }
             } else {
-                newList.addAll( values );
+                result.addAll( values );
             }
         } else {
-            newList.addAll( values );
+            result.addAll( values );
         }
 
-        return newList;
+        return result;
     }
 
     @Override
