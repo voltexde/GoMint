@@ -19,7 +19,7 @@ import java.util.HashMap;
 public class BlockPositionConverter implements Converter {
 
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
+    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) {
         io.gomint.math.BlockPosition location = (io.gomint.math.BlockPosition) obj;
         java.util.Map<String, Object> saveMap = new HashMap<>();
 
@@ -32,7 +32,7 @@ public class BlockPositionConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
+    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) {
         java.util.Map<String, Object> locationMap;
         if ( section instanceof java.util.Map ) {
             locationMap = (java.util.Map<String, Object>) section;

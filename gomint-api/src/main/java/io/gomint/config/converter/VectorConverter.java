@@ -21,7 +21,7 @@ import java.util.Map;
 public class VectorConverter implements Converter {
 
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
+    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) {
         Vector vector = (Vector) obj;
         Map<String, Object> saveMap = new HashMap<>();
 
@@ -34,7 +34,7 @@ public class VectorConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
+    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) {
         Map<String, Object> vectorMap;
         if ( section instanceof java.util.Map ) {
             vectorMap = (Map<String, Object>) section;

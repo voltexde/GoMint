@@ -41,7 +41,7 @@ public class LocationConverter implements Converter {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
+    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) {
         Map<String, Object> locationMap;
         if ( section instanceof java.util.Map ) {
             locationMap = (Map<String, Object>) section;

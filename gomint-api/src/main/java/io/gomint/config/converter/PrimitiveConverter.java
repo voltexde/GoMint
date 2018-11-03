@@ -35,12 +35,12 @@ public class PrimitiveConverter implements Converter {
     }
 
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType parameterizedType ) throws Exception {
+    public Object toConfig( Class<?> type, Object obj, ParameterizedType parameterizedType ) {
         return obj;
     }
 
     @Override
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
+    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) {
         switch ( type.getSimpleName() ) {
             case "short":
                 return ( section instanceof Short ) ? section : new Integer( (int) section ).shortValue();
