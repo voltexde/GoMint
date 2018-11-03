@@ -93,7 +93,7 @@ public class Blocks {
             return instance.generate();
         }
 
-        LOGGER.warn( "Unknown block {}", blockId, new Exception() );
+        LOGGER.warn( "Unknown block {}", blockId );
         return null;
     }
 
