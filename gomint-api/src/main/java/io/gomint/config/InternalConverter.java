@@ -68,9 +68,9 @@ public class InternalConverter {
                 throw new InvalidConverterException( clazz.getName() + " is missing a constructor declaring only" +
                     " one parameter of type " + InternalConverter.class, cause );
             } else if ( cause instanceof InvocationTargetException ) {
-                throw new InvalidConverterException( "converter could not be invoked", cause );
+                throw new InvalidConverterException( "Converter could not be invoked", cause );
             } else if ( cause instanceof InstantiationException ) {
-                throw new InvalidConverterException( "converter could not be instantiated", cause );
+                throw new InvalidConverterException( "Converter could not be instantiated", cause );
             } else if ( cause instanceof IllegalAccessException ) {
                 throw new InvalidConverterException( clazz.getName() + " is missing a public constructor declaring " +
                     "only one parameter of type " + InternalConverter.class, cause );
@@ -126,6 +126,7 @@ public class InternalConverter {
                 return;
             } else {
                 converter = this.getConverter( field.getType() );
+
                 if ( converter != null ) {
                     ParameterizedType parameterizedType = this.evalParameterizedField( field );
                     Object value = converter.fromConfig( field.getType(), root.get( path ), parameterizedType );
@@ -162,7 +163,7 @@ public class InternalConverter {
 
             if ( converter != null ) {
                 ParameterizedType parameterizedType = this.evalParameterizedField( field );
-                Object val = converter.fromConfig( field.getType(), root.get( path ), parameterizedType );
+                Object value = converter.fromConfig( field.getType(), root.get( path ), parameterizedType );
 
                 // If we're trying to assign a value to a static variable
                 // then assure there's the "PreserveStatic" annotation on there!
@@ -175,19 +176,19 @@ public class InternalConverter {
                         return;
                     }
 
-                    if ( converter instanceof PrimitiveConverter && val == null ) {
+                    if ( converter instanceof PrimitiveConverter && value == null ) {
                         return;
                     }
 
-                    field.set( null, val );
+                    field.set( null, value );
                     return;
                 }
 
-                if ( converter instanceof PrimitiveConverter && val == null ) {
+                if ( converter instanceof PrimitiveConverter && value == null ) {
                     return;
                 }
 
-                field.set( config, val );
+                field.set( config, value );
                 return;
             }
         }
