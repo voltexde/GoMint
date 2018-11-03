@@ -20,7 +20,7 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
-public class LocationConverter implements Converter {
+public class LocationConverter extends BaseConverter {
 
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
@@ -47,17 +47,17 @@ public class LocationConverter implements Converter {
         Float headYaw = null;
         Map<String, Object> locationMap;
 
-        if ( object instanceof java.util.Map ) {
+        if ( object instanceof Map ) {
             locationMap = (Map<String, Object>) object;
         } else {
             locationMap = (Map<String, Object>) ( (ConfigSection) object ).getRawMap();
         }
 
-        float x = this.getFloat( locationMap.get( "x" ) );
-        float y = this.getFloat( locationMap.get( "y" ) );
-        float z = this.getFloat( locationMap.get( "z" ) );
-        float yaw = this.getFloat( locationMap.get( "yaw" ) );
-        float pitch = this.getFloat( locationMap.get( "pitch" ) );
+        float x = super.asFloat( locationMap.get( "x" ) );
+        float y = super.asFloat( locationMap.get( "y" ) );
+        float z = super.asFloat( locationMap.get( "z" ) );
+        float yaw = super.asFloat( locationMap.get( "yaw" ) );
+        float pitch = super.asFloat( locationMap.get( "pitch" ) );
 
         if ( locationMap.containsKey( "world" ) ) {
             world = GoMint.instance().getWorld( (String) locationMap.get( "world" ) );
@@ -75,18 +75,6 @@ public class LocationConverter implements Converter {
     @Override
     public boolean supports( Class<?> type ) {
         return Location.class.isAssignableFrom( type );
-    }
-
-    private float getFloat( Object object ) {
-        if ( object instanceof Double ) {
-            return ( (Double) object ).floatValue();
-        } else if ( object instanceof Integer ) {
-            return ( (Integer) object ).floatValue();
-        } else if ( object instanceof Long ) {
-            return ( (Long) object ).floatValue();
-        }
-
-        return (float) object;
     }
 
 }

@@ -68,7 +68,7 @@ public class ConfigConverter implements Converter {
             yamlConfig.addConverter( customConverter );
         }
 
-        yamlConfig.loadFromMap( ( object instanceof Map ) ? (Map) object : ( (ConfigSection) object ).getRawMap(), type );
+        yamlConfig.loadFromMap( object instanceof Map ? (Map) object : ( (ConfigSection) object ).getRawMap(), type );
         return yamlConfig;
     }
 

@@ -11,6 +11,7 @@ import io.gomint.config.ConfigSection;
 import io.gomint.config.InternalConverter;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,40 +30,53 @@ public class MapConverter implements Converter {
     @Override
     @SuppressWarnings( "unchecked" )
     public Object toConfig( Class<?> type, Object object, ParameterizedType genericType ) throws Exception {
-        Map<Object, Object> map1 = (Map) object;
+        Map<Object, Object> result = (Map) object;
 
-        for ( Map.Entry<Object, Object> entry : map1.entrySet() ) {
-            if ( entry.getValue() == null ) continue;
+        for ( Map.Entry<Object, Object> entry : result.entrySet() ) {
+            if ( entry.getValue() == null ) {
+                continue;
+            }
 
             Class clazz = entry.getValue().getClass();
-
             Converter converter = this.internalConverter.getConverter( clazz );
-            map1.put( entry.getKey(), ( converter != null ) ? converter.toConfig( clazz, entry.getValue(), null ) : entry.getValue() );
+            Object value = entry.getValue();
+
+            // Ternary operators have been stripped to if statements for readability purposes
+
+            if ( converter != null ) {
+                value = converter.toConfig( clazz, entry.getValue(), null );
+            }
+
+            result.put( entry.getKey(), value );
         }
 
-        return map1;
+        return result;
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType genericType ) throws Exception {
         if ( genericType != null ) {
+            Map result = new HashMap();
 
-            Map map;
             try {
-                map = ( (Map) ( (Class) genericType.getRawType() ).newInstance() );
-            } catch ( InstantiationException e ) {
-                map = new HashMap();
+                result = (Map) ( (Class) genericType.getRawType() ).newInstance();
+            } catch ( InstantiationException ignored ) {
+
             }
 
             if ( genericType.getActualTypeArguments().length == 2 ) {
-                Class keyClass = ( (Class) genericType.getActualTypeArguments()[0] );
+                Class keyClass = (Class) genericType.getActualTypeArguments()[0];
 
-                if ( object == null ) object = new HashMap<>();
+                if ( object == null ) {
+                    object = new HashMap<>();
+                }
 
-                Map<?, ?> map1 = ( object instanceof Map ) ? (Map) object : ( (ConfigSection) object ).getRawMap();
-                for ( Map.Entry<?, ?> entry : map1.entrySet() ) {
+                Map<?, ?> map = object instanceof Map ? (Map) object : ( (ConfigSection) object ).getRawMap();
+
+                for ( Map.Entry<?, ?> entry : map.entrySet() ) {
                     Object key;
+                    Class clazz;
 
                     if ( keyClass.equals( Integer.class ) && !( entry.getKey() instanceof Integer ) ) {
                         key = Integer.valueOf( (String) entry.getKey() );
@@ -78,28 +92,41 @@ public class MapConverter implements Converter {
                         key = entry.getKey();
                     }
 
-                    Class clazz;
-                    if ( genericType.getActualTypeArguments()[1] instanceof ParameterizedType ) {
-                        ParameterizedType parameterizedType = (ParameterizedType) genericType.getActualTypeArguments()[1];
-                        clazz = (Class) parameterizedType.getRawType();
+                    Type argument = genericType.getActualTypeArguments()[1];
+
+                    if ( argument instanceof ParameterizedType ) {
+                        clazz = (Class) ( (ParameterizedType) argument ).getRawType();
                     } else {
-                        clazz = (Class) genericType.getActualTypeArguments()[1];
+                        clazz = (Class) argument;
                     }
 
+                    // Ternary operators have been stripped to if statements for readability purposes
+
+                    Object value = entry.getValue();
+                    ParameterizedType parameterizedType = null;
                     Converter converter = internalConverter.getConverter( clazz );
-                    map.put( key, ( converter != null ) ? converter.fromConfig( clazz, entry.getValue(), ( genericType.getActualTypeArguments()[1] instanceof ParameterizedType ) ? (ParameterizedType) genericType.getActualTypeArguments()[1] : null ) : entry.getValue() );
+
+                    if ( argument instanceof ParameterizedType ) {
+                        parameterizedType = (ParameterizedType) argument;
+                    }
+
+                    if ( converter != null ) {
+                        value = converter.fromConfig( clazz, entry.getValue(), parameterizedType );
+                    }
+
+                    result.put( key, value );
                 }
             } else {
-                Converter converter = internalConverter.getConverter( (Class) genericType.getRawType() );
+                Converter converter = this.internalConverter.getConverter( (Class) genericType.getRawType() );
 
                 if ( converter != null ) {
                     return converter.fromConfig( (Class) genericType.getRawType(), object, null );
                 }
 
-                return ( object instanceof Map ) ? (Map) object : ( (ConfigSection) object ).getRawMap();
+                return object instanceof Map ? (Map) object : ( (ConfigSection) object ).getRawMap();
             }
 
-            return map;
+            return result;
         } else {
             return object;
         }

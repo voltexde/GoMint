@@ -59,11 +59,12 @@ public class SetConverter implements Converter {
         }
 
         if ( parameterizedType != null && parameterizedType.getActualTypeArguments()[0] instanceof Class ) {
-            Converter converter = this.internalConverter.getConverter( (Class) parameterizedType.getActualTypeArguments()[0] );
+            Class actualTypeArgument = (Class) parameterizedType.getActualTypeArguments()[0];
+            Converter converter = this.internalConverter.getConverter( actualTypeArgument );
 
             if ( converter != null ) {
                 for ( Object value : values ) {
-                    result.add( converter.fromConfig( (Class) parameterizedType.getActualTypeArguments()[0], value, null ) );
+                    result.add( converter.fromConfig( actualTypeArgument, value, null ) );
                 }
             } else {
                 result.addAll( values );

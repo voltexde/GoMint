@@ -12,7 +12,7 @@ import io.gomint.config.InternalConverter;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -49,16 +49,8 @@ public class ArrayConverter implements Converter {
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
-        List values;
         Class<?> singleType = type.getComponentType();
-
-        if ( object instanceof List ) {
-            values = (List) object;
-        } else {
-            values = new ArrayList();
-            Collections.addAll( values, (Object[]) object );
-        }
-
+        List values = object instanceof List ? (List) object : new ArrayList( Arrays.asList( (Object[]) object ) );
         Object result = Array.newInstance( singleType, values.size() );
         Converter converter = internalConverter.getConverter( singleType );
 

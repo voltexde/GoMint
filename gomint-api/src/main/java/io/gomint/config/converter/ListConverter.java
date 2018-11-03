@@ -69,11 +69,12 @@ public class ListConverter implements Converter {
         List values = (List) object;
 
         if ( parameterizedType != null && parameterizedType.getActualTypeArguments()[0] instanceof Class ) {
-            Converter converter = this.internalConverter.getConverter( (Class) parameterizedType.getActualTypeArguments()[0] );
+            Class actualTypeArgument = (Class) parameterizedType.getActualTypeArguments()[0];
+            Converter converter = this.internalConverter.getConverter( actualTypeArgument );
 
             if ( converter != null ) {
                 for ( Object value : values ) {
-                    converted.add( converter.fromConfig( (Class) parameterizedType.getActualTypeArguments()[0], value, null ) );
+                    converted.add( converter.fromConfig( actualTypeArgument, value, null ) );
                 }
             } else {
                 converted = values;
