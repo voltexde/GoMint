@@ -12,6 +12,7 @@ import io.gomint.config.InternalConverter;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author geNAZt
@@ -27,8 +28,8 @@ public class ListConverter implements Converter {
 
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        java.util.List values = (java.util.List) obj;
-        java.util.List newList = new ArrayList();
+        List values = (List) obj;
+        List newList = new ArrayList();
 
         if ( this.internalConverter.getConfig() instanceof BaseConfigMapper ) {
             BaseConfigMapper baseConfigMapper = (BaseConfigMapper) this.internalConverter.getConfig();
@@ -55,13 +56,13 @@ public class ListConverter implements Converter {
 
     @Override
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        java.util.List newList = new ArrayList();
+        List newList = new ArrayList();
         try {
-            newList = ( (java.util.List) type.newInstance() );
+            newList = ( (List) type.newInstance() );
         } catch ( Exception e ) {
         }
 
-        java.util.List values = (java.util.List) section;
+        List values = (List) section;
 
         if ( genericType != null && genericType.getActualTypeArguments()[0] instanceof Class ) {
             Converter converter = this.internalConverter.getConverter( (Class) genericType.getActualTypeArguments()[0] );
@@ -82,7 +83,7 @@ public class ListConverter implements Converter {
 
     @Override
     public boolean supports( Class<?> type ) {
-        return java.util.List.class.isAssignableFrom( type );
+        return List.class.isAssignableFrom( type );
     }
 
 }

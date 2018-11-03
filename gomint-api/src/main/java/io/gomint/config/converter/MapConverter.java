@@ -12,6 +12,7 @@ import io.gomint.config.InternalConverter;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author geNAZt
@@ -27,9 +28,9 @@ public class MapConverter implements Converter {
 
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        java.util.Map<Object, Object> map1 = (java.util.Map) obj;
+        Map<Object, Object> map1 = (Map) obj;
 
-        for ( java.util.Map.Entry<Object, Object> entry : map1.entrySet() ) {
+        for ( Map.Entry<Object, Object> entry : map1.entrySet() ) {
             if ( entry.getValue() == null ) continue;
 
             Class clazz = entry.getValue().getClass();
@@ -45,9 +46,9 @@ public class MapConverter implements Converter {
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
         if ( genericType != null ) {
 
-            java.util.Map map;
+            Map map;
             try {
-                map = ( (java.util.Map) ( (Class) genericType.getRawType() ).newInstance() );
+                map = ( (Map) ( (Class) genericType.getRawType() ).newInstance() );
             } catch ( InstantiationException e ) {
                 map = new HashMap();
             }
@@ -57,8 +58,8 @@ public class MapConverter implements Converter {
 
                 if ( section == null ) section = new HashMap<>();
 
-                java.util.Map<?, ?> map1 = ( section instanceof java.util.Map ) ? (java.util.Map) section : ( (ConfigSection) section ).getRawMap();
-                for ( java.util.Map.Entry<?, ?> entry : map1.entrySet() ) {
+                Map<?, ?> map1 = ( section instanceof Map ) ? (Map) section : ( (ConfigSection) section ).getRawMap();
+                for ( Map.Entry<?, ?> entry : map1.entrySet() ) {
                     Object key;
 
                     if ( keyClass.equals( Integer.class ) && !( entry.getKey() instanceof Integer ) ) {
@@ -93,7 +94,7 @@ public class MapConverter implements Converter {
                     return converter.fromConfig( (Class) genericType.getRawType(), section, null );
                 }
 
-                return ( section instanceof java.util.Map ) ? (java.util.Map) section : ( (ConfigSection) section ).getRawMap();
+                return ( section instanceof Map ) ? (Map) section : ( (ConfigSection) section ).getRawMap();
             }
 
             return map;
@@ -104,7 +105,7 @@ public class MapConverter implements Converter {
 
     @Override
     public boolean supports( Class<?> type ) {
-        return java.util.Map.class.isAssignableFrom( type );
+        return Map.class.isAssignableFrom( type );
     }
 
 }

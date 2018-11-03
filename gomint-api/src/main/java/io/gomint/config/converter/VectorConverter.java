@@ -8,9 +8,11 @@
 package io.gomint.config.converter;
 
 import io.gomint.config.ConfigSection;
+import io.gomint.math.Vector;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author geNAZt
@@ -20,8 +22,8 @@ public class VectorConverter implements Converter {
 
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        io.gomint.math.Vector vector = (io.gomint.math.Vector) obj;
-        java.util.Map<String, Object> saveMap = new HashMap<>();
+        Vector vector = (Vector) obj;
+        Map<String, Object> saveMap = new HashMap<>();
 
         saveMap.put( "x", vector.getX() );
         saveMap.put( "y", vector.getY() );
@@ -32,14 +34,14 @@ public class VectorConverter implements Converter {
 
     @Override
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        java.util.Map<String, Object> vectorMap;
+        Map<String, Object> vectorMap;
         if ( section instanceof java.util.Map ) {
-            vectorMap = (java.util.Map<String, Object>) section;
+            vectorMap = (Map<String, Object>) section;
         } else {
-            vectorMap = (java.util.Map<String, Object>) ( (ConfigSection) section ).getRawMap();
+            vectorMap = (Map<String, Object>) ( (ConfigSection) section ).getRawMap();
         }
 
-        return new io.gomint.math.Vector( getFloat( vectorMap.get( "x" ) ), getFloat( vectorMap.get( "y" ) ), getFloat( vectorMap.get( "z" ) ) );
+        return new Vector( getFloat( vectorMap.get( "x" ) ), getFloat( vectorMap.get( "y" ) ), getFloat( vectorMap.get( "z" ) ) );
     }
 
     private float getFloat( Object obj ) {
@@ -56,7 +58,7 @@ public class VectorConverter implements Converter {
 
     @Override
     public boolean supports( Class<?> type ) {
-        return io.gomint.math.Vector.class.isAssignableFrom( type );
+        return Vector.class.isAssignableFrom( type );
     }
 
 }

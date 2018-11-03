@@ -9,10 +9,12 @@ package io.gomint.config.converter;
 
 import io.gomint.GoMint;
 import io.gomint.config.ConfigSection;
+import io.gomint.math.Location;
 import io.gomint.world.World;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author geNAZt
@@ -22,8 +24,8 @@ public class LocationConverter implements Converter {
 
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        io.gomint.math.Location location = (io.gomint.math.Location) obj;
-        java.util.Map<String, Object> saveMap = new HashMap<>();
+        Location location = (Location) obj;
+        Map<String, Object> saveMap = new HashMap<>();
         if ( location.getWorld() != null ) {
             saveMap.put( "world", location.getWorld().getWorldName() );
         }
@@ -39,11 +41,11 @@ public class LocationConverter implements Converter {
 
     @Override
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        java.util.Map<String, Object> locationMap;
+        Map<String, Object> locationMap;
         if ( section instanceof java.util.Map ) {
-            locationMap = (java.util.Map<String, Object>) section;
+            locationMap = (Map<String, Object>) section;
         } else {
-            locationMap = (java.util.Map<String, Object>) ( (ConfigSection) section ).getRawMap();
+            locationMap = (Map<String, Object>) ( (ConfigSection) section ).getRawMap();
         }
 
         float yaw = getFloat( locationMap.get( "yaw" ) );
@@ -59,7 +61,7 @@ public class LocationConverter implements Converter {
             headYaw = (Float) locationMap.get( "headYaw" );
         }
 
-        return new io.gomint.math.Location( world,
+        return new Location( world,
             getFloat( locationMap.get( "x" ) ),
             getFloat( locationMap.get( "y" ) ),
             getFloat( locationMap.get( "z" ) ),
@@ -82,7 +84,7 @@ public class LocationConverter implements Converter {
 
     @Override
     public boolean supports( Class<?> type ) {
-        return io.gomint.math.Location.class.isAssignableFrom( type );
+        return Location.class.isAssignableFrom( type );
     }
 
 }
