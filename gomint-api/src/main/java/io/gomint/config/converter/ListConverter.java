@@ -61,7 +61,8 @@ public class ListConverter implements Converter {
         List newList = new ArrayList();
         try {
             newList = ( (List) type.newInstance() );
-        } catch ( Exception e ) {
+        } catch ( Exception ignored ) {
+
         }
 
         List values = (List) section;

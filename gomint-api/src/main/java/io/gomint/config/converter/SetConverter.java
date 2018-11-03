@@ -58,7 +58,8 @@ public class SetConverter implements Converter {
 
         try {
             newList = (Set<Object>) type.newInstance();
-        } catch ( Exception e ) {
+        } catch ( Exception ignored ) {
+
         }
 
         if ( genericType != null && genericType.getActualTypeArguments()[0] instanceof Class ) {

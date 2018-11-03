@@ -68,7 +68,8 @@ public class ConfigMapper extends BaseConfigMapper {
 
             try {
                 returnMap.put( path, field.get( this ) );
-            } catch ( IllegalAccessException e ) {
+            } catch ( IllegalAccessException ignored ) {
+
             }
         }
 
