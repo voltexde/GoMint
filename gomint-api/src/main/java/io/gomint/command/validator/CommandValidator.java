@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2018 GoMint team
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -22,16 +22,17 @@ public class CommandValidator extends EnumValidator {
         super( null );
     }
 
-    @Override
-    public ParamType getType() {
-        return ParamType.COMMAND;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object validate( String input, CommandSender commandSender ) {
         return input.equals( values().get( 0 ) ) ? true : null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String consume( Iterator<String> data ) {
         if ( data.hasNext() ) {
@@ -41,6 +42,17 @@ public class CommandValidator extends EnumValidator {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ParamType getType() {
+        return ParamType.COMMAND;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getHelpText() {
         return "commandName";

@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.command.validator;
 
 import io.gomint.command.CommandSender;
@@ -13,26 +20,9 @@ import java.util.List;
  */
 public class TextValidator extends ParamValidator {
 
-    @Override
-    public ParamType getType() {
-        return ParamType.TEXT;
-    }
-
-    @Override
-    public boolean hasValues() {
-        return false;
-    }
-
-    @Override
-    public List<String> values() {
-        return null;
-    }
-
-    @Override
-    public Object validate( String input, CommandSender commandSender ) {
-        return input;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String consume( Iterator<String> data ) {
         StringBuilder forValidator = new StringBuilder();
@@ -47,6 +37,41 @@ public class TextValidator extends ParamValidator {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object validate( String input, CommandSender commandSender ) {
+        return input;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ParamType getType() {
+        return ParamType.TEXT;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> values() {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasValues() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getHelpText() {
         return "text";

@@ -295,15 +295,22 @@ public abstract class WorldAdapter implements World {
         packet.setSpawnType( PacketSetSpawnPosition.SpawnType.WORLD );
         packet.setPosition( location.toBlockPosition() );
 
-        for ( EntityPlayer player : this.getPlayers() ) {
-            io.gomint.server.entity.EntityPlayer handle = (io.gomint.server.entity.EntityPlayer) player;
-            handle.getConnection().send( packet );
-        }
+        this.broadcastPacket( packet );
     }
 
     @Override
     public Location getSpawnLocation() {
         return this.spawn;
+    }
+
+    @Override
+    public void setDifficulty(Difficulty difficulty) {
+        this.difficulty = difficulty;
+
+        PacketSetDifficulty packet = new PacketSetDifficulty();
+        packet.setDifficulty( difficulty.getDifficultyDegree() );
+
+        this.broadcastPacket( packet );
     }
 
     @Override
@@ -1523,6 +1530,13 @@ public abstract class WorldAdapter implements World {
         ChunkAdapter chunk = this.loadChunk( x >> 4, z >> 4, true );
         int y = chunk.getHeight( x & 0xF, z & 0xF );
         return chunk.getBlockAt( x & 0xF, y, z & 0xF, layer );
+    }
+
+    protected final void broadcastPacket( Packet packet ) {
+        for ( EntityPlayer player : this.getPlayers() ) {
+            io.gomint.server.entity.EntityPlayer handle = (io.gomint.server.entity.EntityPlayer) player;
+            handle.getConnection().send( packet );
+        }
     }
 
 }

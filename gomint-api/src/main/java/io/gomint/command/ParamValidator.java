@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.command;
 
 import java.util.Iterator;
@@ -13,19 +20,28 @@ public abstract class ParamValidator {
     private String postfix;
 
     /**
+     * Validates given input
+     *
+     * @param input         from the command
+     * @param commandSender which submitted the command
+     * @return non null object of validation on success (string for example) or null when validation failed
+     */
+    public abstract Object validate( String input, CommandSender commandSender );
+
+    /**
+     * Consume all parts this validator needs as input from the command
+     *
+     * @param data left from the command which can be consumed
+     * @return the concatenated data consumed
+     */
+    public abstract String consume( Iterator<String> data );
+
+    /**
      * Get the type of this param.
      *
      * @return type of param
      */
     public abstract ParamType getType();
-
-    /**
-     * Does this validator have values which should be sent with the command. This is
-     * mostly used by enum params which define a set of values for selection.
-     *
-     * @return true when there is data to be sent with this parameter, false when not
-     */
-    public abstract boolean hasValues();
 
     /**
      * Get the values when {@link #hasValues()} is true.
@@ -35,13 +51,12 @@ public abstract class ParamValidator {
     public abstract List<String> values();
 
     /**
-     * Validates given input
+     * Does this validator have values which should be sent with the command. This is
+     * mostly used by enum params which define a set of values for selection.
      *
-     * @param input         from the command
-     * @param commandSender which submitted the command
-     * @return non null object of validation on success (string for example) or null when validation failed
+     * @return true when there is data to be sent with this parameter, false when not
      */
-    public abstract Object validate( String input, CommandSender commandSender );
+    public abstract boolean hasValues();
 
     /**
      * Is this param optional?
@@ -88,13 +103,5 @@ public abstract class ParamValidator {
     public String getHelpText() {
         return "NO HELP";
     }
-
-    /**
-     * Consume all parts this validator needs as input from the command
-     *
-     * @param data left from the command which can be consumed
-     * @return the concated data consumed
-     */
-    public abstract String consume( Iterator<String> data );
 
 }

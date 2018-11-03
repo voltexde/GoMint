@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.command.validator;
 
 import com.google.common.base.Joiner;
@@ -23,30 +30,9 @@ public class EnumValidator extends ParamValidator {
         }
     }
 
-    @Override
-    public ParamType getType() {
-        return ParamType.STRING_ENUM;
-    }
-
-    @Override
-    public boolean hasValues() {
-        return true;
-    }
-
-    @Override
-    public List<String> values() {
-        return this.values;
-    }
-
-    @Override
-    public Object validate( String input, CommandSender commandSender ) {
-        if ( this.values.contains( input ) ) {
-            return input;
-        }
-
-        return null;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String consume( Iterator<String> data ) {
         if ( data.hasNext() ) {
@@ -56,6 +42,45 @@ public class EnumValidator extends ParamValidator {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object validate( String input, CommandSender commandSender ) {
+        if ( this.values.contains( input ) ) {
+            return input;
+        }
+
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ParamType getType() {
+        return ParamType.STRING_ENUM;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> values() {
+        return this.values;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasValues() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getHelpText() {
         return Joiner.on( " | " ).join( this.values );
