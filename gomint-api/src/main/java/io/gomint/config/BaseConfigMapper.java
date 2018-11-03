@@ -208,4 +208,5 @@ public class BaseConfigMapper extends BaseConfig {
             this.commentPrefix = this.commentPrefix.substring( 0, this.commentPrefix.length() - ( 1 + path.length() ) );
         }
     }
+
 }

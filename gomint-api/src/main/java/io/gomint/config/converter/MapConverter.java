@@ -106,4 +106,5 @@ public class MapConverter implements Converter {
     public boolean supports( Class<?> type ) {
         return java.util.Map.class.isAssignableFrom( type );
     }
+
 }

@@ -72,4 +72,5 @@ public class ArrayConverter implements Converter {
     public boolean supports( Class<?> type ) {
         return type.isArray();
     }
+
 }

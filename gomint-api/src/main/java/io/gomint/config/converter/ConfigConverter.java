@@ -87,4 +87,5 @@ public class ConfigConverter implements Converter {
     public boolean supports( Class<?> type ) {
         return YamlConfig.class.isAssignableFrom( type );
     }
+
 }

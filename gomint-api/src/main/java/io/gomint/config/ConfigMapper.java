@@ -99,4 +99,5 @@ public class ConfigMapper extends BaseConfigMapper {
             converter.fromConfig( (YamlConfig) this, field, ConfigSection.convertFromMap( section ), path );
         }
     }
+
 }

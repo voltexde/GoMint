@@ -19,9 +19,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface SerializeOptions {
+
 	String[] configHeader() default {};
 
 	boolean skipFailedObjects() default false;
 
 	ConfigMode configMode() default ConfigMode.FIELD_IS_KEY;
+
 }

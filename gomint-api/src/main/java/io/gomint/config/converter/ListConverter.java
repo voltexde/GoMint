@@ -18,6 +18,7 @@ import java.util.ArrayList;
  * @version 1.0
  */
 public class ListConverter implements Converter {
+
     private InternalConverter internalConverter;
 
     public ListConverter( InternalConverter internalConverter ) {
@@ -83,4 +84,5 @@ public class ListConverter implements Converter {
     public boolean supports( Class<?> type ) {
         return java.util.List.class.isAssignableFrom( type );
     }
+
 }

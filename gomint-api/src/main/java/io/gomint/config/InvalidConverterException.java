@@ -12,6 +12,7 @@ package io.gomint.config;
  * @version 1.0
  */
 public class InvalidConverterException extends Exception {
+
     public InvalidConverterException() {}
 
     public InvalidConverterException(String msg) {
@@ -25,4 +26,5 @@ public class InvalidConverterException extends Exception {
     public InvalidConverterException(String msg, Throwable cause) {
         super(msg, cause);
     }
+
 }

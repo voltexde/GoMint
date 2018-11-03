@@ -17,6 +17,7 @@ import java.util.HashSet;
  * @version 1.0
  */
 public class PrimitiveConverter implements Converter {
+
     private HashSet<String> types = new HashSet<String>() {{
         add( "boolean" );
         add( "char" );
@@ -63,4 +64,5 @@ public class PrimitiveConverter implements Converter {
     public boolean supports( Class<?> type ) {
         return types.contains( type.getName() );
     }
+
 }

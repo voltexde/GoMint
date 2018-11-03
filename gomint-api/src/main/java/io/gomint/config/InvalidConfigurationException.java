@@ -12,6 +12,7 @@ package io.gomint.config;
  * @version 1.0
  */
 public class InvalidConfigurationException extends Exception {
+
     public InvalidConfigurationException() {}
 
     public InvalidConfigurationException(String msg) {
@@ -25,4 +26,5 @@ public class InvalidConfigurationException extends Exception {
     public InvalidConfigurationException(String msg, Throwable cause) {
         super(msg, cause);
     }
+
 }

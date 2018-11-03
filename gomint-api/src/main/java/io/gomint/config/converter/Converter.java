@@ -14,6 +14,7 @@ import java.lang.reflect.ParameterizedType;
  * @version 1.0
  */
 public interface Converter {
+
     /**
      * This method gets called on save. It gets the Fields Type and the object the Config wants to save into it. This
      * is needed to pretty print INTO the config.
@@ -45,4 +46,5 @@ public interface Converter {
      * @return true if this can convert that otherwise false
      */
     boolean supports( Class<?> type );
+
 }

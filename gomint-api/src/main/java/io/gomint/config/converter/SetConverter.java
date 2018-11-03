@@ -19,6 +19,7 @@ import java.util.Iterator;
  * @version 1.0
  */
 public class SetConverter implements Converter {
+
     private InternalConverter internalConverter;
 
     public SetConverter( InternalConverter internalConverter ) {
