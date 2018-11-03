@@ -19,9 +19,6 @@ import java.util.HashMap;
  */
 public class VectorConverter implements Converter {
 
-    public VectorConverter( InternalConverter converter ) {
-    }
-
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
         io.gomint.math.Vector vector = (io.gomint.math.Vector) obj;

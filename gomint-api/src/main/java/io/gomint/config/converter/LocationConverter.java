@@ -21,9 +21,6 @@ import java.util.HashMap;
  */
 public class LocationConverter implements Converter {
 
-    public LocationConverter( InternalConverter converter ) {
-    }
-
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
         io.gomint.math.Location location = (io.gomint.math.Location) obj;

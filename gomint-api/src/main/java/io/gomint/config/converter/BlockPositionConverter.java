@@ -19,9 +19,6 @@ import java.util.HashMap;
  */
 public class BlockPositionConverter implements Converter {
 
-    public BlockPositionConverter( InternalConverter converter ) {
-    }
-
     @Override
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
         io.gomint.math.BlockPosition location = (io.gomint.math.BlockPosition) obj;
