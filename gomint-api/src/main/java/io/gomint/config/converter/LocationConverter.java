@@ -9,7 +9,6 @@ package io.gomint.config.converter;
 
 import io.gomint.GoMint;
 import io.gomint.config.ConfigSection;
-import io.gomint.config.InternalConverter;
 import io.gomint.world.World;
 
 import java.lang.reflect.ParameterizedType;
