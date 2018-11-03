@@ -140,6 +140,7 @@ public class ConfigSection {
         }
     }
 
+    @SuppressWarnings( "unchecked" )
     public <T> T get( String path ) {
         if ( path == null ) {
             throw new IllegalArgumentException( "Cannot remove a Value at empty path" );

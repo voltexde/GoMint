@@ -27,6 +27,7 @@ public class MapConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
         Map<Object, Object> map1 = (Map) obj;
 
@@ -43,6 +44,7 @@ public class MapConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
         if ( genericType != null ) {
 

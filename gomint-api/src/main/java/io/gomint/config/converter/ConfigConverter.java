@@ -77,6 +77,7 @@ public class ConfigConverter implements Converter {
         return YamlConfig.class.isAssignableFrom( type );
     }
 
+    @SuppressWarnings( "unchecked" )
     public Object newInstance( Class type ) throws Exception {
         Class enclosingClass = type.getEnclosingClass();
         if ( enclosingClass != null ) {

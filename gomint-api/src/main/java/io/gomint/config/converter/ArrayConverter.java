@@ -43,6 +43,7 @@ public class ArrayConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
         Class<?> singleType = type.getComponentType();
         java.util.List values;

@@ -29,6 +29,7 @@ public class SetConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
         Set<Object> values = (Set<Object>) obj;
         List newList = new ArrayList();
@@ -50,6 +51,7 @@ public class SetConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
         List<Object> values = (List<Object>) section;
         Set<Object> newList = new HashSet<>();

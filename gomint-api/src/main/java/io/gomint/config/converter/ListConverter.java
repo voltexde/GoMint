@@ -27,6 +27,7 @@ public class ListConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
         List values = (List) obj;
         List newList = new ArrayList();
@@ -55,6 +56,7 @@ public class ListConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
         List newList = new ArrayList();
         try {

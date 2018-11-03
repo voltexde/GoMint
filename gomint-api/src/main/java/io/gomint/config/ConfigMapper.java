@@ -20,6 +20,7 @@ import java.util.Map;
  */
 public class ConfigMapper extends BaseConfigMapper {
 
+    @SuppressWarnings( "unchecked" )
     public Map<String, Object> saveToMap( Class clazz ) throws Exception {
         Map<String, Object> returnMap = new HashMap<>();
 

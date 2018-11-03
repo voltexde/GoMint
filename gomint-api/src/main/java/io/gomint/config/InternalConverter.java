@@ -48,6 +48,7 @@ public class InternalConverter {
         }
     }
 
+    @SuppressWarnings( "unchecked" )
     public void addConverter( Class converter ) throws InvalidConverterException {
         if ( !Converter.class.isAssignableFrom( converter ) ) {
             throw new InvalidConverterException( "converter does not implement the Interface converter" );

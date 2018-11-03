@@ -31,6 +31,7 @@ public class BlockPositionConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
         java.util.Map<String, Object> locationMap;
         if ( section instanceof java.util.Map ) {
