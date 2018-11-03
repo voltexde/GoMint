@@ -37,7 +37,7 @@ public class BlockPositionConverter extends BaseConverter {
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
         Map<String, Object> locationMap;
 
-        if ( object instanceof java.util.Map ) {
+        if ( object instanceof Map ) {
             locationMap = (Map<String, Object>) object;
         } else {
             locationMap = (Map<String, Object>) ( (ConfigSection) object ).getRawMap();
