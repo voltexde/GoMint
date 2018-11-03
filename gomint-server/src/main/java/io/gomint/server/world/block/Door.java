@@ -13,6 +13,7 @@ import io.gomint.server.world.block.state.BooleanBlockState;
 import io.gomint.server.world.block.state.FacingBlockState;
 import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.BlockFace;
+import io.gomint.world.block.data.Facing;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -117,6 +118,16 @@ public abstract class Door extends Block implements io.gomint.world.block.BlockD
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.AXE;
+    }
+
+    @Override
+    public void setFacing( Facing facing ) {
+        this.facing.setState( facing );
+    }
+
+    @Override
+    public Facing getFacing() {
+        return this.facing.getState();
     }
 
 }

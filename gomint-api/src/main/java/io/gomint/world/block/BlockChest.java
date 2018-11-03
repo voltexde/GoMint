@@ -13,7 +13,7 @@ import io.gomint.inventory.Inventory;
  * @author geNAZt
  * @version 1.0
  */
-public interface BlockChest extends Block {
+public interface BlockChest extends BlockFacing {
 
     /**
      * Get the chests inventory

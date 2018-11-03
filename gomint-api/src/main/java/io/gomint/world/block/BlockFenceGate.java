@@ -7,14 +7,13 @@
 
 package io.gomint.world.block;
 
-import io.gomint.world.block.data.Facing;
 import io.gomint.world.block.data.WoodType;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public interface BlockFenceGate extends Block {
+public interface BlockFenceGate extends BlockFacing {
 
     /**
      * Toggle this fence gate
@@ -27,20 +26,6 @@ public interface BlockFenceGate extends Block {
      * @return true if open, false if not
      */
     boolean isOpen();
-
-    /**
-     * Set the facing of this block
-     *
-     * @param facing of this block
-     */
-    void setFacing( Facing facing );
-
-    /**
-     * Get the facing in which this block
-     *
-     * @return the facing of this block
-     */
-    Facing getFacing();
 
     /**
      * Set the type of wood for this fence gate

@@ -8,13 +8,12 @@
 package io.gomint.world.block;
 
 import io.gomint.world.block.data.BlockColor;
-import io.gomint.world.block.data.Facing;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public interface BlockGlazedTerracotta extends Block {
+public interface BlockGlazedTerracotta extends BlockFacing {
 
     /**
      * Set the color of this block
@@ -29,19 +28,5 @@ public interface BlockGlazedTerracotta extends Block {
      * @return color of this block
      */
     BlockColor getColor();
-
-    /**
-     * Set the blocks facing
-     *
-     * @param facing of this block
-     */
-    void setFacing( Facing facing );
-
-    /**
-     * Get the facing of this block
-     *
-     * @return facing of this block
-     */
-    Facing getFacing();
 
 }

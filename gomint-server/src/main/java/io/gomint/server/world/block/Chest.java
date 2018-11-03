@@ -14,6 +14,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockChest;
+import io.gomint.world.block.data.Facing;
 
 import java.util.List;
 
@@ -106,4 +107,14 @@ public class Chest extends ContainerBlock implements BlockChest {
         return items;
     }
 
+    @Override
+    public void setFacing( Facing facing ) {
+        this.facing.setState( facing );
+    }
+
+    @Override
+    public Facing getFacing() {
+        return this.facing.getState();
+    }
+    
 }

@@ -10,6 +10,7 @@ import io.gomint.server.world.block.state.BooleanBlockState;
 import io.gomint.server.world.block.state.FacingBlockState;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
+import io.gomint.world.block.data.Facing;
 
 import java.util.Collections;
 import java.util.List;
@@ -160,4 +161,14 @@ public class Trapdoor extends Block implements io.gomint.world.block.BlockTrapdo
         return ToolPresets.AXE;
     }
 
+    @Override
+    public void setFacing( Facing facing ) {
+        this.facing.setState( facing );
+    }
+
+    @Override
+    public Facing getFacing() {
+        return this.facing.getState();
+    }
+    
 }

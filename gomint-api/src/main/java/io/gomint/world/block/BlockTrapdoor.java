@@ -11,7 +11,7 @@ package io.gomint.world.block;
  * @author geNAZt
  * @version 1.0
  */
-public interface BlockTrapdoor extends Block {
+public interface BlockTrapdoor extends BlockFacing {
 
     /**
      * Is the trapdoor open or closed?

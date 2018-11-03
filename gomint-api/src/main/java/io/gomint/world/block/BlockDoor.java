@@ -4,7 +4,7 @@ package io.gomint.world.block;
  * @author geNAZt
  * @version 1.0
  */
-public interface BlockDoor extends Block {
+public interface BlockDoor extends BlockFacing {
 
     /**
      * Is the door part top or bottom?
