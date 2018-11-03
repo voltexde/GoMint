@@ -63,10 +63,7 @@ public class InternalConverter {
 
         try {
             this.converters.add( (Converter) clazz.getConstructor( InternalConverter.class ).newInstance( this ) );
-        } catch ( NoSuchMethodException
-            | InvocationTargetException
-            | InstantiationException
-            | IllegalAccessException cause ) {
+        } catch ( NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException cause ) {
             if ( cause instanceof NoSuchMethodException ) {
                 throw new InvalidConverterException( clazz.getName() + " is missing a constructor declaring only" +
                     " one parameter of type " + InternalConverter.class, cause );
@@ -75,8 +72,8 @@ public class InternalConverter {
             } else if ( cause instanceof InstantiationException ) {
                 throw new InvalidConverterException( "converter could not be instantiated", cause );
             } else if ( cause instanceof IllegalAccessException ) {
-                throw new InvalidConverterException( clazz.getName() + " is missing a public constructor declaring only" +
-                    " one parameter of type " + InternalConverter.class, cause );
+                throw new InvalidConverterException( clazz.getName() + " is missing a public constructor declaring " +
+                    "only one parameter of type " + InternalConverter.class, cause );
             }
         }
     }
