@@ -27,6 +27,9 @@ public class SetConverter implements Converter {
         this.internalConverter = internalConverter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
@@ -46,6 +49,9 @@ public class SetConverter implements Converter {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
@@ -76,6 +82,9 @@ public class SetConverter implements Converter {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
         return Set.class.isAssignableFrom( type );

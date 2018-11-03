@@ -38,11 +38,17 @@ public class PrimitiveConverter implements Converter {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
         return object;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
         switch ( type.getSimpleName() ) {
@@ -63,6 +69,9 @@ public class PrimitiveConverter implements Converter {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
         return types.contains( type.getName() );

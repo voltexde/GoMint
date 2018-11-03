@@ -26,6 +26,9 @@ public class ListConverter implements Converter {
         this.internalConverter = internalConverter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
@@ -55,6 +58,9 @@ public class ListConverter implements Converter {
         return converted;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
@@ -86,6 +92,9 @@ public class ListConverter implements Converter {
         return converted;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
         return List.class.isAssignableFrom( type );

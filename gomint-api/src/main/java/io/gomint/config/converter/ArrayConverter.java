@@ -28,6 +28,9 @@ public class ArrayConverter implements Converter {
         this.internalConverter = internalConverter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
         Class<?> singleType = type.getComponentType();
@@ -46,6 +49,9 @@ public class ArrayConverter implements Converter {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
@@ -65,6 +71,9 @@ public class ArrayConverter implements Converter {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
         return type.isArray();

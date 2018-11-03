@@ -26,6 +26,9 @@ public class ConfigConverter implements Converter {
         this.internalConverter = internalConverter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) throws Exception {
         if ( object instanceof Map ) {
@@ -59,6 +62,9 @@ public class ConfigConverter implements Converter {
         return ( (YamlConfig) object ).saveToMap( object.getClass() );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) throws Exception {
         YamlConfig yamlConfig = (YamlConfig) newInstance( type );
@@ -72,6 +78,10 @@ public class ConfigConverter implements Converter {
         return yamlConfig;
     }
 
+
+    /**
+     * {@inheritDoc}
+     */
     // recursively handles enclosed classes
     @Override
     public boolean supports( Class<?> type ) {

@@ -31,6 +31,9 @@ public class LocationConverter extends BaseConverter {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
         Location location = (Location) object;
@@ -49,6 +52,9 @@ public class LocationConverter extends BaseConverter {
         return saveMap;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
@@ -81,6 +87,9 @@ public class LocationConverter extends BaseConverter {
         return new Location( world, x, y, z, headYaw, yaw, pitch );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
         return Location.class.isAssignableFrom( type );

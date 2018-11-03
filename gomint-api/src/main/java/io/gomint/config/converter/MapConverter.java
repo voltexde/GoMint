@@ -27,6 +27,9 @@ public class MapConverter implements Converter {
         this.internalConverter = internalConverter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object toConfig( Class<?> type, Object object, ParameterizedType genericType ) throws Exception {
@@ -53,6 +56,9 @@ public class MapConverter implements Converter {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType genericType ) throws Exception {
@@ -132,6 +138,9 @@ public class MapConverter implements Converter {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
         return Map.class.isAssignableFrom( type );

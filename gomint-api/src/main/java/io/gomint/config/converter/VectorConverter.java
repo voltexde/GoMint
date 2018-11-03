@@ -29,6 +29,9 @@ public class VectorConverter extends BaseConverter {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
         Vector vector = (Vector) object;
@@ -41,6 +44,9 @@ public class VectorConverter extends BaseConverter {
         return saveMap;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
@@ -59,6 +65,9 @@ public class VectorConverter extends BaseConverter {
         );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
         return Vector.class.isAssignableFrom( type );

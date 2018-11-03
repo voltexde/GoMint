@@ -29,6 +29,9 @@ public class BlockPositionConverter extends BaseConverter {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
         BlockPosition location = (BlockPosition) object;
@@ -41,6 +44,9 @@ public class BlockPositionConverter extends BaseConverter {
         return saveMap;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings( "unchecked" )
     public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
@@ -59,6 +65,9 @@ public class BlockPositionConverter extends BaseConverter {
         );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
         return BlockPosition.class.isAssignableFrom( type );
