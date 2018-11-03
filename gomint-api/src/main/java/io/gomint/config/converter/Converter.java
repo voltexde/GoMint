@@ -21,7 +21,7 @@ public interface Converter {
      *
      * @param type The type (Class) of the Field
      * @param obj The object which is stored in the Config Object
-     * @param parameterizedType If the Class has some generic Informations this is the Information otherwise this is null
+     * @param parameterizedType If the Class has some generic information this is the information otherwise this is null
      * @return An Object (mostly a Map or a List)
      * @throws Exception Some generic exception when something went wrong. This gets caught by the converter
      */
@@ -33,7 +33,7 @@ public interface Converter {
      *
      * @param type The type (Class) of the Field
      * @param obj The Object from toConfig
-     * @param parameterizedType If the Class has some generic Informations this is the Information otherwise this is null
+     * @param parameterizedType If the Class has some generic information this is the information otherwise this is null
      * @return The correct Object which can be hold by the Field
      * @throws Exception Some generic exception when something went wrong. This gets caught by the converter
      */
