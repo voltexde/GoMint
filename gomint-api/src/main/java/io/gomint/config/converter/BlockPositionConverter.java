@@ -47,17 +47,17 @@ public class BlockPositionConverter implements Converter {
             getInteger( locationMap.get( "z" ) ) );
     }
 
+    @Override
+    public boolean supports( Class<?> type ) {
+        return BlockPosition.class.isAssignableFrom( type );
+    }
+
     private int getInteger( Object obj ) {
         if ( obj instanceof Long ) {
             return ( (Long) obj ).intValue();
         }
 
         return (int) obj;
-    }
-
-    @Override
-    public boolean supports( Class<?> type ) {
-        return BlockPosition.class.isAssignableFrom( type );
     }
 
 }
