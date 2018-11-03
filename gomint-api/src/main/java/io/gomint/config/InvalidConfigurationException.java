@@ -1,9 +1,18 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.config;
 
 /**
- * @author geNAZt (fabian.fassbender42@googlemail.com)
+ * @author geNAZt
+ * @version 1.0
  */
 public class InvalidConfigurationException extends Exception {
+
     public InvalidConfigurationException() {}
 
     public InvalidConfigurationException(String msg) {
@@ -17,4 +26,5 @@ public class InvalidConfigurationException extends Exception {
     public InvalidConfigurationException(String msg, Throwable cause) {
         super(msg, cause);
     }
+
 }

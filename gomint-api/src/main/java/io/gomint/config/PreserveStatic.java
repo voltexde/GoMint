@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.config;
 
 import java.lang.annotation.ElementType;
@@ -5,8 +12,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+/**
+ * @author geNAZt
+ * @version 1.0
+ * @deprecated Will be moved into the package 'io.gomint.config.annotation' for consistency purposes
+ */
+@Deprecated
+@Retention( RetentionPolicy.RUNTIME )
+@Target( ElementType.FIELD )
 public @interface PreserveStatic {
-	boolean value() default true;
+
+    boolean value() default true;
+
 }

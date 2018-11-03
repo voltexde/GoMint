@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.config;
 
 import java.io.File;
@@ -11,20 +18,31 @@ import java.lang.reflect.Modifier;
  */
 public class BaseConfig implements Serializable {
 
+    /**
+     * @deprecated Will be renamed to {@code configFile} anytime soon
+     */
+    @Deprecated
     protected transient File CONFIG_FILE = null;
+    /**
+     * @deprecated Will be renamed to {@code configHeader} anytime soon
+     */
+    @Deprecated
     protected transient String[] CONFIG_HEADER = null;
+    /**
+     * @deprecated Will be renamed to {@code configMode} anytime soon
+     */
+    @Deprecated
     protected transient ConfigMode CONFIG_MODE = ConfigMode.DEFAULT;
     protected transient boolean skipFailedObjects = false;
-
     protected transient InternalConverter converter = new InternalConverter( this );
 
     /**
      * This function gets called after the File has been loaded and before the converter gets it.
      * This is used to manually edit the configSection when you updated the config or something
      *
-     * @param configSection The root ConfigSection with all Subnodes loaded into
+     * @param section The root ConfigSection with all sub-nodes loaded into
      */
-    public void update( ConfigSection configSection ) {
+    public void update( ConfigSection section ) {
 
     }
 
@@ -32,11 +50,22 @@ public class BaseConfig implements Serializable {
      * Add a Custom converter. A converter can take Objects and return a pretty Object which gets saved/loaded from
      * the converter. How a converter must be build can be looked up in the converter Interface.
      *
-     * @param addConverter converter to be added
+     * @param converter converter to be added
      * @throws InvalidConverterException If the converter has any errors this Exception tells you what
      */
-    public void addConverter( Class addConverter ) throws InvalidConverterException {
-        this.converter.addCustomConverter( addConverter );
+    public void addConverter( Class converter ) throws InvalidConverterException {
+        this.converter.addCustomConverter( converter );
+    }
+
+    protected void configureFromSerializeOptionsAnnotation() {
+        if ( !this.getClass().isAnnotationPresent( SerializeOptions.class ) ) {
+            return;
+        }
+
+        SerializeOptions options = this.getClass().getAnnotation( SerializeOptions.class );
+        this.CONFIG_HEADER = options.configHeader();
+        this.CONFIG_MODE = options.configMode();
+        this.skipFailedObjects = options.skipFailedObjects();
     }
 
     /**
@@ -60,17 +89,6 @@ public class BaseConfig implements Serializable {
         }
 
         return false;
-    }
-
-    protected void configureFromSerializeOptionsAnnotation() {
-        if ( !getClass().isAnnotationPresent( SerializeOptions.class ) ) {
-            return;
-        }
-
-        SerializeOptions options = getClass().getAnnotation( SerializeOptions.class );
-        CONFIG_HEADER = options.configHeader();
-        CONFIG_MODE = options.configMode();
-        this.skipFailedObjects = options.skipFailedObjects();
     }
 
 }

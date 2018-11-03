@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2018 GoMint team
+ *
+ * This code is licensed under the BSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package io.gomint.config;
 
 import org.yaml.snakeyaml.DumperOptions;
@@ -19,71 +26,102 @@ import java.util.Map;
  */
 public class BaseConfigMapper extends BaseConfig {
 
-    private transient Yaml yaml;
+    private static transient final Charset CHARSET;
+    private static transient final Yaml YAML;
+    private static transient final Representer REPRESENTER;
+
+    static {
+        CHARSET = Charset.forName( "UTF-8" );
+
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
+        options.setIndent( 2 );
+
+        REPRESENTER = new Representer();
+        REPRESENTER.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
+
+        ClassLoader classLoader = BaseConfigMapper.class.getClassLoader();
+        YAML = new Yaml( new CustomClassLoaderConstructor( classLoader ), REPRESENTER, options );
+    }
+
     protected transient ConfigSection root;
-    private transient Map<String, ArrayList<String>> comments = new LinkedHashMap<>();
-    private transient Representer yamlRepresenter = new Representer();
-    private transient String commentPrefix = "";
+    private transient Map<String, ArrayList<String>> comments;
+    private transient String commentPrefix;
 
     protected BaseConfigMapper() {
-        DumperOptions yamlOptions = new DumperOptions();
-        yamlOptions.setIndent( 2 );
-        yamlOptions.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
+        this.comments = new LinkedHashMap<>();
+        this.commentPrefix = "";
+        // Configure the settings for serializing via the annotations preset
+        this.configureFromSerializeOptionsAnnotation();
+    }
 
-        this.yamlRepresenter.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
-        this.yaml = new Yaml( new CustomClassLoaderConstructor( BaseConfigMapper.class.getClassLoader() ), this.yamlRepresenter, yamlOptions );
+    public void addComment( String key, String value ) {
+        if ( !this.comments.containsKey( key ) ) {
+            this.comments.put( key, new ArrayList<>() );
+        }
 
-        /*
-        Configure the settings for serializing via the annotations present.
-         */
-        configureFromSerializeOptionsAnnotation();
+        for ( String split : value.split( "\n" ) ) {
+            this.comments.get( key ).add( split );
+        }
+    }
+
+    public void clearComments() {
+        this.comments.clear();
+    }
+
+    public void mergeComments( Map<String, String> comments ) {
+        for ( Map.Entry<String, String> entry : comments.entrySet() ) {
+            String commentPath = this.commentPrefix + "." + entry.getKey();
+
+            if ( !this.comments.containsKey( commentPath ) ) {
+                this.addComment( commentPath, entry.getValue() );
+            }
+        }
+    }
+
+    public void resetCommentPrefix( String path ) {
+        this.commentPrefix = path;
+    }
+
+    public void addCommentPrefix( String path ) {
+        this.commentPrefix += "." + path;
+    }
+
+    public void removeCommentPrefix( String path ) {
+        if ( this.commentPrefix.endsWith( path ) ) {
+            this.commentPrefix = this.commentPrefix.substring( 0, this.commentPrefix.length() - ( 1 + path.length() ) );
+        }
     }
 
     protected void loadFromYaml() throws InvalidConfigurationException {
         this.root = new ConfigSection();
 
-        try ( InputStreamReader fileReader = new InputStreamReader( new FileInputStream( CONFIG_FILE ), Charset.forName( "UTF-8" ) ) ) {
-            Object object = this.yaml.load( fileReader );
+        try ( InputStreamReader reader = new InputStreamReader( new FileInputStream( this.CONFIG_FILE ), CHARSET ) ) {
+            Object object = YAML.load( reader );
 
             if ( object != null ) {
                 convertMapsToSections( (Map<?, ?>) object, this.root );
             }
-        } catch ( IOException | ClassCastException | YAMLException e ) {
-            throw new InvalidConfigurationException( "Could not load YML", e );
-        }
-    }
-
-    private void convertMapsToSections( Map<?, ?> input, ConfigSection section ) {
-        if ( input == null ) {
-            return;
-        }
-
-        for ( Map.Entry<?, ?> entry : input.entrySet() ) {
-            String key = entry.getKey().toString();
-            Object value = entry.getValue();
-
-            if ( value instanceof Map ) {
-                convertMapsToSections( (Map<?, ?>) value, section.create( key ) );
-            } else {
-                section.set( key, value, false );
-            }
+        } catch ( IOException | ClassCastException | YAMLException cause ) {
+            throw new InvalidConfigurationException( "Failed loading from YAML file " +
+                "\"" + this.CONFIG_FILE.getAbsolutePath() + "\"", cause );
         }
     }
 
     protected void saveToYaml() throws InvalidConfigurationException {
-        try ( OutputStreamWriter fileWriter = new OutputStreamWriter( new FileOutputStream( CONFIG_FILE ), Charset.forName( "UTF-8" ) ) ) {
-            if ( CONFIG_HEADER != null ) {
-                for ( String line : CONFIG_HEADER ) {
-                    fileWriter.write( "# " + line + "\n" );
+        try ( OutputStreamWriter writer = new OutputStreamWriter( new FileOutputStream( this.CONFIG_FILE ), CHARSET ) ) {
+            if ( this.CONFIG_HEADER != null ) {
+                for ( String line : this.CONFIG_HEADER ) {
+                    writer.write( "# " + line + "\n" );
                 }
 
-                fileWriter.write( "\n" );
+                writer.write( "\n" );
             }
 
-            Integer depth = 0;
+            int depth = 0;
             List<String> keyChain = new ArrayList<>();
 
-            String yamlString = this.yaml.dump( this.root.getValues( true ) );
+            String yamlString = YAML.dump( this.root.getValues( true ) );
             StringBuilder writeLines = new StringBuilder();
 
             for ( String line : yamlString.split( "\n" ) ) {
@@ -159,46 +197,28 @@ public class BaseConfigMapper extends BaseConfig {
                 writeLines.append( "\n" );
             }
 
-            fileWriter.write( writeLines.toString() );
-        } catch ( IOException e ) {
-            throw new InvalidConfigurationException( "Could not save YML", e );
+            writer.write( writeLines.toString() );
+        } catch ( IOException cause ) {
+            throw new InvalidConfigurationException( "Failed saving to YAML file " +
+                "\"" + this.CONFIG_FILE.getAbsolutePath() + "\"", cause );
         }
     }
 
-    public void addComment( String key, String value ) {
-        if ( !this.comments.containsKey( key ) ) {
-            this.comments.put( key, new ArrayList<>() );
+    private void convertMapsToSections( Map<?, ?> input, ConfigSection section ) {
+        if ( input == null ) {
+            return;
         }
 
-        for ( String s : value.split( "\n" ) ) {
-            this.comments.get( key ).add( s );
-        }
-    }
+        for ( Map.Entry<?, ?> entry : input.entrySet() ) {
+            String key = entry.getKey().toString();
+            Object value = entry.getValue();
 
-    public void clearComments() {
-        this.comments.clear();
-    }
-
-    public void mergeComments( Map<String, String> comments ) {
-        for ( Map.Entry<String, String> entry : comments.entrySet() ) {
-            String commentPath = this.commentPrefix + "." + entry.getKey();
-            if ( !this.comments.containsKey( commentPath ) ) {
-                this.addComment( commentPath, entry.getValue() );
+            if ( value instanceof Map ) {
+                this.convertMapsToSections( (Map<?, ?>) value, section.create( key ) );
+            } else {
+                section.set( key, value, false );
             }
         }
     }
 
-    public void resetCommentPrefix( String path ) {
-        this.commentPrefix = path;
-    }
-
-    public void addCommentPrefix( String path ) {
-        this.commentPrefix += "." + path;
-    }
-
-    public void removeCommentPrefix( String path ) {
-        if ( this.commentPrefix.endsWith( path ) ) {
-            this.commentPrefix = this.commentPrefix.substring( 0, this.commentPrefix.length() - ( 1 + path.length() ) );
-        }
-    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, GoMint, BlackyPaw and geNAZt
+ * Copyright (c) 2018 GoMint team
  *
  * This code is licensed under the BSD license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,23 +9,33 @@ package io.gomint.config.converter;
 
 import io.gomint.config.ConfigSection;
 import io.gomint.config.InternalConverter;
+import io.gomint.math.BlockPosition;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-public class BlockPositionConverter implements Converter {
+public class BlockPositionConverter extends BaseConverter {
 
-    public BlockPositionConverter( InternalConverter converter ) {
+    // This constructor is needed to prevent InternalConverter throwing an exception
+    // InternalConverter accesses this constructor with Reflection to create an instance
+    // !!!! DO NOT REMOVE !!!!
+    // It will compile but will fail at runtime
+    public BlockPositionConverter( InternalConverter internalConverter ) {
+
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Object toConfig( Class<?> type, Object obj, ParameterizedType genericType ) throws Exception {
-        io.gomint.math.BlockPosition location = (io.gomint.math.BlockPosition) obj;
-        java.util.Map<String, Object> saveMap = new HashMap<>();
+    public Object toConfig( Class<?> type, Object object, ParameterizedType parameterizedType ) {
+        BlockPosition location = (BlockPosition) object;
+        Map<String, Object> saveMap = new HashMap<>();
 
         saveMap.put( "x", location.getX() );
         saveMap.put( "y", location.getY() );
@@ -34,31 +44,33 @@ public class BlockPositionConverter implements Converter {
         return saveMap;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Object fromConfig( Class type, Object section, ParameterizedType genericType ) throws Exception {
-        java.util.Map<String, Object> locationMap;
-        if ( section instanceof java.util.Map ) {
-            locationMap = (java.util.Map<String, Object>) section;
+    @SuppressWarnings( "unchecked" )
+    public Object fromConfig( Class type, Object object, ParameterizedType parameterizedType ) {
+        Map<String, Object> locationMap;
+
+        if ( object instanceof Map ) {
+            locationMap = (Map<String, Object>) object;
         } else {
-            locationMap = (java.util.Map<String, Object>) ( (ConfigSection) section ).getRawMap();
-        }
-        return new io.gomint.math.BlockPosition(
-            getInteger( locationMap.get( "x" ) ),
-            getInteger( locationMap.get( "y" ) ),
-            getInteger( locationMap.get( "z" ) ) );
-    }
-
-    private int getInteger( Object obj ) {
-        if ( obj instanceof Long ) {
-            return ( (Long) obj ).intValue();
+            locationMap = (Map<String, Object>) ( (ConfigSection) object ).getRawMap();
         }
 
-        return (int) obj;
+        return new BlockPosition(
+            super.asInteger( locationMap.get( "x" ) ),
+            super.asInteger( locationMap.get( "y" ) ),
+            super.asInteger( locationMap.get( "z" ) )
+        );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports( Class<?> type ) {
-        return io.gomint.math.BlockPosition.class.isAssignableFrom( type );
+        return BlockPosition.class.isAssignableFrom( type );
     }
 
 }
