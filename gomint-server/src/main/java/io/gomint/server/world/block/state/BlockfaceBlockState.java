@@ -53,19 +53,7 @@ public class BlockfaceBlockState extends BlockState<BlockFace> {
 
     @Override
     public void detectFromPlacement( EntityPlayer player, ItemStack placedItem, BlockFace face, Block block, Block clickedBlock, Vector clickPosition ) {
-        if ( this.detectUpDown ) {
-            if ( player.getPitch() < -60 ) {
-                this.setState( BlockFace.DOWN );
-                return;
-            } else if ( player.getPitch() > 60 ) {
-                this.setState( BlockFace.UP );
-                return;
-            }
-        }
-
-        Bearing bearing = Bearing.fromAngle( player.getYaw() );
-        bearing = bearing.opposite();
-        this.setState( bearing.toBlockFace() );
+        this.setState( face );
     }
 
     @Override

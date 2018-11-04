@@ -2,6 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.world.block.helper.ToolPresets;
+import io.gomint.server.world.block.state.BlockfaceBlockState;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.entity.tileentity.SignTileEntity;
@@ -19,6 +20,8 @@ import java.util.List;
  */
 @RegisterInfo( sId = "minecraft:wall_sign" )
 public class WallSign extends Block implements BlockWallSign {
+
+    private final BlockfaceBlockState facing = new BlockfaceBlockState( this );
 
     @Override
     public String getBlockId() {
