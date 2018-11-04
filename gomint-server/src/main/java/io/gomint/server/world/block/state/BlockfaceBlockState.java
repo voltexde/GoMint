@@ -10,7 +10,6 @@ package io.gomint.server.world.block.state;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
-import io.gomint.server.util.Bearing;
 import io.gomint.server.util.Things;
 import io.gomint.server.world.block.Block;
 import io.gomint.world.block.BlockFace;
@@ -53,6 +52,10 @@ public class BlockfaceBlockState extends BlockState<BlockFace> {
 
     @Override
     public void detectFromPlacement( EntityPlayer player, ItemStack placedItem, BlockFace face, Block block, Block clickedBlock, Vector clickPosition ) {
+        if ( !this.detectUpDown && ( face == BlockFace.UP || face == BlockFace.DOWN ) ) {
+            face = BlockFace.NORTH;
+        }
+
         this.setState( face );
     }
 
