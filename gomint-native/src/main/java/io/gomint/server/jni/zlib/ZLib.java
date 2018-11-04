@@ -13,6 +13,8 @@ import java.util.zip.DataFormatException;
 
 public interface ZLib {
 
+    public int HARD_LIMIT = 64 * 1024 * 1024;
+
     void init( boolean compress, boolean gzip, int level );
 
     void free();

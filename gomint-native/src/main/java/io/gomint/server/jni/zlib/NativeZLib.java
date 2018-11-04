@@ -62,6 +62,11 @@ public class NativeZLib implements ZLib {
 
                 in.readerIndex( in.readerIndex() + nativeCompress.consumed );
                 out.writerIndex( out.writerIndex() + processed );
+
+                // Check for hard limit
+                if ( out.writerIndex() > ZLib.HARD_LIMIT ) {
+                    throw new DataFormatException( "Hard limit of 64 MB reached" );
+                }
             }
         } catch ( NativeException e ) {
             LOGGER.error( "Native compression error", e );

@@ -61,6 +61,11 @@ public class JavaZLib implements ZLib {
                 while ( !deflater.finished() ) {
                     int count = deflater.deflate( buffer );
                     out.writeBytes( buffer, 0, count );
+
+                    // Check for hard limit
+                    if ( out.writerIndex() > ZLib.HARD_LIMIT ) {
+                        throw new DataFormatException( "Hard limit of 64 MB reached" );
+                    }
                 }
             } finally {
                 deflater.reset();
@@ -72,6 +77,11 @@ public class JavaZLib implements ZLib {
                 while ( !inflater.finished() && inflater.getTotalIn() < inData.length ) {
                     int count = inflater.inflate( buffer );
                     out.writeBytes( buffer, 0, count );
+
+                    // Check for hard limit
+                    if ( out.writerIndex() > ZLib.HARD_LIMIT ) {
+                        throw new DataFormatException( "Hard limit of 64 MB reached" );
+                    }
                 }
             } finally {
                 inflater.reset();

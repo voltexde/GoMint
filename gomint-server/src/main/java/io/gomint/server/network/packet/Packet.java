@@ -80,6 +80,8 @@ public abstract class Packet {
             }
 
             buffer.skip( extraLen );
+        } else if ( extraLen < 0 ) {
+            throw new IllegalStateException( "NBT length inside a item overflowed" );
         }
 
         // They implemented additional data for item stacks aside from nbt
