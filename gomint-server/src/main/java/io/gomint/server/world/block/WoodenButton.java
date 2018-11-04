@@ -7,6 +7,7 @@ import io.gomint.server.registry.RegisterInfo;
 import io.gomint.server.world.UpdateReason;
 import io.gomint.server.world.block.helper.ToolPresets;
 import io.gomint.server.world.block.state.BlockfaceBlockState;
+import io.gomint.server.world.block.state.BlockfaceFromPlayerBlockState;
 import io.gomint.server.world.block.state.BooleanBlockState;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
@@ -26,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @RegisterInfo( sId = "minecraft:acacia_button" )
 public class WoodenButton extends Block implements io.gomint.world.block.BlockWoodenButton {
 
-    private BlockfaceBlockState facing = new BlockfaceBlockState( this, true );
+    private BlockfaceFromPlayerBlockState facing = new BlockfaceFromPlayerBlockState( this, true );
     private BooleanBlockState pressed = new BooleanBlockState( this, states -> true, 3 );
 
     @Override

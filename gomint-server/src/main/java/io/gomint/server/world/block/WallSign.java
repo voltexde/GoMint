@@ -2,7 +2,7 @@ package io.gomint.server.world.block;
 
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.server.world.block.helper.ToolPresets;
-import io.gomint.server.world.block.state.BlockfaceBlockState;
+import io.gomint.server.world.block.state.BlockfaceFromPlayerBlockState;
 import io.gomint.world.block.BlockType;
 
 import io.gomint.server.entity.tileentity.SignTileEntity;
@@ -10,6 +10,7 @@ import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.registry.RegisterInfo;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockWallSign;
+import io.gomint.world.block.data.Facing;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.List;
 @RegisterInfo( sId = "minecraft:wall_sign" )
 public class WallSign extends Block implements BlockWallSign {
 
-    private final BlockfaceBlockState facing = new BlockfaceBlockState( this );
+    private final BlockfaceFromPlayerBlockState facing = new BlockfaceFromPlayerBlockState( this );
 
     @Override
     public String getBlockId() {
@@ -123,6 +124,16 @@ public class WallSign extends Block implements BlockWallSign {
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.AXE;
+    }
+
+    @Override
+    public void setFacing( Facing facing ) {
+        this.facing.setState( facing.toBlockFace() );
+    }
+
+    @Override
+    public Facing getFacing() {
+        return this.facing.getState().toFacing();
     }
 
 }

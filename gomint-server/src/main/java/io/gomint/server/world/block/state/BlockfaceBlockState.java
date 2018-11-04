@@ -10,6 +10,7 @@ package io.gomint.server.world.block.state;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.util.Bearing;
 import io.gomint.server.util.Things;
 import io.gomint.server.world.block.Block;
 import io.gomint.world.block.BlockFace;
@@ -23,7 +24,7 @@ import java.util.function.Predicate;
  */
 public class BlockfaceBlockState extends BlockState<BlockFace> {
 
-    private final boolean detectUpDown;
+    protected final boolean detectUpDown;
 
     public BlockfaceBlockState( Block block ) {
         super( block );
@@ -52,11 +53,19 @@ public class BlockfaceBlockState extends BlockState<BlockFace> {
 
     @Override
     public void detectFromPlacement( EntityPlayer player, ItemStack placedItem, BlockFace face, Block block, Block clickedBlock, Vector clickPosition ) {
-        if ( !this.detectUpDown && ( face == BlockFace.UP || face == BlockFace.DOWN ) ) {
-            face = BlockFace.NORTH;
+        if ( this.detectUpDown ) {
+            if ( player.getPitch() < -60 ) {
+                this.setState( BlockFace.DOWN );
+                return;
+            } else if ( player.getPitch() > 60 ) {
+                this.setState( BlockFace.UP );
+                return;
+            }
         }
 
-        this.setState( face );
+        Bearing bearing = Bearing.fromAngle( player.getYaw() );
+        bearing = bearing.opposite();
+        this.setState( bearing.toBlockFace() );
     }
 
     @Override
