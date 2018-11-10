@@ -41,6 +41,7 @@ import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.CoreScheduler;
 import io.gomint.server.scheduler.SyncTaskManager;
+import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.util.ClassPath;
 import io.gomint.server.util.Watchdog;
 import io.gomint.server.world.BlockRuntimeIDs;
@@ -50,6 +51,7 @@ import io.gomint.server.world.WorldManager;
 import io.gomint.server.world.block.Blocks;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
 import io.gomint.server.world.generator.SimpleChunkGeneratorRegistry;
+import io.gomint.taglib.AllocationLimitReachedException;
 import io.gomint.world.World;
 import io.gomint.world.WorldType;
 import io.gomint.world.block.Block;
@@ -242,7 +244,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
         try {
             this.assets.load();
-        } catch ( IOException e ) {
+        } catch ( IOException | AllocationLimitReachedException e ) {
             LOGGER.error( "Failed to load assets library", e );
             return;
         }
@@ -255,6 +257,13 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
                 return o1.getBlockId().compareTo( o2.getBlockId() );
             } );
+
+            // Check if all blocks have been registered
+            for ( BlockIdentifier identifier : this.assets.getBlockPalette() ) {
+                if ( this.blocks.get( identifier.getBlockId() ) == null ) {
+                    LOGGER.warn( "No block impl found for {}:{}", identifier.getBlockId(), identifier.getData() );
+                }
+            }
 
             BlockRuntimeIDs.init( this.assets.getBlockPalette() );
         }

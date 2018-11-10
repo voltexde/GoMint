@@ -11,6 +11,7 @@ import io.gomint.server.jni.NativeCode;
 import io.gomint.server.jni.zlib.JavaZLib;
 import io.gomint.server.jni.zlib.NativeZLib;
 import io.gomint.server.jni.zlib.ZLib;
+import io.gomint.taglib.AllocationLimitReachedException;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
 import io.netty.buffer.ByteBuf;
@@ -82,7 +83,7 @@ class RegionFileSingleChunk {
      * @return The chunk if found or null
      * @throws IOException Thrown in case an I/O error occurs
      */
-    NBTTagCompound loadChunk( int x, int z ) throws IOException {
+    NBTTagCompound loadChunk( int x, int z ) throws IOException, AllocationLimitReachedException {
         int chunkIndex = ( ( x & 31 ) + ( ( z & 31 ) << 5 ) );
         int[] lookup = this.lookupCache[chunkIndex];
 

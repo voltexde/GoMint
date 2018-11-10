@@ -37,6 +37,7 @@ import io.gomint.server.network.packet.PacketServerSettingsRequest;
 import io.gomint.server.network.packet.PacketSetChunkRadius;
 import io.gomint.server.network.packet.PacketSetLocalPlayerAsInitialized;
 import io.gomint.server.network.packet.PacketText;
+import io.gomint.server.network.packet.PacketTileEntityData;
 import io.gomint.server.network.packet.PacketWorldSoundEvent;
 
 /**
@@ -146,6 +147,9 @@ public final class Protocol {
      */
     public static Packet createPacket( byte id ) {
         switch ( id ) {
+            case PACKET_TILE_ENTITY_DATA:
+                return new PacketTileEntityData();
+
             case PACKET_SET_LOCAL_PLAYER_INITIALIZED:
                 return new PacketSetLocalPlayerAsInitialized();
 

@@ -51,6 +51,7 @@ import io.gomint.server.network.handler.PacketServerSettingsRequestHandler;
 import io.gomint.server.network.handler.PacketSetChunkRadiusHandler;
 import io.gomint.server.network.handler.PacketSetLocalPlayerAsInitializedHandler;
 import io.gomint.server.network.handler.PacketTextHandler;
+import io.gomint.server.network.handler.PacketTileEntityDataHandler;
 import io.gomint.server.network.handler.PacketWorldSoundEventHandler;
 import io.gomint.server.network.packet.Packet;
 import io.gomint.server.network.packet.PacketBatch;
@@ -146,6 +147,7 @@ public class PlayerConnection {
         PACKET_HANDLERS[Protocol.PACKET_ENTITY_FALL & 0xFF] = new PacketEntityFallHandler();
         PACKET_HANDLERS[Protocol.PACKET_BOOK_EDIT & 0xFF] = new PacketBookEditHandler();
         PACKET_HANDLERS[Protocol.PACKET_SET_LOCAL_PLAYER_INITIALIZED & 0xff] = new PacketSetLocalPlayerAsInitializedHandler();
+        PACKET_HANDLERS[Protocol.PACKET_TILE_ENTITY_DATA & 0xff] = new PacketTileEntityDataHandler();
     }
 
     // Network manager that created this connection:
@@ -381,16 +383,24 @@ public class PlayerConnection {
         } else {
             if ( this.sendQueue != null && !this.sendQueue.isEmpty() ) {
                 Packet[] packets = this.sendQueue.toArray( new Packet[0] );
-                PacketBuffer[] packetBuffers = new PacketBuffer[packets.length];
+
+                List<PacketBuffer> packetBuffers = new ArrayList<>();
                 for ( int i = 0; i < packets.length; i++ ) {
-                    packetBuffers[i] = new PacketBuffer( 2 );
-                    packets[i].serializeHeader( packetBuffers[i] );
-                    packets[i].serialize( packetBuffers[i], this.protocolID );
+                    // CHECKSTYLE:OFF
+                    try {
+                        PacketBuffer buffer = new PacketBuffer( 2 );
+                        packets[i].serializeHeader( buffer );
+                        packets[i].serialize( buffer, this.protocolID );
+                        packetBuffers.add( buffer );
+                    } catch ( Exception e ) {
+                        LOGGER.error( "Could not serialize packet", e );
+                    }
+                    // CHECKSTYLE:ON
                 }
 
                 WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
                 mcpePacket.setRaknetVersion( (byte) 9 );
-                mcpePacket.setBuffer( packetBuffers );
+                mcpePacket.setBuffer( packetBuffers.toArray( new PacketBuffer[0] ) );
                 this.connectionHandler.send( mcpePacket );
                 this.sendQueue.clear();
             }
@@ -448,23 +458,35 @@ public class PlayerConnection {
             if ( !( packet instanceof PacketBatch ) ) {
                 this.postProcessorExecutor.addWork( this, new Packet[]{ packet } );
             } else {
-                PacketBuffer buffer = new PacketBuffer( 64 );
-                buffer.writeByte( packet.getId() );
-                packet.serialize( buffer, this.protocolID );
+                // CHECKSTYLE:OFF
+                try {
+                    PacketBuffer buffer = new PacketBuffer( 64 );
+                    buffer.writeByte( packet.getId() );
+                    packet.serialize( buffer, this.protocolID );
 
-                this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+                    this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Could not serialize packet", e );
+                }
+                // CHECKSTYLE:ON
             }
         } else {
-            LOGGER.debug( "Writing packet {} to client", Integer.toHexString( packet.getId() & 0xFF ) );
+            // CHECKSTYLE:OFF
+            try {
+                LOGGER.debug( "Writing packet {} to client", Integer.toHexString( packet.getId() & 0xFF ) );
 
-            PacketBuffer buffer = new PacketBuffer( 2 );
-            packet.serializeHeader( buffer );
-            packet.serialize( buffer, this.protocolID );
+                PacketBuffer buffer = new PacketBuffer( 2 );
+                packet.serializeHeader( buffer );
+                packet.serialize( buffer, this.protocolID );
 
-            WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
-            mcpePacket.setRaknetVersion( (byte) 9 );
-            mcpePacket.setBuffer( new PacketBuffer[]{ buffer } );
-            this.connectionHandler.send( mcpePacket );
+                WrappedMCPEPacket mcpePacket = new WrappedMCPEPacket();
+                mcpePacket.setRaknetVersion( (byte) 9 );
+                mcpePacket.setBuffer( new PacketBuffer[]{ buffer } );
+                this.connectionHandler.send( mcpePacket );
+            } catch ( Exception e ) {
+                LOGGER.error( "Could not serialize packet", e );
+            }
+            // CHECKSTYLE:ON
         }
     }
 
@@ -594,8 +616,14 @@ public class PlayerConnection {
             return;
         }
 
-        packet.deserialize( buffer, this.protocolID );
-        this.handlePacket( currentTimeMillis, packet );
+        // CHECKSTYLE:OFF
+        try {
+            packet.deserialize( buffer, this.protocolID );
+            this.handlePacket( currentTimeMillis, packet );
+        } catch ( Exception e ) {
+            LOGGER.error( "Could not deserialize packet", e );
+        }
+        // CHECKSTYLE:ON
     }
 
     /**

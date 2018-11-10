@@ -17,6 +17,7 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityLink;
 import io.gomint.server.network.type.CommandOrigin;
 import io.gomint.server.util.Things;
+import io.gomint.taglib.AllocationLimitReachedException;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Gamerule;
@@ -73,10 +74,10 @@ public abstract class Packet {
             ByteArrayInputStream bin = new ByteArrayInputStream( buffer.getBuffer(), buffer.getPosition(), extraLen );
             try {
                 NBTReader nbtReader = new NBTReader( bin, ByteOrder.LITTLE_ENDIAN );
-                // nbtReader.setUseVarint( true );
+                // There is no alloc limit needed here, you can't write so much shit in 32kb, so thats ok
                 nbt = nbtReader.parse();
-            } catch ( IOException e ) {
-                e.printStackTrace();
+            } catch ( IOException | AllocationLimitReachedException e ) {
+                return null;
             }
 
             buffer.skip( extraLen );
@@ -147,7 +148,7 @@ public abstract class Packet {
      * @param buffer     The buffer to serialize this packet into
      * @param protocolID Protocol for which we request the serialization
      */
-    public abstract void serialize( PacketBuffer buffer, int protocolID );
+    public abstract void serialize( PacketBuffer buffer, int protocolID ) throws Exception;
 
     /**
      * Deserializes this packet from the given buffer.
@@ -155,7 +156,7 @@ public abstract class Packet {
      * @param buffer     The buffer to deserialize this packet from
      * @param protocolID Protocol for which we request deserialization
      */
-    public abstract void deserialize( PacketBuffer buffer, int protocolID );
+    public abstract void deserialize( PacketBuffer buffer, int protocolID ) throws Exception;
 
     /**
      * Returns the ordering channel to send the packet on.

@@ -12,8 +12,6 @@ import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
@@ -106,11 +104,17 @@ public class PostProcessWorker implements Runnable {
             } else {
                 buffer.setPosition( 0 );
 
-                packet.serializeHeader( buffer );
-                packet.serialize( buffer, this.connection.getProtocolID() );
+                // CHECKSTYLE:OFF
+                try {
+                    packet.serializeHeader( buffer );
+                    packet.serialize( buffer, this.connection.getProtocolID() );
 
-                writeVarInt( buffer.getPosition(), inBuf );
-                inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+                    writeVarInt( buffer.getPosition(), inBuf );
+                    inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Could not serialize packet", e );
+                }
+                // CHECKSTYLE:ON
             }
         }
 

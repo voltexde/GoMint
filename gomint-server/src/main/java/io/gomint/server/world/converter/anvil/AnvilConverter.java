@@ -17,6 +17,7 @@ import io.gomint.server.world.converter.anvil.entity.EntityConverters;
 import io.gomint.server.world.converter.anvil.entity.v1_8.Entities;
 import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
 import io.gomint.server.world.converter.anvil.tileentity.v1_8.TileEntities;
+import io.gomint.taglib.AllocationLimitReachedException;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.data.BlockColor;
 import it.unimi.dsi.fastutil.bytes.ByteOpenHashSet;
@@ -219,7 +220,7 @@ public class AnvilConverter extends BaseConverter {
                             compounds.offer( compound );
                         }
                     }
-                } catch ( IOException e ) {
+                } catch ( IOException | AllocationLimitReachedException e ) {
                     LOGGER.error( "Could not convert region file: {}", fileName, e );
                 }
             }
@@ -284,7 +285,7 @@ public class AnvilConverter extends BaseConverter {
                 levelDBDat.addValue( "LevelName", dataCompound.getString( "LevelName", "converted-gomint" ) );
                 levelDBDat.writeTo( fileOutputStream, false, ByteOrder.LITTLE_ENDIAN );
             }
-        } catch ( IOException e ) {
+        } catch ( IOException | AllocationLimitReachedException e ) {
             LOGGER.error( "Could not convert level.dat", e );
         }
 

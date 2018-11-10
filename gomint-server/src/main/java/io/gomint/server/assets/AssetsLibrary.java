@@ -8,9 +8,7 @@
 package io.gomint.server.assets;
 
 import io.gomint.GoMint;
-import io.gomint.inventory.item.ItemAir;
 import io.gomint.jraknet.PacketBuffer;
-import io.gomint.server.GoMintServer;
 import io.gomint.server.crafting.Recipe;
 import io.gomint.server.crafting.ShapedRecipe;
 import io.gomint.server.crafting.ShapelessRecipe;
@@ -19,6 +17,7 @@ import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.BlockIdentifier;
+import io.gomint.taglib.AllocationLimitReachedException;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -26,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,15 +44,23 @@ public class AssetsLibrary {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( AssetsLibrary.class );
 
-    @Getter private CreativeInventory creativeInventory;
-    @Getter private Set<Recipe> recipes;
+    @Getter
+    private CreativeInventory creativeInventory;
+    @Getter
+    private Set<Recipe> recipes;
 
-    @Getter private List<BlockIdentifier> blockPalette;
-    @Getter private List<NBTTagCompound> converterData;
-    @Getter private List<NBTTagCompound> converterItemsData;
-    @Getter private List<NBTTagCompound> jeTopeItems;
-    @Getter private List<NBTTagCompound> jeTopeEntities;
-    @Getter private List<NBTTagCompound> peConverter;
+    @Getter
+    private List<BlockIdentifier> blockPalette;
+    @Getter
+    private List<NBTTagCompound> converterData;
+    @Getter
+    private List<NBTTagCompound> converterItemsData;
+    @Getter
+    private List<NBTTagCompound> jeTopeItems;
+    @Getter
+    private List<NBTTagCompound> jeTopeEntities;
+    @Getter
+    private List<NBTTagCompound> peConverter;
 
     // Statistics
     private int shapelessRecipes;
@@ -78,7 +84,7 @@ public class AssetsLibrary {
      * @throws IOException Thrown if an I/O error occurs whilst loading the library
      */
     @SuppressWarnings( "unchecked" )
-    public void load() throws IOException {
+    public void load() throws IOException, AllocationLimitReachedException {
         NBTTagCompound root = NBTTagCompound.readFrom( this.getClass().getResourceAsStream( "/assets.dat" ), true, ByteOrder.BIG_ENDIAN );
         if ( GoMint.instance() != null ) {
             this.loadRecipes( (List<NBTTagCompound>) ( (List) root.getList( "recipes", false ) ) );
@@ -101,7 +107,7 @@ public class AssetsLibrary {
             for ( byte[] bytes : raw ) {
                 try {
                     this.creativeInventory.addItem( this.loadItemStack( new PacketBuffer( bytes, 0 ) ) );
-                } catch ( IOException e ) {
+                } catch ( IOException | AllocationLimitReachedException e ) {
                     LOGGER.error( "Could not load creative item: ", e );
                 }
             }
@@ -110,7 +116,7 @@ public class AssetsLibrary {
         }
     }
 
-    private void loadRecipes( List<NBTTagCompound> raw ) throws IOException {
+    private void loadRecipes( List<NBTTagCompound> raw ) throws IOException, AllocationLimitReachedException {
         this.recipes = new HashSet<>();
 
         this.shapelessRecipes = 0;
@@ -147,7 +153,7 @@ public class AssetsLibrary {
         LOGGER.info( "Loaded {} shapeless, {} shaped and {} smelting recipes", this.shapelessRecipes, this.shapedRecipes, this.smeltingRecipes );
     }
 
-    private ShapelessRecipe loadShapelessRecipe( NBTTagCompound data ) throws IOException {
+    private ShapelessRecipe loadShapelessRecipe( NBTTagCompound data ) throws IOException, AllocationLimitReachedException {
         List<Object> inputItems = data.getList( "i", false );
         ItemStack[] ingredients = new ItemStack[inputItems.size()];
         for ( int i = 0; i < ingredients.length; ++i ) {
@@ -164,7 +170,7 @@ public class AssetsLibrary {
         return new ShapelessRecipe( ingredients, outcome, null );
     }
 
-    private ShapedRecipe loadShapedRecipe( NBTTagCompound data ) throws IOException {
+    private ShapedRecipe loadShapedRecipe( NBTTagCompound data ) throws IOException, AllocationLimitReachedException {
         int width = data.getInteger( "w", 0 );
         int height = data.getInteger( "h", 0 );
 
@@ -188,7 +194,7 @@ public class AssetsLibrary {
         return new ShapedRecipe( width, height, arrangement, outcome, UUID.fromString( data.getString( "u", UUID.randomUUID().toString() ) ) );
     }
 
-    private SmeltingRecipe loadSmeltingRecipe( NBTTagCompound data ) throws IOException {
+    private SmeltingRecipe loadSmeltingRecipe( NBTTagCompound data ) throws IOException, AllocationLimitReachedException {
         List<Object> inputList = data.getList( "i", false );
         byte[] inputData = (byte[]) inputList.get( 0 );
         ItemStack input = this.loadItemStack( new PacketBuffer( inputData, 0 ) );
@@ -201,7 +207,7 @@ public class AssetsLibrary {
         return new SmeltingRecipe( input, outcome, UUID.fromString( data.getString( "u", UUID.randomUUID().toString() ) ) );
     }
 
-    private ItemStack loadItemStack( PacketBuffer buffer ) throws IOException {
+    private ItemStack loadItemStack( PacketBuffer buffer ) throws IOException, AllocationLimitReachedException {
         short id = buffer.readShort();
         if ( id == 0 ) {
             return this.items == null ? null : this.items.create( 0, (short) 0, (byte) 0, null );
@@ -245,7 +251,7 @@ public class AssetsLibrary {
                 this.jeTopeItems = ( (List<NBTTagCompound>) ( (List) root.getList( "JEtoPEItems", false ) ) );
                 this.jeTopeEntities = ( (List<NBTTagCompound>) ( (List) root.getList( "JEtoPEEntityIDs", false ) ) );
                 this.peConverter = ( (List<NBTTagCompound>) ( (List) root.getList( "PEconverter", false ) ) );
-            } catch ( IOException e ) {
+            } catch ( IOException | AllocationLimitReachedException e ) {
                 LOGGER.error( "Could not load needed converter data", e );
             }
         }

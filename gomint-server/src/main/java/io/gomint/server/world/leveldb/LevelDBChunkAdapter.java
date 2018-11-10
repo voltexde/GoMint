@@ -17,12 +17,12 @@ import io.gomint.server.entity.tileentity.TileEntities;
 import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.util.Allocator;
 import io.gomint.server.util.BlockIdentifier;
-import io.gomint.server.util.DumpUtil;
 import io.gomint.server.util.Palette;
 import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkSlice;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.taglib.AllocationLimitReachedException;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTReaderNoBuffer;
 import io.gomint.taglib.NBTTagCompound;
@@ -46,7 +46,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -266,7 +265,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                             short blockData = compound.getShort( "val", (short) 0 );
 
                             chunkPalette.put( index++, BlockRuntimeIDs.from( blockId, blockData ) );
-                        } catch ( IOException e ) {
+                        } catch ( IOException | AllocationLimitReachedException e ) {
                             LOGGER.error( "Error in loading tile entities", e );
                             break;
                         }
@@ -317,7 +316,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
                     entity.setWorld( this.world );
                     this.addEntity( entity );
                 }
-            } catch ( IOException e ) {
+            } catch ( IOException | AllocationLimitReachedException e ) {
                 LOGGER.error( "Error in loading entities", e );
                 break;
             }

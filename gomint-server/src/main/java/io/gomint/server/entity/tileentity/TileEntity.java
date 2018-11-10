@@ -150,4 +150,8 @@ public abstract class TileEntity {
         return this.location.getBlock();
     }
 
+    public void applyClientData( NBTTagCompound compound ) {
+
+    }
+
 }
