@@ -13,9 +13,12 @@ import io.gomint.server.util.ClassPath;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Supplier;
 
 /**
  * @author geNAZt
@@ -35,6 +38,9 @@ public class Main {
         } catch ( IOException e ) {
             LOGGER.warn( "Could not load needed data from assets.dat", e );
             return;
+        } catch ( io.gomint.taglib.AllocationLimitReachedException e ) {
+            e.printStackTrace();
+            return;
         }
 
         ClassPath classPath;
@@ -45,12 +51,15 @@ public class Main {
             return;
         }
 
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        context.registerBean( "items", Items.class, () -> new Items( classPath, assets.getJeTopeItems() ) );
+
         File[] folderContent = new File( "." ).listFiles();
         for ( File file : folderContent ) {
             if ( file.isDirectory() && new File( file, "region" ).exists() ) {
                 LOGGER.info( "Start converting process for {}", file.getName() );
 
-                AnvilConverter anvilConverter = new AnvilConverter( assets, new Items( classPath, assets.getJeTopeItems() ), file );
+                AnvilConverter anvilConverter = new AnvilConverter( assets, context, file );
                 anvilConverter.done();
             }
         }

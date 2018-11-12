@@ -206,11 +206,15 @@ public class Client {
         if ( !( packet instanceof PacketBatch ) ) {
             this.postProcessExecutor.addWork( this, new Packet[]{ packet } );
         } else {
-            PacketBuffer buffer = new PacketBuffer( 32 );
-            buffer.writeByte( packet.getId() );
-            packet.serialize( buffer, 290 );
+            try {
+                PacketBuffer buffer = new PacketBuffer( 32 );
+                buffer.writeByte( packet.getId() );
+                packet.serialize( buffer, 290 );
 
-            this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+                this.connection.send( PacketReliability.RELIABLE_ORDERED, packet.orderingChannel(), buffer.getBuffer(), 0, buffer.getPosition() );
+            } catch ( Exception e ) {
+                // Ignore
+            }
         }
     }
 
@@ -444,8 +448,12 @@ public class Client {
                 }
             }
 
-            packet.deserialize( buffer, 290 );
-            this.handlePacket( currentTimeMillis, packet );
+            try {
+                packet.deserialize( buffer, 290 );
+                this.handlePacket( currentTimeMillis, packet );
+            } catch ( Exception e ) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -61,12 +61,16 @@ public class PostProcessWorker implements Runnable {
 
         // Write all packets into the inBuf for compression
         for ( Packet packet : this.packets ) {
-            PacketBuffer buffer = new PacketBuffer( 64 );
-            packet.serializeHeader( buffer );
-            packet.serialize( buffer, 282 );
+            try {
+                PacketBuffer buffer = new PacketBuffer( 64 );
+                packet.serializeHeader( buffer );
+                packet.serialize( buffer, 282 );
 
-            writeVarInt( buffer.getPosition(), inBuf );
-            inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+                writeVarInt( buffer.getPosition(), inBuf );
+                inBuf.writeBytes( buffer.getBuffer(), buffer.getBufferOffset(), buffer.getPosition() - buffer.getBufferOffset() );
+            } catch ( Exception e ) {
+                e.printStackTrace();
+            }
         }
 
         // Create the output buffer
