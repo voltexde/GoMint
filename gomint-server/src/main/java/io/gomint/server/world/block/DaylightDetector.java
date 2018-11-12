@@ -51,7 +51,7 @@ public class DaylightDetector extends Block implements io.gomint.world.block.Blo
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        return new DaylightDetectorTileEntity( this.location );
+        return new DaylightDetectorTileEntity( this );
     }
 
 }

@@ -1,9 +1,7 @@
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.Location;
 import io.gomint.server.inventory.InventoryHolder;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
@@ -13,22 +11,12 @@ import io.gomint.taglib.NBTTagCompound;
 public class EndPortalTileEntity extends ContainerTileEntity implements InventoryHolder {
 
     /**
-     * Create a new enchant table
+     * Construct new tile entity
      *
-     * @param position of the enchant table
+     * @param block of the tile entity
      */
-    public EndPortalTileEntity( Location position ) {
-        super( position );
-    }
-
-    /**
-     * Construct new TileEntity from TagCompound
-     *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
-     */
-    public EndPortalTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    public EndPortalTileEntity( Block block ) {
+        super( block );
     }
 
     @Override

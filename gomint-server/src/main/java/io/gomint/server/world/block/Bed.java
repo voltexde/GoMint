@@ -183,7 +183,7 @@ public class Bed extends Block implements io.gomint.world.block.BlockBed {
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new BedTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new BedTileEntity( this );
     }
 
     @Override

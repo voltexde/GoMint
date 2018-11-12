@@ -68,7 +68,7 @@ public class Chest extends ContainerBlock implements BlockChest {
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        return new ChestTileEntity( null, this.location );
+        return new ChestTileEntity( this );
     }
 
     @Override

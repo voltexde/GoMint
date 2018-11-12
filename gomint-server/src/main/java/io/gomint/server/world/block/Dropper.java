@@ -54,7 +54,7 @@ public class Dropper extends Block implements io.gomint.world.block.BlockDropper
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new DropperTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new DropperTileEntity( this );
     }
 
 }

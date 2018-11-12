@@ -29,16 +29,7 @@ public class ItemFrame extends Block implements io.gomint.world.block.BlockItemF
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
 
-        // Set item
-        NBTTagCompound item = new NBTTagCompound( "Item" );
-        item.addValue( "id", (short) 0 );
-        item.addValue( "Damage", (short) 0 );
-        item.addValue( "Count", (byte) 0 );
-        compound.addValue( "Item", item );
-        compound.addValue( "ItemDropChance", 1.0f );
-        compound.addValue( "ItemRotation", (byte) 0 );
-
-        return new ItemFrameTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new ItemFrameTileEntity( this );
     }
 
     @Override

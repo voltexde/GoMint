@@ -7,13 +7,11 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.Location;
 import io.gomint.server.inventory.DispenserInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemAir;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -33,34 +31,18 @@ public class DispenserTileEntity extends TileEntity implements InventoryHolder {
     private final DispenserInventory inventory;
 
     /**
-     * Construct a new dispenser
+     * Construct new tile entity from position and world data
      *
-     * @param items    which are inside the dispenser
-     * @param location of the dispenser
+     * @param block which created this tile
      */
-    public DispenserTileEntity( ItemStack[] items, Location location ) {
-        super( location );
+    public DispenserTileEntity( Block block ) {
+        super( block );
         this.inventory = new DispenserInventory( this );
-
-        if ( items != null ) {
-            for ( int i = 0; i < items.length; i++ ) {
-                ItemStack itemStack = items[i];
-                if ( itemStack != null ) {
-                    this.inventory.setItem( i, itemStack );
-                }
-            }
-        }
     }
 
-    /**
-     * Create a new tile entity based on its stored compound
-     *
-     * @param compound     which holds stored data
-     * @param worldAdapter which holds this tile entity
-     */
-    public DispenserTileEntity( NBTTagCompound compound, WorldAdapter worldAdapter, Items items ) {
-        super( compound, worldAdapter, items );
-        this.inventory = new DispenserInventory( this );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         // Read in items
         List<Object> itemList = compound.getList( "Items", false );
@@ -76,7 +58,7 @@ public class DispenserTileEntity extends TileEntity implements InventoryHolder {
 
             byte slot = itemCompound.getByte( "Slot", (byte) 127 );
             if ( slot == 127 ) {
-                LOGGER.warn( "Found item without slot information: {} @ {} setting it to the next free slot", itemStack.getMaterial(), this.location );
+                LOGGER.warn( "Found item without slot information: {} @ {} setting it to the next free slot", itemStack.getMaterial(), this.getBlock().getLocation() );
                 this.inventory.addItem( itemStack );
             } else {
                 this.inventory.setItem( slot, itemStack );

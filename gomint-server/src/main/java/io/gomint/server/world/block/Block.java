@@ -362,6 +362,7 @@ public abstract class Block implements io.gomint.world.block.Block {
 
                 TileEntity tileEntityInstance = instance.createTileEntity( data.getCompound() );
                 if ( tileEntityInstance != null ) {
+                    this.world.getServer().getContext().getAutowireCapableBeanFactory().autowireBean( tileEntityInstance );
                     instance.setTileEntity( tileEntityInstance );
                     worldAdapter.storeTileEntity( pos, tileEntityInstance );
                 }
@@ -407,6 +408,7 @@ public abstract class Block implements io.gomint.world.block.Block {
                 if ( instance.needsTileEntity() ) {
                     TileEntity tileEntityInstance = instance.createTileEntity( new NBTTagCompound( "" ) );
                     if ( tileEntityInstance != null ) {
+                        this.world.getServer().getContext().getAutowireCapableBeanFactory().autowireBean( tileEntityInstance );
                         instance.setTileEntity( tileEntityInstance );
                         worldAdapter.storeTileEntity( pos, tileEntityInstance );
                     }
@@ -479,7 +481,7 @@ public abstract class Block implements io.gomint.world.block.Block {
             compound.addValue( "z", pos.getZ() );
 
             // Construct new tile entity
-            TileEntity tileEntityInstance = TileEntities.construct( compound, worldAdapter );
+            TileEntity tileEntityInstance = TileEntities.construct( this.world.getServer().getContext(), compound, instance );
             worldAdapter.storeTileEntity( pos, tileEntityInstance );
         } else {
             worldAdapter.removeTileEntity( pos );

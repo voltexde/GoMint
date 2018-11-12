@@ -3,8 +3,7 @@ package io.gomint.server.entity.tileentity;
 import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
 import io.gomint.math.Vector;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.Sound;
 import io.gomint.world.block.BlockFace;
@@ -18,13 +17,17 @@ public class NoteblockTileEntity extends TileEntity {
     private byte note;
 
     /**
-     * Construct new TileEntity from TagCompound
+     * Construct new tile entity from position and world data
      *
-     * @param compound The TagCompound which should be used to read data from
-     * @param world    The world in which this TileEntity resides
+     * @param block which created this tile
      */
-    public NoteblockTileEntity( NBTTagCompound compound, WorldAdapter world, Items items ) {
-        super( compound, world, items );
+    public NoteblockTileEntity( Block block ) {
+        super( block );
+    }
+
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         this.note = compound.getByte( "note", (byte) 0 );
     }
@@ -57,7 +60,7 @@ public class NoteblockTileEntity extends TileEntity {
      * Play the sound which this note block has stored
      */
     public void playSound() {
-        this.location.getWorld().playSound( this.location, Sound.NOTE, this.note );
+        this.getBlock().getLocation().getWorld().playSound( this.getBlock().getLocation(), Sound.NOTE, this.note );
     }
 
 }

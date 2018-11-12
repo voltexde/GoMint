@@ -7,10 +7,12 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.Location;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,17 +22,25 @@ import java.util.Map;
  * @author geNAZt
  * @version 1.0
  */
+@Component
+@Scope( "prototype" )
 public class BannerTileEntity extends TileEntity {
 
     private int baseColor;
     private Map<String, Integer> patterns = new LinkedHashMap<>();
 
-    public BannerTileEntity( Location location ) {
-        super( location );
+    public BannerTileEntity( Block block ) {
+        super( block );
     }
 
-    public BannerTileEntity( NBTTagCompound compound, WorldAdapter worldAdapter, Items items ) {
-        super( compound, worldAdapter, items );
+    @Override
+    public void update( long currentMillis ) {
+
+    }
+
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         this.baseColor = compound.getInteger( "Base", 0 );
 
@@ -41,11 +51,6 @@ public class BannerTileEntity extends TileEntity {
                 this.patterns.put( patternCompound.getString( "Pattern", "ss" ), patternCompound.getInteger( "Color", 0 ) );
             }
         }
-    }
-
-    @Override
-    public void update( long currentMillis ) {
-
     }
 
     @Override

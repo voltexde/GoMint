@@ -2,6 +2,7 @@ package io.gomint.server.entity.tileentity;
 
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 
@@ -31,22 +32,25 @@ public class CommandBlockTileEntity extends ContainerTileEntity {
     private int version;
 
     /**
-     * Construct new TileEntity from TagCompound
+     * Construct new tile entity
      *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
-     * @param items       which is used to build up needed items
+     * @param block of the tile entity
      */
-    public CommandBlockTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    public CommandBlockTileEntity( Block block ) {
+        super( block );
+    }
+
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         // Read the NBT tag for its given data
-        this.command = tagCompound.getString( "Command", "" );
-        this.successCount = tagCompound.getInteger( "SuccessCount", 0 );
-        this.output = tagCompound.getString( "LastOutput", "" );
-        this.trackOutput = tagCompound.getByte( "TrackOutput", (byte) 0 ) != 0;
+        this.command = compound.getString( "Command", "" );
+        this.successCount = compound.getInteger( "SuccessCount", 0 );
+        this.output = compound.getString( "LastOutput", "" );
+        this.trackOutput = compound.getByte( "TrackOutput", (byte) 0 ) != 0;
 
-        List<Object> parameterObjects = tagCompound.getList( "LastOutputParams", true );
+        List<Object> parameterObjects = compound.getList( "LastOutputParams", true );
         List<String> param = new ArrayList<>();
         for ( Object parameterObject : parameterObjects ) {
             param.add( (String) parameterObject );
@@ -55,16 +59,16 @@ public class CommandBlockTileEntity extends ContainerTileEntity {
         this.parameter = param;
 
         //
-        this.auto = tagCompound.getByte( "auto", (byte) 0 ) != 0;
-        this.powered = tagCompound.getByte( "powered", (byte) 0 ) != 0;
+        this.auto = compound.getByte( "auto", (byte) 0 ) != 0;
+        this.powered = compound.getByte( "powered", (byte) 0 ) != 0;
 
         //
-        this.redstoneMode = tagCompound.getByte( "LPRedstoneMode", (byte) 1 ) != 0;
-        this.conditionalMode = tagCompound.getByte( "LPCondionalMode", (byte) 0 ) != 0;
-        this.commandMode = tagCompound.getInteger( "LPCommandMode", 0 );
+        this.redstoneMode = compound.getByte( "LPRedstoneMode", (byte) 1 ) != 0;
+        this.conditionalMode = compound.getByte( "LPCondionalMode", (byte) 0 ) != 0;
+        this.commandMode = compound.getInteger( "LPCommandMode", 0 );
 
         //
-        this.version = tagCompound.getInteger( "Version", 1 );
+        this.version = compound.getInteger( "Version", 1 );
     }
 
     @Override

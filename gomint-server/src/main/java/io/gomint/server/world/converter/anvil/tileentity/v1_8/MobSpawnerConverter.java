@@ -8,9 +8,9 @@
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
 import io.gomint.server.entity.tileentity.MobSpawnerTileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -20,8 +20,8 @@ public class MobSpawnerConverter extends BasisConverter<MobSpawnerTileEntity> {
 
     private final Object2IntMap<String> entityConverter;
 
-    public MobSpawnerConverter( Items items, Object2IntMap<String> itemConverter, Object2IntMap<String> entityConverter ) {
-        super( items, itemConverter );
+    public MobSpawnerConverter( ApplicationContext context, Object2IntMap<String> itemConverter, Object2IntMap<String> entityConverter ) {
+        super( context, itemConverter );
         this.entityConverter = entityConverter;
     }
 
@@ -33,7 +33,10 @@ public class MobSpawnerConverter extends BasisConverter<MobSpawnerTileEntity> {
         compound.remove( "EntityId" );
         compound.addValue( "EntityId", networkId );
 
-        return new MobSpawnerTileEntity( compound, null, this.items );
+        MobSpawnerTileEntity tileEntity = new MobSpawnerTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+        tileEntity.fromCompound( compound );
+        return tileEntity;
     }
 
 }

@@ -42,7 +42,7 @@ public class CommandBlock extends ContainerBlock implements io.gomint.world.bloc
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new CommandBlockTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new CommandBlockTileEntity( this );
     }
 
 }

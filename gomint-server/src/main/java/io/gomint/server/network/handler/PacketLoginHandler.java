@@ -9,6 +9,8 @@ package io.gomint.server.network.handler;
 
 import io.gomint.event.player.PlayerLoginEvent;
 import io.gomint.player.DeviceInfo;
+import io.gomint.server.GoMintServer;
+import io.gomint.server.config.ServerConfig;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.jwt.EncryptionRequestForger;
 import io.gomint.server.jwt.JwtAlgorithm;
@@ -16,6 +18,7 @@ import io.gomint.server.jwt.JwtSignatureException;
 import io.gomint.server.jwt.JwtToken;
 import io.gomint.server.jwt.MojangChainValidator;
 import io.gomint.server.network.EncryptionHandler;
+import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.PlayerConnectionState;
 import io.gomint.server.network.Protocol;
@@ -23,6 +26,7 @@ import io.gomint.server.network.packet.PacketEncryptionRequest;
 import io.gomint.server.network.packet.PacketLogin;
 import io.gomint.server.network.packet.PacketPlayState;
 import io.gomint.server.player.PlayerSkin;
+import io.gomint.server.plugin.EventCaller;
 import io.gomint.server.scheduler.SyncScheduledTask;
 import io.gomint.server.world.WorldAdapter;
 import org.json.simple.JSONArray;
@@ -31,6 +35,9 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -47,11 +54,27 @@ import static io.gomint.player.DeviceInfo.DeviceOS.WINDOWS;
  * @author geNAZt
  * @version 1.0
  */
+@Component
 public class PacketLoginHandler implements PacketHandler<PacketLogin> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PacketLoginHandler.class );
     private static final EncryptionRequestForger FORGER = new EncryptionRequestForger();
     private static final Pattern NAME_PATTERN = Pattern.compile( "[a-zA-z0-9_\\. ]{1,16}" );
+
+    @Autowired
+    private EncryptionKeyFactory keyFactory;
+
+    @Autowired
+    private ServerConfig serverConfig;
+
+    @Autowired
+    private GoMintServer server;
+
+    @Autowired
+    private EventCaller eventCaller;
+
+    @Autowired
+    private ApplicationContext context;
 
     @Override
     public void handle( PacketLogin packet, long currentTimeMillis, PlayerConnection connection ) {
@@ -100,7 +123,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                 return;
             }
 
-            MojangChainValidator chainValidator = new MojangChainValidator( connection.getServer().getEncryptionKeyFactory() );
+            MojangChainValidator chainValidator = new MojangChainValidator( this.keyFactory );
             JSONArray jsonChain = (JSONArray) jsonChainRaw;
             for ( Object jsonTokenRaw : jsonChain ) {
                 if ( jsonTokenRaw instanceof String ) {
@@ -133,13 +156,13 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
             boolean finalValidSkin = validSkin;
             connection.getServer().getSyncTaskManager().addTask( new SyncScheduledTask( connection.getServer().getSyncTaskManager(), () -> {
                 // Invalid skin
-                if ( !finalValidSkin && connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
+                if ( !finalValidSkin && this.serverConfig.isOnlyXBOXLogin() ) {
                     connection.disconnect( "Skin is invalid or corrupted" );
                     return;
                 }
 
                 // Check if valid user (xbox live)
-                if ( !valid && connection.getNetworkManager().getServer().getServerConfig().isOnlyXBOXLogin() ) {
+                if ( !valid && this.serverConfig.isOnlyXBOXLogin() ) {
                     connection.disconnect( "Only valid XBOX Logins are allowed" );
                     return;
                 }
@@ -157,7 +180,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                 }
 
                 // Check for name / uuid collision
-                for ( io.gomint.entity.EntityPlayer player : connection.getNetworkManager().getServer().getPlayers() ) {
+                for ( io.gomint.entity.EntityPlayer player : this.server.getPlayers() ) {
                     if ( player.getName().equals( name ) ||
                         player.getUUID().equals( chainValidator.getUuid() ) ) {
                         connection.disconnect( "Player already logged in on this server" );
@@ -196,10 +219,14 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                 }
 
                 // Create entity:
-                WorldAdapter world = connection.getNetworkManager().getServer().getDefaultWorld();
-                connection.setEntity( new EntityPlayer( world, connection, chainValidator.getUsername(),
+                WorldAdapter world = this.server.getDefaultWorld();
+
+                EntityPlayer player = new EntityPlayer( world, connection, chainValidator.getUsername(),
                     chainValidator.getXboxId(), chainValidator.getUuid(), locale,
-                    skinToken.getClaim( "DeviceId" ) != null ? skinToken.getClaim( "DeviceId" ) : null ) );
+                    skinToken.getClaim( "DeviceId" ) != null ? skinToken.getClaim( "DeviceId" ) : null );
+                this.context.getAutowireCapableBeanFactory().autowireBean( player );
+
+                connection.setEntity( player );
                 connection.getEntity().setSkin( playerSkin );
                 connection.getEntity().setNameTagVisible( true );
                 connection.getEntity().setNameTagAlwaysVisible( true );
@@ -218,13 +245,13 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                     event.setKickMessage( "Server is full" );
                 }
 
-                connection.getNetworkManager().getServer().getPluginManager().callEvent( event );
+                this.eventCaller.callEvent( event );
                 if ( event.isCancelled() ) {
                     connection.disconnect( event.getKickMessage() );
                     return;
                 }
 
-                if ( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory().getKeyPair() == null ) {
+                if ( this.keyFactory.getKeyPair() == null ) {
                     // No encryption
                     connection.sendPlayState( PacketPlayState.PlayState.LOGIN_SUCCESS );
                     connection.setState( PlayerConnectionState.RESOURCE_PACK );
@@ -235,7 +262,7 @@ public class PacketLoginHandler implements PacketHandler<PacketLogin> {
                         connection.getServer().getWatchdog().add( 2, TimeUnit.SECONDS );
 
                         // Enable encryption
-                        EncryptionHandler encryptionHandler = new EncryptionHandler( connection.getEntity().getWorld().getServer().getEncryptionKeyFactory() );
+                        EncryptionHandler encryptionHandler = new EncryptionHandler( this.keyFactory );
                         encryptionHandler.supplyClientKey( chainValidator.getClientPublicKey() );
                         if ( encryptionHandler.beginClientsideEncryption() ) {
                             // Get the needed data for the encryption start

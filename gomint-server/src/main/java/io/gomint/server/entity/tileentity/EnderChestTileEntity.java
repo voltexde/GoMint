@@ -9,17 +9,13 @@ package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.math.Location;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.EnderChestInventory;
 import io.gomint.server.inventory.InventoryHolder;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author geNAZt
@@ -32,21 +28,10 @@ public class EnderChestTileEntity extends ContainerTileEntity implements Invento
     /**
      * Create new ender chest based on the position
      *
-     * @param position where the ender chest should be placed
+     * @param block where the ender chest should be placed
      */
-    public EnderChestTileEntity( Location position ) {
-        super( position );
-        this.inventory = new EnderChestInventory( this );
-    }
-
-    /**
-     * Construct new TileEntity from TagCompound
-     *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
-     */
-    public EnderChestTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    public EnderChestTileEntity( Block block ) {
+        super( block );
         this.inventory = new EnderChestInventory( this );
     }
 

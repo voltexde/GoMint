@@ -7,9 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.Location;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 
 import java.awt.Color;
@@ -25,12 +23,13 @@ public class CauldronTileEntity extends TileEntity {
     private short potionId;
     private short potionType;
 
-    public CauldronTileEntity( Location location ) {
-        super( location );
+    public CauldronTileEntity( Block block ) {
+        super( block );
     }
 
-    public CauldronTileEntity( NBTTagCompound compound, WorldAdapter world, Items items ) {
-        super( compound, world, items );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         int argb = compound.getInteger( "CustomColor", 0 );
         if ( argb != 0 ) {

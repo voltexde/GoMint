@@ -14,6 +14,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ import java.util.List;
  * @author geNAZt
  * @version 1.0
  */
+@Component
 public class Items {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( Items.class );
@@ -34,6 +37,7 @@ public class Items {
      * @param classPath which builds this registry
      * @param mapperData data which may be used to map item ids
      */
+    @Autowired
     public Items( ClassPath classPath, List<NBTTagCompound> mapperData ) {
         this.generators = new Registry<>( classPath, clazz -> {
             ObjectConstructionFactory factory = new ObjectConstructionFactory( clazz );

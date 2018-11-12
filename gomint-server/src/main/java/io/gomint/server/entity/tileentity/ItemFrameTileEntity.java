@@ -8,10 +8,10 @@
 package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
+import io.gomint.inventory.item.ItemAir;
 import io.gomint.math.Vector;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 
@@ -21,25 +21,29 @@ import io.gomint.world.block.BlockFace;
  */
 public class ItemFrameTileEntity extends TileEntity {
 
-    private ItemStack holdingItem;
-    private float itemDropChance;
+    private ItemStack holdingItem = (ItemStack) ItemAir.create( 0 );
+    private float itemDropChance = 1f;
     private byte itemRotation;
 
     /**
-     * Construct new TileEntity from TagCompound
+     * Construct new tile entity from position and world data
      *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
+     * @param block which created this tile
      */
-    public ItemFrameTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    public ItemFrameTileEntity( Block block ) {
+        super( block );
+    }
+
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         //
-        this.itemDropChance = tagCompound.getFloat( "ItemDropChance", 1.0f );
-        this.itemRotation = tagCompound.getByte( "ItemRotation", (byte) 0 );
+        this.itemDropChance = compound.getFloat( "ItemDropChance", 1.0f );
+        this.itemRotation = compound.getByte( "ItemRotation", (byte) 0 );
 
         //
-        this.holdingItem = getItemStack( tagCompound.getCompound( "Item", false ) );
+        this.holdingItem = getItemStack( compound.getCompound( "Item", false ) );
     }
 
     @Override
@@ -61,7 +65,7 @@ public class ItemFrameTileEntity extends TileEntity {
         if ( reason == SerializationReason.PERSIST ) {
             compound.addValue( "ItemDropChance", this.itemDropChance );
         }
-        
+
         compound.addValue( "ItemRotation", this.itemRotation );
 
         NBTTagCompound itemCompound = new NBTTagCompound( "Item" );

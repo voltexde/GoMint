@@ -7,10 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.BlockPosition;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.Things;
-import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Air;
 import io.gomint.server.world.block.Block;
 import io.gomint.server.world.block.PistonHead;
@@ -18,8 +15,6 @@ import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import io.gomint.world.block.BlockType;
 import lombok.ToString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +25,6 @@ import java.util.List;
  */
 @ToString
 public class PistonArmTileEntity extends TileEntity {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger( PistonArmTileEntity.class );
 
     // States
     private byte state;
@@ -49,30 +42,34 @@ public class PistonArmTileEntity extends TileEntity {
     private byte sticky;
 
     /**
-     * Construct new TileEntity from TagCompound
+     * Construct new tile entity from position and world data
      *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
+     * @param block which created this tile
      */
-    public PistonArmTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    public PistonArmTileEntity( Block block ) {
+        super( block );
+    }
 
-        this.state = tagCompound.getByte( "State", (byte) 0 );
-        this.newState = tagCompound.getByte( "NewState", (byte) 0 );
 
-        this.progess = tagCompound.getFloat( "Progress", 0f );
-        this.lastProgress = tagCompound.getFloat( "LastProgress", 0f );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
-        this.attachedBlocks = tagCompound.getList( "AttachedBlocks", false );
-        this.breakBlocks = tagCompound.getList( "BreakBlocks", false );
+        this.state = compound.getByte( "State", (byte) 0 );
+        this.newState = compound.getByte( "NewState", (byte) 0 );
 
-        this.sticky = tagCompound.getByte( "Sticky", (byte) 0 );
+        this.progess = compound.getFloat( "Progress", 0f );
+        this.lastProgress = compound.getFloat( "LastProgress", 0f );
+
+        this.attachedBlocks = compound.getList( "AttachedBlocks", false );
+        this.breakBlocks = compound.getList( "BreakBlocks", false );
+
+        this.sticky = compound.getByte( "Sticky", (byte) 0 );
     }
 
     @Override
     public void update( long currentMillis ) {
-        BlockPosition pos = this.location.toBlockPosition();
-        Block piston = this.location.getWorld().getBlockAt( pos );
+        Block piston = this.getBlock();
         BlockFace facing = Things.convertFromDataToBlockFace( piston.getBlockData() );
 
         if ( this.isExtended() ) {

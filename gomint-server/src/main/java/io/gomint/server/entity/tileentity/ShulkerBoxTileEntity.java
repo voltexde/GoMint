@@ -7,8 +7,7 @@ import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.ChestInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemAir;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import org.slf4j.Logger;
@@ -19,31 +18,35 @@ import java.util.List;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 public class ShulkerBoxTileEntity extends ContainerTileEntity implements InventoryHolder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( ShulkerBoxTileEntity.class );
     private ChestInventory inventory;
     private boolean undyed = true;
-    private byte facing;
+    private byte facing = 1;
 
     /**
-     * Construct new TileEntity from TagCompound
+     * Construct new tile entity
      *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
+     * @param block of the tile entity
      */
-    public ShulkerBoxTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
-
+    public ShulkerBoxTileEntity( Block block ) {
+        super( block );
         this.inventory = new ChestInventory( this );
+    }
+
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         //
-        this.undyed = tagCompound.getByte( "isUndyed", (byte) 1 ) > 0;
-        this.facing = tagCompound.getByte( "facing", (byte) 1 );
+        this.undyed = compound.getByte( "isUndyed", (byte) 1 ) > 0;
+        this.facing = compound.getByte( "facing", (byte) 1 );
 
         // Read in items
-        List<Object> itemList = tagCompound.getList( "Items", false );
+        List<Object> itemList = compound.getList( "Items", false );
         if ( itemList == null ) return;
 
         for ( Object item : itemList ) {
@@ -56,7 +59,7 @@ public class ShulkerBoxTileEntity extends ContainerTileEntity implements Invento
 
             byte slot = itemCompound.getByte( "Slot", (byte) 127 );
             if ( slot == 127 ) {
-                LOGGER.warn( "Found item without slot information: " + itemStack.getMaterial() + " @ " + this.location + " setting it to the next free slot" );
+                LOGGER.warn( "Found item without slot information: " + itemStack.getMaterial() + " @ " + this.getBlock().getLocation() + " setting it to the next free slot" );
                 this.inventory.addItem( itemStack );
             } else {
                 this.inventory.setItem( slot, itemStack );

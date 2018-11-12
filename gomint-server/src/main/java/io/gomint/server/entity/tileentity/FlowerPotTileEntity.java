@@ -14,6 +14,7 @@ import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import lombok.Getter;
@@ -28,27 +29,20 @@ public class FlowerPotTileEntity extends TileEntity implements InventoryHolder {
     private BlockIdentifier holding;
 
     /**
-     * Create a new flower pot with the item given as content
+     * Construct new tile entity from position and world data
      *
-     * @param holding  which should be inside the flower pot
-     * @param position of the flower pot
+     * @param block which created this tile
      */
-    public FlowerPotTileEntity( BlockIdentifier holding, Location position ) {
-        super( position );
-        this.holding = holding;
+    public FlowerPotTileEntity( Block block ) {
+        super( block );
     }
 
-    /**
-     * Construct new TileEntity from TagCompound
-     *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
-     * @param items       which should be used for generating item stacks
-     */
-    public FlowerPotTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
 
-        this.holding = getBlockIdentifier( tagCompound.getCompound( "PlantBlock", false ) );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
+
+        this.holding = getBlockIdentifier( compound.getCompound( "PlantBlock", false ) );
     }
 
     @Override

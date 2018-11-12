@@ -48,7 +48,7 @@ public class RedstoneComparator extends Block implements BlockRedstoneComparator
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new ComparatorTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new ComparatorTileEntity( this );
     }
 
 }

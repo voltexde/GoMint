@@ -7,9 +7,7 @@
 
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
-import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.SignTileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.json.simple.JSONArray;
@@ -17,6 +15,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -26,19 +25,19 @@ public class SignConverter extends BasisConverter<SignTileEntity> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( SignConverter.class );
 
-    SignConverter( Items items, Object2IntMap<String> itemConverter ) {
+    SignConverter( ApplicationContext items, Object2IntMap<String> itemConverter ) {
         super( items, itemConverter );
     }
 
     @Override
     public SignTileEntity readFrom( NBTTagCompound compound ) {
-        // Read position first
-        Location position = this.getPosition( compound );
+        SignTileEntity tileEntity = new SignTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
 
         // Fast out for nukkit / pmmp converted worlds
         if ( compound.containsKey( "Text" ) ) {
-            String[] lines = compound.getString( "Text", "" ).split( "\n" );
-            return new SignTileEntity( lines, position );
+            tileEntity.fromCompound( compound );
+            return tileEntity;
         }
 
         // Clean sign text
@@ -48,8 +47,12 @@ public class SignConverter extends BasisConverter<SignTileEntity> {
         lines[2] = this.cleanText( compound, "Text3" );
         lines[3] = this.cleanText( compound, "Text4" );
 
+        for ( int i = 0; i < lines.length; i++ ) {
+            tileEntity.getLines().set( i, lines[i] );
+        }
+
         // Construct new sign
-        return new SignTileEntity( lines, position );
+        return tileEntity;
     }
 
     private String cleanText( NBTTagCompound compound, String tagName ) {

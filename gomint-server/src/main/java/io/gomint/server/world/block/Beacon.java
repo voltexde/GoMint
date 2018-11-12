@@ -53,11 +53,12 @@ public class Beacon extends Block implements io.gomint.world.block.BlockBeacon {
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        return new BeaconTileEntity( 0, 0, this.location );
+        return new BeaconTileEntity( this );
     }
 
     @Override
     public Class<? extends ItemStack>[] getToolInterfaces() {
         return ToolPresets.PICKAXE;
     }
+
 }

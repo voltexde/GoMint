@@ -9,15 +9,16 @@ package io.gomint.server.entity.tileentity;
 
 import io.gomint.entity.Entity;
 import io.gomint.inventory.item.ItemStack;
-import io.gomint.math.Location;
+import io.gomint.math.BlockPosition;
 import io.gomint.math.Vector;
+import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.BlockIdentifier;
-import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import io.gomint.world.block.BlockFace;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author geNAZt
@@ -27,39 +28,21 @@ public abstract class TileEntity {
 
     // CHECKSTYLE:OFF
     @Getter
-    protected Location location;
+    protected Block block;
+    @Autowired
     protected Items items;
     private byte moveable;
-    protected boolean needsPersistance;
+    protected boolean needsPersistence;
     // CHECKSTYLE:ON
 
     /**
      * Construct new tile entity from position and world data
      *
-     * @param location where the new tile should be located
+     * @param block which created this tile
      */
-    TileEntity( Location location ) {
-        this.location = location;
+    TileEntity( Block block ) {
+        this.block = block;
         this.moveable = 1;
-    }
-
-    /**
-     * Construct new TileEntity from TagCompound
-     *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
-     * @param items       which generates item instances
-     */
-    TileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        this.items = items;
-        this.location = new Location(
-            world,
-            tagCompound.getInteger( "x", 0 ),
-            tagCompound.getInteger( "y", -1 ),
-            tagCompound.getInteger( "z", 0 )
-        );
-
-        this.moveable = tagCompound.getByte( "isMovable", (byte) 1 );
     }
 
     BlockIdentifier getBlockIdentifier( NBTTagCompound compound ) {
@@ -76,12 +59,6 @@ public abstract class TileEntity {
     }
 
     io.gomint.server.inventory.item.ItemStack getItemStack( NBTTagCompound compound ) {
-        // Check for correct ids
-        WorldAdapter worldAdapter = (WorldAdapter) this.location.getWorld();
-        if ( this.items == null ) {
-            this.items = worldAdapter.getServer().getItems();
-        }
-
         // Item not there?
         if ( compound == null ) {
             return this.items.create( 0, (short) 0, (byte) 0, null );
@@ -125,32 +102,39 @@ public abstract class TileEntity {
     }
 
     /**
+     * Load this tile entity from a compound
+     *
+     * @param compound which holds data for this tile entity
+     */
+    public void fromCompound( NBTTagCompound compound ) {
+        this.moveable = compound.getByte( "isMovable", (byte) 1 );
+    }
+
+    /**
      * Save this TileEntity back to an compound
      *
      * @param compound The Compound which should be used to save the data into
      * @param reason   why should this tile be serialized?
      */
     public void toCompound( NBTTagCompound compound, SerializationReason reason ) {
-        compound.addValue( "x", (int) this.location.getX() );
-        compound.addValue( "y", (int) this.location.getY() );
-        compound.addValue( "z", (int) this.location.getZ() );
+        BlockPosition position = this.block.getLocation().toBlockPosition();
+
+        compound.addValue( "x", position.getX() );
+        compound.addValue( "y", position.getY() );
+        compound.addValue( "z", position.getZ() );
 
         if ( reason == SerializationReason.PERSIST ) {
             compound.addValue( "isMovable", this.moveable );
         }
     }
 
-    public boolean isNeedsPersistance() {
-        boolean ne = this.needsPersistance;
-        this.needsPersistance = false;
+    public boolean isNeedsPersistence() {
+        boolean ne = this.needsPersistence;
+        this.needsPersistence = false;
         return ne;
     }
 
-    protected Block getBlock() {
-        return this.location.getBlock();
-    }
-
-    public void applyClientData( NBTTagCompound compound ) {
+    public void applyClientData( EntityPlayer player, NBTTagCompound compound ) throws Exception {
 
     }
 

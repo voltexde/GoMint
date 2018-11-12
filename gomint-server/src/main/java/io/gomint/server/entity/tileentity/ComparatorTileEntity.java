@@ -7,9 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.Location;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
@@ -20,12 +18,13 @@ public class ComparatorTileEntity extends TileEntity {
 
     private int outputSignal;
 
-    public ComparatorTileEntity( Location location ) {
-        super( location );
+    public ComparatorTileEntity( Block block ) {
+        super( block );
     }
 
-    public ComparatorTileEntity( NBTTagCompound compound, WorldAdapter world, Items items ) {
-        super( compound, world, items );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         this.outputSignal = compound.getInteger( "OutputSignal", 0 );
     }

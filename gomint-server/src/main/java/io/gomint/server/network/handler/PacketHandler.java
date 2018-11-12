@@ -17,6 +17,6 @@ public interface PacketHandler<T extends Packet> {
      * @param currentTimeMillis The time where the tick started
      * @param connection        The connection for which the packet did come
      */
-    void handle( T packet, long currentTimeMillis, PlayerConnection connection );
+    void handle( T packet, long currentTimeMillis, PlayerConnection connection ) throws Exception;
 
 }

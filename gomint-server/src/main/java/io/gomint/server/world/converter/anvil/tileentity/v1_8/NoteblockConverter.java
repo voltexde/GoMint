@@ -8,9 +8,9 @@
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
 import io.gomint.server.entity.tileentity.NoteblockTileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -18,13 +18,16 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
  */
 public class NoteblockConverter extends BasisConverter<NoteblockTileEntity> {
 
-    public NoteblockConverter( Items items, Object2IntMap<String> itemConverter ) {
-        super( items, itemConverter );
+    public NoteblockConverter( ApplicationContext context, Object2IntMap<String> itemConverter ) {
+        super( context, itemConverter );
     }
 
     @Override
     public NoteblockTileEntity readFrom( NBTTagCompound compound ) {
-        return new NoteblockTileEntity( compound, null, this.items );
+        NoteblockTileEntity tileEntity = new NoteblockTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+        tileEntity.fromCompound( compound );
+        return tileEntity;
     }
 
 }

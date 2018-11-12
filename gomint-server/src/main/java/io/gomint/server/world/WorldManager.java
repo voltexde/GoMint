@@ -11,6 +11,7 @@ import io.gomint.GoMint;
 import io.gomint.event.world.WorldConvertedEvent;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.inventory.item.Items;
+import io.gomint.server.util.ClassPath;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
 import io.gomint.server.world.inmemory.InMemoryWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
@@ -155,7 +156,10 @@ public class WorldManager {
     private World convertAndLoad( File file ) throws WorldLoadException {
         this.server.getWatchdog().add( 120, TimeUnit.SECONDS );
 
-        AnvilConverter converter = new AnvilConverter( this.server.getAssets(), new Items( this.server.getClassPath(), this.server.getAssets().getJeTopeItems() ), file );
+        ClassPath classPath = this.server.getContext().getBean( ClassPath.class );
+        this.server.getContext().registerBean( "items", Items.class, () -> new Items( classPath, server.getAssets().getJeTopeItems() ) );
+
+        AnvilConverter converter = new AnvilConverter( this.server.getAssets(), this.server.getContext(), file );
         converter.done();
 
         World world = loadLevelDBWorld( file );

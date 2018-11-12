@@ -57,7 +57,7 @@ public class Furnace extends Block implements io.gomint.world.block.BlockFurnace
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new FurnaceTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new FurnaceTileEntity( this );
     }
 
     @Override

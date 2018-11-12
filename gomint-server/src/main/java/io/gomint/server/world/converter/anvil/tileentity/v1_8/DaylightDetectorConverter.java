@@ -7,11 +7,10 @@
 
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
-import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.DaylightDetectorTileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -19,14 +18,16 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
  */
 public class DaylightDetectorConverter extends BasisConverter<DaylightDetectorTileEntity> {
 
-    public DaylightDetectorConverter( Items items, Object2IntMap<String> itemConverter ) {
-        super( items, itemConverter );
+    public DaylightDetectorConverter( ApplicationContext context, Object2IntMap<String> itemConverter ) {
+        super( context, itemConverter );
     }
 
     @Override
     public DaylightDetectorTileEntity readFrom( NBTTagCompound compound ) {
-        Location position = getPosition( compound );
-        return new DaylightDetectorTileEntity( position );
+        DaylightDetectorTileEntity tileEntity = new DaylightDetectorTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+        tileEntity.fromCompound( compound );
+        return tileEntity;
     }
 
 }

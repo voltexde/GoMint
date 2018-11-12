@@ -4,6 +4,7 @@ import java.util.List;
 
 /**
  * @author geNAZt
+ * @version 1.0
  */
 public interface BlockSign extends Block {
 
@@ -18,6 +19,9 @@ public interface BlockSign extends Block {
     /**
      * Set a specific line to new content. When you set line 2 and there is no other line
      * line 1 will be empty string
+     *
+     * @param line    which should be set
+     * @param content which should be set on that line
      */
     void setLine( int line, String content );
 

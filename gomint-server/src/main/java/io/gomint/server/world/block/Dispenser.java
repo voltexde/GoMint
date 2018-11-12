@@ -49,7 +49,7 @@ public class Dispenser extends Block implements io.gomint.world.block.BlockDispe
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new DispenserTileEntity( null, this.location );
+        return new DispenserTileEntity( this );
     }
 
     @Override

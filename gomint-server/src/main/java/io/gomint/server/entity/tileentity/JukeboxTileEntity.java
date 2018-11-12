@@ -5,6 +5,7 @@ import io.gomint.math.Location;
 import io.gomint.server.inventory.item.ItemStack;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
@@ -15,16 +16,20 @@ public class JukeboxTileEntity extends TileEntity {
 
     private ItemStack recordItem;
 
-    public JukeboxTileEntity( NBTTagCompound compound, WorldAdapter worldAdapter, Items items ) {
-        super( compound, worldAdapter, items );
-
-        this.recordItem = getItemStack( compound.getCompound( "RecordItem", false ) );
+    /**
+     * Construct new tile entity from position and world data
+     *
+     * @param block which created this tile
+     */
+    public JukeboxTileEntity( Block block ) {
+        super( block );
     }
 
-    public JukeboxTileEntity( ItemStack itemStack, Location position ) {
-        super( position );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
-        this.recordItem = itemStack;
+        this.recordItem = getItemStack( compound.getCompound( "RecordItem", false ) );
     }
 
     @Override

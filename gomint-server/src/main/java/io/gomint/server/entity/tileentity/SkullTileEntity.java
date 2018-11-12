@@ -1,17 +1,15 @@
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.Location;
 import io.gomint.math.MojangRotation;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
-import lombok.Getter;
+import lombok.Data;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-@Getter
+@Data
 public class SkullTileEntity extends TileEntity {
 
     private MojangRotation rotation;
@@ -20,28 +18,18 @@ public class SkullTileEntity extends TileEntity {
     /**
      * Construct a new skull tile based on given data
      *
-     * @param rotation  of the skull
-     * @param skullType type of the skull
-     * @param location  of the skull in the given world
+     * @param block which holds this tile
      */
-    public SkullTileEntity( byte rotation, byte skullType, Location location ) {
-        super( location );
-
-        this.rotation = new MojangRotation( rotation );
-        this.skullType = skullType;
+    public SkullTileEntity( Block block ) {
+        super( block );
     }
 
-    /**
-     * Construct new TileEntity from TagCompound
-     *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
-     */
-    public SkullTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
-        this.rotation = new MojangRotation( tagCompound.getByte( "Rot", (byte) 0 ) );
-        this.skullType = tagCompound.getByte( "SkullType", (byte) 0 );
+        this.rotation = new MojangRotation( compound.getByte( "Rot", (byte) 0 ) );
+        this.skullType = compound.getByte( "SkullType", (byte) 0 );
     }
 
     @Override

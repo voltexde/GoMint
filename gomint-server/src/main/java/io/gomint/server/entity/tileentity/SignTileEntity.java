@@ -8,10 +8,12 @@
 package io.gomint.server.entity.tileentity;
 
 import com.google.common.base.Joiner;
-import io.gomint.math.Location;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.event.world.SignChangeTextEvent;
+import io.gomint.server.entity.EntityPlayer;
+import io.gomint.server.plugin.EventCaller;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,28 +28,24 @@ public class SignTileEntity extends TileEntity {
     private static final Joiner CONTENT_JOINER = Joiner.on( "\n" ).skipNulls();
     private List<String> lines = new ArrayList<>( 4 );
 
+    @Autowired
+    private EventCaller eventCaller;
+
     /**
-     * Construct a new sign tile
+     * Construct new tile entity from position and world data
      *
-     * @param lines    content of sign
-     * @param location of the sign
+     * @param block which created this tile
      */
-    public SignTileEntity( String[] lines, Location location ) {
-        super( location );
-        this.lines.addAll( Arrays.asList( lines ) );
+    public SignTileEntity( Block block ) {
+        super( block );
     }
 
-    /**
-     * Construct new TileEntity from TagCompound
-     *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
-     */
-    public SignTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
-        if ( tagCompound.containsKey( "Text" ) ) {
-            String text = tagCompound.getString( "Text", "" );
+        if ( compound.containsKey( "Text" ) ) {
+            String text = compound.getString( "Text", "" );
             this.lines.addAll( Arrays.asList( text.split( "\n" ) ) );
         }
     }
@@ -65,8 +63,59 @@ public class SignTileEntity extends TileEntity {
         compound.addValue( "Text", CONTENT_JOINER.join( this.lines ) );
     }
 
+    /**
+     * Get the lines of this sign
+     *
+     * @return the lines of this sign
+     */
     public List<String> getLines() {
         return this.lines;
+    }
+
+    @Override
+    public void applyClientData( EntityPlayer player, NBTTagCompound compound ) throws Exception {
+        // We only care about the text attribute
+        String text = compound.getString( "Text", "" );
+
+        // Sanity check for newlines
+        int foundNewlines = 0;
+
+        for ( int i = 0; i < text.length(); i++ ) {
+            if ( text.charAt( i ) == '\n' && ++foundNewlines > 3 ) {
+                throw new IllegalArgumentException( "Text contained more than 4 lines" );
+            }
+        }
+
+        // We can split now since we have checked that we don't blow away our heap :D
+        String[] lines = text.split( "\n" );
+
+        // Sanity checks on all lines
+        for ( String line : lines ) {
+            if ( line.length() > 16 ) {
+                throw new IllegalArgumentException( "Line is longer than 16 chars" );
+            }
+        }
+
+        // Fire sign change event
+        List<String> lineList = new ArrayList<>();
+        for ( String line : lines ) {
+            lineList.add( line );
+        }
+
+        if ( this.eventCaller != null ) {
+            SignChangeTextEvent event = new SignChangeTextEvent( player, this.getBlock(), lineList );
+            this.eventCaller.callEvent( event );
+
+            if ( event.isCancelled() ) {
+                return;
+            }
+
+            for ( int i = 0; i < 4; i++ ) {
+                if ( event.getLine( i ) != null ) {
+                    this.lines.set( i, event.getLine( i ) );
+                }
+            }
+        }
     }
 
 }

@@ -59,7 +59,7 @@ public class Cauldron extends Block implements io.gomint.world.block.BlockCauldr
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new CauldronTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new CauldronTileEntity( this );
     }
 
 }

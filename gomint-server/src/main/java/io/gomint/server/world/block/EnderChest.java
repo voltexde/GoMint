@@ -72,7 +72,7 @@ public class EnderChest extends ContainerBlock implements io.gomint.world.block.
 
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
-        return new EnderChestTileEntity( this.location );
+        return new EnderChestTileEntity( this );
     }
 
     @Override

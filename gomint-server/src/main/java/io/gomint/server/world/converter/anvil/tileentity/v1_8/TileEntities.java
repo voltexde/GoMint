@@ -8,12 +8,12 @@
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
 import io.gomint.server.entity.tileentity.TileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -52,7 +52,7 @@ public class TileEntities implements TileEntityConverters {
      * @param itemConverter   mappings for string -> int ids
      * @param entityConverter mappings for string -> int ids
      */
-    public TileEntities( Items items, Object2IntMap<String> itemConverter, Object2IntMap<String> entityConverter ) {
+    public TileEntities( ApplicationContext items, Object2IntMap<String> itemConverter, Object2IntMap<String> entityConverter ) {
         this.signConverter = new SignConverter( items, itemConverter );
         this.skullConverter = new SkullConverter( items, itemConverter );
         this.chestConverter = new ChestConverter( items, itemConverter );

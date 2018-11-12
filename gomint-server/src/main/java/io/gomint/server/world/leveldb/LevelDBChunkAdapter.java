@@ -22,6 +22,7 @@ import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.server.world.ChunkAdapter;
 import io.gomint.server.world.ChunkSlice;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.AllocationLimitReachedException;
 import io.gomint.taglib.NBTReader;
 import io.gomint.taglib.NBTReaderNoBuffer;
@@ -291,7 +292,9 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             try {
                 NBTTagCompound compound = nbtReader.parse();
 
-                tileEntity = TileEntities.construct( compound, this.world );
+                Block block = this.getBlockAt( compound.getInteger( "x", 0 ), compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ) );
+
+                tileEntity = TileEntities.construct( this.world.getServer().getContext(), compound, block );
                 if ( tileEntity != null ) {
                     this.addTileEntity( tileEntity );
                 }

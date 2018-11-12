@@ -42,7 +42,7 @@ public abstract class Banner extends Block {
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new BannerTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new BannerTileEntity( this );
     }
 	
 }

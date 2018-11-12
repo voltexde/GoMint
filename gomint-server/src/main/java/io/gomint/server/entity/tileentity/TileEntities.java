@@ -9,9 +9,11 @@ package io.gomint.server.entity.tileentity;
 
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -156,7 +158,7 @@ public enum TileEntities {
         this.nbtID = nbtID;
 
         try {
-            this.tileEntityConstructor = MethodHandles.lookup().unreflectConstructor( tileEntityClass.getConstructor( NBTTagCompound.class, WorldAdapter.class, Items.class ) );
+            this.tileEntityConstructor = MethodHandles.lookup().unreflectConstructor( tileEntityClass.getConstructor( Block.class ) );
         } catch ( IllegalAccessException | NoSuchMethodException e ) {
             e.printStackTrace();
             this.tileEntityConstructor = null;
@@ -166,11 +168,12 @@ public enum TileEntities {
     /**
      * Construct a new TileEntity which then reads in the data from the given Compound
      *
+     * @param context  which has built up the gomint server
      * @param compound The compound from which the data should be read
-     * @param world    The world in which this TileEntity resides
+     * @param block    The block in which this TileEntity resides
      * @return The constructed and ready to use TileEntity or null
      */
-    public static TileEntity construct( NBTTagCompound compound, WorldAdapter world ) {
+    public static TileEntity construct( ApplicationContext context, NBTTagCompound compound, Block block ) {
         // Check if compound has a id
         String id = compound.getString( "id", null );
         if ( id == null ) {
@@ -181,7 +184,10 @@ public enum TileEntities {
         for ( TileEntities tileEntities : values() ) {
             if ( tileEntities.nbtID.equals( id ) ) {
                 try {
-                    return (TileEntity) tileEntities.tileEntityConstructor.invoke( compound, world, world.getServer().getItems() );
+                    TileEntity tileEntity = (TileEntity) tileEntities.tileEntityConstructor.invoke( block );
+                    context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+                    tileEntity.fromCompound( compound );
+                    return tileEntity;
                 } catch ( Throwable throwable ) {
                     LOGGER.warn( "Could not build up tile entity: ", throwable );
                     return null;

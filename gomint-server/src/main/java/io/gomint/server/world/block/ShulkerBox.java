@@ -57,11 +57,7 @@ public class ShulkerBox extends Block implements io.gomint.world.block.BlockShul
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
 
-        // Add flags
-        compound.addValue( "isUndyed", (byte) 0 );
-        compound.addValue( "facing", (byte) 1 );
-
-        return new ShulkerBoxTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new ShulkerBoxTileEntity( this );
     }
 
     @Override

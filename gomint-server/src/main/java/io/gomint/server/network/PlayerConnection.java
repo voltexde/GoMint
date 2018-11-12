@@ -90,12 +90,18 @@ import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -111,47 +117,22 @@ import static io.gomint.server.network.Protocol.PACKET_RESOURCEPACK_RESPONSE;
  * @author BlackyPaw
  * @version 1.0
  */
+@Component
+@Scope( "prototype" )
 public class PlayerConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PlayerConnection.class );
     private static final NativeCode<ZLib> ZLIB = new NativeCode<>( "zlib", JavaZLib.class, NativeZLib.class );
+
+    private static boolean packetHandlersInit = false;
     private static final PacketHandler[] PACKET_HANDLERS = new PacketHandler[256];
 
     static {
         // Load zlib native
         ZLIB.load();
-
-        // Register all packet handlers we need
-        PACKET_HANDLERS[Protocol.PACKET_MOVE_PLAYER & 0xff] = new PacketMovePlayerHandler();
-        PACKET_HANDLERS[Protocol.PACKET_SET_CHUNK_RADIUS & 0xff] = new PacketSetChunkRadiusHandler();
-        PACKET_HANDLERS[Protocol.PACKET_PLAYER_ACTION & 0xff] = new PacketPlayerActionHandler();
-        PACKET_HANDLERS[Protocol.PACKET_MOB_ARMOR_EQUIPMENT & 0xff] = new PacketMobArmorEquipmentHandler();
-        PACKET_HANDLERS[Protocol.PACKET_ADVENTURE_SETTINGS & 0xff] = new PacketAdventureSettingsHandler();
-        PACKET_HANDLERS[Protocol.PACKET_RESOURCEPACK_RESPONSE & 0xff] = new PacketResourcePackResponseHandler();
-        PACKET_HANDLERS[Protocol.PACKET_CRAFTING_EVENT & 0xff] = new PacketCraftingEventHandler();
-        PACKET_HANDLERS[Protocol.PACKET_LOGIN & 0xff] = new PacketLoginHandler();
-        PACKET_HANDLERS[Protocol.PACKET_MOB_EQUIPMENT & 0xff] = new PacketMobEquipmentHandler();
-        PACKET_HANDLERS[Protocol.PACKET_INTERACT & 0xff] = new PacketInteractHandler();
-        PACKET_HANDLERS[Protocol.PACKET_BLOCK_PICK_REQUEST & 0xff] = new PacketBlockPickRequestHandler();
-        PACKET_HANDLERS[Protocol.PACKET_ENCRYPTION_RESPONSE & 0xff] = new PacketEncryptionResponseHandler();
-        PACKET_HANDLERS[Protocol.PACKET_INVENTORY_TRANSACTION & 0xff] = new PacketInventoryTransactionHandler();
-        PACKET_HANDLERS[Protocol.PACKET_CONTAINER_CLOSE & 0xff] = new PacketContainerCloseHandler();
-        PACKET_HANDLERS[Protocol.PACKET_HOTBAR & 0xff] = new PacketHotbarHandler();
-        PACKET_HANDLERS[Protocol.PACKET_TEXT & 0xff] = new PacketTextHandler();
-        PACKET_HANDLERS[Protocol.PACKET_COMMAND_REQUEST & 0xff] = new PacketCommandRequestHandler();
-        PACKET_HANDLERS[Protocol.PACKET_WORLD_SOUND_EVENT & 0xff] = new PacketWorldSoundEventHandler();
-        PACKET_HANDLERS[Protocol.PACKET_ANIMATE & 0xff] = new PacketAnimateHandler();
-        PACKET_HANDLERS[Protocol.PACKET_ENTITY_EVENT & 0xff] = new PacketEntityEventHandler();
-        PACKET_HANDLERS[Protocol.PACKET_MODAL_RESPONSE & 0xFF] = new PacketModalResponseHandler();
-        PACKET_HANDLERS[Protocol.PACKET_SERVER_SETTINGS_REQUEST & 0xFF] = new PacketServerSettingsRequestHandler();
-        PACKET_HANDLERS[Protocol.PACKET_ENTITY_FALL & 0xFF] = new PacketEntityFallHandler();
-        PACKET_HANDLERS[Protocol.PACKET_BOOK_EDIT & 0xFF] = new PacketBookEditHandler();
-        PACKET_HANDLERS[Protocol.PACKET_SET_LOCAL_PLAYER_INITIALIZED & 0xff] = new PacketSetLocalPlayerAsInitializedHandler();
-        PACKET_HANDLERS[Protocol.PACKET_TILE_ENTITY_DATA & 0xff] = new PacketTileEntityDataHandler();
     }
 
     // Network manager that created this connection:
-    @Getter
     private final NetworkManager networkManager;
 
     // Actual connection for wire transfer:
@@ -214,16 +195,19 @@ public class PlayerConnection {
     /**
      * Constructs a new player connection.
      *
+     * @param context        The spring context who loaded this application
      * @param networkManager The network manager creating this instance
      * @param connection     The jRakNet connection for actual wire-transfer
      * @param tcpConnection  TCP connection for low latency communication with proxies
-     * @param initialState   The player connection's initial state
      */
-    PlayerConnection( NetworkManager networkManager, Connection connection, ConnectionHandler tcpConnection, PlayerConnectionState initialState ) {
+    @Autowired
+    PlayerConnection( ApplicationContext context, NetworkManager networkManager, Optional<Connection> connection, Optional<ConnectionHandler> tcpConnection ) {
+        PlayerConnection.ensureStaticInit( context );
+
         this.networkManager = networkManager;
-        this.connection = connection;
-        this.connectionHandler = tcpConnection;
-        this.state = initialState;
+        this.connection = connection.orElse( null );
+        this.connectionHandler = tcpConnection.orElse( null );
+        this.state = PlayerConnectionState.HANDSHAKE;
         this.server = networkManager.getServer();
         this.playerChunks = new LongOpenHashSet();
         this.loadingChunks = new LongOpenHashSet();
@@ -253,6 +237,40 @@ public class PlayerConnection {
 
                 return packetData;
             } );
+        }
+    }
+
+    private static void ensureStaticInit( ApplicationContext applicationContext ) {
+        if ( !packetHandlersInit ) {
+            // Register all packet handlers we need
+            PACKET_HANDLERS[Protocol.PACKET_MOVE_PLAYER & 0xff] = new PacketMovePlayerHandler();
+            PACKET_HANDLERS[Protocol.PACKET_SET_CHUNK_RADIUS & 0xff] = new PacketSetChunkRadiusHandler();
+            PACKET_HANDLERS[Protocol.PACKET_PLAYER_ACTION & 0xff] = new PacketPlayerActionHandler();
+            PACKET_HANDLERS[Protocol.PACKET_MOB_ARMOR_EQUIPMENT & 0xff] = new PacketMobArmorEquipmentHandler();
+            PACKET_HANDLERS[Protocol.PACKET_ADVENTURE_SETTINGS & 0xff] = new PacketAdventureSettingsHandler();
+            PACKET_HANDLERS[Protocol.PACKET_RESOURCEPACK_RESPONSE & 0xff] = new PacketResourcePackResponseHandler();
+            PACKET_HANDLERS[Protocol.PACKET_CRAFTING_EVENT & 0xff] = new PacketCraftingEventHandler();
+            PACKET_HANDLERS[Protocol.PACKET_LOGIN & 0xff] = applicationContext.getBean( PacketLoginHandler.class );
+            PACKET_HANDLERS[Protocol.PACKET_MOB_EQUIPMENT & 0xff] = new PacketMobEquipmentHandler();
+            PACKET_HANDLERS[Protocol.PACKET_INTERACT & 0xff] = new PacketInteractHandler();
+            PACKET_HANDLERS[Protocol.PACKET_BLOCK_PICK_REQUEST & 0xff] = new PacketBlockPickRequestHandler();
+            PACKET_HANDLERS[Protocol.PACKET_ENCRYPTION_RESPONSE & 0xff] = new PacketEncryptionResponseHandler();
+            PACKET_HANDLERS[Protocol.PACKET_INVENTORY_TRANSACTION & 0xff] = new PacketInventoryTransactionHandler();
+            PACKET_HANDLERS[Protocol.PACKET_CONTAINER_CLOSE & 0xff] = new PacketContainerCloseHandler();
+            PACKET_HANDLERS[Protocol.PACKET_HOTBAR & 0xff] = new PacketHotbarHandler();
+            PACKET_HANDLERS[Protocol.PACKET_TEXT & 0xff] = new PacketTextHandler();
+            PACKET_HANDLERS[Protocol.PACKET_COMMAND_REQUEST & 0xff] = new PacketCommandRequestHandler();
+            PACKET_HANDLERS[Protocol.PACKET_WORLD_SOUND_EVENT & 0xff] = new PacketWorldSoundEventHandler();
+            PACKET_HANDLERS[Protocol.PACKET_ANIMATE & 0xff] = new PacketAnimateHandler();
+            PACKET_HANDLERS[Protocol.PACKET_ENTITY_EVENT & 0xff] = new PacketEntityEventHandler();
+            PACKET_HANDLERS[Protocol.PACKET_MODAL_RESPONSE & 0xFF] = new PacketModalResponseHandler();
+            PACKET_HANDLERS[Protocol.PACKET_SERVER_SETTINGS_REQUEST & 0xFF] = new PacketServerSettingsRequestHandler();
+            PACKET_HANDLERS[Protocol.PACKET_ENTITY_FALL & 0xFF] = new PacketEntityFallHandler();
+            PACKET_HANDLERS[Protocol.PACKET_BOOK_EDIT & 0xFF] = new PacketBookEditHandler();
+            PACKET_HANDLERS[Protocol.PACKET_SET_LOCAL_PLAYER_INITIALIZED & 0xff] = new PacketSetLocalPlayerAsInitializedHandler();
+            PACKET_HANDLERS[Protocol.PACKET_TILE_ENTITY_DATA & 0xff] = new PacketTileEntityDataHandler();
+
+            packetHandlersInit = true;
         }
     }
 
@@ -569,9 +587,15 @@ public class PlayerConnection {
         // If we are still in handshake we only accept certain packets:
         if ( this.state == PlayerConnectionState.HANDSHAKE ) {
             if ( packetId == PACKET_LOGIN ) {
-                PacketLogin packet = new PacketLogin();
-                packet.deserialize( buffer, this.protocolID );
-                this.handlePacket( currentTimeMillis, packet );
+                // CHECKSTYLE:OFF
+                try {
+                    PacketLogin packet = new PacketLogin();
+                    packet.deserialize( buffer, this.protocolID );
+                    this.handlePacket( currentTimeMillis, packet );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Could not deserialize / handle packet", e );
+                }
+                // CHECKSTYLE:ON
             } else {
                 LOGGER.error( "Received odd packet" );
             }
@@ -583,7 +607,13 @@ public class PlayerConnection {
         // When we are in encryption init state
         if ( this.state == PlayerConnectionState.ENCRPYTION_INIT ) {
             if ( packetId == PACKET_ENCRYPTION_RESPONSE ) {
-                this.handlePacket( currentTimeMillis, new PacketEncryptionResponse() );
+                // CHECKSTYLE:OFF
+                try {
+                    this.handlePacket( currentTimeMillis, new PacketEncryptionResponse() );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Could not deserialize / handle packet", e );
+                }
+                // CHECKSTYLE:ON
             } else {
                 LOGGER.error( "Received odd packet" );
             }
@@ -595,9 +625,15 @@ public class PlayerConnection {
         // When we are in resource pack state
         if ( this.state == PlayerConnectionState.RESOURCE_PACK ) {
             if ( packetId == PACKET_RESOURCEPACK_RESPONSE ) {
-                PacketResourcePackResponse packet = new PacketResourcePackResponse();
-                packet.deserialize( buffer, this.protocolID );
-                this.handlePacket( currentTimeMillis, packet );
+                // CHECKSTYLE:OFF
+                try {
+                    PacketResourcePackResponse packet = new PacketResourcePackResponse();
+                    packet.deserialize( buffer, this.protocolID );
+                    this.handlePacket( currentTimeMillis, packet );
+                } catch ( Exception e ) {
+                    LOGGER.error( "Could not deserialize / handle packet", e );
+                }
+                // CHECKSTYLE:ON
             } else {
                 LOGGER.error( "Received odd packet" );
             }
@@ -621,7 +657,7 @@ public class PlayerConnection {
             packet.deserialize( buffer, this.protocolID );
             this.handlePacket( currentTimeMillis, packet );
         } catch ( Exception e ) {
-            LOGGER.error( "Could not deserialize packet", e );
+            LOGGER.error( "Could not deserialize / handle packet", e );
         }
         // CHECKSTYLE:ON
     }
@@ -674,7 +710,7 @@ public class PlayerConnection {
      * @param packet            The packet to handle
      */
     @SuppressWarnings( "unchecked" )  // Needed for generic types not matching
-    private void handlePacket( long currentTimeMillis, Packet packet ) {
+    private void handlePacket( long currentTimeMillis, Packet packet ) throws Exception {
         PacketHandler handler = PACKET_HANDLERS[packet.getId() & 0xff];
         if ( handler != null ) {
             LOGGER.debug( "Packet: {}", packet );
@@ -958,7 +994,7 @@ public class PlayerConnection {
 
         if ( this.entity != null && this.entity.getWorld() != null ) {
             PlayerQuitEvent event = this.networkManager.getServer().getPluginManager().callEvent( new PlayerQuitEvent( this.entity, ChatColor.YELLOW + this.entity.getDisplayName() + " left the game." ) );
-            if( event.getQuitMessage() != null && !event.getQuitMessage().isEmpty() ) {
+            if ( event.getQuitMessage() != null && !event.getQuitMessage().isEmpty() ) {
                 this.getServer().getPlayers().forEach( ( player ) -> {
                     player.sendMessage( event.getQuitMessage() );
                 } );

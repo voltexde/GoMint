@@ -7,11 +7,10 @@
 
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
-import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.BeaconTileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -19,18 +18,21 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
  */
 public class BeaconConverter extends BasisConverter<BeaconTileEntity> {
 
-    public BeaconConverter( Items items, Object2IntMap<String> itemConverter ) {
-        super( items, itemConverter );
+    public BeaconConverter( ApplicationContext context, Object2IntMap<String> itemConverter ) {
+        super( context, itemConverter );
     }
 
     @Override
     public BeaconTileEntity readFrom( NBTTagCompound compound ) {
-        Location position = getPosition( compound );
 
         int primary = compound.getInteger( "Primary", 0 );
         int secondary = compound.getInteger( "Secondary", 0 );
 
-        return new BeaconTileEntity( primary, secondary, position );
+        BeaconTileEntity tileEntity = new BeaconTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+        tileEntity.setPrimary( primary );
+        tileEntity.setSecondary( secondary );
+        return tileEntity;
     }
 
 }

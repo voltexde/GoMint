@@ -7,17 +7,15 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.Location;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
-import lombok.Getter;
+import lombok.Data;
 
 /**
  * @author geNAZt
  * @version 1.0
  */
-@Getter
+@Data
 public class BeaconTileEntity extends TileEntity {
 
     private int primary;
@@ -26,26 +24,15 @@ public class BeaconTileEntity extends TileEntity {
     /**
      * New beacon
      *
-     * @param primary   id of the first effect
-     * @param secondary id of the second effect
-     * @param location  of the beacon
+     * @param block which created this tile
      */
-    public BeaconTileEntity( int primary, int secondary, Location location ) {
-        super( location );
-
-        this.primary = primary;
-        this.secondary = secondary;
+    public BeaconTileEntity( Block block ) {
+        super( block );
     }
 
-    /**
-     * Construct new TileEntity from TagCompound
-     *
-     * @param compound The TagCompound which should be used to read data from
-     * @param world    The world in which this TileEntity resides
-     * @param items    which are available for this server
-     */
-    public BeaconTileEntity( NBTTagCompound compound, WorldAdapter world, Items items ) {
-        super( compound, world, items );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
         this.primary = compound.getInteger( "primary", 0 );
         this.secondary = compound.getInteger( "secondary", 0 );

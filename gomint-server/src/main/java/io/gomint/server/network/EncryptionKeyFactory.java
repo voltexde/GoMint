@@ -8,9 +8,10 @@
 package io.gomint.server.network;
 
 import io.gomint.server.GoMintServer;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -25,6 +26,7 @@ import java.util.Base64;
  * @author geNAZt
  * @version 1.0
  */
+@Component
 public class EncryptionKeyFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EncryptionKeyFactory.class );
@@ -41,6 +43,7 @@ public class EncryptionKeyFactory {
      *
      * @param server The server for which this factory is
      */
+    @Autowired
     public EncryptionKeyFactory( GoMintServer server ) {
         this.server = server;
     }

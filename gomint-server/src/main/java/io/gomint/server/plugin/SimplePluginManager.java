@@ -34,6 +34,7 @@ import javassist.bytecode.annotation.StringMemberValue;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -55,7 +56,8 @@ import java.util.jar.JarFile;
  * @author geNAZt
  * @version 1.0
  */
-public class SimplePluginManager implements PluginManager {
+@Component
+public class SimplePluginManager implements PluginManager, EventCaller {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( SimplePluginManager.class );
 

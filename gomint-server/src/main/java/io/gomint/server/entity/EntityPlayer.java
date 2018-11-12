@@ -76,6 +76,7 @@ import io.gomint.server.network.packet.PacketUpdateAttributes;
 import io.gomint.server.network.tcp.protocol.SendPlayerToServerPacket;
 import io.gomint.server.permission.PermissionManager;
 import io.gomint.server.player.EntityVisibilityManager;
+import io.gomint.server.plugin.EventCaller;
 import io.gomint.server.scoreboard.Scoreboard;
 import io.gomint.server.util.EnumConnectors;
 import io.gomint.server.world.ChunkAdapter;
@@ -98,6 +99,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -121,6 +125,8 @@ import java.util.concurrent.TimeUnit;
  * @author BlackyPaw
  * @version 1.0
  */
+@Component
+@Scope( "prototype" )
 public class EntityPlayer extends EntityHuman implements io.gomint.entity.EntityPlayer, InventoryHolder, PlayerCommandSender {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
@@ -231,6 +237,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     // Scoreboard
     @Getter
     private Scoreboard scoreboard;
+
+    @Autowired
+    private EventCaller eventCaller;
 
     /**
      * Constructs a new player entity which will be spawned inside the specified world.
@@ -549,9 +558,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         // Move first
         if ( this.nextMovement != null ) {
             Location from = this.getLocation();
-            PlayerMoveEvent playerMoveEvent = this.connection.getNetworkManager().getServer().getPluginManager().callEvent(
-                new PlayerMoveEvent( this, from, this.nextMovement )
-            );
+            PlayerMoveEvent playerMoveEvent = this.eventCaller.callEvent( new PlayerMoveEvent( this, from, this.nextMovement ) );
 
             if ( playerMoveEvent.isCancelled() ) {
                 playerMoveEvent.setTo( playerMoveEvent.getFrom() );
@@ -1546,7 +1553,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         this.getWorld().spawnEntityAt( this, this.getPositionX(), this.getPositionY(), this.getPositionZ(), this.getYaw(), this.getPitch() );
 
         // Now its time for the join event since the player is fully loaded
-        PlayerJoinEvent event = this.getConnection().getNetworkManager().getServer().getPluginManager().callEvent( new PlayerJoinEvent( this, ChatColor.YELLOW + this.getDisplayName() + " joined the game." ) );
+        PlayerJoinEvent event = this.eventCaller.callEvent( new PlayerJoinEvent( this, ChatColor.YELLOW + this.getDisplayName() + " joined the game." ) );
         if ( event.isCancelled() ) {
             this.connection.disconnect( event.getKickReason() );
         } else {
@@ -1562,7 +1569,7 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public Packet createSpawnPacket( EntityPlayer receiver ) {
         PacketSpawnPlayer packetSpawnPlayer = new PacketSpawnPlayer();
         packetSpawnPlayer.setUuid( this.getUUID() );
-        packetSpawnPlayer.setName( receiver.getConnection().getProtocolID() < Protocol.MINECRAFT_PE_BETA_PROTOCOL_VERSION ? this.getNameTag() : this.getName() ); // TODO: MJ BUG / 1.5.0.14 / Nametags don't change according to metadata index 4 (nametag) anymore, the client uses the name set in the spawn player packet
+        packetSpawnPlayer.setName( this.getName() );
         packetSpawnPlayer.setEntityId( this.getEntityId() );
         packetSpawnPlayer.setRuntimeEntityId( this.getEntityId() );
 

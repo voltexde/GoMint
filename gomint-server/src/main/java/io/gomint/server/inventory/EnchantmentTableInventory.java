@@ -35,7 +35,7 @@ public class EnchantmentTableInventory extends ContainerInventory {
     @Override
     public void onClose( EntityPlayer player ) {
         // Get the position
-        Location enchanter = ( (EnchantTableTileEntity) this.owner ).getLocation();
+        Location enchanter = ( (EnchantTableTileEntity) this.owner ).getBlock().getLocation();
 
         // Drop the players items
         for ( ItemStack content : this.contents ) {

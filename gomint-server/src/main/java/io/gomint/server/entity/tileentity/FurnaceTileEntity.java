@@ -19,9 +19,7 @@ import io.gomint.server.crafting.SmeltingRecipe;
 import io.gomint.server.inventory.FurnaceInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.server.network.packet.PacketSetContainerData;
-import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.block.Block;
 import io.gomint.server.world.block.Furnace;
 import io.gomint.taglib.NBTTagCompound;
@@ -54,11 +52,10 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
     /**
      * Construct new TileEntity from TagCompound
      *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
+     * @param block of the tile entity
      */
-    public FurnaceTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    public FurnaceTileEntity( Block block ) {
+        super( block );
 
         this.inventory = new FurnaceInventory( this );
         this.inventory.addObserver( pair -> {
@@ -67,8 +64,13 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
                 onInputChanged( pair.getSecond() );
             }
         } );
+    }
 
-        List<Object> itemCompounds = tagCompound.getList( "Items", false );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
+
+        List<Object> itemCompounds = compound.getList( "Items", false );
         if ( itemCompounds != null ) {
             for ( Object itemCompound : itemCompounds ) {
                 NBTTagCompound cd = (NBTTagCompound) itemCompound;
@@ -86,9 +88,9 @@ public class FurnaceTileEntity extends ContainerTileEntity implements InventoryH
             }
         }
 
-        this.cookTime = tagCompound.getShort( "CookTime", (short) 0 );
-        this.burnTime = tagCompound.getShort( "BurnTime", (short) 0 );
-        this.burnDuration = tagCompound.getShort( "BurnDuration", (short) 0 );
+        this.cookTime = compound.getShort( "CookTime", (short) 0 );
+        this.burnTime = compound.getShort( "BurnTime", (short) 0 );
+        this.burnDuration = compound.getShort( "BurnDuration", (short) 0 );
     }
 
     private void onInputChanged( io.gomint.inventory.item.ItemStack input ) {

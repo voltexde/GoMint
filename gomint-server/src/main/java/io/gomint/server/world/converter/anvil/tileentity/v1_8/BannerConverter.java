@@ -8,9 +8,9 @@
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
 import io.gomint.server.entity.tileentity.BannerTileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -18,13 +18,16 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
  */
 public class BannerConverter extends BasisConverter<BannerTileEntity> {
 
-    public BannerConverter( Items items, Object2IntMap<String> itemConverter ) {
-        super( items, itemConverter );
+    public BannerConverter( ApplicationContext context, Object2IntMap<String> itemConverter ) {
+        super( context, itemConverter );
     }
 
     @Override
     public BannerTileEntity readFrom( NBTTagCompound compound ) {
-        return new BannerTileEntity( compound, null, this.items );
+        BannerTileEntity tileEntity = new BannerTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+        tileEntity.fromCompound( compound );
+        return tileEntity;
     }
 
 }

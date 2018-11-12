@@ -7,8 +7,7 @@
 
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 
 /**
@@ -35,27 +34,31 @@ public class MobSpawnerTileEntity extends TileEntity {
     private short delay;
 
     /**
-     * Construct new TileEntity from TagCompound
+     * Construct new tile entity from position and world data
      *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
+     * @param block which created this tile
      */
-    public MobSpawnerTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    public MobSpawnerTileEntity( Block block ) {
+        super( block );
+    }
 
-        this.entityId = tagCompound.getInteger( "EntityId", 0 );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
-        this.displayWidth = tagCompound.getFloat( "DisplayEntityWidth", 0.8f );
-        this.displayScale = tagCompound.getFloat( "DisplayEntityScale", 1.0f );
-        this.displayHeight = tagCompound.getFloat( "DisplayEntityHeight", 1.8f );
+        this.entityId = compound.getInteger( "EntityId", 0 );
 
-        this.maxNearbyEntities = tagCompound.getShort( "MaxNearbyEntities", (short) 6 );
-        this.playerRange = tagCompound.getShort( "RequiredPlayerRange", (short) 16 );
-        this.spawnRange = tagCompound.getShort( "SpawnRange", (short) 4 );
+        this.displayWidth = compound.getFloat( "DisplayEntityWidth", 0.8f );
+        this.displayScale = compound.getFloat( "DisplayEntityScale", 1.0f );
+        this.displayHeight = compound.getFloat( "DisplayEntityHeight", 1.8f );
 
-        this.maxDelay = tagCompound.getShort( "MaxSpawnDelay", (short) 800 );
-        this.minDelay = tagCompound.getShort( "MinSpawnDelay", (short) 200 );
-        this.delay = tagCompound.getShort( "Delay", (short) 0 );
+        this.maxNearbyEntities = compound.getShort( "MaxNearbyEntities", (short) 6 );
+        this.playerRange = compound.getShort( "RequiredPlayerRange", (short) 16 );
+        this.spawnRange = compound.getShort( "SpawnRange", (short) 4 );
+
+        this.maxDelay = compound.getShort( "MaxSpawnDelay", (short) 800 );
+        this.minDelay = compound.getShort( "MinSpawnDelay", (short) 200 );
+        this.delay = compound.getShort( "Delay", (short) 0 );
     }
 
     @Override

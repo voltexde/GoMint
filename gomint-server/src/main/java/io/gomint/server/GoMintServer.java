@@ -34,14 +34,12 @@ import io.gomint.server.inventory.CreativeInventory;
 import io.gomint.server.inventory.InventoryHolder;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.logging.TerminalConsoleAppender;
-import io.gomint.server.network.EncryptionKeyFactory;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.permission.PermissionGroupManager;
 import io.gomint.server.plugin.SimplePluginManager;
 import io.gomint.server.scheduler.CoreScheduler;
 import io.gomint.server.scheduler.SyncTaskManager;
-import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.util.ClassPath;
 import io.gomint.server.util.Watchdog;
 import io.gomint.server.world.BlockRuntimeIDs;
@@ -68,13 +66,27 @@ import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.jar.Manifest;
@@ -85,18 +97,21 @@ import java.util.jar.Manifest;
  * @author geNAZt
  * @version 1.1
  */
+@Component
 public class GoMintServer implements GoMint, InventoryHolder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( GoMintServer.class );
     private static long mainThread;
+
+    // Spring context
+    @Getter
+    private final AnnotationConfigApplicationContext context;
 
     // Configuration
     @Getter
     private ServerConfig serverConfig;
 
     // Networking
-    @Getter
-    private EncryptionKeyFactory encryptionKeyFactory;
     private NetworkManager networkManager;
 
     // Player lookups
@@ -149,8 +164,6 @@ public class GoMintServer implements GoMint, InventoryHolder {
     private Entities entities;
     @Getter
     private Effects effects;
-    @Getter
-    private ClassPath classPath;
 
     @Getter
     private UUID serverUniqueID = UUID.randomUUID();
@@ -161,13 +174,17 @@ public class GoMintServer implements GoMint, InventoryHolder {
     @Getter
     private AssetsLibrary assets;
 
+    private long start = System.currentTimeMillis();
+
     /**
      * Starts the GoMint server
      *
-     * @param args which should have been given over from the static Bootstrap
+     * @param args    which should have been given over from the static Bootstrap
+     * @param context which generated this component
      */
-    public GoMintServer( OptionSet args ) {
-        long start = System.currentTimeMillis();
+    @Autowired
+    public GoMintServer( OptionSet args, AnnotationConfigApplicationContext context ) {
+        this.context = context;
 
         if ( !args.has( "convertOnly" ) ) {
             // ------------------------------------ //
@@ -218,24 +235,24 @@ public class GoMintServer implements GoMint, InventoryHolder {
         LOGGER.info( "Starting {}", getVersion() );
         Thread.currentThread().setName( "GoMint Main Thread" );
 
-        try {
-            this.classPath = new ClassPath( "io.gomint.server" );
-        } catch ( IOException e ) {
-            LOGGER.error( "Could not init classpath reader", e );
-            return;
-        }
-
         if ( !args.has( "convertOnly" ) ) {
             LOGGER.info( "Loading block, item and entity registers" );
+
+            ClassPath classPath = this.context.getBean( ClassPath.class );
 
             // ------------------------------------ //
             // Build up registries
             // ------------------------------------ //
-            this.blocks = new Blocks( this.classPath );
-            this.items = new Items( this.classPath, null );
-            this.entities = new Entities( this.classPath );
-            this.effects = new Effects( this.classPath );
-            this.enchantments = new Enchantments( this.classPath );
+            this.blocks = new Blocks( classPath );
+            this.items = new Items( classPath, null );
+            this.entities = new Entities( classPath );
+            this.effects = new Effects( classPath );
+            this.enchantments = new Enchantments( classPath );
+
+            // ------------------------------------ //
+            // Configuration Initialization
+            // ------------------------------------ //
+            this.loadConfig();
         }
 
         // Load assets from file:
@@ -258,20 +275,11 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 return o1.getBlockId().compareTo( o2.getBlockId() );
             } );
 
-            // Check if all blocks have been registered
-            for ( BlockIdentifier identifier : this.assets.getBlockPalette() ) {
-                if ( this.blocks.get( identifier.getBlockId() ) == null ) {
-                    LOGGER.warn( "No block impl found for {}:{}", identifier.getBlockId(), identifier.getData() );
-                }
-            }
-
             BlockRuntimeIDs.init( this.assets.getBlockPalette() );
         }
-
-        startAfterRegistryInit( args, start );
     }
 
-    private void startAfterRegistryInit( OptionSet args, long start ) {
+    public void startAfterRegistryInit( OptionSet args ) {
         if ( !args.has( "convertOnly" ) ) {
             // ------------------------------------ //
             // jLine setup
@@ -331,16 +339,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 }
             }
 
-            // ------------------------------------ //
-            // Configuration Initialization
-            // ------------------------------------ //
-            this.loadConfig();
             this.defaultWorld = this.serverConfig.getDefaultWorld();
-
-            // ------------------------------------ //
-            // Start of encryption helpers
-            // ------------------------------------ //
-            this.encryptionKeyFactory = new EncryptionKeyFactory( this );
 
             // ------------------------------------ //
             // Scheduler + WorldManager + PluginManager Initialization
@@ -351,6 +350,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             this.worldManager = new WorldManager( this );
 
             this.pluginManager = new SimplePluginManager( this );
+            this.context.registerBean( SimplePluginManager.class, () -> this.pluginManager );
             this.pluginManager.detectPlugins();
             this.pluginManager.loadPlugins( StartupPriority.STARTUP );
 
@@ -424,7 +424,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
             int port = args.has( "lp" ) ? (int) args.valueOf( "lp" ) : this.serverConfig.getListener().getPort();
             String host = args.has( "lh" ) ? (String) args.valueOf( "lh" ) : this.serverConfig.getListener().getIp();
 
-            this.networkManager = new NetworkManager( this );
+            this.networkManager = this.context.getAutowireCapableBeanFactory().createBean( NetworkManager.class );
             if ( !this.initNetworking( host, port ) ) {
                 this.internalShutdown();
                 return;
@@ -523,13 +523,15 @@ public class GoMintServer implements GoMint, InventoryHolder {
 
             this.internalShutdown();
         } else {
+            ClassPath classPath = this.context.getBean( ClassPath.class );
+            this.context.registerBean( "items", Items.class, () -> new Items( classPath, getAssets().getJeTopeItems() ) );
+
             // Scan all folders and convert them
             File[] folderContent = new File( "." ).listFiles();
             for ( File file : folderContent ) {
                 if ( file.isDirectory() && new File( file, "region" ).exists() ) {
                     LOGGER.info( "Start converting process for {}", file.getName() );
-
-                    AnvilConverter anvilConverter = new AnvilConverter( this.assets, new Items( this.getClassPath(), this.getAssets().getJeTopeItems() ), file );
+                    AnvilConverter anvilConverter = new AnvilConverter( this.assets, this.context, file );
                     anvilConverter.done();
                 }
             }
@@ -694,6 +696,8 @@ public class GoMintServer implements GoMint, InventoryHolder {
             LOGGER.error( "server.cfg is corrupted: ", e );
             System.exit( -1 );
         }
+
+        this.context.registerBean( ServerConfig.class, () -> this.serverConfig );
     }
 
     @Override

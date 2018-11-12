@@ -7,11 +7,10 @@
 
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
-import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.EnderChestTileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -19,14 +18,16 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
  */
 public class EnderChestConverter extends BasisConverter<EnderChestTileEntity> {
 
-    public EnderChestConverter( Items items, Object2IntMap<String> itemConverter ) {
-        super( items, itemConverter );
+    public EnderChestConverter( ApplicationContext context, Object2IntMap<String> itemConverter ) {
+        super( context, itemConverter );
     }
 
     @Override
     public EnderChestTileEntity readFrom( NBTTagCompound compound ) {
-        Location position = getPosition( compound );
-        return new EnderChestTileEntity( position );
+        EnderChestTileEntity tileEntity = new EnderChestTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+        tileEntity.fromCompound( compound );
+        return tileEntity;
     }
 
 }

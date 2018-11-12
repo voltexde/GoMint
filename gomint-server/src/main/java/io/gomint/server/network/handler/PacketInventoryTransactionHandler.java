@@ -17,12 +17,14 @@ import io.gomint.server.inventory.transaction.InventoryTransaction;
 import io.gomint.server.inventory.transaction.TransactionGroup;
 import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketInventoryTransaction;
+import io.gomint.server.plugin.EventCaller;
 import io.gomint.server.world.block.Block;
 import io.gomint.world.Gamemode;
 import io.gomint.world.block.BlockAir;
 import io.gomint.world.block.BlockFace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 
@@ -33,6 +35,9 @@ import java.util.ArrayList;
 public class PacketInventoryTransactionHandler implements PacketHandler<PacketInventoryTransaction> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PacketInventoryTransactionHandler.class );
+
+    @Autowired
+    private EventCaller eventCaller;
 
     @Override
     public void handle( PacketInventoryTransaction packet, long currentTimeMillis, PlayerConnection connection ) {
@@ -237,7 +242,7 @@ public class PacketInventoryTransactionHandler implements PacketHandler<PacketIn
 
                 // Only send interact events, there is nothing special to be done in here
                 PlayerInteractEvent event = new PlayerInteractEvent( connection.getEntity(), PlayerInteractEvent.ClickType.RIGHT, null );
-                connection.getNetworkManager().getServer().getPluginManager().callEvent( event );
+                this.eventCaller.callEvent( event );
 
                 if ( !event.isCancelled() ) {
                     io.gomint.server.inventory.item.ItemStack itemStack = (io.gomint.server.inventory.item.ItemStack) connection.getEntity().getInventory().getItemInHand();

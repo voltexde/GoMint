@@ -8,9 +8,9 @@
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
 import io.gomint.server.entity.tileentity.FurnaceTileEntity;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -18,14 +18,17 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
  */
 public class FurnaceConverter extends BasisConverter<FurnaceTileEntity> {
 
-    public FurnaceConverter( Items items, Object2IntMap<String> itemConverter ) {
-        super( items, itemConverter );
+    public FurnaceConverter( ApplicationContext context, Object2IntMap<String> itemConverter ) {
+        super( context, itemConverter );
     }
 
     @Override
     public FurnaceTileEntity readFrom( NBTTagCompound compound ) {
         compound.addValue( "BurnDuration", compound.getShort( "CookTimeTotal", (short) 0 ) );
-        return new FurnaceTileEntity( compound, null, this.items );
+        FurnaceTileEntity tileEntity = new FurnaceTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+        tileEntity.fromCompound( compound );
+        return tileEntity;
     }
 
 }

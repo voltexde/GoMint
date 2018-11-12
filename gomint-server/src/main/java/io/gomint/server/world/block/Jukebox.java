@@ -61,7 +61,7 @@ public class Jukebox extends Block implements BlockJukebox {
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new JukeboxTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new JukeboxTileEntity( this );
     }
 
 }

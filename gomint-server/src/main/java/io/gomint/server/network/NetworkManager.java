@@ -15,6 +15,7 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.ServerSocket;
 import io.gomint.jraknet.SocketEvent;
 import io.gomint.server.GoMintServer;
+import io.gomint.server.network.tcp.ConnectionHandler;
 import io.gomint.server.network.tcp.Initializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -29,6 +30,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -48,10 +55,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author geNAZt
  * @version 1.0
  */
+@Component
 public class NetworkManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( NetworkManager.class );
     private final GoMintServer server;
+
+    private final AnnotationConfigApplicationContext context;
 
     // Connections which were closed and should be removed during next tick:
     private final LongSet closedConnections = new LongOpenHashSet();
@@ -83,9 +93,12 @@ public class NetworkManager {
     /**
      * Init a new NetworkManager for accepting new connections and read incoming data
      *
-     * @param server server instance which should be used
+     * @param context which started the application
+     * @param server  server instance which should be used
      */
-    public NetworkManager( GoMintServer server ) {
+    @Autowired
+    public NetworkManager( AnnotationConfigApplicationContext context, GoMintServer server ) {
+        this.context = context;
         this.server = server;
         this.postProcessService = new PostProcessExecutorService( server.getExecutorService() );
     }
@@ -117,9 +130,14 @@ public class NetworkManager {
                     return;
                 }
 
-                PlayerConnection playerConnection = new PlayerConnection( NetworkManager.this, null,
-                    connectionHandler, PlayerConnectionState.HANDSHAKE );
+                this.context.registerBean( "network.newConnection.raknet", Connection.class, () -> null );
+                this.context.registerBean( "network.newConnection.tcp", ConnectionHandler.class, () -> connectionHandler );
+
+                PlayerConnection playerConnection = this.context.getAutowireCapableBeanFactory().getBean( PlayerConnection.class );
                 playerConnection.setTcpId( idCounter.incrementAndGet() );
+
+                this.context.removeBeanDefinition( "network.newConnection.raknet" );
+                this.context.removeBeanDefinition( "network.newConnection.tcp" );
 
                 incomingConnections.offer( playerConnection );
 
@@ -294,10 +312,17 @@ public class NetworkManager {
     /**
      * Handles a new incoming connection.
      *
-     * @param connection The new incoming connection
+     * @param newConnection The new incoming connection
      */
-    private void handleNewConnection( Connection connection ) {
-        this.incomingConnections.add( new PlayerConnection( this, connection, null, PlayerConnectionState.HANDSHAKE ) );
+    private void handleNewConnection( Connection newConnection ) {
+        this.context.registerBean( "network.newConnection.raknet", Connection.class, () -> newConnection );
+        this.context.registerBean( "network.newConnection.tcp", ConnectionHandler.class, () -> null );
+
+        PlayerConnection playerConnection = this.context.getAutowireCapableBeanFactory().getBean( PlayerConnection.class );
+        this.incomingConnections.add( playerConnection );
+
+        this.context.removeBeanDefinition( "network.newConnection.raknet" );
+        this.context.removeBeanDefinition( "network.newConnection.tcp" );
     }
 
     /**

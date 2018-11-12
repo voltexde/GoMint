@@ -59,7 +59,7 @@ public class Hopper extends Block implements io.gomint.world.block.BlockHopper {
     @Override
     TileEntity createTileEntity( NBTTagCompound compound ) {
         super.createTileEntity( compound );
-        return new HopperTileEntity( compound, this.world, this.world.getServer().getItems() );
+        return new HopperTileEntity( this );
     }
 
 }

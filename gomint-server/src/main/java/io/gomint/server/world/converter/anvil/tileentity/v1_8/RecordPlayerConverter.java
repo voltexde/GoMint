@@ -7,12 +7,11 @@
 
 package io.gomint.server.world.converter.anvil.tileentity.v1_8;
 
-import io.gomint.math.Location;
 import io.gomint.server.entity.tileentity.JukeboxTileEntity;
 import io.gomint.server.inventory.item.ItemStack;
-import io.gomint.server.inventory.item.Items;
 import io.gomint.taglib.NBTTagCompound;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author geNAZt
@@ -20,17 +19,18 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
  */
 public class RecordPlayerConverter extends BasisConverter<JukeboxTileEntity> {
 
-    public RecordPlayerConverter( Items items, Object2IntMap<String> itemConverter ) {
-        super( items, itemConverter );
+    public RecordPlayerConverter( ApplicationContext context, Object2IntMap<String> itemConverter ) {
+        super( context, itemConverter );
     }
 
     @Override
     public JukeboxTileEntity readFrom( NBTTagCompound compound ) {
-        // Read position
-        Location position = getPosition( compound );
         ItemStack itemStack = getItemStack( compound.getCompound( "RecordItem", false ) );
 
-        return new JukeboxTileEntity( itemStack, position );
+        JukeboxTileEntity tileEntity = new JukeboxTileEntity( getBlock( compound ) );
+        this.context.getAutowireCapableBeanFactory().autowireBean( tileEntity );
+        tileEntity.setRecordItem( itemStack );
+        return tileEntity;
     }
 
 }

@@ -3,10 +3,7 @@ package io.gomint.server.inventory;
 import io.gomint.math.BlockPosition;
 import io.gomint.server.entity.EntityPlayer;
 import io.gomint.server.entity.tileentity.EnderChestTileEntity;
-import io.gomint.server.network.PlayerConnection;
 import io.gomint.server.network.packet.PacketBlockEvent;
-import io.gomint.server.network.packet.PacketInventoryContent;
-import io.gomint.server.network.packet.PacketInventorySetSlot;
 import io.gomint.server.network.type.WindowType;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.world.Sound;
@@ -35,12 +32,12 @@ public class EnderChestInventory extends ContainerInventory {
 
     @Override
     public BlockPosition getContainerPosition() {
-        return ( (EnderChestTileEntity) this.owner ).getLocation().toBlockPosition();
+        return ( (EnderChestTileEntity) this.owner ).getBlock().getLocation().toBlockPosition();
     }
 
     @Override
     public WorldAdapter getWorld() {
-        return (WorldAdapter) ( (EnderChestTileEntity) this.owner ).getLocation().getWorld();
+        return (WorldAdapter) ( (EnderChestTileEntity) this.owner ).getBlock().getLocation().getWorld();
     }
 
     @Override

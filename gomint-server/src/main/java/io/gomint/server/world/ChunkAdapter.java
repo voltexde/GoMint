@@ -368,7 +368,7 @@ public class ChunkAdapter implements Chunk {
      * @param tileEntity The NBT tag of the tile entity which should be added
      */
     protected void addTileEntity( TileEntity tileEntity ) {
-        BlockPosition tileEntityLocation = tileEntity.getLocation().toBlockPosition();
+        BlockPosition tileEntityLocation = tileEntity.getBlock().getLocation().toBlockPosition();
         int xPos = tileEntityLocation.getX() & 0xF;
         int yPos = tileEntityLocation.getY();
         int zPos = tileEntityLocation.getZ() & 0xF;
@@ -662,7 +662,8 @@ public class ChunkAdapter implements Chunk {
             compound.addValue( "z", fullZ );
 
             // Create new tile entity
-            TileEntity tileEntity = TileEntities.construct( compound, this.world );
+            TileEntity tileEntity = TileEntities.construct( this.world.getServer().getContext(), compound,
+                this.getBlockAt( compound.getInteger( "x", 0 ), compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ) ) );
             this.setTileEntity( x, y, z, tileEntity );
         }
     }
@@ -728,7 +729,7 @@ public class ChunkAdapter implements Chunk {
                     TileEntity tileEntity = iterator.next().getValue();
                     tileEntity.update( currentTimeMS );
 
-                    if ( tileEntity.isNeedsPersistance() ) {
+                    if ( tileEntity.isNeedsPersistence() ) {
                         this.needsPersistance = true;
                     }
                 }

@@ -1,8 +1,6 @@
 package io.gomint.server.entity.tileentity;
 
-import io.gomint.math.Location;
-import io.gomint.server.inventory.item.Items;
-import io.gomint.server.world.WorldAdapter;
+import io.gomint.server.world.block.Block;
 import io.gomint.taglib.NBTTagCompound;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,28 +11,24 @@ import lombok.Setter;
  */
 public class ContainerTileEntity extends TileEntity {
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private String customName = null;
 
     /**
      * Construct new tile entity
      *
-     * @param location of the tile entity
+     * @param block of the tile entity
      */
-    ContainerTileEntity( Location location ) {
-        super( location );
+    ContainerTileEntity( Block block ) {
+        super( block );
     }
 
-    /**
-     * Construct new TileEntity from TagCompound
-     *
-     * @param tagCompound The TagCompound which should be used to read data from
-     * @param world       The world in which this TileEntity resides
-     */
-    ContainerTileEntity( NBTTagCompound tagCompound, WorldAdapter world, Items items ) {
-        super( tagCompound, world, items );
+    @Override
+    public void fromCompound( NBTTagCompound compound ) {
+        super.fromCompound( compound );
 
-        this.customName = tagCompound.getString( "CustomName", null );
+        this.customName = compound.getString( "CustomName", null );
     }
 
     @Override

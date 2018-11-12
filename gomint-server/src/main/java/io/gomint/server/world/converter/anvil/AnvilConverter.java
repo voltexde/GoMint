@@ -12,6 +12,7 @@ import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.world.CoordinateUtils;
 import io.gomint.server.world.NibbleArray;
+import io.gomint.server.world.block.Block;
 import io.gomint.server.world.converter.BaseConverter;
 import io.gomint.server.world.converter.anvil.entity.EntityConverters;
 import io.gomint.server.world.converter.anvil.entity.v1_8.Entities;
@@ -19,7 +20,7 @@ import io.gomint.server.world.converter.anvil.tileentity.TileEntityConverters;
 import io.gomint.server.world.converter.anvil.tileentity.v1_8.TileEntities;
 import io.gomint.taglib.AllocationLimitReachedException;
 import io.gomint.taglib.NBTTagCompound;
-import io.gomint.world.block.data.BlockColor;
+import io.gomint.world.block.BlockType;
 import it.unimi.dsi.fastutil.bytes.ByteOpenHashSet;
 import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -28,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -74,10 +76,10 @@ public class AnvilConverter extends BaseConverter {
      * Build up a new converter
      *
      * @param assets      from which we get the converter data
-     * @param items       factory which generates items needed
+     * @param context     application context which started this converter
      * @param worldFolder where the world is located
      */
-    public AnvilConverter( AssetsLibrary assets, Items items, File worldFolder ) {
+    public AnvilConverter( AssetsLibrary assets, ApplicationContext context, File worldFolder ) {
         super( worldFolder );
 
         assets.ensureConvertData();
@@ -139,7 +141,8 @@ public class AnvilConverter extends BaseConverter {
             entityConverter.put( compound.getString( "s", "minecraft:chicken" ), compound.getInteger( "t", 10 ) );
         }
 
-        this.tileEntityConverter = new TileEntities( this.items = items, this.itemConverter = itemConverter, entityConverter );
+        this.items = context.getBean( Items.class );
+        this.tileEntityConverter = new TileEntities( context, this.itemConverter = itemConverter, entityConverter );
         this.entityConverter = new Entities( this.items, this.itemConverter );
 
         // Convert all region files first
@@ -579,8 +582,22 @@ public class AnvilConverter extends BaseConverter {
                                     fullY = j + ( sectionY << 4 );
                                     fullZ = k + ( chunkZ << 4 );
 
-                                    BedTileEntity bedTileEntity = new BedTileEntity( BlockColor.RED,
-                                        new Location( null, fullX, fullY, fullZ ) );
+                                    BedTileEntity bedTileEntity = new BedTileEntity( new Block() {
+                                        @Override
+                                        public float getBlastResistance() {
+                                            return 0;
+                                        }
+
+                                        @Override
+                                        public BlockType getType() {
+                                            return null;
+                                        }
+
+                                        @Override
+                                        public Location getLocation() {
+                                            return new Location( null, fullX, fullY, fullZ );
+                                        }
+                                    } );
                                     NBTTagCompound compound = new NBTTagCompound( "" );
                                     bedTileEntity.toCompound( compound, SerializationReason.PERSIST );
 
