@@ -43,9 +43,9 @@ public class PacketWorldChunk extends Packet {
         this.x = buffer.readSignedVarInt();
         this.z = buffer.readSignedVarInt();
 
-        int amount = buffer.readUnsignedVarInt();
-        byte[] data = new byte[amount];
-        buffer.readBytes( data );
+        this.dataLength = buffer.readUnsignedVarInt();
+        this.data = new byte[this.dataLength];
+        buffer.readBytes( this.data );
     }
 
 }

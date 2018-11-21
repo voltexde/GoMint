@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -243,6 +244,45 @@ public abstract class Packet {
                 buffer.writeLFloat( (Float) value );
             }
         } );
+    }
+
+    public Map<Gamerule, Object> readGamerules( PacketBuffer buffer ) {
+        Map<Gamerule, Object> rules = new HashMap<>();
+
+        int amountOfRules = buffer.readUnsignedVarInt();
+        for ( int i = 0; i < amountOfRules; i++ ) {
+            String gameRulename = buffer.readString();
+            Gamerule rule = Gamerule.getByNbtName( gameRulename );
+            if ( rule == null ) {
+                // System.out.println( "Unknown game rule: " + gameRulename );
+            }
+
+            switch ( buffer.readByte() ) {
+                case 1:
+                    boolean objB = buffer.readBoolean();
+                    if ( rule != null ) {
+                        rules.put( rule, objB );
+                    }
+
+                    break;
+                case 2:
+                    int objI = buffer.readUnsignedVarInt();
+                    if ( rule != null ) {
+                        rules.put( rule, objI );
+                    }
+
+                    break;
+                case 3:
+                    float objF = buffer.readLFloat();
+                    if ( rule != null ) {
+                        rules.put( rule, objF );
+                    }
+
+                    break;
+            }
+        }
+
+        return rules;
     }
 
     public BlockPosition readBlockPosition( PacketBuffer buffer ) {

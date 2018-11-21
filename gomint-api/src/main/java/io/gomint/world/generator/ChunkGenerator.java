@@ -53,4 +53,11 @@ public abstract class ChunkGenerator {
      */
     public abstract void populate( Chunk chunk );
 
+    /**
+     * Close the generator
+     */
+    public void close() {
+
+    }
+
 }

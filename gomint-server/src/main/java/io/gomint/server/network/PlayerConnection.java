@@ -119,7 +119,7 @@ import static io.gomint.server.network.Protocol.PACKET_RESOURCEPACK_RESPONSE;
  */
 @Component
 @Scope( "prototype" )
-public class PlayerConnection {
+public class PlayerConnection implements ConnectionWithState {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PlayerConnection.class );
     private static final NativeCode<ZLib> ZLIB = new NativeCode<>( "zlib", JavaZLib.class, NativeZLib.class );
@@ -255,7 +255,7 @@ public class PlayerConnection {
             PACKET_HANDLERS[Protocol.PACKET_INTERACT & 0xff] = new PacketInteractHandler();
             PACKET_HANDLERS[Protocol.PACKET_BLOCK_PICK_REQUEST & 0xff] = new PacketBlockPickRequestHandler();
             PACKET_HANDLERS[Protocol.PACKET_ENCRYPTION_RESPONSE & 0xff] = new PacketEncryptionResponseHandler();
-            PACKET_HANDLERS[Protocol.PACKET_INVENTORY_TRANSACTION & 0xff] = new PacketInventoryTransactionHandler();
+            PACKET_HANDLERS[Protocol.PACKET_INVENTORY_TRANSACTION & 0xff] = applicationContext.getBean( PacketInventoryTransactionHandler.class );
             PACKET_HANDLERS[Protocol.PACKET_CONTAINER_CLOSE & 0xff] = new PacketContainerCloseHandler();
             PACKET_HANDLERS[Protocol.PACKET_HOTBAR & 0xff] = new PacketHotbarHandler();
             PACKET_HANDLERS[Protocol.PACKET_TEXT & 0xff] = new PacketTextHandler();
@@ -348,18 +348,25 @@ public class PlayerConnection {
                         Math.abs( chunk.getZ() - currentZ ) > this.entity.getViewDistance() ||
                         !chunk.getWorld().equals( this.entity.getWorld() ) ) {
                         LOGGER.debug( "Removed chunk from sending due to out of scope" );
-                        continue;
-                    }
 
-                    // Check if chunk has been populated
-                    if ( !chunk.isPopulated() ) {
                         if ( recheck == null ) {
                             recheck = new ArrayList<>();
                         }
 
-                        LOGGER.debug( "Chunk not populated" );
                         recheck.add( chunk );
+
                         continue;
+                    }
+
+                    // Check if chunk has been populated
+                    if ( !chunk.isPopulated() || !canBeViewedByClient( chunk ) ) {
+                        if ( recheck == null ) {
+                            recheck = new ArrayList<>();
+                        }
+
+                        recheck.add( chunk );
+
+                        LOGGER.debug( "Chunk not populated / can't be viewed" );
                     }
 
                     this.sendWorldChunk( chunk );
@@ -389,6 +396,32 @@ public class PlayerConnection {
             this.releaseSendQueue();
             this.lastUpdateDT = 0;
         }
+    }
+
+    private boolean canBeViewedByClient( ChunkAdapter chunk ) {
+        // A player can always view when having 0 chunks
+        if ( this.playerChunks.isEmpty() ) {
+            return true;
+        }
+
+        // Check if there is at least one chunk around
+        long key = CoordinateUtils.toLong( chunk.getX() + 1, chunk.getZ() );
+        if ( this.playerChunks.contains( key ) ) {
+            return true;
+        }
+
+        key = CoordinateUtils.toLong( chunk.getX() - 1, chunk.getZ() );
+        if ( this.playerChunks.contains( key ) ) {
+            return true;
+        }
+
+        key = CoordinateUtils.toLong( chunk.getX(), chunk.getZ() + 1 );
+        if ( this.playerChunks.contains( key ) ) {
+            return true;
+        }
+
+        key = CoordinateUtils.toLong( chunk.getX(), chunk.getZ() - 1 );
+        return this.playerChunks.contains( key );
     }
 
     private void releaseSendQueue() {
@@ -506,6 +539,11 @@ public class PlayerConnection {
             }
             // CHECKSTYLE:ON
         }
+    }
+
+    @Override
+    public boolean isPlayer() {
+        return true;
     }
 
     /**

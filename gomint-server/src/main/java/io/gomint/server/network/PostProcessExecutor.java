@@ -7,7 +7,6 @@
 
 package io.gomint.server.network;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
 import io.gomint.server.network.packet.Packet;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -26,13 +25,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version 1.0
  */
 @EqualsAndHashCode
-class PostProcessExecutor implements Runnable {
+public class PostProcessExecutor implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( PostProcessExecutor.class );
 
-    @Getter private final AtomicInteger connectionsInUse = new AtomicInteger( 0 );
+    @Getter
+    private final AtomicInteger connectionsInUse = new AtomicInteger( 0 );
     private Queue<PostProcessWorker> workers = new ConcurrentLinkedQueue<>();
-    @Getter private float load;
+    @Getter
+    private float load;
     private Future<?> future;
     private AtomicBoolean running = new AtomicBoolean( true );
     private final Object waiter = new Object();
@@ -43,7 +44,7 @@ class PostProcessExecutor implements Runnable {
         this.future = executorService.submit( this );
     }
 
-    public void addWork( PlayerConnection connection, Packet[] packets ) {
+    public void addWork( ConnectionWithState connection, Packet[] packets ) {
         this.workers.offer( new PostProcessWorker( connection, packets ) );
 
         synchronized ( this.waiter ) {

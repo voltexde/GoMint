@@ -69,6 +69,14 @@ public class EncryptionHandler {
     private byte[] clientSalt;
     private byte[] key;
 
+    // Server side
+    private PublicKey serverPublicKey;
+    private Cipher serverEncryptor;
+    private Cipher serverDecryptor;
+    private AtomicLong serverSendCounter = new AtomicLong( 0 );
+    private AtomicLong serverReceiveCounter = new AtomicLong( 0 );
+    private byte[] serverKey;
+
     /**
      * Create a new EncryptionHandler for the client
      *
@@ -135,7 +143,7 @@ public class EncryptionHandler {
 
         System.arraycopy( output, 0, outputChunked, 0, outputChunked.length );
 
-        byte[] hashBytes = calcHash( outputChunked, this.receiveCounter );
+        byte[] hashBytes = calcHash( outputChunked, this.key, this.receiveCounter );
         for ( int i = output.length - 8; i < output.length; i++ ) {
             if ( hashBytes[i - ( output.length - 8 )] != output[i] ) {
                 return null;
@@ -146,13 +154,85 @@ public class EncryptionHandler {
     }
 
     /**
+     * Sets the server's public ECDH key which is required for decoding packets received from the proxied server and
+     * encoding packets to be sent to the proxied server.
+     *
+     * @param key the key from the server
+     */
+    public void setServerPublicKey( PublicKey key ) {
+        this.serverPublicKey = key;
+    }
+
+    /**
+     * Sets up everything required for encrypting and decrypting networking data received from the proxied server.
+     *
+     * @param salt The salt to prepend in front of the ECDH derived shared secret before hashing it (sent to us from the
+     *             proxied server in a 0x03 packet)
+     */
+    public boolean beginServersideEncryption( byte[] salt ) {
+        if ( this.isEncryptionFromServerEnabled() ) {
+            // Already initialized:
+            return true;
+        }
+
+        // Generate shared secret from ECDH keys:
+        byte[] secret = this.generateECDHSecret( this.keyFactory.getKeyPair().getPrivate(), this.serverPublicKey );
+        if ( secret == null ) {
+            return false;
+        }
+
+        // Derive key as salted SHA-256 hash digest:
+        this.serverKey = this.hashSHA256( salt, secret );
+        byte[] iv = this.takeBytesFromArray( this.serverKey, 0, 16 );
+
+        // Initialize BlockCiphers:
+        this.serverEncryptor = this.createCipher( true, this.serverKey, iv );
+        this.serverDecryptor = this.createCipher( false, this.serverKey, iv );
+        return true;
+    }
+
+    public boolean isEncryptionFromServerEnabled() {
+        return ( this.serverEncryptor != null && this.serverDecryptor != null );
+    }
+
+    public byte[] decryptInputFromServer( byte[] input ) {
+        byte[] output = this.processCipher( this.serverDecryptor, input );
+        if ( output == null ) {
+            return null;
+        }
+
+        byte[] outputChunked = new byte[input.length - 8];
+
+        System.arraycopy( output, 0, outputChunked, 0, outputChunked.length );
+
+        byte[] hashBytes = calcHash( outputChunked, this.serverKey, this.serverReceiveCounter );
+        for ( int i = output.length - 8; i < output.length; i++ ) {
+            if ( hashBytes[i - ( output.length - 8 )] != output[i] ) {
+                return null;
+            }
+        }
+
+        return outputChunked;
+    }
+
+    public byte[] encryptInputForServer( byte[] input ) {
+        byte[] hashBytes = calcHash( input, this.serverKey, this.serverSendCounter );
+        byte[] finalInput = new byte[8 + input.length];
+
+        System.arraycopy( input, 0, finalInput, 0, input.length );
+        System.arraycopy( hashBytes, 0, finalInput, input.length, 8 );
+
+        return this.processCipher( this.serverEncryptor, finalInput );
+    }
+
+    /**
      * Encrypt data for the client
      *
      * @param input zlib compressed data
      * @return data ready to be sent directly to the client
      */
     public byte[] encryptInputForClient( byte[] input ) {
-        byte[] hashBytes = calcHash( input, this.sendingCounter );
+        byte[] hashBytes = calcHash( input, this.key, this.sendingCounter );
         byte[] finalInput = new byte[8 + input.length];
 
         System.arraycopy( input, 0, finalInput, 0, input.length );
@@ -191,16 +271,16 @@ public class EncryptionHandler {
         return digest;
     }
 
-    private byte[] calcHash( byte[] input, AtomicLong counter ) {
+    private byte[] calcHash( byte[] input, byte[] key, AtomicLong counter ) {
         Hash digest = getSHA256();
         if ( digest == null ) {
             return new byte[8];
         }
 
-        ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( 8 + input.length + this.key.length );
+        ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer( 8 + input.length + key.length );
         buf.writeLongLE( counter.getAndIncrement() );
         buf.writeBytes( input );
-        buf.writeBytes( this.key );
+        buf.writeBytes( key );
         digest.update( buf );
         buf.release();
         return digest.digest();

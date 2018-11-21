@@ -4,10 +4,13 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.math.Location;
 import io.gomint.server.network.Protocol;
 import io.gomint.server.player.PlayerPermission;
+import io.gomint.server.util.BlockIdentifier;
 import io.gomint.server.world.BlockRuntimeIDs;
 import io.gomint.world.Gamerule;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,6 +67,9 @@ public class PacketStartGame extends Packet {
 
     // Server stuff
     private String correlationId;
+
+    // Runtime ID
+    private List<BlockIdentifier> runtimeIDs;
 
     /**
      * Create a new start game packet
@@ -139,6 +145,54 @@ public class PacketStartGame extends Packet {
         buffer.readSignedVarInt();
 
         this.spawn = new Location( null, buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat(), buffer.readLFloat() );
+
+        for ( int i = 0; i < 6; i++ ) {
+            buffer.readSignedVarInt();
+        }
+
+        buffer.readUnsignedVarInt();
+        buffer.readSignedVarInt();
+        buffer.readBoolean();
+        buffer.readSignedVarInt();
+        buffer.readBoolean();
+        buffer.readBoolean();
+        buffer.readLFloat();
+        buffer.readLFloat();
+
+        for ( int i = 0; i < 5; i++ ) {
+            buffer.readBoolean();
+        }
+
+        readGamerules( buffer );
+
+        for ( int i = 0; i < 3; i++ ) {
+            buffer.readBoolean();
+        }
+
+        buffer.readSignedVarInt();
+        buffer.readSignedVarInt();
+        buffer.readInt();
+        buffer.readBoolean();
+        buffer.readSignedVarInt();
+
+        for ( int i = 0; i < 5; i++ ) {
+            buffer.readBoolean();
+        }
+
+        for ( int i = 0; i < 3; i++ ) {
+            buffer.readString();
+        }
+
+        buffer.readBoolean();
+        buffer.readLLong();
+        buffer.readSignedVarInt();
+
+        // Runtime IDs
+        int amountOfBlocks = buffer.readUnsignedVarInt();
+        this.runtimeIDs = new ArrayList<>( amountOfBlocks );
+        for ( int i = 0; i < amountOfBlocks; i++ ) {
+            this.runtimeIDs.add( new BlockIdentifier( buffer.readString(), buffer.readLShort() ) );
+        }
 
         // Skip the rest for now
         buffer.skip( buffer.getRemaining() );

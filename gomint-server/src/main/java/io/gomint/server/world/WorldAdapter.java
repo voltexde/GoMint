@@ -1401,6 +1401,9 @@ public abstract class WorldAdapter implements World {
             this.chunkCache.saveAll();
         }
 
+        // Close the generator
+        this.chunkGenerator.close();
+
         // Drop all FDs
         this.closeFDs();
 
@@ -1467,6 +1470,7 @@ public abstract class WorldAdapter implements World {
         WorldCreateException {
         try {
             this.chunkGenerator = generator.getConstructor( World.class, GeneratorContext.class ).newInstance( this, context );
+            this.server.getContext().getAutowireCapableBeanFactory().autowireBean( this.chunkGenerator );
         } catch ( NoSuchMethodException e ) {
             throw new WorldCreateException( "The given generator does not provide a (World, GeneratorContext) constructor" );
         } catch ( IllegalAccessException e ) {

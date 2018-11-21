@@ -73,13 +73,13 @@ public class Bootstrap {
         parser.accepts( "lp" ).withRequiredArg().ofType( Integer.class );
         parser.accepts( "lh" ).withRequiredArg();
         parser.accepts( "slc" );
-        parser.accepts( "dbgnet" );
+        parser.accepts( "dbg-net" );
         parser.accepts( "convertOnly", "Scans root dir for folders with a anvil based world in it and converts it. After converting the process dies" );
 
         OptionSet options = parser.parse( args );
 
         // Set custom log level
-        if ( options.has( "dbgnet" ) ) {
+        if ( options.has( "dbg-net" ) ) {
             Configurator.setLevel( "io.gomint.server.network.NetworkManager", Level.TRACE );
         }
 

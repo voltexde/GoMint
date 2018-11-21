@@ -13,11 +13,13 @@ import io.gomint.server.GoMintServer;
 import io.gomint.server.inventory.item.Items;
 import io.gomint.server.util.ClassPath;
 import io.gomint.server.world.converter.anvil.AnvilConverter;
+import io.gomint.server.world.generator.vanilla.VanillaGeneratorImpl;
 import io.gomint.server.world.inmemory.InMemoryWorldAdapter;
 import io.gomint.server.world.leveldb.LevelDBWorldAdapter;
 import io.gomint.server.world.leveldb.ZippedLevelDBWorldAdapter;
 import io.gomint.world.World;
 import io.gomint.world.generator.CreateOptions;
+import io.gomint.world.generator.integrated.VanillaGenerator;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.slf4j.Logger;
@@ -213,6 +215,11 @@ public class WorldManager {
     public World createWorld( String name, CreateOptions options ) {
         if ( !GoMint.instance().isMainThread() ) {
             LOGGER.warn( "Creating worlds from an async thread. This is not safe and can lead to CME", new Exception() );
+        }
+
+        // Check if we need to cascade a generator
+        if ( options.generator() == VanillaGenerator.class ) {
+            options.generator( VanillaGeneratorImpl.class );
         }
 
         // Check which type of world we want to create

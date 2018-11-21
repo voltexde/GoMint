@@ -29,10 +29,10 @@ public class PostProcessWorker implements Runnable {
         ZLIB.load();
     }
 
-    private final PlayerConnection connection;
+    private final ConnectionWithState connection;
     private final Packet[] packets;
 
-    public PostProcessWorker( PlayerConnection connection, Packet[] packets ) {
+    public PostProcessWorker( ConnectionWithState connection, Packet[] packets ) {
         this.connection = connection;
         this.packets = packets;
     }
@@ -44,7 +44,7 @@ public class PostProcessWorker implements Runnable {
         }
 
         zLib = ZLIB.newInstance();
-        zLib.init( true, false, this.connection.getServer().getServerConfig().getConnection().getCompressionLevel() );
+        zLib.init( true, false, 7 );
         COMPRESSOR.set( zLib );
         return zLib;
     }
@@ -73,8 +73,8 @@ public class PostProcessWorker implements Runnable {
         batch.setPayloadLength( data.length );
 
         EncryptionHandler encryptionHandler = this.connection.getEncryptionHandler();
-        if ( encryptionHandler != null && ( this.connection.getState() == PlayerConnectionState.LOGIN || this.connection.getState() == PlayerConnectionState.PLAYING ) ) {
-            batch.setPayload( encryptionHandler.encryptInputForClient( batch.getPayload() ) );
+        if ( encryptionHandler != null && ( !this.connection.isPlayer() || this.connection.getState() == PlayerConnectionState.LOGIN || this.connection.getState() == PlayerConnectionState.PLAYING ) ) {
+            batch.setPayload( this.connection.isPlayer() ? encryptionHandler.encryptInputForClient( batch.getPayload() ) : encryptionHandler.encryptInputForServer( batch.getPayload() ) );
             batch.setPayloadLength( batch.getPayload().length );
         }
 
@@ -126,7 +126,7 @@ public class PostProcessWorker implements Runnable {
     }
 
     private byte[] compress( ByteBuf inBuf ) {
-        if ( inBuf.readableBytes() > 256 ) {
+        if ( inBuf.readableBytes() > 256 || !this.connection.isPlayer() ) {
             return zlibCompress( inBuf );
         } else {
             return fastStorage( inBuf );

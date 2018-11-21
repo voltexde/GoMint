@@ -9,8 +9,6 @@ package io.gomint.server.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author geNAZt

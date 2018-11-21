@@ -57,6 +57,7 @@ import io.gomint.world.generator.ChunkGenerator;
 import io.gomint.world.generator.CreateOptions;
 import io.gomint.world.generator.integrated.LayeredGenerator;
 import io.gomint.world.generator.integrated.NormalGenerator;
+import io.gomint.world.generator.integrated.VanillaGenerator;
 import io.gomint.world.generator.integrated.VoidGenerator;
 import joptsimple.OptionSet;
 import lombok.Getter;
@@ -212,6 +213,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
         this.getChunkGeneratorRegistry().registerGenerator( LayeredGenerator.NAME, LayeredGenerator.class );
         this.getChunkGeneratorRegistry().registerGenerator( NormalGenerator.NAME, NormalGenerator.class );
         this.getChunkGeneratorRegistry().registerGenerator( VoidGenerator.NAME, VoidGenerator.class );
+        this.getChunkGeneratorRegistry().registerGenerator( VanillaGenerator.NAME, VanillaGenerator.class );
 
         // Extract information from the manifest
         String buildVersion = "dev/unsupported";
@@ -400,6 +402,7 @@ public class GoMintServer implements GoMint, InventoryHolder {
                 } else {
                     // Apply standard generator
                     options.generator( NormalGenerator.class );
+
                     // Log chunk generator failure
                     LOGGER.warn( "No such chunk generator for '" + worldConfig.getChunkGenerator()
                         + "' - Using " + NormalGenerator.class.getName() );
