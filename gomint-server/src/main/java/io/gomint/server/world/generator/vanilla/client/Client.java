@@ -443,9 +443,9 @@ public class Client implements ConnectionWithState {
                     while ( true ) {
                         try {
                             NBTTagCompound compound = reader.parse();
-                            TileEntity tileEntity = TileEntities.construct( this.context, compound, chunkAdapter.getBlockAt( compound.getInteger( "x", 0 ), compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ) ) );
+                            TileEntity tileEntity = TileEntities.construct( this.context, compound, chunkAdapter.getBlockAt( compound.getInteger( "x", 0 ) & 0xF, compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ) & 0xF ) );
                             if ( tileEntity != null ) {
-                                chunkAdapter.setTileEntity( compound.getInteger( "x", 0 ), compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ), tileEntity );
+                                chunkAdapter.setTileEntity( compound.getInteger( "x", 0 ) & 0xF, compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ) & 0xF, tileEntity );
                             }
                         } catch ( Exception e ) {
                             break loop;

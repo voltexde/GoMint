@@ -292,7 +292,7 @@ public class LevelDBChunkAdapter extends ChunkAdapter {
             try {
                 NBTTagCompound compound = nbtReader.parse();
 
-                Block block = this.getBlockAt( compound.getInteger( "x", 0 ), compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ) );
+                Block block = this.getBlockAt( compound.getInteger( "x", 0 ) & 0xF, compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ) & 0xF );
 
                 tileEntity = TileEntities.construct( this.world.getServer().getContext(), compound, block );
                 if ( tileEntity != null ) {
