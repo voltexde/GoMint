@@ -16,6 +16,8 @@ import io.gomint.jraknet.SocketEvent;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
 import io.gomint.math.MathUtils;
+import io.gomint.server.entity.tileentity.TileEntities;
+import io.gomint.server.entity.tileentity.TileEntity;
 import io.gomint.server.jwt.JwtSignatureException;
 import io.gomint.server.jwt.JwtToken;
 import io.gomint.server.network.ConnectionWithState;
@@ -50,16 +52,20 @@ import io.gomint.server.world.ChunkSlice;
 import io.gomint.server.world.WorldAdapter;
 import io.gomint.server.world.generator.vanilla.chunk.ChunkSquare;
 import io.gomint.server.world.generator.vanilla.chunk.ChunkSquareCache;
+import io.gomint.taglib.NBTReaderNoBuffer;
+import io.gomint.taglib.NBTTagCompound;
 import io.gomint.util.random.FastRandom;
 import lombok.Setter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -92,6 +98,9 @@ public class Client implements ConnectionWithState {
     private static final Logger LOGGER = LoggerFactory.getLogger( Client.class );
 
     private final PostProcessExecutor postProcessExecutor;
+
+    @Autowired
+    private ApplicationContext context;
 
     @Autowired
     private EncryptionKeyFactory keyFactory;
@@ -402,6 +411,44 @@ public class Client implements ConnectionWithState {
                             BlockIdentifier blockIdentifier = this.runtimeIDs.get( localRuntimes[index] );
                             slice.setRuntimeIdInternal( blockCounter, b, BlockRuntimeIDs.from( blockIdentifier.getBlockId(), blockIdentifier.getData() ) );
                             blockCounter++;
+                        }
+                    }
+                }
+
+                // Read height
+                byte[] height = new byte[512];
+                chunkBuffer.readBytes( height );
+                chunkAdapter.setHeightMap( height );
+
+                // Read biomes
+                byte[] biomes = new byte[256];
+                chunkBuffer.readBytes( biomes );
+                chunkAdapter.setBiomes( biomes );
+
+                // Read tiles
+                if ( chunkBuffer.getRemaining() > 0 ) {
+                    NBTReaderNoBuffer reader = new NBTReaderNoBuffer( new InputStream() {
+                        @Override
+                        public int read() throws IOException {
+                            return chunkBuffer.readByte();
+                        }
+
+                        @Override
+                        public int available() throws IOException {
+                            return chunkBuffer.getRemaining();
+                        }
+                    }, ByteOrder.LITTLE_ENDIAN );
+
+                    loop:
+                    while ( true ) {
+                        try {
+                            NBTTagCompound compound = reader.parse();
+                            TileEntity tileEntity = TileEntities.construct( this.context, compound, chunkAdapter.getBlockAt( compound.getInteger( "x", 0 ), compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ) ) );
+                            if ( tileEntity != null ) {
+                                chunkAdapter.setTileEntity( compound.getInteger( "x", 0 ), compound.getInteger( "y", 0 ), compound.getInteger( "z", 0 ), tileEntity );
+                            }
+                        } catch ( Exception e ) {
+                            break loop;
                         }
                     }
                 }

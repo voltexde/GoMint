@@ -751,4 +751,12 @@ public class ChunkAdapter implements Chunk {
         slice.setData( x, y - 16 * ( y >> 4 ), z, layer, data );
     }
 
+    public void setHeightMap( byte[] height ) {
+        this.height = height;
+    }
+
+    public void setBiomes( byte[] biomes ) {
+        this.biomes = biomes;
+    }
+
 }
