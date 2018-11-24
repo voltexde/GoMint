@@ -8,6 +8,7 @@
 package io.gomint.server;
 
 import io.gomint.server.maintenance.ReportUploader;
+import io.gomint.server.util.CommandLineHolder;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.apache.logging.log4j.Level;
@@ -109,6 +110,8 @@ public class Bootstrap {
         try {
             AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
             context.registerBean( OptionSet.class, () -> options ); // Register CLI options
+            CommandLineHolder commandLineHolder = new CommandLineHolder( args );
+            context.registerBean( CommandLineHolder.class, () -> commandLineHolder );
             context.scan( "io.gomint.server" );
 
             context.refresh();

@@ -656,6 +656,11 @@ public class Client implements ConnectionWithState {
     }
 
     public ChunkSquare getChunkSquare() {
+        // Not spawned yet
+        if ( this.currentPos == null ) {
+            return null;
+        }
+
         return this.chunkSquareCache.getChunkSquare( MathUtils.fastCeil( this.currentPos.getX() / 16 ), MathUtils.fastCeil( this.currentPos.getZ() / 16 ) );
     }
 

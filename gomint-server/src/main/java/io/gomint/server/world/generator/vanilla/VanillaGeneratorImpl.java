@@ -10,7 +10,9 @@ package io.gomint.server.world.generator.vanilla;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import io.gomint.GoMint;
 import io.gomint.math.BlockPosition;
+import io.gomint.server.GoMintServer;
 import io.gomint.server.network.NetworkManager;
 import io.gomint.server.network.PostProcessExecutor;
 import io.gomint.server.world.WorldAdapter;
@@ -30,12 +32,10 @@ import org.springframework.context.ApplicationContext;
 import oshi.PlatformEnum;
 import oshi.SystemInfo;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -44,8 +44,8 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -59,9 +59,8 @@ public class VanillaGeneratorImpl extends VanillaGenerator {
     private static final String WINDOWS_DIST = "https://minecraft.azureedge.net/bin-win/bedrock-server-1.7.0.13.zip";
     private static final String LINUX_DIST = "https://minecraft.azureedge.net/bin-linux/bedrock-server-1.7.0.13.zip";
 
-    private Thread worldServerRunner;
     private int port;
-
+    private long processId;
     private long seed;
 
     @Autowired
@@ -77,7 +76,6 @@ public class VanillaGeneratorImpl extends VanillaGenerator {
     // Chunks from clients which haven't been consumed by the cache yet
     private final ChunkSquareCache chunkCache = new ChunkSquareCache();
 
-    private Process serverProcess;
     private AtomicBoolean manualClose = new AtomicBoolean( false );
 
     /**
@@ -216,47 +214,21 @@ public class VanillaGeneratorImpl extends VanillaGenerator {
             LOGGER.error( "Could not edit world servers server.properties", e );
         }
 
-        // Start the server
-        this.worldServerRunner = new Thread( () -> {
-            ProcessBuilder processBuilder = new ProcessBuilder( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? tempServer.getAbsolutePath() + "/bedrock_server.exe" : "LD_LIBRARY_PATH=. ./bedrock_server" );
-            processBuilder.directory( tempServer );
-
-            try {
-                serverProcess = processBuilder.start();
-
-                Thread stdReader = new Thread( () -> {
-                    try ( BufferedReader in = new BufferedReader( new InputStreamReader( serverProcess.getInputStream() ) ) ) {
-                        String line;
-                        while ( ( line = in.readLine() ) != null ) {
-                            if ( line.contains( "IPv4 supported, port:" ) ) {
-                                String[] split = line.split( " " );
-                                port = Integer.parseInt( split[split.length - 1] );
-                                LOGGER.info( "Server {} bound to {}", tempServer, port );
-                                connect();
-                            }
-
-                            LOGGER.debug( "{}> {}", tempServer, line );
-                        }
-                    } catch ( IOException ignored ) {
-
-                    }
-                } );
-
-                stdReader.start();
-
-                try {
-                    LOGGER.warn( "Server exited with {}", serverProcess.waitFor() );
-                } catch ( InterruptedException e ) {
-                    // The thread has been halted, kill the process
-                    serverProcess.destroyForcibly();
-                    stdReader.interrupt();
+        GoMintServer server = (GoMintServer) GoMint.instance();
+        server.getExecutorService().schedule( () -> {
+            // Start the server
+            SafeExec safeExec = this.applicationContext.getBean( SafeExec.class );
+            this.processId = safeExec.exec( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? tempServer.getAbsolutePath() + File.separator + "bedrock_server.exe" : "LD_LIBRARY_PATH=. ./bedrock_server", tempServer.getAbsolutePath(), line -> {
+                if ( line.contains( "IPv4 supported, port:" ) ) {
+                    String[] split = line.split( " " );
+                    port = Integer.parseInt( split[split.length - 1] );
+                    LOGGER.info( "Server {} bound to {}", tempServer, port );
+                    connect();
                 }
-            } catch ( IOException e ) {
-                LOGGER.error( "Could not start world server process", e );
-            }
-        } );
 
-        this.worldServerRunner.start();
+                LOGGER.info( "{}> {}", tempServer, line );
+            } );
+        }, 10, TimeUnit.MILLISECONDS );
     }
 
     private void connect() {
@@ -289,10 +261,13 @@ public class VanillaGeneratorImpl extends VanillaGenerator {
                 return;
             }
 
-            ChunkSquare chunkSquare = newClient.getChunkSquare();
+            LOGGER.info( "Bot disconnected" );
 
-            this.client.remove( newClient );
-            this.connectClient( worldAdapter ).moveToSquareAsync( chunkSquare );
+            ChunkSquare chunkSquare = newClient.getChunkSquare();
+            if ( chunkSquare != null ) {
+                this.client.remove( newClient );
+                this.connectClient( worldAdapter ).moveToSquareAsync( chunkSquare );
+            }
         } );
 
         this.client.add( newClient );
@@ -417,10 +392,8 @@ public class VanillaGeneratorImpl extends VanillaGenerator {
             client1.disconnect( "Closing chunk generator down" );
         }
 
-        // Simply crash the internal server
-        if ( this.serverProcess != null && this.serverProcess.isAlive() ) {
-            this.serverProcess.destroyForcibly();
-        }
+        SafeExec safeExec = this.applicationContext.getBean( SafeExec.class );
+        safeExec.stop( this.processId );
     }
 
 }
