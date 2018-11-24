@@ -34,10 +34,13 @@ import oshi.SystemInfo;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -216,9 +219,27 @@ public class VanillaGeneratorImpl extends VanillaGenerator {
 
         GoMintServer server = (GoMintServer) GoMint.instance();
         server.getExecutorService().schedule( () -> {
+            // Prepare a starter if needed
+            if ( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.LINUX ) {
+                String data = "#!/bin/bash\nLD_LIBRARY_PATH=. ./bedrock_server";
+                File startSH = new File( tempServer, "start.sh" );
+
+                try ( FileOutputStream outputStream = new FileOutputStream( startSH ) ) {
+                    outputStream.write( data.getBytes() );
+                } catch ( IOException e ) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    Files.setPosixFilePermissions( startSH.toPath(), PosixFilePermissions.fromString( "rwxr--r--" ) );
+                } catch ( IOException e ) {
+                    e.printStackTrace();
+                }
+            }
+
             // Start the server
             SafeExec safeExec = this.applicationContext.getBean( SafeExec.class );
-            this.processId = safeExec.exec( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? tempServer.getAbsolutePath() + File.separator + "bedrock_server.exe" : "LD_LIBRARY_PATH=. ./bedrock_server", tempServer.getAbsolutePath(), line -> {
+            this.processId = safeExec.exec( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? tempServer.getAbsolutePath() + File.separator + "bedrock_server.exe" : tempServer.getAbsolutePath() + File.separator + "start.sh", tempServer.getAbsolutePath(), line -> {
                 if ( line.contains( "IPv4 supported, port:" ) ) {
                     String[] split = line.split( " " );
                     port = Integer.parseInt( split[split.length - 1] );
