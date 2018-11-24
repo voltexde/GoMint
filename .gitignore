@@ -21,7 +21,6 @@ server.yml
 
 
 ### Package Files START #############################
-*.jar
 *.war
 *.ear
 ### Package Files END #############################
