@@ -218,38 +218,37 @@ public class VanillaGeneratorImpl extends VanillaGenerator {
         }
 
         GoMintServer server = (GoMintServer) GoMint.instance();
-        server.getExecutorService().schedule( () -> {
-            // Prepare a starter if needed
-            if ( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.LINUX ) {
-                String data = "#!/bin/bash\nLD_LIBRARY_PATH=. ./bedrock_server";
-                File startSH = new File( tempServer, "start.sh" );
 
-                try ( FileOutputStream outputStream = new FileOutputStream( startSH ) ) {
-                    outputStream.write( data.getBytes() );
-                } catch ( IOException e ) {
-                    e.printStackTrace();
-                }
+        // Prepare a starter if needed
+        if ( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.LINUX ) {
+            String data = "#!/bin/bash\nLD_LIBRARY_PATH=. ./bedrock_server";
+            File startSH = new File( tempServer, "start.sh" );
 
-                try {
-                    Files.setPosixFilePermissions( startSH.toPath(), PosixFilePermissions.fromString( "rwxr--r--" ) );
-                } catch ( IOException e ) {
-                    e.printStackTrace();
-                }
+            try ( FileOutputStream outputStream = new FileOutputStream( startSH ) ) {
+                outputStream.write( data.getBytes() );
+            } catch ( IOException e ) {
+                e.printStackTrace();
             }
 
-            // Start the server
-            SafeExec safeExec = this.applicationContext.getBean( SafeExec.class );
-            this.processId = safeExec.exec( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? tempServer.getAbsolutePath() + File.separator + "bedrock_server.exe" : tempServer.getAbsolutePath() + File.separator + "start.sh", tempServer.getAbsolutePath(), line -> {
-                if ( line.contains( "IPv4 supported, port:" ) ) {
-                    String[] split = line.split( " " );
-                    port = Integer.parseInt( split[split.length - 1] );
-                    LOGGER.info( "Server {} bound to {}", tempServer, port );
-                    connect();
-                }
+            try {
+                Files.setPosixFilePermissions( startSH.toPath(), PosixFilePermissions.fromString( "rwxr--r--" ) );
+            } catch ( IOException e ) {
+                e.printStackTrace();
+            }
+        }
 
-                LOGGER.info( "{}> {}", tempServer, line );
-            } );
-        }, 10, TimeUnit.MILLISECONDS );
+        // Start the server
+        SafeExec safeExec = server.getContext().getBean( SafeExec.class );
+        this.processId = safeExec.exec( SystemInfo.getCurrentPlatformEnum() == PlatformEnum.WINDOWS ? tempServer.getAbsolutePath() + File.separator + "bedrock_server.exe" : tempServer.getAbsolutePath() + File.separator + "start.sh", tempServer.getAbsolutePath(), line -> {
+            if ( line.contains( "IPv4 supported, port:" ) ) {
+                String[] split = line.split( " " );
+                port = Integer.parseInt( split[split.length - 1] );
+                LOGGER.info( "Server {} bound to {}", tempServer, port );
+                connect();
+            }
+
+            LOGGER.info( "{}> {}", tempServer, line );
+        } );
     }
 
     private void connect() {
