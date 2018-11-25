@@ -157,7 +157,7 @@ public abstract class EntityLiving extends Entity implements InventoryHolder, io
 
         // Check for client tick stuff
         this.lastUpdateDT += dT;
-        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             // Calc death stuff
             if ( this.getHealth() <= 0 ) {
                 if ( this.deadTimer > 0 && this.deadTimer-- > 1 ) {

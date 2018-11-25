@@ -28,7 +28,7 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
     private static final Vector WATER_FLOATING_MOTION = new Vector( 0, 0.1f, 0 );
 
     private boolean isReset;
-    private float lastUpdatedT;
+    private float lastUpdateDT;
 
     /**
      * Create entity for API
@@ -99,8 +99,8 @@ public class EntityFishingHook extends EntityProjectile implements io.gomint.ent
         // TODO: MJ BUG / 1.2.13 / Fishing hooks get applied noclip and gravity in the client, to circumvent we need to send the position every tick
         this.getTransform().setPosition( this.getPosition() );
 
-        this.lastUpdatedT += dT;
-        if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             if ( this.isCollided && this.isInsideLiquid() ) {
                 if ( !this.getVelocity().equals( WATER_FLOATING_MOTION ) ) {
                     this.setVelocity( WATER_FLOATING_MOTION );

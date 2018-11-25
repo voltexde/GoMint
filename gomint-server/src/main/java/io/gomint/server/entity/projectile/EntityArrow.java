@@ -39,7 +39,7 @@ public class EntityArrow extends EntityProjectile implements io.gomint.entity.pr
 
     private boolean canBePickedup;
     private boolean critical;
-    private float lastUpdatedT;
+    private float lastUpdateDT;
 
     private int powerModifier;
     private int punchModifier;
@@ -150,8 +150,8 @@ public class EntityArrow extends EntityProjectile implements io.gomint.entity.pr
             this.despawn();
         }
 
-        this.lastUpdatedT += dT;
-        if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             if ( this.isCollided && !this.canBePickedup && !this.firedHitEvent ) { // this.canBePickedup indicates if a event got cancelled
                 // Remap
                 Set<Block> blocks = new HashSet<>( this.collidedWith );
@@ -171,6 +171,8 @@ public class EntityArrow extends EntityProjectile implements io.gomint.entity.pr
             if ( this.age >= 1200 ) {
                 this.despawn();
             }
+
+            this.lastUpdateDT = 0;
         }
     }
 

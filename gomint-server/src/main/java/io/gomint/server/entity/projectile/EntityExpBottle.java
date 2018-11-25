@@ -9,6 +9,7 @@ package io.gomint.server.entity.projectile;
 
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.entity.EntityType;
 import io.gomint.server.registry.RegisterInfo;
@@ -25,7 +26,7 @@ import io.gomint.world.Particle;
 @RegisterInfo( sId = "minecraft:xp_bottle" )
 public class EntityExpBottle extends EntityThrowable implements io.gomint.entity.projectile.EntityExpBottle {
 
-    private float lastUpdatedT;
+    private float lastUpdateDT;
 
     /**
      * Construct a new Entity
@@ -62,8 +63,8 @@ public class EntityExpBottle extends EntityThrowable implements io.gomint.entity
             this.despawn();
         }
 
-        this.lastUpdatedT += dT;
-        if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             if ( this.isCollided ) {
                 this.breakBottle();
                 this.despawn();
@@ -73,6 +74,8 @@ public class EntityExpBottle extends EntityThrowable implements io.gomint.entity
             if ( this.age >= 1200 ) {
                 this.despawn();
             }
+
+            this.lastUpdateDT = 0;
         }
     }
 

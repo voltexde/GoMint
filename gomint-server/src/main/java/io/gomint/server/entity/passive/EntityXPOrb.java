@@ -40,7 +40,7 @@ public class EntityXPOrb extends Entity implements io.gomint.entity.passive.Enti
     // Since xp orbs can travel a bit
     private EntityPlayer closestPlayer;
 
-    private float lastUpdateDt;
+    private float lastUpdateDT;
 
     /**
      * Construct a new Entity
@@ -90,8 +90,8 @@ public class EntityXPOrb extends Entity implements io.gomint.entity.passive.Enti
         // Entity base tick (movement)
         super.update( currentTimeMS, dT );
 
-        this.lastUpdateDt += dT;
-        if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             if ( this.closestPlayer == null || this.closestPlayer.getGamemode() == Gamemode.SPECTATOR ||
                 this.closestPlayer.isDead() || this.closestPlayer.getHealth() <= 0 ||
                 this.closestPlayer.getLocation().distanceSquared( this.getLocation() ) > 64 ) {
@@ -129,7 +129,7 @@ public class EntityXPOrb extends Entity implements io.gomint.entity.passive.Enti
                 this.despawn();
             }
 
-            this.lastUpdateDt = 0;
+            this.lastUpdateDT = 0;
         }
     }
 

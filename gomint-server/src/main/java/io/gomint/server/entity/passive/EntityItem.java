@@ -5,6 +5,7 @@ import io.gomint.entity.passive.EntityItemDrop;
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.event.player.PlayerPickupItemEvent;
 import io.gomint.inventory.item.ItemStack;
+import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.Entity;
@@ -37,7 +38,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
     private long pickupTime;
     private boolean isReset;
 
-    private float lastUpdateDt;
+    private float lastUpdateDT;
 
     /**
      * Construct a new Entity
@@ -90,8 +91,8 @@ public class EntityItem extends Entity implements EntityItemDrop {
         // Entity base tick (movement)
         super.update( currentTimeMS, dT );
 
-        this.lastUpdateDt += dT;
-        if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             if ( this.isCollided && !this.isReset && this.getVelocity().length() < 0.01f ) {
                 this.setVelocity( Vector.ZERO ); // Reset velocity
                 this.isReset = true;
@@ -101,7 +102,7 @@ public class EntityItem extends Entity implements EntityItemDrop {
                 this.despawn();
             }
 
-            this.lastUpdateDt = 0;
+            this.lastUpdateDT = 0;
         }
     }
 

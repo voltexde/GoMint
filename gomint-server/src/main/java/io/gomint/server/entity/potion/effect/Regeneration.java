@@ -8,6 +8,7 @@
 package io.gomint.server.entity.potion.effect;
 
 import io.gomint.event.entity.EntityHealEvent;
+import io.gomint.math.MathUtils;
 import io.gomint.server.entity.EntityLiving;
 import io.gomint.server.player.EffectManager;
 import io.gomint.server.registry.RegisterInfo;
@@ -36,7 +37,7 @@ public class Regeneration extends Effect {
     @Override
     public void update( long currentTimeMillis, float dT ) {
         this.lastUpdatedT += dT;
-        if ( this.lastUpdatedT >= this.addHealthEvery ) {
+        if ( this.addHealthEvery - this.lastUpdatedT < MathUtils.EPSILON ) {
             this.player.heal( 1f, EntityHealEvent.Cause.REGENERATION_EFFECT );
             this.lastUpdatedT = 0;
         }

@@ -9,6 +9,7 @@ package io.gomint.server.entity.active;
 
 import io.gomint.event.entity.EntityDamageEvent;
 import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
 import io.gomint.math.Vector;
 import io.gomint.server.entity.Entity;
 import io.gomint.server.entity.EntityFlag;
@@ -27,7 +28,7 @@ import io.gomint.server.world.WorldAdapter;
 @RegisterInfo( sId = "minecraft:tnt" )
 public class EntityPrimedTNT extends Entity implements io.gomint.entity.active.EntityPrimedTNT {
 
-    private float lastUpdatedT;
+    private float lastUpdateDT;
     private int fuse;
 
     /**
@@ -80,8 +81,8 @@ public class EntityPrimedTNT extends Entity implements io.gomint.entity.active.E
     public void update( long currentTimeMS, float dT ) {
         super.update( currentTimeMS, dT );
 
-        this.lastUpdatedT += dT;
-        if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             // Update client
             if ( this.fuse % 5 == 0 ) {
                 this.metadataContainer.putInt( MetadataContainer.DATA_FUSE_LENGTH, this.fuse );
@@ -98,7 +99,7 @@ public class EntityPrimedTNT extends Entity implements io.gomint.entity.active.E
                 despawn();
             }
 
-            this.lastUpdatedT = 0;
+            this.lastUpdateDT = 0;
         }
     }
 

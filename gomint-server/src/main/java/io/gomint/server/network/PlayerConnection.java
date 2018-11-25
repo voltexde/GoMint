@@ -18,6 +18,7 @@ import io.gomint.jraknet.PacketBuffer;
 import io.gomint.jraknet.PacketReliability;
 import io.gomint.math.BlockPosition;
 import io.gomint.math.Location;
+import io.gomint.math.MathUtils;
 import io.gomint.player.DeviceInfo;
 import io.gomint.server.GoMintServer;
 import io.gomint.server.entity.EntityPlayer;
@@ -322,7 +323,7 @@ public class PlayerConnection implements ConnectionWithState {
 
         // Reset sentInClientTick
         this.lastUpdateDT += dT;
-        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             // Check if we need to send chunks
             if ( this.entity != null && !this.entity.getChunkSendQueue().isEmpty() ) {
                 int currentX = CoordinateUtils.fromBlockToChunk( (int) this.entity.getPositionX() );

@@ -31,7 +31,7 @@ import java.util.Set;
 @RegisterInfo( sId = "minecraft:ender_pearl" )
 public class EntityEnderpearl extends EntityProjectile implements io.gomint.entity.projectile.EntityEnderpearl {
 
-    private float lastUpdatedT;
+    private float lastUpdateDT;
 
     /**
      * Create entity for API
@@ -97,8 +97,8 @@ public class EntityEnderpearl extends EntityProjectile implements io.gomint.enti
             this.despawn();
         }
 
-        this.lastUpdatedT += dT;
-        if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             if ( this.isCollided ) {
                 Set<Block> blocks = new HashSet<>( this.collidedWith );
                 ProjectileHitBlocksEvent hitBlocksEvent = new ProjectileHitBlocksEvent( blocks, this );
@@ -114,6 +114,8 @@ public class EntityEnderpearl extends EntityProjectile implements io.gomint.enti
             if ( this.age >= 1200 ) {
                 this.despawn();
             }
+
+            this.lastUpdateDT = 0;
         }
     }
 

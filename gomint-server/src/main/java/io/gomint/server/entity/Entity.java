@@ -123,7 +123,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
     @Setter
     private boolean dead;
     private TransformComponent transform;
-    private float lastUpdateDt;
+    private float lastUpdateDT;
     @Getter
     private List<EntityLink> links;
     // Some tracker for "smooth" movement
@@ -229,8 +229,8 @@ public abstract class Entity implements io.gomint.entity.Entity {
 
         this.transform.update( currentTimeMS, dT );
 
-        this.lastUpdateDt += dT;
-        if ( this.lastUpdateDt >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             this.age++;
 
             if ( !isImmobile() ) {
@@ -288,7 +288,7 @@ public abstract class Entity implements io.gomint.entity.Entity {
                 this.dealVoidDamage();
             }
 
-            this.lastUpdateDt = 0;
+            this.lastUpdateDT = 0;
         }
 
         // Check if we need to update the bounding box

@@ -32,7 +32,7 @@ import java.util.Collection;
 public abstract class EntityProjectile extends Entity implements io.gomint.entity.projectile.EntityProjectile {
 
     protected final EntityLiving shooter;
-    private float lastUpdatedT;
+    private float lastUpdateDT;
 
     // Hit state tracking
     protected Entity hitEntity;
@@ -67,8 +67,8 @@ public abstract class EntityProjectile extends Entity implements io.gomint.entit
             this.hitEntity = null;
         }
 
-        this.lastUpdatedT += dT;
-        if ( this.lastUpdatedT >= Values.CLIENT_TICK_RATE ) {
+        this.lastUpdateDT += dT;
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             if ( this.hitEntity != null ) {
                 this.setPosition( this.hitEntity.getPosition().add( 0, this.hitEntity.getEyeHeight() + this.getHeight(), 0 ) );
             } else {
@@ -150,7 +150,7 @@ public abstract class EntityProjectile extends Entity implements io.gomint.entit
                 }
             }
 
-            this.lastUpdatedT = 0;
+            this.lastUpdateDT = 0;
         }
     }
 

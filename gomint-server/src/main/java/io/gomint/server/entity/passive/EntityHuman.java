@@ -170,7 +170,7 @@ public class EntityHuman extends EntityCreature implements io.gomint.entity.pass
 
         // Food tick
         this.lastUpdateDT += dT;
-        if ( this.lastUpdateDT >= Values.CLIENT_TICK_RATE ) {
+        if ( Values.CLIENT_TICK_RATE - this.lastUpdateDT < MathUtils.EPSILON ) {
             if ( !this.isDead() && this.shouldTickHunger() ) {
                 AttributeInstance hungerInstance = this.getAttributeInstance( Attribute.HUNGER );
                 float hunger = hungerInstance.getValue();
