@@ -396,6 +396,9 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     public void setOp( boolean value ) {
         this.adventureSettings.setOperator( value );
         this.sendAdventureSettings();
+
+        // Grant all permissions / notify the permission manager
+        this.permissionManager.toggleOp();
     }
 
     @Override

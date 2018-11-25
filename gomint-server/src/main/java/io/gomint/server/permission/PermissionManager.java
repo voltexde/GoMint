@@ -59,6 +59,11 @@ public class PermissionManager implements io.gomint.permission.PermissionManager
 
     @Override
     public boolean hasPermission( String permission ) {
+        // Check if player is op
+        if ( this.player.isOp() ) {
+            return true;
+        }
+
         // Check if we have a cached copy
         String permissionIntern = permission.intern();
         Boolean val = this.cache.get( permissionIntern );
@@ -160,6 +165,13 @@ public class PermissionManager implements io.gomint.permission.PermissionManager
     public void removePermission( String permission ) {
         this.permissions.removeBoolean( permission );
         this.cache.clear();
+        this.dirty = true;
+    }
+
+    /**
+     * Notify about op toggle
+     */
+    public void toggleOp() {
         this.dirty = true;
     }
 
