@@ -132,9 +132,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     private static final Logger LOGGER = LoggerFactory.getLogger( EntityPlayer.class );
 
     private final PlayerConnection connection;
+    @Getter
+    private final PermissionManager permissionManager = new PermissionManager( this );
+    @Getter
+    private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
     private int viewDistance = 4;
     private Queue<ChunkAdapter> chunkSendQueue = new LinkedBlockingQueue<>();
-
     // EntityPlayer Information
     private Gamemode gamemode = Gamemode.SURVIVAL;
     @Getter
@@ -142,10 +145,6 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Getter
     @Setter
     private Entity hoverEntity;
-    @Getter
-    private final PermissionManager permissionManager = new PermissionManager( this );
-    @Getter
-    private final EntityVisibilityManager entityVisibilityManager = new EntityVisibilityManager( this );
     private Location respawnPosition = null;
     private Locale locale;
 
@@ -285,6 +284,24 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
         return this.viewDistance;
     }
 
+    /**
+     * Sets the view distance used to calculate the chunk to be sent to the player.
+     *
+     * @param viewDistance The view distance to set
+     */
+    public void setViewDistance( int viewDistance ) {
+        int tempViewDistance = Math.min( viewDistance, this.world.getConfig().getViewDistance() );
+        if ( this.viewDistance != tempViewDistance ) {
+            this.viewDistance = tempViewDistance;
+        }
+
+        if ( this.connection.getState() != PlayerConnectionState.PLAYING ) {
+            this.getLoginPerformance().setChunkStart( this.world.getServer().getCurrentTickTime() );
+        }
+
+        this.connection.onViewDistanceChanged();
+    }
+
     @Override
     public void transfer( String host, int port ) {
         if ( this.world.getServer().getServerConfig().getListener().isUseTCP() ) {
@@ -306,36 +323,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     /**
-     * Sets the view distance used to calculate the chunk to be sent to the player.
-     *
-     * @param viewDistance The view distance to set
-     */
-    public void setViewDistance( int viewDistance ) {
-        int tempViewDistance = Math.min( viewDistance, this.world.getConfig().getViewDistance() );
-        if ( this.viewDistance != tempViewDistance ) {
-            this.viewDistance = tempViewDistance;
-        }
-
-        if ( this.connection.getState() != PlayerConnectionState.PLAYING ) {
-            this.getLoginPerformance().setChunkStart( this.world.getServer().getCurrentTickTime() );
-        }
-
-        this.connection.onViewDistanceChanged();
-    }
-
-    /**
      * Gets the connection associated with this player entity.
      *
      * @return The connection associated with this player entity
      */
     public PlayerConnection getConnection() {
         return this.connection;
-    }
-
-    @Override
-    public void setGamemode( Gamemode gamemode ) {
-        this.gamemode = gamemode;
-        this.updateGamemode();
     }
 
     private void updateGamemode() {
@@ -385,6 +378,12 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     @Override
     public Gamemode getGamemode() {
         return this.gamemode;
+    }
+
+    @Override
+    public void setGamemode( Gamemode gamemode ) {
+        this.gamemode = gamemode;
+        this.updateGamemode();
     }
 
     @Override
@@ -1222,7 +1221,45 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
 
         List<io.gomint.inventory.item.ItemStack> drops = this.getDrops();
 
-        PlayerDeathEvent event = new PlayerDeathEvent( this, "", true, drops );
+        String deathMessage = "";
+        EntityDamageEvent.DamageSource cause = this.getLastDamageSource();
+        switch ( cause ) {
+            case ENTITY_ATTACK:
+                deathMessage = this.getDisplayName() + " was slain by " + this.getLastDamageEntity().getNameTag();
+                break;
+            case FALL:
+                deathMessage = this.getDisplayName() + " fell from a high place";
+                break;
+            case LAVA:
+                deathMessage = this.getDisplayName() + " tried to swim in lava";
+                break;
+            case FIRE:
+                deathMessage = this.getDisplayName() + " went up in flames";
+                break;
+            case VOID:
+                deathMessage = this.getDisplayName() + " fell out of the world";
+                break;
+            case CACTUS:
+                deathMessage = this.getDisplayName() + " was pricked to death";
+                break;
+            case STARVE:
+                deathMessage = this.getDisplayName() + " starved to death";
+                break;
+            case ON_FIRE:
+                deathMessage = this.getDisplayName() + " burned to death";
+                break;
+            case DROWNING:
+                deathMessage = this.getDisplayName() + " drowned";
+                break;
+            case HARM_EFFECT:
+                deathMessage = this.getDisplayName() + " was killed by magic";
+                break;
+            case ENTITY_EXPLODE:
+                deathMessage = this.getDisplayName() + " blew up";
+                break;
+        }
+
+        PlayerDeathEvent event = new PlayerDeathEvent( this, deathMessage, true, drops );
         this.connection.getServer().getPluginManager().callEvent( event );
 
         if ( event.isDropInventory() ) {
@@ -1490,6 +1527,11 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
+    public boolean getAllowFlight() {
+        return this.adventureSettings.isCanFly();
+    }
+
+    @Override
     public void setAllowFlight( boolean value ) {
         this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.CAN_FLY, value );
         this.adventureSettings.setCanFly( value );
@@ -1497,19 +1539,14 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public boolean getAllowFlight() {
-        return this.adventureSettings.isCanFly();
+    public boolean getFlying() {
+        return this.adventureSettings.isFlying();
     }
 
     @Override
     public void setFlying( boolean value ) {
         this.adventureSettings.setFlying( value );
         this.adventureSettings.update();
-    }
-
-    @Override
-    public boolean getFlying() {
-        return this.adventureSettings.isFlying();
     }
 
     @Override
@@ -1605,13 +1642,13 @@ public class EntityPlayer extends EntityHuman implements io.gomint.entity.Entity
     }
 
     @Override
-    public void setGliding( boolean value ) {
-        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.GLIDING, value );
+    public boolean isGliding() {
+        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.GLIDING );
     }
 
     @Override
-    public boolean isGliding() {
-        return this.metadataContainer.getDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.GLIDING );
+    public void setGliding( boolean value ) {
+        this.metadataContainer.setDataFlag( MetadataContainer.DATA_INDEX, EntityFlag.GLIDING, value );
     }
 
     @Override
