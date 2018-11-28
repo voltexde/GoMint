@@ -76,7 +76,7 @@ public class EncryptionKeyFactory {
 
     private void ensureKey() {
         // If needed (for connection encryption) generate a keypair
-        if ( this.keyPair == null && this.server.getServerConfig().getConnection().isEnableEncryption() && !this.server.getServerConfig().getListener().isUseTCP() ) {
+        if ( this.keyPair == null ) {
             // Setup KeyPairGenerator:
             KeyPairGenerator generator;
             try {
