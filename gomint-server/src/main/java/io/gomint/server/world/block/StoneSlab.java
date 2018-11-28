@@ -13,7 +13,7 @@ import io.gomint.world.block.data.StoneType;
  * @author geNAZt
  * @version 1.0
  */
-@RegisterInfo( sId = "minecraft:stone_slab" )
+@RegisterInfo( sId = "minecraft:stone_slab", def = true )
 @RegisterInfo( sId = "minecraft:stone_slab2" )
 public class StoneSlab extends Slab implements BlockStoneSlab {
 
