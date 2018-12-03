@@ -45,7 +45,7 @@ public class DebugScoreboard {
         this.display = scoreboard.addDisplay( DisplaySlot.SIDEBAR, "debug", ChatColor.GREEN + "Go" + ChatColor.GRAY + "Mint" );
 
         this.display.addLine( " ", 0 );
-        this.display.addLine( ChatColor.GOLD + "TPS     ", 1 );
+        this.display.addLine( ChatColor.GOLD + "TPS1:     ", 1 );
         this.tpsEntry = this.display.addLine( ChatColor.RED + "0.00", 2 );
 
         this.display.addLine( "  ", 3 );
